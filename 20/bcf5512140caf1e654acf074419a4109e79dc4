@@ -1,0 +1,19 @@
+scripts/check-phase-finalize.py
+  s_970cfa16c271fd::t_b99caf30fe1bd9 513-614,1018-1040
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "20bcf5512140caf1e654acf074419a4109e79dc4",
+  "prompts": {},
+  "sessions": {
+    "s_970cfa16c271fd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a207d8-8a89-74a0-9221-751d00e53795",
+        "model": "unknown"
+      },
+      "human_author": "AlekseiChirkov <tektonikboy98@gmail.com>"
+    }
+  }
+}
