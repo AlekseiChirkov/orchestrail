@@ -81,6 +81,13 @@ fetches, checks out, deletes branches, publishes metadata or writes telemetry. R
 verification creates disposable isolated object storage only. Optional logging/tools remain
 nonblocking unless the project's required verification depends on them.
 
+Finalization reads both two-column contract results and three-column results with separate
+evidence. A recorded acceptance criterion ID ties its review row to the full criterion.
+Shortened invariant and boundary labels need a unique subject match and a recorded reason.
+Fix directory names may resolve to unique short IDs in the plan and progress log, where
+review must still be complete. When a PR record includes both a number and a GitHub URL,
+both must identify the same PR in the configured repository before the authority read.
+
 ### Internal command sequence
 
 ```text

@@ -510,6 +510,108 @@ T-01 | Deliver product | atomic-tests: green | atomic-execution: complete | atom
         (self.task / 'state.md').write_text(text)
         self.blocked(self.call(), 'contract-coverage-incomplete')
 
+    def reviewed_contract(self) -> str:
+        return (self.state_text
+                .replace('- Product delivery is integrated.',
+                         '- AC-01 | REQ-01, REQ-02 | Given reviewed product changes, they are integrated.')
+                .replace('- Preserve original product history.',
+                         '- Preserve original product history and the first recorded release.')
+                .replace('- Unrelated local work.',
+                         '- Existing standalone calculator and dashboard contracts stay compatible.')
+                .replace('| Preserve original product history. | PASS: original commit is reachable. |',
+                         '| Original product history and first release retained | PASS | The original commit is reachable. |')
+                .replace('| Criterion | Status |\n|---|---|\n| Product delivery is integrated. | PASS: integration fixture verified. |',
+                         '| Criterion | Status | Evidence |\n|---|---|---|\n| `AC-01` | PASS | The integration fixture passed. |')
+                .replace('| Unrelated local work. | PASS: fixture baseline is intact. |',
+                         '| Existing standalone calculator and dashboard compatibility | PASS | Baseline behavior tests passed. |'))
+
+    def test_reviewed_contract_accepts_ids_and_paraphrased_three_column_rows(self) -> None:
+        value = self.reviewed_contract()
+        (self.task / 'state.md').write_text(value)
+        result = self.call()
+        self.assertEqual('ready', result['status'], result)
+        self.assertEqual(value, (self.task / 'state.md').read_text())
+
+    def test_reviewed_contract_rejects_missing_and_duplicate_criterion_ids(self) -> None:
+        value = self.reviewed_contract()
+        for modified, reason in (
+            (value.replace('| `AC-01` |', '| AC-99 |'), 'contract-coverage-incomplete'),
+            (value.replace(
+                '| `AC-01` | PASS | The integration fixture passed. |',
+                '| `AC-01` | PASS | The integration fixture passed. |\n| AC-01 | PASS | Duplicate. |'),
+             'state-ambiguous'),
+            (value.replace('## Contract Check',
+                           '- AC-01 | REQ-03 | Given a different request, a receipt is stored.\n## Contract Check'),
+             'state-ambiguous'),
+        ):
+            with self.subTest(reason=reason, modified=modified.split('### Acceptance Criteria')[1][:130]):
+                (self.task / 'state.md').write_text(modified)
+                self.blocked(self.call(), reason)
+
+    def test_reviewed_contract_rejects_failed_or_ambiguous_paraphrase(self) -> None:
+        value = self.reviewed_contract()
+        for modified, reason in (
+            (value.replace('| PASS | Baseline behavior tests passed.', '| FAIL | The dashboard changed.'),
+             'contract-failed'),
+            (value.replace('| PASS | The integration fixture passed.', '| FAIL | Integration failed.'),
+             'contract-failed'),
+            (value.replace(
+                '| PASS | Baseline behavior tests passed. |',
+                '| PASS | Baseline behavior tests passed. |\n'
+                '| Existing standalone calculator and dashboard remain compatible | PASS | Another review. |'),
+             'state-ambiguous'),
+            (value.replace('Existing standalone calculator and dashboard compatibility', 'Production database access'),
+             'contract-coverage-incomplete'),
+        ):
+            with self.subTest(reason=reason, modified=modified.split('### Off-limits')[-1][:175]):
+                (self.task / 'state.md').write_text(modified)
+                self.blocked(self.call(), reason)
+
+    def fix_inventory(self, progress_id: str = 'T-02', plan_id: str = 'T-02',
+                      status: str = 'reviewed') -> str:
+        self.write_state(extra=f'{progress_id} | Repair delivery | atomic-tests: green | atomic-execution: complete | atomic-validation: complete\n'
+                               f'  branch: feat/delivery\n  base_commit: {self.base}\n  commits: {self.tip}\n')
+        plan = self.task / 'plan.md'
+        plan.write_text(plan.read_text() + f'| {plan_id} | Repair delivery | T-01 | {status} |\n')
+        return (self.state_text.replace('### Approved\nNone', '### Approved\n1. Repair delivery.')
+                .replace('fixes-count: 0\nCreated: none', 'fixes-count: 1\nCreated: T-02-fix-delivery'))
+
+    def test_fix_directory_resolves_to_reviewed_short_id(self) -> None:
+        (self.task / 'state.md').write_text(self.fix_inventory())
+        result = self.call()
+        self.assertEqual('ready', result['status'], result)
+        self.assertEqual(['T-01', 'T-02'],
+                         [member['leaf'] for member in result['repositories'][0]['candidates'][0]['members']])
+
+    def test_fix_directory_rejects_unreviewed_progress_or_plan(self) -> None:
+        value = self.fix_inventory(status='done')
+        (self.task / 'state.md').write_text(value)
+        self.blocked(self.call(), 'approved-fix-unresolved')
+        plan = self.task / 'plan.md'
+        plan.write_text(plan.read_text().replace('| done |', '| reviewed |'))
+        (self.task / 'state.md').write_text(value.replace(
+            'T-02 | Repair delivery | atomic-tests: green | atomic-execution: complete | atomic-validation: complete',
+            'T-02 | Repair delivery | atomic-tests: green | atomic-execution: complete | atomic-validation: in-progress'))
+        self.blocked(self.call(), 'approved-fix-unresolved')
+
+    def test_fix_inventory_rejects_unknown_and_conflicting_ids(self) -> None:
+        value = self.fix_inventory()
+        for modified, reason in (
+            (value.replace('Created: T-02-fix-delivery', 'Created: T-03-fix-delivery'), 'approved-fix-unresolved'),
+            (value.replace('fixes-count: 1\nCreated: T-02-fix-delivery',
+                           'fixes-count: 2\nCreated: T-02-fix-delivery, T-02-fix-duplicate'), 'state-ambiguous'),
+            (value.replace('## Solution Design',
+                           'T-02-fix-other | Another repair | atomic-validation: complete\n## Solution Design'),
+             'state-ambiguous'),
+        ):
+            with self.subTest(reason=reason, created=modified.split('Created: ')[-1].splitlines()[0]):
+                (self.task / 'state.md').write_text(modified)
+                self.blocked(self.call(), reason)
+        (self.task / 'state.md').write_text(value)
+        plan = self.task / 'plan.md'
+        plan.write_text(plan.read_text() + '| T-02-fix-other | Another repair | T-01 | reviewed |\n')
+        self.blocked(self.call(), 'state-ambiguous')
+
     def test_full_quick_contract_and_review_allow_explicit_delivery_record(self) -> None:
         self.write_state(flow='quick')
         text = self.state_text.replace('## Subtask Progress\nT-01 | Deliver product | atomic-tests: green | atomic-execution: complete | atomic-validation: complete', '## Delivery')
@@ -912,6 +1014,29 @@ T-01 | Deliver product | atomic-tests: green | atomic-execution: complete | atom
 
     def test_canonical_draft_pr_number_reads_repository_bound_authority(self) -> None:
         self.canonical_numbered_pr_is_repo_bound('draft')
+
+    def test_ready_pr_number_and_url_read_repository_bound_authority(self) -> None:
+        self.canonical_numbered_pr_is_repo_bound('ready | https://github.com/fixture-org/product/pull/142')
+
+    def test_ready_pr_number_and_url_reject_unmatched_reference(self) -> None:
+        call_log = self.github_pr_fixture()
+        for url, reason in (
+            ('https://github.com/fixture-org/product/pull/143', 'pr-authority-unverified'),
+            ('https://github.com/unrelated-org/product/pull/142', 'pr-repository-mismatch'),
+        ):
+            with self.subTest(url=url):
+                (self.task / 'state.md').write_text(self.state_text.replace(
+                    '## Solution Design', f'  pr: #142 ready | {url}\n## Solution Design'))
+                self.blocked(self.call(), reason)
+                self.assertFalse(call_log.exists())
+
+    def test_ready_pr_number_and_url_cannot_replace_merge_proof(self) -> None:
+        self.git(self.repo, 'reset', '--hard', self.base)
+        call_log = self.github_pr_fixture()
+        (self.task / 'state.md').write_text(self.state_text.replace(
+            '## Solution Design', '  pr: #142 ready | https://github.com/fixture-org/product/pull/142\n## Solution Design'))
+        self.blocked(self.call(), 'integration-unverified')
+        self.assertTrue(call_log.is_file())
 
     def test_canonical_pr_number_rejects_inconsistent_repository_identity(self) -> None:
         call_log = self.github_pr_fixture(returned_owner='unrelated-org')
