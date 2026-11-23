@@ -15,6 +15,12 @@ from finalization_attempts import receipt_is_newer
 
 SHA = re.compile(r'^[0-9a-f]{40}(?:[0-9a-f]{24})?$')
 BRANCH = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._/\-]*$')
+CRITERION_ID = re.compile(r'^ac-[0-9]+(?=\s*(?:\\?\||$))')
+FIX_ID = re.compile(r'(T-\d+[a-z]?)(?:-fix-[a-z0-9-]+)?')
+PR_URL = re.compile(r'https://github\.com/([^/]+/[^/]+)/pull/([1-9][0-9]*)')
+REVIEW_STOP_WORDS = frozenset(
+    'and are for from has have its must not one only per the their then this through when with without'.split()
+)
 
 
 def process(arguments: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -106,6 +112,94 @@ def norm(value: str) -> str:
     return re.sub(r'\s+', ' ', value.strip('` .')).casefold()
 
 
+def contract_key(value: str, heading: str) -> str:
+    label = norm(value)
+    if heading == 'Acceptance Criteria':
+        identifier = CRITERION_ID.match(label.replace('`', ''))
+        if identifier:
+            return identifier.group()
+    return label
+
+
+def review_terms(label: str) -> list[str]:
+    return [word.removesuffix('s') if len(word) > 4 else word
+            for word in re.findall(r'[^\W_]+(?:&[^\W_]+)*', label)
+            if (len(word) >= 3 or word == 'ui') and word not in REVIEW_STOP_WORDS]
+
+
+def same_review_subject(expected: str, reviewed: str) -> bool:
+    """Identify a review subject by shared terms and a shared phrase."""
+    left, right = review_terms(expected), review_terms(reviewed)
+    return (len(set(left).intersection(right)) >= 3
+            and not set(zip(left, left[1:])).isdisjoint(zip(right, right[1:])))
+
+
+def contract_coverage(contract: str, check: str, heading: str) -> None:
+    expected = [contract_key(item, heading) for item in normative(section(contract, '### ' + heading))]
+    actual = section(check, '### ' + heading)
+    require(expected and actual, 'validation-evidence-missing', f'Missing normative or verified {heading}')
+    require(len(set(expected)) == len(expected), 'state-ambiguous', f'Duplicate normative {heading} key')
+    rows = []
+    for line in actual.splitlines():
+        if line.strip().startswith('|'):
+            rows.append([cell.strip() for cell in re.split(r'(?<!\\)\|', line.strip().removeprefix('|').removesuffix('|'))])
+    table: dict[str, tuple[str, str]] = {}
+    for index, cells in enumerate(rows):
+        if all(re.fullmatch(r':?-+:?', cell) for cell in cells):
+            continue
+        if (index == 0 and len(cells) in {2, 3} and not cells[1].startswith(('PASS', 'FAIL'))
+                and len(rows) > 1 and len(rows[1]) == len(cells)
+                and all(re.fullmatch(r':?-+:?', cell) for cell in rows[1])):
+            continue
+        require(len(cells) in {2, 3}, 'validation-evidence-missing', f'Malformed {heading} review row')
+        key = contract_key(cells[0], heading)
+        require(key and key not in table, 'state-ambiguous', f'Duplicate or empty {heading} review key: {key}')
+        status = cells[1]
+        evidence = cells[2] if len(cells) == 3 else re.sub(r'^PASS\s*[:—–-]?\s*', '', status)
+        table[key] = (status, evidence)
+    require(table, 'validation-evidence-missing', f'No verified {heading} table rows')
+    require(not any(status.startswith('FAIL') for status, _ in table.values()),
+            'contract-failed', f'Failed {heading} remain incomplete')
+    covered: set[str] = set()
+    exact = set(expected).intersection(table)
+    for key in expected:
+        matches = [key] if key in exact else []
+        if heading != 'Acceptance Criteria':
+            matches.extend(label for label in table.keys() - exact if same_review_subject(key, label))
+        require(len(matches) <= 1 and covered.isdisjoint(matches), 'state-ambiguous',
+                f'Ambiguous {heading} review for {key}')
+        require(matches, 'contract-coverage-incomplete', f'Unverified normative {heading}: {key}')
+        label = matches[0]
+        status, evidence = table[label]
+        require(re.match(r'^PASS\b', status) and (key == label or evidence),
+                'contract-coverage-incomplete', f'Unverified normative {heading}: {key}')
+        covered.add(label)
+
+
+def reviewed_fix_plan_ids(created: list[str], indexed: dict[str, dict], statuses: dict[str, str]) -> dict[str, str]:
+    """Resolve the fix directory, progress block and plan row without altering their IDs."""
+    short_ids: set[str] = set()
+    plan_ids: dict[str, str] = {}
+    for identifier in created:
+        match = FIX_ID.fullmatch(identifier)
+        require(match, 'approved-fix-unresolved', f'Invalid approved fix ID: {identifier}')
+        short = match.group(1)
+        require(short not in short_ids, 'state-ambiguous', f'Duplicate created fix ID: {short}')
+        short_ids.add(short)
+        progress = [key for key in indexed if key.split('-fix-', 1)[0] == short]
+        planned = [key for key in statuses if key.split('-fix-', 1)[0] == short]
+        canonical = {identifier, *progress, *planned} - {short}
+        require(len(progress) <= 1 and len(planned) <= 1 and len(canonical) <= 1,
+                'state-ambiguous', f'Conflicting approved fix IDs for {short}')
+        require(progress and planned, 'approved-fix-unresolved', f'Approved fix {identifier} is unresolved')
+        item = indexed[progress[0]]
+        fields = {part.strip() for part in item['header'].split('|')[2:]}
+        require(not item['composite'] and 'atomic-validation: complete' in fields and statuses[planned[0]] == 'reviewed',
+                'approved-fix-unresolved', f'Approved fix {identifier} is unresolved')
+        plan_ids[progress[0]] = planned[0]
+    return plan_ids
+
+
 def validation(state: str, task: Path) -> dict:
     phases = section(state, '## Phases')
     for phase in ('execution', 'validation'):
@@ -130,20 +224,7 @@ def validation(state: str, task: Path) -> dict:
     issues = section(state, '## Issue List')
     require(check and review and issues, 'validation-evidence-missing', 'Contract Check, Code Review and Issue List are required')
     for heading in ('Invariants', 'Acceptance Criteria', 'Off-limits'):
-        expected = normative(section(contract, '### ' + heading))
-        actual = section(check, '### ' + heading)
-        require(expected and actual, 'validation-evidence-missing', f'Missing normative or verified {heading}')
-        table: dict[str, str] = {}
-        for line in actual.splitlines():
-            if line.strip().startswith('|'):
-                cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
-                if len(cells) == 2 and cells[1].startswith(('PASS', 'FAIL')):
-                    require(norm(cells[0]) not in table, 'state-ambiguous', 'Duplicate contract verification row')
-                    table[norm(cells[0])] = cells[1]
-        require(table, 'validation-evidence-missing', f'No verified {heading} table rows')
-        require(not any(status.startswith('FAIL') for status in table.values()), 'contract-failed', f'Failed {heading} remain incomplete')
-        require(all(norm(item) in table and table[norm(item)].startswith('PASS') for item in expected),
-                'contract-coverage-incomplete', f'Unverified normative {heading}')
+        contract_coverage(contract, check, heading)
     require(not re.search(r'Critical Failures Decision:\s*pause', check), 'contract-failed', 'Critical gate remains paused')
     findings = section(review, '### Findings')
     summary = section(review, '### Summary')
@@ -163,14 +244,13 @@ def validation(state: str, task: Path) -> dict:
         created = field(fixes, 'Created')
         require(count is not None and count.isdigit() and created is not None, 'validation-evidence-missing', 'Fix inventory is missing')
         created_ids = [] if created.casefold() == 'none' else [item.strip() for item in created.split(',')]
-        require(len(created_ids) == int(count) and len(set(created_ids)) == len(created_ids), 'validation-evidence-missing', 'Fix inventory count differs')
+        require(len(created_ids) == int(count), 'validation-evidence-missing', 'Fix inventory count differs')
         statuses = plan_statuses(task)
         indexed = {item['id']: item for item in items}
         if norm(approved) not in empty:
             require(created_ids, 'approved-fix-unresolved', 'Approved issues have no reviewed repair')
-        for identifier in created_ids:
-            require(identifier in indexed and 'atomic-validation: complete' in indexed[identifier]['header'] and statuses.get(identifier) == 'reviewed',
-                    'approved-fix-unresolved', f'Approved fix {identifier} is unresolved')
+        fix_plan_ids = reviewed_fix_plan_ids(created_ids, indexed, statuses)
+        progress_plan_ids = {identifier: fix_plan_ids.get(identifier, identifier) for identifier in indexed}
         require(items, 'validation-evidence-missing', 'Full flow has no progress evidence')
         for item in items:
             if item['composite']:
@@ -184,8 +264,9 @@ def validation(state: str, task: Path) -> dict:
                         'validation-incomplete', f'Leaf {item["id"]} has not passed validation')
                 require('atomic-tests: green' in item['header'] or ('atomic-tests: n-a' in item['header'] and 'tdd: none' in item['body']),
                         'validation-incomplete', f'Leaf {item["id"]} lacks preserved TDD evidence')
-            require(statuses.get(item['id']) == 'reviewed', 'validation-incomplete', f'Plan does not record {item["id"]} reviewed')
-        require(all(identifier in indexed and status == 'reviewed' for identifier, status in statuses.items()),
+            require(statuses.get(progress_plan_ids[item['id']]) == 'reviewed',
+                    'validation-incomplete', f'Plan does not record {item["id"]} reviewed')
+        require(set(statuses) == set(progress_plan_ids.values()),
                 'validation-incomplete', 'Unreviewed plan scope remains')
     elif norm(approved) not in empty:
         inline = section(state, '## Inline Fixes')
@@ -326,12 +407,14 @@ def pr_evidence(root: Path, repo: Path, candidate: dict, target: dict, evidence:
     else:
         identity, hosting = github_repository(repo)
         numbered = re.fullmatch(r'#([1-9][0-9]*) (?:draft|ready)', original)
-        explicit = re.fullmatch(r'https://github\.com/([^/]+/[^/]+)/pull/([1-9][0-9]*)', original)
-        legacy = re.fullmatch(r'#([1-9][0-9]*) ready for review — (https://github\.com/[^/]+/[^/]+/pull/([1-9][0-9]*))', original)
-        if legacy:
-            require(legacy.group(1) == legacy.group(3), 'pr-authority-unverified', 'Recorded PR number differs from its URL')
-            explicit = re.fullmatch(r'https://github\.com/([^/]+/[^/]+)/pull/([1-9][0-9]*)', legacy.group(2))
-        require(numbered is not None or explicit is not None, 'pr-authority-unverified', 'PR reference must be canonical #N draft/#N ready, a GitHub PR URL, or a matching legacy ready-for-review audit')
+        explicit = PR_URL.fullmatch(original)
+        paired = re.fullmatch(r'#([1-9][0-9]*) (?:ready \||ready for review —) (\S+)', original)
+        if paired:
+            explicit = PR_URL.fullmatch(paired.group(2))
+            require(explicit, 'pr-authority-unverified', 'Recorded PR URL is invalid')
+            require(paired.group(1) == explicit.group(2), 'pr-authority-unverified', 'Recorded PR number differs from its URL')
+        require(numbered or explicit, 'pr-authority-unverified',
+                'PR reference must be #N draft, #N ready, a GitHub PR URL, or a matching number and URL')
         if explicit:
             recorded = explicit.group(1).casefold()
             require(recorded == identity.casefold() or (identity.casefold() in renamed and recorded in renamed),
