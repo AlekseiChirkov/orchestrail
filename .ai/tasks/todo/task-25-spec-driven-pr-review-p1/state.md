@@ -42,7 +42,7 @@ T-01 | Pin approved case packets | atomic-tests: green | atomic-execution: compl
   branch: feat/offline-review-case-packets
   base_branch: main
   base_commit: aabc225e12126f4ed3958a1e9c48549810541a56
-  commits: 544e3e3 test: cover approval and packet parity for offline reviews, e272fea feat: prepare pinned packets for offline review, 61efc1e test: cover incomplete offline review packet inputs, 0d48003 fix: reject incomplete offline review packet inputs
+  commits: 544e3e3c457515e6f5ab566d3951f27a6497f8b0 test: cover approval and packet parity for offline reviews, e272fea77197dc31b3e48393721dc663c845fdb9 feat: prepare pinned packets for offline review, 61efc1e65f915477bb5bff8209da016e17e60454 test: cover incomplete offline review packet inputs, 0d480037f1563f24da23a9db8fcec2e5a61c0701 fix: reject incomplete offline review packet inputs
   pr: #132 ready
 
 T-02 | Verify isolated paired reviews | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
@@ -55,7 +55,7 @@ T-02 | Verify isolated paired reviews | atomic-tests: green | atomic-execution: 
   branch: feat/offline-paired-reviews
   base_branch: feat/offline-review-case-packets
   base_commit: 0d480037f1563f24da23a9db8fcec2e5a61c0701
-  commits: f845852 test: cover offline paired review isolation and coverage, a5d5d33 feat: verify isolated offline paired reviews
+  commits: f845852a33708b6e0ab0b2e4a983f4f737d08985 test: cover offline paired review isolation and coverage, a5d5d33b53fc1d6dd1d469abcc501c97e8bb919b feat: verify isolated offline paired reviews
   pr: #133 ready
 
 T-03 | Document bounded dispatch and recovery | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
@@ -67,7 +67,7 @@ T-03 | Document bounded dispatch and recovery | atomic-tests: green | atomic-exe
   branch: feat/offline-review-dispatch
   base_branch: feat/offline-paired-reviews
   base_commit: a5d5d33b53fc1d6dd1d469abcc501c97e8bb919b
-  commits: c9d511a test: cover bounded offline review dispatch, 33a9151 feat: verify bounded offline review dispatch
+  commits: c9d511acc294f77439e4f89ba40af3874ce7d7a6 test: cover bounded offline review dispatch, 33a9151cac8a9cde3842fd46b36fa9b181ae5945 feat: verify bounded offline review dispatch
   pr: #134 ready
 
 T-04 | Derive blinded paired decisions | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
@@ -81,7 +81,7 @@ T-04 | Derive blinded paired decisions | atomic-tests: green | atomic-execution:
   branch: feat/offline-review-decisions
   base_branch: feat/offline-review-dispatch
   base_commit: 33a9151cac8a9cde3842fd46b36fa9b181ae5945
-  commits: 6409226 test: cover blinded paired review decisions, 40fd418 feat: derive blinded paired review decisions, dd40182 test: cover conflicting canonical defect severity, fa57c6d fix: preserve canonical defect severity in paired reports
+  commits: 640922635aa730b302bc55ad2dc8c71146575745 test: cover blinded paired review decisions, 40fd418898a1c07a5a1760b7fcf2438605ab6ba9 feat: derive blinded paired review decisions, dd40182fdabeb1a27281d75c789d5dd9466368bb test: cover conflicting canonical defect severity, fa57c6dc4c05574cc5eeb0dd2c8775ea04b606eb fix: preserve canonical defect severity in paired reports
   pr: #135 ready
 
 T-05 | Verify offline rehearsal readiness | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
@@ -93,7 +93,7 @@ T-05 | Verify offline rehearsal readiness | atomic-tests: green | atomic-executi
   branch: feat/offline-review-rehearsal
   base_branch: feat/offline-review-decisions
   base_commit: fa57c6dc4c05574cc5eeb0dd2c8775ea04b606eb
-  commits: 3d9d358 test: cover integrated offline review rehearsal, 975c8db feat: verify integrated offline review rehearsal
+  commits: 3d9d358c7cc61e2ddc93302fa70f8c290a787036 test: cover integrated offline review rehearsal, 975c8db750d100fda406012b1fd08fad3f72119d feat: verify integrated offline review rehearsal
   pr: #136 ready
 
 T-06 | Capture unstarted cutoff observations | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
@@ -105,7 +105,7 @@ T-06 | Capture unstarted cutoff observations | atomic-tests: green | atomic-exec
   branch: fix/offline-cutoff-observations
   base_branch: feat/offline-review-rehearsal
   base_commit: 975c8db750d100fda406012b1fd08fad3f72119d
-  commits: 6e6c52a test: cover cutoff reviews without an attempt, 3a036e6 fix: archive unstarted reviews at comparison cutoff
+  commits: 6e6c52a896820ade95bf71fd097dcf60b787ae75 test: cover cutoff reviews without an attempt, 3a036e68e4421cd63541bb6653710906a504797b fix: archive unstarted reviews at comparison cutoff, 4aaf005cf293cd236510cd368b8684d4e1d48322 docs: record offline review validation and delivery
   pr: #137 ready
 
 ## Model Selection
@@ -151,7 +151,7 @@ Historical execution, hosted services, automated scheduling and merge gating.
 → archived to state-archive.md
 
 ### Off-limits
-Preserve production workflow definitions, remote integrations and historical inputs. Keep the standalone service deferred.
+- Preserve production workflow definitions, remote integrations and historical inputs. Keep the standalone service deferred.
 
 ### Invariants
 - Both arms share one approved, immutable packet and matching settings.
@@ -190,23 +190,27 @@ Preserve production workflow definitions, remote integrations and historical inp
 ## Contract Check
 
 ### Invariants
-| Invariant | Status |
-|-----------|--------|
-| Approved shared packet and matched settings | PASS |
-| Independent reviewer access and blinded operator adjudication | PASS |
-| Preserve first attempts, uncertain capacity and liability | PASS |
-| Disclose incomplete results and pending historical work | PASS |
+| Obligation | Status | Evidence |
+|---|---|---|
+| Both arms share one approved, immutable packet and matching settings. | PASS | Packet admission verifies matching immutable digests. The paired-review procedure pins common settings. |
+| Sibling contents and historical claims remain outside reviewer scope. Verdicts freeze before variant disclosure. | PASS | Landlock rehearsal denies historical and sibling access. The operator protocol freezes blinded verdicts before disclosure. |
+| The first attempt and its terminal evidence remain immutable. Uncertain dispatch retains capacity and liability. | PASS | Archive tests preserve first observations. Dispatch tests retain uncertain slots and reservations across restart. |
+| Readiness and decision results disclose insufficient or contaminated evidence and preserve historical execution as pending when applicable. | PASS | Report tests retain gaps and exclusions. The nominal rehearsal leaves historical execution pending. |
 
 ### Acceptance Criteria
-| Criterion | Status |
-|-----------|--------|
-| AC-45–AC-48 | PASS: packet parity, isolation, coverage and rehearsal gates verified |
-| AC-49–AC-50 | PASS: queued cutoff observations survive dispatch, capture and scoring after the regression repair |
+| Obligation | Status | Evidence |
+|---|---|---|
+| AC-45: Pin a common packet for each eligible PR and milestone and record missing-approval exclusion. | PASS | Case packet fixtures verify PR and milestone digest parity and approval rejection. |
+| AC-46: Demonstrate session isolation and immutable first observation capture. | PASS | Paired-review fixtures verify permitted and denied filesystem access and immutable capture. |
+| AC-47: Check each due criterion has one disposition with evidence or a named gap, and isolate future scope. | PASS | Coverage fixtures verify three due dispositions, reject missing or duplicate rows, and preserve future scope. |
+| AC-48: Demonstrate that invalid rehearsal evidence blocks main dispatch and that valid rehearsal requires approved inputs and locked settings. | PASS | Rehearsal fixtures verify two independent failure gates and both main-run prerequisites. |
+| AC-49: Reproduce bounded dispatch, equality, uncertain recovery and terminal cutoff behavior. | PASS | Dispatch and cutoff regression fixtures verify ready work, budget equality, restart and terminal records. |
+| AC-50: Reproduce blinded adjudication and report deltas, shared spend and outcomes for equal, exceeded and insufficient evidence fixtures. | PASS | Report and cutoff regression fixtures verify exact paired deltas, blinded verdicts, spend and incomplete-pair evidence. |
 
 ### Off-limits
-| Constraint | Status |
-|------------|--------|
-| Local fixture protocol with unchanged installed workflows and no historical execution | PASS |
+| Obligation | Status | Evidence |
+|---|---|---|
+| Preserve production workflow definitions, remote integrations and historical inputs. Keep the standalone service deferred. | PASS | Independent review found only local fixtures and operator documentation in the implementation. Historical execution and the standalone service remain deferred. |
 
 ## Code Review
 ### Findings
