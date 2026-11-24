@@ -9,6 +9,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 - [Repository scripts](../scripts/README.md#exact-run-timing) — finalization helpers, recovery, staged sync, explicit-file timing and dependencies
 - [SPEC-RUN-QUICKSTART.md](SPEC-RUN-QUICKSTART.md) — operating procedure for `/spec-run`
 - [MODEL-CATALOG.md](MODEL-CATALOG.md) — optional cached selection, explicit refresh/rollback, provider-column compatibility and offline helper examples
+- [Offline review comparison](offline-review/README.md) — operator procedure, synthetic rehearsal and paired decision checks
 
 ## Audits (`audits/`)
 

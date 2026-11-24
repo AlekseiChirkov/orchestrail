@@ -6,6 +6,8 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
+- [task-25-spec-driven-pr-review-p1](../tasks/todo/task-25-spec-driven-pr-review-p1/state.md) | phase: validation | status: reviewed | note: offline protocol and synthetic verification complete, stacked PRs #132–#137 awaiting owner integration
+
 
 
 
@@ -44,7 +46,8 @@ Runtime work was closed by owner decision; remaining roadmap scope is not automa
 - [logic-audit-fixes-2026-07] | completed | note: 20 audit findings (4 blocker, 9 major, 7 minor) applied per `docs/audits/2026-07-21-logic-audit-fixes.md`; `validate-contracts.sh` extended; deployment matrix fixed
 
 ## Deferred
-None.
+
+- Phase 2 — Deferred standalone review service. Prerequisites: historical offline comparison and owner decision.
 
 ## Known conditions (read before starting any task)
 - On 2026-11-06 the owner requested deleting all remaining runtime branches. Only `main` remains locally and remotely after cleanup. Detached temporary worktrees preserve experimental commits and uncommitted runner/guard changes; these are not integrated source or active work. The older 2026-11-03 branch inventory is superseded. Any future reuse requires fresh inspection and validation.
