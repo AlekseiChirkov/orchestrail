@@ -30,6 +30,8 @@ approved `specification`, and approved `assignment`.
 
 - Set `composition.kind` to `pr` with `base`, `head`, and `target`, or `milestone`
   with `base`, `target`, `integrated_tree`, and an ordered `constituents` list.
+- For the synthetic fixture, represent each readable tree as an object mapping its
+  workspace-relative file paths to text. Use an empty object for a readable empty tree.
 - Put specification text in `specification.content` and each binding annex in
   `specification.annexes` as an object with `name` and `content`. Record the specification,
   individual annex and assignment digests in the private admission record.

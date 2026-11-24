@@ -41,6 +41,14 @@ def populated_string(value: Any) -> bool:
 def project_packet(raw: dict[str, Any]) -> dict[str, Any]:
     """Select fields for a packet whose content the coordinator has sanitized."""
     packet = {field: raw[field] for field in PACKET_FIELDS}
+    for field in ("base_tree", "tested_tree"):
+        tree = packet[field]
+        if not isinstance(tree, dict) or any(
+            not populated_string(path) or not isinstance(content, str)
+            for path, content in tree.items()
+        ):
+            raise ValueError(f"missing readable tree: {field}")
+
     composition = packet["composition"]
     kind = composition["kind"]
     packet["composition"] = {field: composition[field] for field in COMPOSITION_FIELDS[kind]}
@@ -84,13 +92,14 @@ def prepare_case(source: dict[str, Any]) -> dict[str, Any]:
     case_id = raw_packet["case_id"]
     if not populated_string(case_id):
         raise ValueError("missing opaque case identity")
-    approvals = source["coordinator"].get("approvals", {})
+    coordinator = source.get("coordinator")
+    approvals = coordinator.get("approvals") if isinstance(coordinator, dict) else None
 
     def exclude(reason: str) -> dict[str, Any]:
         return {"status": "excluded", "case_id": case_id, "reason": reason}
 
     for field in ("specification", "assignment"):
-        approval = approvals.get(field)
+        approval = approvals.get(field) if isinstance(approvals, dict) else None
         if not isinstance(approval, dict) or not populated_string(approval.get("reference")):
             return exclude(f"missing-{field}-approval")
         if approval.get("digest") != digest(raw_packet.get(field)):
