@@ -65,11 +65,12 @@ scope of exposure cannot be bounded.
 The terminal record contains `case_id`, `packet_digest`, `variant`, `attempt_id`,
 `status`, `elapsed_seconds`, `settled_cost`, `reason`, and `report_digest`. Use
 `completed`, `partial`, `failed`, `timed out`, `invalid`, or `not started`.
-For a non-completed status, record a reason. Use null for elapsed time when unstarted,
-unknown cost, or an absent frozen report digest. Express known charges as decimal strings in
-the configured currency unit. Freeze the report before capturing the terminal record whenever
-the first artifact exists. Once the first terminal record is captured, it fixes both the status
-and the presence or absence of primary report evidence.
+For a non-completed status, record a reason. A queued review closed at cutoff uses
+`not started` with null `attempt_id` and `elapsed_seconds`. Its archive must contain
+no frozen report, so capture records a null `report_digest`. Use the original attempt ID
+for launched reviews. Record unknown cost as null and known charges as decimal strings
+in the configured currency unit. Freeze any first report before capturing the terminal
+record. Once captured, the terminal record fixes the status and report evidence.
 
 ## Verify with controlled fixtures
 

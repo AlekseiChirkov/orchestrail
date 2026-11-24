@@ -131,8 +131,8 @@ def terminal_record(value: Any) -> dict:
     if not isinstance(value, dict) or any(field not in value for field in OBSERVATION_FIELDS):
         raise ValueError("terminal observation is missing required fields")
     record = {field: value[field] for field in OBSERVATION_FIELDS}
-    if not all(populated_string(record[field]) for field in ("case_id", "attempt_id")):
-        raise ValueError("case and attempt IDs must be populated")
+    if not populated_string(record["case_id"]):
+        raise ValueError("case ID must be populated")
     digest = record["packet_digest"]
     if not isinstance(digest, str) or len(digest) != 64 or any(
         character not in "0123456789abcdef" for character in digest
@@ -140,6 +140,9 @@ def terminal_record(value: Any) -> dict:
         raise ValueError("packet digest must be a lowercase SHA-256 digest")
     if record["variant"] not in ("baseline", "treatment") or record["status"] not in TERMINAL:
         raise ValueError("expected a known variant and terminal observation status")
+    attempt = record["attempt_id"]
+    if not populated_string(attempt) and not (record["status"] == "not started" and attempt is None):
+        raise ValueError("attempt ID must be populated for a launched review")
     elapsed = record["elapsed_seconds"]
     if record["status"] == "not started":
         if elapsed is not None:
@@ -166,6 +169,8 @@ def capture(directory: Path, observation: Any) -> dict:
             return json.loads(terminal.read_bytes())
         record = terminal_record(observation)
         record["report_digest"] = report_digest(directory)
+        if record["status"] == "not started" and record["report_digest"] is not None:
+            raise ValueError("a review that was not started cannot have a frozen report")
         write_archive_file(terminal, json.dumps(record, ensure_ascii=False).encode("utf-8"))
         return record
 
