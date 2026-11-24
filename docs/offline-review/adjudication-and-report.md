@@ -34,7 +34,10 @@ The adjudicator checks expectation, trigger, observed behavior, and material con
 against the pinned case. Pool verified historical claims with newly discovered findings.
 Group equivalent claims under a canonical ID using the locked matching policy. Canonical
 IDs apply to confirmed defects and equivalent refuted claims. Assign severity using the
-locked policy before the private arm map is disclosed.
+locked policy before the private arm map is disclosed. Every confirmed claim for the
+same canonical defect in a case uses the same severity. If the frozen batch contains
+conflicting severities, exclude the pair from scoring and record the affected canonical
+IDs as evidence gaps. Preserve both first observations and their charges.
 
 ## Freeze the adjudication batches
 

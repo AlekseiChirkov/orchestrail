@@ -119,6 +119,16 @@ def pair_record(case, cohort_contaminated, cutoff):
     findings, pending, adjudication_complete = adjudicated_claims(batch, mapping, cutoff)
     if not adjudication_complete:
         reasons.append("adjudication-incomplete-or-late")
+    canonical_severities = {}
+    severity_conflicts = set()
+    for entry in findings.values():
+        if entry["verdict"] == "confirmed":
+            canonical = entry["canonical_id"]
+            severity = entry["severity"]
+            if canonical_severities.setdefault(canonical, severity) != severity:
+                severity_conflicts.add(canonical)
+    if severity_conflicts:
+        reasons.append("adjudication-severity-conflict")
     if require_boolean(case["contaminated"]):
         reasons.append("case-contaminated")
     if cohort_contaminated:
@@ -130,6 +140,7 @@ def pair_record(case, cohort_contaminated, cutoff):
         "observations": projected,
         "adjudication_status": batch["status"],
         "adjudication_frozen_at": batch["frozen_at"],
+        "conflicting_severity_ids": sorted(severity_conflicts),
         "pending_claims": pending,
         "unresolved_findings": [
             finding for finding, entry in findings.items() if entry["verdict"] == "unresolved"
