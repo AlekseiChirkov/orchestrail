@@ -1,0 +1,29 @@
+.ai/specs/25-spec-driven-pr-review.md
+  s_0b0a93c77e2b36::t_5d780fce2550ff 1-283
+.ai/specs/review_architecture_spec_v5.md
+  s_82bdd9f411ea58::t_68f5eb02484440 1-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12276e45baeb3dc6b4df6c5bf3b64c9dcf40ebfe",
+  "prompts": {},
+  "sessions": {
+    "s_0b0a93c77e2b36": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20b2b-dd9a-7491-b80f-b3227f8fe415",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "AlekseiChirkov <tektonikboy98@gmail.com>"
+    },
+    "s_82bdd9f411ea58": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20af9-4b12-7ed0-9685-d0b83932e117",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "AlekseiChirkov <tektonikboy98@gmail.com>"
+    }
+  }
+}
