@@ -4928,19 +4928,88 @@ test_public_identity_matches_exact_ledger_and_preserves_knowledge() (
   git cat-file -e "${baseline_commit}^{commit}" 2>/dev/null || {
     echo 'Identity ledger baseline commit is unavailable'; return 1;
   }
-  git ls-tree -r --name-only "$baseline_commit" -- .ai > "$scratch/baseline" || return 1
-  while IFS= read -r file; do
-    [ -n "$file" ] || continue
-    if [ ! -e "$file" ]; then
-      case "$file" in
-        .ai/tasks/todo/*) file=".ai/tasks/completed/${file#.ai/tasks/todo/}" ;;
-        .ai/specs/*) file=".ai/specs/completed/${file#.ai/specs/}" ;;
-      esac
-    fi
-    [ -e "$file" ] || { printf 'Knowledge file was removed: %s\n' "$file"; return 1; }
-    git ls-files --error-unmatch -- "$file" >/dev/null 2>&1 || {
-      printf 'Knowledge file is no longer tracked: %s\n' "$file"; return 1;
+  # Exact reviewed task-directory moves. The phase-one review moved in a later
+  # commit than the numbering review, independently of its finalization journal.
+  local -A task_moves=(
+    [task-00-sensitive-data-scrub]=task-001-sensitive-data-scrub
+    [task-01-git-source-of-truth]=task-002-git-source-of-truth
+    [task-02-run-log-vocabulary-validation]=task-003-run-log-vocabulary-validation
+    [task-03-hook-based-logging]=task-004-hook-based-logging
+    [task-04-model-catalog-cache]=task-005-model-catalog-cache
+    [task-05-cost-and-duration-telemetry]=task-006-cost-and-duration-telemetry
+    [task-06-harness-git-rails]=task-007-harness-git-rails
+    [task-06-1-test-suite-runtime]=task-008-test-suite-runtime
+    [task-07-state-tool]=task-009-state-tool
+    [task-08-rules-workflows-audit]=task-010-rules-workflows-audit
+    [task-24-task-finalization]=task-025-task-finalization
+    [task-25-spec-driven-pr-review-p1]=task-026-spec-driven-pr-review-p1
+  )
+
+  knowledge_path_is_safe() {
+    local ancestor="$1"
+    while :; do
+      if [ -L "$ancestor" ]; then
+        printf 'Knowledge path contains a symbolic link: %s\n' "$1"
+        return 1
+      fi
+      [[ "$ancestor" == */* ]] || return 0
+      ancestor="${ancestor%/*}"
+    done
+  }
+
+  knowledge_path_is_tracked() {
+    [ -f "$1" ] && git --literal-pathspecs ls-files --error-unmatch -- "$1" >/dev/null 2>&1 || {
+      printf 'Knowledge file is no longer tracked: %s\n' "$1"
+      return 1
     }
+  }
+
+  resolve_missing_knowledge_path() {
+    local original="$1" candidate task_relative placement task_directory mapped suffix found=0
+    local -a alternatives=()
+    case "$original" in
+      .ai/tasks/todo/*) alternatives+=(".ai/tasks/completed/${original#.ai/tasks/todo/}") ;;
+      .ai/specs/completed/*) ;;
+      .ai/specs/*) alternatives+=(".ai/specs/completed/${original#.ai/specs/}") ;;
+    esac
+    case "$original" in
+      .ai/tasks/todo/*/*|.ai/tasks/completed/*/*)
+        task_relative="${original#.ai/tasks/}"
+        placement="${task_relative%%/*}"
+        task_relative="${task_relative#*/}"
+        task_directory="${task_relative%%/*}"
+        mapped="${task_moves[$task_directory]:-}"
+        if [ -n "$mapped" ]; then
+          suffix="${task_relative#*/}"
+          alternatives+=(".ai/tasks/$placement/$mapped/$suffix")
+          if [ "$placement" = todo ]; then
+            alternatives+=(".ai/tasks/completed/$mapped/$suffix")
+          fi
+        fi
+        ;;
+    esac
+    for candidate in "${alternatives[@]}"; do
+      knowledge_path_is_safe "$candidate" || return 1
+      [ -e "$candidate" ] || continue
+      knowledge_path_is_tracked "$candidate" || return 1
+      found=$((found + 1))
+    done
+    case "$found" in
+      1) return 0 ;;
+      0) printf 'Knowledge file was removed: %s\n' "$original" ;;
+      *) printf 'Knowledge file has multiple relocation candidates: %s\n' "$original" ;;
+    esac
+    return 1
+  }
+
+  git ls-tree -r -z --name-only "$baseline_commit" -- .ai > "$scratch/baseline" || return 1
+  while IFS= read -r -d '' file; do
+    knowledge_path_is_safe "$file" || return 1
+    if [ -e "$file" ]; then
+      knowledge_path_is_tracked "$file" || return 1
+    else
+      resolve_missing_knowledge_path "$file" || return 1
+    fi
   done < "$scratch/baseline"
 )
 
