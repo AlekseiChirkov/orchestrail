@@ -1119,3 +1119,17 @@ consumer project that tracks `.ai/` adds the two lines by hand or reruns
 `git ls-files .ai` lists a tracked file, the script skips its `.ai/` entry and says so. No
 ignore rule may match a task `state.md`. A project that ignores `.ai/` already ignores both
 files.
+
+## Removed integrations
+
+Orchestrail is retiring its Windsurf and Devin integrations. Files from earlier installations
+may still be present in these locations:
+
+- Global Codeium paths `~/.codeium/windsurf/global_workflows` and
+  `~/.codeium/windsurf/global_rules`.
+- Project paths `.windsurf` and `.devin`.
+
+From the Orchestrail source directory, run `bash scripts/report-legacy-artifacts.sh global`
+or `bash scripts/report-legacy-artifacts.sh project <dir>` to list these objects without
+changing them. Review each reported path. For an unused object, run the removal command
+printed in its report line.
