@@ -22,6 +22,10 @@ CAPABILITY_KEYS = (
     "worktrees",
     "git",
 )
+ALWAYS_ON_RELOCATIONS = (
+    ("rules/global-claude.md", "harness/claude/always-on.md"),
+    ("templates/codex-global-AGENTS.md", "harness/codex/always-on.md"),
+)
 
 
 def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
@@ -70,9 +74,9 @@ class InstructionMetadataTests(unittest.TestCase):
         data = contents.encode("utf-8") if isinstance(contents, str) else contents
         path.write_bytes(data)
 
-    def run_checker(self) -> subprocess.CompletedProcess[str]:
+    def run_checker(self, root: Path | None = None) -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
-            [sys.executable, "-I", str(CHECKER), "--root", str(self.root)],
+            [sys.executable, "-I", str(CHECKER), "--root", str(self.root if root is None else root)],
             cwd=self.workspace,
             env=self.environment,
             capture_output=True,
@@ -290,6 +294,27 @@ class InstructionMetadataTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         locations = {line.split()[1] for line in result.stdout.splitlines() if line.startswith("legacy-mention ")}
         self.assertEqual(locations, {"rules/contract-guide.md:7", "docs/USAGE.md:11"}, result.stdout)
+
+    def test_delivers_relocated_always_on_sources(self) -> None:
+        for former, current in ALWAYS_ON_RELOCATIONS:
+            with self.subTest(source=current):
+                source = SOURCE / current
+                self.assertTrue(source.is_file(), f"Missing relocated source: {current}")
+                self.assertTrue(source.read_text(encoding="utf-8").strip(), f"Empty relocated source: {current}")
+                self.assertFalse((SOURCE / former).exists(), f"Former source still exists: {former}")
+
+    def test_accepts_current_always_on_source_references(self) -> None:
+        former_sources = {former for former, _ in ALWAYS_ON_RELOCATIONS}
+
+        result = self.run_checker(SOURCE)
+
+        findings = []
+        for line in result.stdout.splitlines():
+            if line.startswith("stale-name "):
+                names = line.partition(" Stale names: ")[2].removesuffix(".").split(", ")
+                if former_sources.intersection(names):
+                    findings.append(line)
+        self.assertFalse(findings, "References to former always-on sources:\n" + "\n".join(findings))
 
     def test_rejects_invalid_name_maps_without_hiding_metadata_errors(self) -> None:
         valid_row = {"kind": "rule", "old": "guide", "new": ["contract-guide"]}
