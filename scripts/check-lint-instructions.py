@@ -608,6 +608,53 @@ class InstructionMetadataTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
 
 
+    def test_frozen_rule_load_checks_follow_front_matter_scalar_grammar(self) -> None:
+        source = (SOURCE / "scripts/validate-contracts.sh").read_text(encoding="utf-8")
+        # Run only the three kept check expressions and their shared helper, if present.
+        _, helper, remainder = source.partition("\nrule_loads_always() {\n")
+        definition = ""
+        if helper:
+            body, closing, _ = remainder.partition("\n}\n")
+            self.assertTrue(closing, "The rule load helper must have a complete definition")
+            definition = helper + body + closing
+
+        checks = {
+            "TDD: rules/tdd.md is always_on": ("rules/tdd.md",),
+            "ORCH: $f is always_on": ("rules/git-flow.md", "rules/orchestration.md"),
+            "LOG: rules/run-log.md is always_on": ("rules/run-log.md",),
+        }
+        plain = RULE.replace("Check the contract", "Fixture — UTF-8").replace("on-demand", "always")
+        fixtures = (
+            ("plain", plain, True),
+            ("JSON quoted", plain.replace("load: always", 'load: "always"'), True),
+            ("JSON escaped", plain.replace("load: always", r'load: "\u0061lways"'), True),
+            ("CRLF", plain.replace("\n", "\r\n"), True),
+            ("wrong load", plain.replace("load: always", "load: on-demand"), False),
+            ("duplicate load", plain.replace("load: always", "load: always\nload: always"), False),
+            ("body-only load", plain.replace("load: always\n---", "---\n\nload: always"), False),
+            ("missing opener", plain.removeprefix("---\n"), False),
+            ("missing closer", plain.removesuffix("---\n"), False),
+            ("malformed JSON", plain.replace("load: always", 'load: "always" extra'), False),
+            ("invalid UTF-8", plain.encode("utf-8").replace(b"load: always", b"load: \xff"), False),
+        )
+        environment = dict(self.environment, BASH_ENV="/dev/null", LC_ALL="C")
+        for label, paths in checks.items():
+            marker = f'check "{label}" \\\n'
+            self.assertEqual(source.count(marker), 1, label)
+            expression = source.partition(marker)[2].splitlines()[0].strip()
+            program = definition + f'f="$1"\nprintf "%s\\n" {expression}\n'
+            for relative in paths:
+                for fixture, contents, accepted in fixtures:
+                    with self.subTest(check=label, path=relative, fixture=fixture):
+                        self.write(relative, contents)
+                        result = subprocess.run(
+                            ["bash", "-c", program, "rule-load-check", relative], cwd=self.root,
+                            env=environment, capture_output=True, text=True, timeout=5, check=False,
+                        )
+                        expected = "pass" if accepted else f"{relative} must declare load: always in its front matter"
+                        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, expected + "\n", ""))
+
+
 class InstructionSourceIsolationTests(unittest.TestCase):
     def test_checker_and_deployment_source_only_use_offline_programs(self) -> None:
         deployment_suite = SOURCE / "scripts/check-deploy-skills.py"
