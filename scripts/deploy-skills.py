@@ -22,6 +22,7 @@ _HARNESS_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _PATH_SEGMENTS = re.compile(r"[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _REVISION = re.compile(r"[0-9a-f]{40}")
+_ACTIVE_PHASE_LINE = re.compile(r"- (discovery|execution|validation): in-progress[ \t]*")
 _REQUIRED_ADAPTER_KEYS = frozenset({"skills_dir", "always_on_path"})
 _PROJECT_LINK_KEY = "project_skills_link_dir"
 _ADAPTER_KEYS = _REQUIRED_ADAPTER_KEYS | {_PROJECT_LINK_KEY}
@@ -924,6 +925,43 @@ def _list_projects() -> None:
             sys.stdout.buffer.write(os.fsencode(project) + b"\0")
 
 
+def _task_state_is_active(path: Path) -> bool:
+    """Read only regular task states, treating unreadable contents as active."""
+    try:
+        if not stat.S_ISREG(path.lstat().st_mode):
+            return False
+    except (FileNotFoundError, NotADirectoryError):
+        return False
+    except OSError:
+        return True
+
+    try:
+        flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+        with os.fdopen(os.open(path, flags), "rb") as stream:
+            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                return False
+            text = stream.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return True
+
+    in_phases = False
+    for line in text.split("\n"):
+        if line.startswith("## "):
+            in_phases = line == "## Phases"
+        elif in_phases and _ACTIVE_PHASE_LINE.fullmatch(line):
+            return True
+    return False
+
+
+def _active_project_task(project: Path) -> Path | None:
+    if not project.is_dir():
+        return None
+    for task in sorted((project / ".ai/tasks/todo").glob("*")):
+        if _task_state_is_active(task / "state.md"):
+            return task
+    return None
+
+
 def _add_project_links(
     adapter: _Adapter, destination: Path, directory: int, registry_addresses: set[Path],
 ) -> int:
@@ -1079,6 +1117,7 @@ def _ignore_untracked_knowledge(project: Path, state: _DeploymentPaths) -> None:
 
 def _refresh_projects(
     source: Path, projects: tuple[Path, ...] | None, adapters: list[_Adapter], state: _DeploymentPaths,
+    *, skip_active: set[Path],
 ) -> None:
     if projects is None:
         print("registry absent: no projects registered; run scripts/setup-new-project.sh in each project")
@@ -1088,6 +1127,8 @@ def _refresh_projects(
             print(f"project missing {project}")
         elif project == source:
             print(f"project skipped (source checkout) {project}")
+        elif project in skip_active:
+            print(f"project skipped (active task) {project}")
         else:
             linked = unlinked = 0
             for adapter in adapters:
@@ -1098,7 +1139,7 @@ def _refresh_projects(
             print(f"project updated {project} (linked {linked}, unlinked {unlinked})")
 
 
-def _deploy(source: Path, hook_result: str) -> None:
+def _deploy(source: Path, hook_result: str, *, force: bool) -> int:
     home, config = _deployment_home()
     state = _state_paths(home, config)
     # Check reserved-path collisions before creating the lock. Plan only while holding it.
@@ -1115,8 +1156,26 @@ def _deploy(source: Path, hook_result: str) -> None:
             raise _DeploymentError("unsafe-target", f"deployment configuration moved: {config}")
         projects = _read_project_registry(locked_state.registry)
         plan = _build_plan(source, hook_result, home, locked_state, recover=True)
+        active: dict[Path, Path] = {}
+        for project in projects or ():
+            task = _active_project_task(project)
+            if task is not None:
+                active[project] = task
+        if plan.actions and active and not force:
+            print("deferred: active consumers")
+            for project, task in active.items():
+                print(f"active {project} {task}")
+            return 3
+
         _apply_plan(plan, locked_state)
-        _refresh_projects(source, projects, plan.adapters, locked_state)
+        _refresh_projects(
+            source, projects, plan.adapters, locked_state, skip_active=set() if force else set(active),
+        )
+        if force:
+            for project in active:
+                print(f"forced {project}")
+        print("note: task starts during deployment are not detected; run sync when no pipeline run is starting")
+        return 0
 
 
 def main() -> int:
@@ -1135,7 +1194,7 @@ def main() -> int:
         if args.command == "deploy":
             if "\r" in args.hook_result or "\n" in args.hook_result:
                 deploy.error("--hook-result must be a single line")
-            _deploy(Path(os.path.realpath(args.source)), args.hook_result)
+            return _deploy(Path(os.path.realpath(args.source)), args.hook_result, force=args.force)
         elif args.command == "list-projects":
             _list_projects()
         else:
