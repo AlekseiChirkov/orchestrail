@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Prepare a complete deployment plan without changing the installation."""
 
-from collections.abc import Collection
 from dataclasses import dataclass
 import hashlib
 import json
@@ -195,32 +194,47 @@ def _overlap(first: Path, second: Path) -> bool:
     return first.is_relative_to(second) or second.is_relative_to(first)
 
 
-def _validate_targets(
-    adapters: list[_Adapter], home: Path, manifest_dir: Path, skill_names: Collection[str],
-) -> None:
+def _validate_targets(adapters: list[_Adapter], home: Path, config: Path) -> Path:
     home_resolved = Path(os.path.realpath(home))
+    retired = home / ".codeium"
+    legacy_paths = {
+        Path(os.path.abspath(retired)), home_resolved / retired.name, Path(os.path.realpath(retired)),
+    }
+    manifest_subdirectory = Path("orchestrail/deploy")
+    manifest_dir = Path(os.path.realpath(config)) / manifest_subdirectory
+    declared_manifest_dir = Path(os.path.abspath(config)) / manifest_subdirectory
+    if any(_overlap(path, legacy) for path in (manifest_dir, declared_manifest_dir)
+           for legacy in legacy_paths):
+        raise _DeploymentError("adapter-conflict", f"deployment manifests overlap legacy paths: {manifest_dir}")
     _require_parent_tree(manifest_dir, "manifest-invalid")
+
     roots: list[Path] = []
     # Use physical paths for overlap checks while retaining the adapter's expanded path in the manifest.
     always_on_files: list[Path] = []
-    manifest_files = [manifest_dir / f"{adapter.name}.json" for adapter in adapters]
     for adapter in adapters:
         skills = adapter.skills_dir_resolved
         always_on = home_resolved / adapter.always_on_path.relative_to(home)
+        resolved_always_on = Path(os.path.realpath(always_on.parent)) / always_on.name
+        if any(_overlap(path, legacy) for path in (
+            Path(os.path.abspath(adapter.skills_dir)), skills,
+            Path(os.path.abspath(adapter.always_on_path)), always_on, resolved_always_on,
+        ) for legacy in legacy_paths):
+            raise _DeploymentError(
+                "adapter-conflict", f"deployment paths overlap legacy paths for {adapter.name}",
+            )
+        if _overlap(skills, manifest_dir) or _overlap(resolved_always_on, manifest_dir):
+            raise _DeploymentError(
+                "adapter-conflict", f"deployment paths overlap manifests for {adapter.name}",
+            )
         if (any(_overlap(skills, root) or _overlap(always_on, root) for root in roots)
                 or _overlap(skills, always_on)
                 or any(_overlap(skills, path) or _overlap(always_on, path) for path in always_on_files)):
             raise _DeploymentError("adapter-conflict", f"conflicting deployment paths for {adapter.name}")
-        if any(skills.is_relative_to(path) or _overlap(always_on, path)
-               or any(_overlap(skills / name / "SKILL.md", path) for name in skill_names)
-               for path in manifest_files):
-            raise _DeploymentError(
-                "adapter-conflict", f"deployment paths overlap manifests for {adapter.name}",
-            )
         _require_parent_tree(skills)
         _require_parent_tree(always_on.parent)
         roots.append(skills)
         always_on_files.append(always_on)
+    return manifest_dir
 
 
 def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -398,10 +412,9 @@ def _plan_deployment(source: Path, hook_result: str) -> _Plan:
         raise _DeploymentError("home-invalid", "HOME must be a non-empty absolute path")
     home = Path(home_value)
     config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
-    manifest_dir = Path(os.path.realpath(config)) / "orchestrail" / "deploy"
     adapters = _load_adapters(source, home)
+    manifest_dir = _validate_targets(adapters, home, config)
     skills = _load_skill_sources(source)
-    _validate_targets(adapters, home, manifest_dir, skills.keys())
 
     actions: list[_Action] = []
     notices: list[str] = []
