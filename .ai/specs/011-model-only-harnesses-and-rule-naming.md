@@ -455,7 +455,8 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   `scripts/check-lint-instructions.py` and `scripts/check-deploy-skills.py` SHALL be
   standard-library Python 3.11+ programs run directly, SHALL NOT be called from
   `scripts/validate-contracts.sh` or `scripts/sync.sh`, and THE checker SHALL exit 0 on the
-  delivered repository.
+  fully delivered repository. Phase 1's intermediate validation follows its explicit
+  checker contract; it does not claim that the final delivered-tree condition has passed.
 - **REQ-51 Name-equivalent expression changes.** WHEN a frozen validator expression, helper
   body or non-standard check line changes only by names or paths, THE inventory amendment
   SHALL record it as a `path_changes` entry of DM-9, and THE oracle SHALL accept the current
@@ -491,7 +492,10 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
 - **REQ-59 Active detection.** THE engine SHALL classify a registered root as active exactly by
   DM-8, treating an unreadable task state as active.
 - **REQ-61 Semantics record.** THE delivery SHALL add the migration semantics record DM-20
-  under `docs/audits/` and index it in `docs/README.md`.
+  under `docs/audits/` and index it in `docs/README.md`. Phase 1 creates and indexes an
+  initial record containing every `contract_changes` entry it delivers with an independent
+  `pass` verdict; Phase 2 extends the same record and independently reviews each new or
+  modified entry before the complete DM-20 verdict. Neither phase may omit a delivered entry.
 - **REQ-62 Capability records.** EACH `capabilities.md` SHALL contain one record per canonical
   key in `## Capability records` (DM-4), one `always-on-path:` line equal to the
   `always_on_path` value of the same harness's `deploy.env`, and a `hooks` record whose state
@@ -1275,7 +1279,9 @@ Steps 2 and 3 (`:85-141`) are removed; it calls
 `python3 -I deploy-skills.py link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"`,
 and when Python 3.11+ is unavailable it prints `WARNING: skill links unavailable: Python 3.11
 or newer is required` and continues; next-step lines name `/discovery` and no editor. The
-registration block (`:264-321`) is unchanged.
+registration block (`:264-321`) is unchanged. Before the command rename stage, setup
+directs users to the existing `/phase-discovery`; the rename stage changes the instruction
+atomically to `/discovery` together with the command and its tests.
 
 ### `/spec-run` preflight
 
@@ -1534,7 +1540,8 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   `## ` line.
 - **AC-28** (REQ-48) — Given a Discovery plan with more than eight subtasks, then the split is
   recorded in `.ai/specs/README.md` before execution and every active REQ belongs to exactly one
-  part or to the shared final check.
+  part or to the shared final check; the first part's interim setup names an existing command
+  and the second part changes that instruction in the same change as the rename.
 - **AC-29** (REQ-49) — Given a fixture skill directory `orchestrail-pipeline` and a workflow
   referencing `/pipeline` while the map says `orchestrail-pipeline`, then the checker reports
   `reference-missing`; documentation, checks and deployment use the map name.
@@ -1908,9 +1915,11 @@ first rows and the DM-9 machinery (REQ-05–REQ-13, REQ-29–REQ-30, REQ-35, REQ
 REQ-42–REQ-45, REQ-50–REQ-52, REQ-54–REQ-59, REQ-62, REQ-63, REQ-65, REQ-66, REQ-68,
 REQ-69, REQ-71, REQ-72 and its part of REQ-47); REQ-72 is a prerequisite for a clean full
 validator. **09b** takes names, content splits, the PIPELINE move, references and final records
-(REQ-14–REQ-26, REQ-28, REQ-31–REQ-34, REQ-37, REQ-39–REQ-41, REQ-46, REQ-49, REQ-53, REQ-61,
+(REQ-14–REQ-26, REQ-28, REQ-31–REQ-34, REQ-37, REQ-39–REQ-41, REQ-46, REQ-49, REQ-53,
 REQ-64, REQ-67, REQ-70, REQ-73; REQ-14–REQ-16, REQ-37 and REQ-67 name `contract-phases`, `rule-bootstrap-<phase>` skills and
-`/pipeline`, which exist only after 09b's renames), adding its rows to the map. REQ-48 and the final REQ-47 check join both. Withdrawn REQ-01–REQ-04 and REQ-27 are
+`/pipeline`, which exist only after 09b's renames), adding its rows to the map. REQ-61's
+initial reviewed record and final extension, REQ-48 and the final REQ-47 check join both.
+Withdrawn REQ-01–REQ-04 and REQ-27 are
 not revived.
 
 ### Rollback
@@ -2112,6 +2121,9 @@ All three items are adopted by spec 021:
 - 2026-11-25 — included read-only recovery of the independently verified phase-one task and
   specification relocation while preserving the existing finalization journal (REQ-73,
   AC-54). Inspection does not authorize cleanup or declare completion.
+- 2026-11-25 — applied the existing two-part split without renumbering the specification;
+  specified intermediate checker, semantics-record and setup behavior and retained the full
+  final criteria. The split and intermediate contracts passed independent review.
 
 ## Readiness Checklist
 
@@ -2130,7 +2142,7 @@ All three items are adopted by spec 021:
 | 11 | Every existing-code claim has a verified path:line citation | PASS — historical context uses its pinned revision; changed current-source claims cite revision 8857b631 and were independently checked |
 | 12 | Terminology matches project domain definitions | PASS — Terminology table; REQ-34 adds terms to `domain.md` |
 | 13 | Scope is feature-sized (1–8 subtasks) | PASS — seven implementation steps (Notes); REQ-48 split boundary if Discovery finds more |
-| 14 | Devil's Advocate review passed | PASS — Review: 5 rounds, score 100/100, critic: sub-agent, open: none |
+| 14 | Devil's Advocate review passed | PASS — Review: 7 rounds, score 100/100, critic: sub-agent, open: none |
 
 Reconciliation pass 2026-11-14: targeted edits (REQ-67, AC-47, A-31–A-34, Q-05 resolved) checked by one independent pass on the changed passages; verdict unchanged.
 
@@ -2142,3 +2154,46 @@ Audit amendment pass 2026-11-18: AMD-08-01–AMD-08-07 applied (D-02: DM-16, DM-
 
 **Verdict: READY FOR DEVELOPMENT** — the reconciled contracts and journal relocation evidence
 were independently reviewed. Automated readiness is not sign-off.
+
+## Phase 1 — Harness infrastructure and inventory
+
+Implement the first part of Notes → Split boundary: REQ-05–REQ-13, REQ-29–REQ-30,
+REQ-35, REQ-36, REQ-38, REQ-42–REQ-45, REQ-50–REQ-52, REQ-54–REQ-59, REQ-62,
+REQ-63, REQ-65, REQ-66, REQ-68, REQ-69, REQ-71 and REQ-72. Apply REQ-47 to the
+isolated suites and REQ-48 to this split. REQ-72 repairs the existing inventory check
+before a full validator can be green; it does not change the pinned baseline or journal.
+Create the initial independently reviewed DM-20 record under REQ-61 before delivering any
+`contract_changes` entry, preserving all existing oracle checks and accepted `added` entries.
+
+The checker is strict and has no intermediate suppression flag. Run both standalone suites
+in isolated fixtures and require all Phase 1-owned fixture expectations to pass. Also run the
+checker on the Phase 1 tree and retain its exact diagnostics and exit status. A nonzero
+result is an expected intermediate result only when every diagnostic is one of
+`kind-prefix-invalid`, `name-collision`, `installed-name-collision`, `reference-missing`,
+`heading-missing`, `stale-name`, `bootstrap-table-invalid`, `resolution-rule-missing`,
+`capability-behaviour-table-invalid` or `usage-map-mismatch`, and an independent reviewer
+traces each occurrence to an unchanged Phase 2 source in DM-10/DM-11, a not-yet-created
+mapped successor or a Phase 2 table. Every other diagnostic blocks Phase 1 validation.
+Fixtures with unrelated invalid names, references and metadata must still fail. Do not
+record REQ-50's final zero-exit condition as passed until the full delivered tree passes.
+
+Verify the first-part clauses of AC-02–AC-07, AC-22, AC-24–AC-26, AC-30–AC-32,
+AC-34–AC-38, AC-40–AC-41, AC-43, AC-45–AC-46, AC-48–AC-49 and AC-52–AC-53.
+For AC-23, AC-27 and AC-44 verify only the clauses owned by these requirements.
+Delivered-tree checks depending on the second part's names, map rows or DM-20 records
+remain pending, including those of AC-30–AC-32, AC-46 and AC-48–AC-49. Do not mark an
+entire mixed or dependent criterion passed from a partial fixture.
+
+## Phase 2 — Names, finalization and integrated verification
+
+After Phase 1 validation and owner integration, implement the second part of Notes →
+Split boundary: REQ-14–REQ-26, REQ-28, REQ-31–REQ-34, REQ-37, REQ-39–REQ-41,
+REQ-46, REQ-49, REQ-53, REQ-64, REQ-67, REQ-70 and REQ-73. Apply the
+shared final checks of REQ-47 and REQ-48, and complete REQ-61's record. Preserve Phase 1 evidence and make command
+renames the final naming stage; a read-only journal relocation does not authorize cleanup.
+
+Verify AC-08–AC-17, AC-19–AC-21, AC-29, AC-33, AC-39, AC-42, AC-47, AC-50–AC-51
+and AC-54; complete the remaining mixed clauses of AC-23, AC-27 and AC-44 and the
+delivered-tree clauses explicitly deferred by Phase 1. AC-28 verifies the split. AC-01
+was moved and AC-18 was withdrawn; neither is claimed as new delivery. The original
+specification's integrated verdict requires both phases and all active criteria.
