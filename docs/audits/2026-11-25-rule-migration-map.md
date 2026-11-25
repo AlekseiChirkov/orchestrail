@@ -7,20 +7,20 @@ This record starts with support for inventory amendments. Section mappings will 
 
 ## Superseded checks
 
-The deployment entry point changes below await an independent verdict. The [inventory amendment](../../tests/fixtures/validator-runtime/inventory-amendment.json) records their complete source text.
+The amendment records the complete source expressions and helper bodies for these deployment entry point changes. [Inventory amendment](../../tests/fixtures/validator-runtime/inventory-amendment.json)
 
 | Key | Before | After | Requirement | Verdict |
 | --- | --- | --- | --- | --- |
-| `TDD: scripts/sync.sh deploys tdd.md to projects` | Named rule in the sync shell script | Installed TDD rule prefix and source bytes across declared targets | REQ-05 | Pending independent validation. |
-| `TDD: scripts/setup-new-project.sh deploys tdd.md` | Named rule in the setup shell script | Actual links to the installed TDD rule from a fresh project | REQ-06 | Pending independent validation. |
-| `ORCH: $f deploys git-flow.md and orchestration.md` | Named orchestration rules in both shell scripts | Installed orchestration rule bytes and links from a fresh project | REQ-05 | Pending independent validation. |
-| `test_sync_preserves_repository_knowledge_policy` | Extracted shell ignore policy | Two actual registered-project passes using isolated Git repositories | REQ-09 | Pending independent validation. |
-| `DEPLOY: scripts/setup-new-project.sh copies $name` | Named rule copy in setup | Actual new-project link to each installed rule skill | REQ-06 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh refreshes $name in existing projects` | Named rule copy in the sync shell loop | Actual registered-project refresh link to each installed rule skill | REQ-09 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill` | Hard-coded Claude Code copy loop | Actual Claude skill target with every prefixed rule and exact bytes | REQ-05 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill` | Hard-coded Codex copy loop | Actual Codex skill target with every prefixed rule and exact bytes | REQ-05 | Pending independent validation. |
-| `DEPLOY: the $root rule deployment uses the rule- prefix` | Hard-coded provider-specific rule prefix | Actual rule prefix and source bytes in each named adapter target | REQ-05 | Pending independent validation. |
-| `test_shell_paths_relocated_checkout_preserves_overrides` | Relocated source with legacy helper dependencies | Relocated sources with declared adapters, engine and reporter | REQ-05 | Pending independent validation. |
+| `TDD: scripts/sync.sh deploys tdd.md to projects` | Named rule in the sync shell script | Installed TDD rule prefix and source bytes across declared targets | REQ-05 | pass — Sync delegates to the engine, and isolated deployment verifies prefixed TDD rule bytes at each declared skill target. |
+| `TDD: scripts/setup-new-project.sh deploys tdd.md` | Named rule in the setup shell script | Actual links to the installed TDD rule from a fresh project | REQ-06 | pass — Setup delegates to direct linking, and the fresh project links resolve to installed TDD rules at every declared project link target. |
+| `ORCH: $f deploys git-flow.md and orchestration.md` | Named orchestration rules in both shell scripts | Installed orchestration rule bytes and links from a fresh project | REQ-05 | pass — Both entry points delegate to the engine, and the fixture verifies both rule files and their fresh project links. |
+| `test_sync_preserves_repository_knowledge_policy` | Extracted shell ignore policy | Two actual registered-project passes using isolated Git repositories | REQ-09 | pass — Two actual registered-project passes preserve the tracked ignore bytes and add exactly one `.ai/` entry for untracked state. |
+| `DEPLOY: scripts/setup-new-project.sh copies $name` | Named rule copy in setup | Actual new-project link to each installed rule skill | REQ-06 | pass — Each rule source has an exact link to the deployed skill from a fresh project through declared link directories. |
+| `DEPLOY: scripts/sync.sh refreshes $name in existing projects` | Named rule copy in the sync shell loop | Actual registered-project refresh link to each installed rule skill | REQ-09 | pass — Each rule source has an exact link to the deployed skill after refreshing the registered project through declared link directories. |
+| `DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill` | Hard-coded Claude Code copy loop | Actual Claude skill target with every prefixed rule and exact bytes | REQ-05 | pass — The Claude adapter's declared skill target contains every expected rule-prefixed file with exact source bytes. |
+| `DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill` | Hard-coded Codex copy loop | Actual Codex skill target with every prefixed rule and exact bytes | REQ-05 | pass — The Codex adapter's declared skill target contains every expected rule-prefixed file with exact source bytes. |
+| `DEPLOY: the $root rule deployment uses the rule- prefix` | Hard-coded provider-specific rule prefix | Actual rule prefix and source bytes in each named adapter target | REQ-05 | pass — Both named adapter targets contain actual rule-prefixed skills, and an altered installed prefix makes both expanded checks fail. |
+| `test_shell_paths_relocated_checkout_preserves_overrides` | Relocated source with legacy helper dependencies | Relocated sources with declared adapters, engine and reporter | REQ-05 | pass — The isolated fixture exercises default checkout, environment override and command-line precedence using the selected source and declared deployment inputs. |
 
 ## Retained old names
 
@@ -66,4 +66,4 @@ The deployment entry point changes below await an independent verdict. The [inve
 | Path:line | Reference | Fix |
 | --- | --- | --- |
 
-Signed: Independent validator 2026-11-25 bf2957d2146e81d5f87efc005cbc2018b745a90a
+Signed: Independent validator 2026-11-25 65e5323888f794a4bb1e439a1911a0e91da4848f
