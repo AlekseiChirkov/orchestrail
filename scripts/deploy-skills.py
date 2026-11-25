@@ -288,6 +288,10 @@ def _temporary_name(name: str) -> str:
     return f".{name}{_TEMPORARY_SUFFIX}"
 
 
+def _temporary_path(target: Path) -> Path:
+    return target.with_name(_temporary_name(target.name))
+
+
 def _is_temporary_name(name: str) -> bool:
     return (name.startswith(".") and name.endswith(_TEMPORARY_SUFFIX)
             and len(name) > len(_TEMPORARY_SUFFIX) + 1)
@@ -318,8 +322,29 @@ def _validate_targets(adapters: list[_Adapter], state: _DeploymentPaths) -> None
     roots: list[Path] = []
     # Use physical paths for overlap checks while retaining the adapter's expanded path in the manifest.
     always_on_files: list[Path] = []
+    always_on_addresses = {
+        path
+        for adapter in adapters
+        for path in (
+            Path(os.path.abspath(adapter.always_on_path)), adapter.always_on_resolved,
+            Path(os.path.realpath(adapter.always_on_resolved.parent)) / adapter.always_on_resolved.name,
+        )
+    }
+    always_on_temporaries = {_temporary_path(path) for path in always_on_addresses}
+    reserved_addresses = always_on_addresses | set(state.reserved) | state.legacy
+    if any(_overlap(temporary, reserved) for temporary in always_on_temporaries
+           for reserved in reserved_addresses):
+        raise _DeploymentError("adapter-conflict", "an always-on temporary overlaps a reserved deployment path")
     for adapter in adapters:
         skills = adapter.skills_dir_resolved
+        skill_paths = (
+            Path(os.path.abspath(adapter.skills_dir)), skills,
+            Path(os.path.realpath(adapter.skills_dir.parent)) / adapter.skills_dir.name,
+        )
+        if any(_overlap(root, temporary) for root in skill_paths for temporary in always_on_temporaries):
+            raise _DeploymentError(
+                "adapter-conflict", f"skill root for {adapter.name} overlaps an always-on temporary path",
+            )
         always_on = adapter.always_on_resolved
         resolved_always_on = Path(os.path.realpath(always_on.parent)) / always_on.name
         locations = (
@@ -489,6 +514,10 @@ def _read_journal(path: Path, adapters: list[_Adapter]) -> _Journal:
                 or item["old_sha256"] == item["new_sha256"]):
             raise _DeploymentError("journal-invalid", f"{path}: invalid journal entry")
         name = item["path"]
+        try:
+            os.fsencode(name)
+        except UnicodeEncodeError as error:
+            raise _DeploymentError("journal-invalid", f"{path}: entry path cannot be encoded") from error
         managed = Path(name)
         if str(managed) != name or name <= previous:
             raise _DeploymentError("journal-invalid", f"{path}: invalid, repeated or unsorted entry path")
@@ -781,16 +810,39 @@ def _journal_payload(plan: _Plan) -> bytes:
     return (json.dumps(record, indent=2, sort_keys=True) + "\n").encode()
 
 
+def _validate_pending_temporaries(targets: list[Path]) -> None:
+    for target in targets:
+        path = _temporary_path(target)
+        try:
+            with _managed_directory(path.parent) as directory:
+                info = os.stat(path.name, dir_fd=directory, follow_symlinks=False)
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            raise _DeploymentError("unsafe-target", f"cannot inspect {path}: {error.strerror}") from error
+        if not stat.S_ISREG(info.st_mode):
+            raise _DeploymentError("unsafe-target", f"{path} must be absent or a regular temporary file")
+
+
 def _apply_plan(plan: _Plan, manifest_dir: Path) -> None:
-    _clean_deployment_temporaries(plan.adapters, manifest_dir)
     journal_path = manifest_dir / _JOURNAL_NAME
     journal_digest = plan.journal.sha256
-    if plan.actions or (plan.manifests and journal_digest is None):
+    write_journal = bool(plan.actions or (plan.manifests and journal_digest is None))
+    always_on_targets = {adapter.always_on_path: adapter.always_on_resolved for adapter in plan.adapters}
+    replacements = [
+        always_on_targets.get(action.path, action.path) for action in plan.actions
+        if action.new_contents is not None
+    ]
+    replacements.extend(plan.manifests)
+    if write_journal:
+        replacements.append(journal_path)
+    _validate_pending_temporaries(replacements)
+    _clean_deployment_temporaries(plan.adapters, manifest_dir)
+    if write_journal:
         journal_bytes = _journal_payload(plan)
         _replace_file(journal_path, journal_bytes, journal_digest)
         journal_digest = _digest(journal_bytes)
 
-    always_on_targets = {adapter.always_on_path: adapter.always_on_resolved for adapter in plan.adapters}
     kept = []
     for action in plan.actions:
         target = always_on_targets.get(action.path, action.path)
