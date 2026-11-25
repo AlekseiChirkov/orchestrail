@@ -516,7 +516,7 @@ Withdrawn; scheduling evidence belongs to the execution specification.
 | `unavailable.field` | — | One of `attempts`, `reviews`, `packets`, `packets.bytes`, `repairs` |
 
 Composites carry only `reviews`, read from their own records exactly as for a leaf (spec 017 C-6 row 020 exposes per-leaf and per-composite records; REQ-15 there gives them `full-integration`). Fix-task rows are leaves. No ratio, total, cost or saving is
-computed (G8; 05 owns valuation). Producers of the option files: `--controller-summary` is the
+computed (G8; 006 owns valuation). Producers of the option files: `--controller-summary` is the
 stdout of spec 015's `summary` subcommand (spec 015 C-2 command line, DM-10) saved by
 whoever runs `overhead`; `--context-records` is the stdout lines of spec 014's
 `bash scripts/context-pack.sh verify --packet <store>/<hex>.md` run once per packet digest named

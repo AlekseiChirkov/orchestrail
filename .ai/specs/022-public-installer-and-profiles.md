@@ -861,7 +861,7 @@ requirement of this spec or changed on purpose:
 | Leftover skills are reported and never removed (011 REQ-57) | REQ-79 |
 | The registry stays read-only (011 REQ-08) | REQ-80 (REQ-35 for uninstall) |
 | The lock is never taken over (011 DM-7) | REQ-84, REQ-24 |
-| The project pass stays as 09 defines it and never touches profile files (09 Contracts → Project pass) | REQ-71 (`project-pass` unchanged), REQ-85, A-21 |
+| The project pass stays as 011 defines it and never touches profile files (011 Contracts → Project pass) | REQ-71 (`project-pass` unchanged), REQ-85, A-21 |
 
 Explicit changes from spec 011, each with its reason:
 

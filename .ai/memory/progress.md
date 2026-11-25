@@ -7,6 +7,13 @@ and the audit spec — dates are those recorded in the sources.
 
 ## Log
 
+- **2026-11-25 — Specification references and inventory reconciled.** Remaining
+  contextual references use the new numbering, while historical report-schema labels
+  retain their established wire form. The owner approved the prior source-file deletion;
+  the knowledge ledger now pins the renumbering commit. Full contract validation:
+  725 passed, 0 failed, 2 skipped; inventory and authoring checks repeated after the
+  final contextual-reference edits.
+
 - **2026-11-25 — Specification filenames renumbered.** The owner requested a
   consistent three-digit sequence for active and completed records. The 27 current
   specifications now use prefixes 001–027; the former runtime record `06-1` receives

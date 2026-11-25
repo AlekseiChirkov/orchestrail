@@ -39,7 +39,7 @@
     observed. Mechanical work is performed by a deterministic tool when that suffices. Complex
     and critical work keeps a conservative configuration until alternatives are
     independently qualified."
-  - Ownership (§2): "16 owns the resolution of a supported setting. The model catalog and
+  - Ownership (§2): "018 owns the resolution of a supported setting. The model catalog and
     availability belong to 04, harness capabilities to 09, measurement to 05, qualification to
     10, verification to 15, the escalation decision to 17. 17 is a later consumer of setting
     resolution, not a prerequisite of 16. Until 019's repair policy is enabled, the existing
@@ -186,7 +186,7 @@ current (pre-spec-09) names; see Notes → Name mapping for the names the implem
    011's inventory amendment admits `contract_changes` only for a closed set of 011's own
    requirement ids (spec 011 DM-9 `contract_changes`, extended only by 011 REQ-69).
 7. **Spec 011 lands first.** The dependency order puts 09 (order 2) before 012 (order 6) and 10
-   before 018 (order 12) (`.ai/specs/README.md` → "Dependency order"). 09 renames the workflows and rules this
+   before 018 (order 12) (`.ai/specs/README.md` → "Dependency order"). 011 renames the workflows and rules this
    spec edits and splits `rules/workflow-reference.md`, sending `### Model columns and
    resolution` and `## Protected Sections Contract` to `rules/contract-state-files.md`
    (spec 011 DM-10 row `rules/workflow-reference.md` and DM-12), and
@@ -901,7 +901,7 @@ values must be `sha256:` identifiers, `scripts/usage_telemetry_contract.py:350-3
 |---|---|
 | 005 (completed) | Consumed: `quality_floor`, `HARD_CONSTRAINTS`, the reasoning recommendation and model resolution, unchanged. Extended additively: DM-4 lines in the model-selection workflow |
 | 006 (completed) | Consumed: none required. Exposed: C-5. Needed for actual effort (not required here): a source-profile parameter for observed effort in a new schema version of 006's contract; until then actual stays `unknown` |
-| 012 | Consumed: DM-12 `report.json` fields `kind`, `experiment_id` and `comparisons[].candidate`, `baseline`, `verdict`, and DM-6 manifest `variants[].roles[].effort`/`model`/`adapter` (DM-3). Aligned with 012 REQ-53: `roles` has exactly `orchestrator`, `arbiter`, `implementer`, `validator`; 018 reads the last three and ignores `orchestrator`. The uniform-effort limitation of executable variants is stated in DM-3. 10 sets no `report.json` size limit; DM-3's limit is 018's own |
+| 012 | Consumed: DM-12 `report.json` fields `kind`, `experiment_id` and `comparisons[].candidate`, `baseline`, `verdict`, and DM-6 manifest `variants[].roles[].effort`/`model`/`adapter` (DM-3). Aligned with 012 REQ-53: `roles` has exactly `orchestrator`, `arbiter`, `implementer`, `validator`; 018 reads the last three and ignores `orchestrator`. The uniform-effort limitation of executable variants is stated in DM-3. 012 sets no `report.json` size limit; DM-3's limit is 018's own |
 | 23 | Exposed: DM-6 and C-3. Parallel-mode spawns (leaf coordinators, phase agents, per-workflow agents with 23's stages `tests`, `implement`, `finalize`, `check`, `propose`, `close`) are outside policy version 1 (23 A-27 says the same): they keep today's dispatch behaviour, with no effort parameter and no `## Effort Decisions` line, and policy version 1 and its DM-2/DM-6 enums stay as written. The amendment 23 requires (the three roles and the stages added to DM-2/DM-6, the root named as the only writer of `## Effort Decisions` in C-4) is a later change to this spec, made by a revision of 16 triggered by 23's delivery; see A-29 for who makes it |
 | 011 | Consumed: DM-4 record grammar and extension-record convention; file and section names (Notes → Name mapping and Files and sections created after this spec); the behaviour table; REQ-67, which admits a declared capability record name such as `sub-agent-effort` in a `Requires` cell (Q-01 resolved) |
 | 015 | Consumed: none. DM-2 `checkpoint_attempt` is not amended: it exists only on the helper route and for Implementer and Validator, is written once before the spawn, and cannot carry a later rejection; DM-5 covers every route and role. 015's C-10 row 018 records that DM-2 is not used |
@@ -1240,7 +1240,7 @@ Every AC names at least one REQ; AC-01–AC-18 are all covered above.
 - A-25 | Previous "explicit owner/run override" | Resolved: expressed through the owner's policy file, including `owner_raise` for the top declared value; no new command flag | Source: previous REQ-03; P5/P6 | Reversible: yes
 - A-26 | Today's session-observed recommendation while no declaration exists | Resolved: kept (REQ-37); policy-chosen values still need `state: yes` | Source: owner standing decision (default is today's behaviour); `rules/workflow-reference.md:144-147`; 011 REQ-16 governs new capability-dependent behaviour | Reversible: yes
 - A-27 | Arbiter and Validator as "session-default roles" | Resolved: the phrase concerns model identity; effort is a separate setting | Source: ADR-0015 Decision 3; `docs/MODEL-CATALOG.md:84` | Reversible: yes
-- A-28 | Target tree | Resolved: the tree after spec 011; pre-09 names apply only if 09 is not delivered | Source: `.ai/specs/README.md` → "Dependency order" | Reversible: yes
+- A-28 | Target tree | Resolved: the tree after spec 011; pre-09 names apply only if 011 is not delivered | Source: `.ai/specs/README.md` → "Dependency order" | Reversible: yes
 - A-29 | Spec 23's parallel-mode spawns (added 2026-11-14) | Resolved: outside policy version 1; behaviour stays exactly as today (no effort parameter, no resolver call, no `## Effort Decisions` line for them) and DM-2/DM-6 enums and C-4 stay as written. 23's A-27 states the same. To bring them under the policy, 23's implementer, or the owner after 23's delivery, makes a revision of this spec that adds the roles leaf coordinator, phase agent and workflow agent and the stages `tests`, `implement`, `finalize`, `check`, `propose`, `close` to DM-2/DM-6 (with DM-2 `match` and DM-5 grammar updates and acceptance rows), names the root as the only writer of `## Effort Decisions` in C-4, and re-checks the additive resolver; 23's delivery adds no effort handling itself | The `repair` stage of 23 (REQ-54) is not in the amendment list: it stays with spec 019's own route (019 C-5 step 5 and C-8 step 3) | Source: spec 23 A-27 and its follow-up list; this spec's A-14 | Reversible: yes
 
 ## Decisions
@@ -1289,7 +1289,7 @@ and REQ-27. One owner decision is recorded:
 ### Name mapping (spec 011)
 
 The implementation edits the tree after spec 011. Names below are post-09, with the current
-name in parentheses for use only if 09 is not delivered (`docs/name-map.json` absent):
+name in parentheses for use only if 011 is not delivered (`docs/name-map.json` absent):
 state-files contract `rules/contract-state-files.md` (`rules/workflow-reference.md`); phases
 contract `rules/contract-phases.md` (none before 011; the behaviour-row half of REQ-24 then does not apply, A-28);
 orchestration contract `rules/contract-orchestration.md` (`rules/orchestration.md`);

@@ -329,3 +329,6 @@ that renamed them. The base commits recorded in the subtask blocks above are unc
 
 - knowledge baseline, 2026-11-16:
   base_commit: 0d96b07689dd9e44890c056fee0f36f9b73c1ead
+
+- knowledge baseline, 2026-11-25:
+  base_commit: bda0f3e928c119da5a7d8d108c6daf89a4777b0f

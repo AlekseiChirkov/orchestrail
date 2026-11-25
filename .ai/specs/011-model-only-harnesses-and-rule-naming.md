@@ -1605,7 +1605,7 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 ## Assumptions
 
 - A-01 | Where new checks run | Resolved: standalone checker and suites, not in the validator or sync | Source: ADR-0019 Decision 3; `tests/validator-runtime-oracle.py:46-100`; `tests/fixtures/validator-runtime/oracle.py:244-251` (additive suffix hard-coded) | Reversible: yes
-- A-02 | How renamed or superseded frozen checks are accepted | Resolved: schema-2 amendment with `path_changes` (spec 013's record, class-indexed mask) and `contract_changes`, owned here because 09 renames first | Source: ADR-0018 status Provisional (`.ai/adr/index.md:30`); spec 013 A-37; `.ai/specs/README.md` → "Dependency order" | Reversible: yes
+- A-02 | How renamed or superseded frozen checks are accepted | Resolved: schema-2 amendment with `path_changes` (spec 013's record, class-indexed mask) and `contract_changes`, owned here because 011 renames first | Source: ADR-0018 status Provisional (`.ai/adr/index.md:30`); spec 013 A-37; `.ai/specs/README.md` → "Dependency order" | Reversible: yes
 - A-03 | 1,200-word limit scope (old §9 said "including the capability table") | Resolved: the limit applies to the always-on body; the declaration's size is governed by spec 013's always-on-set budget | Source: ADR-0009 D2 (declaration embedded) and D6 (6,000-word set budget); ADR-0017 implications (`.ai/adr/0017-task-06-enforced-git-rails-hook.md:202`, residual risks stay in `capabilities.md`); fact: the declaration alone has 1,607 words | Reversible: yes (D-01; Q-01 resolved)
 - A-04 | Capability syntax | Resolved: spec 021's record form for every canonical key, in a new trailing section | Source: `harness/claude/capabilities.md:31-37`; spec 021 A-32 | Reversible: yes
 - A-05 | `step` values 2.5, 4a, 4b | Resolved: grammar of DM-3 keeps them | Source: current descriptions (Context fact 7); best practice (no renumbering churn) | Reversible: yes
@@ -1719,8 +1719,8 @@ REQ-30's "future known versions" became the extension-key registry of DM-2/DM-3.
 
 ### Ownership between 09 and 08
 
-08 owns the audit: inventory, link graph, duplicate clusters, mixed-kind detection, word and
-byte measurements and its findings, and proposes amendments to this spec. 09 owns every
+010 owns the audit: inventory, link graph, duplicate clusters, mixed-kind detection, word and
+byte measurements and its findings, and proposes amendments to this spec. 011 owns every
 contract and change listed in Scope, including the final maps DM-10–DM-12, which are binding
 defaults; 010's accepted report may change them only through `/spec-sync` before 011's
 Discovery (ADR-0009 D3). 08 should use DM-19 for word counts and DM-2's kinds, and report any
@@ -1802,7 +1802,7 @@ only the five colliding rules, moving command renames to spec 023, per-provider 
 - Spec 013 — optional `loads` on rules: **adopted** as a registered extension key (A-06).
   `source_revision`: **adopted** (A-07, REQ-58). `always-on.md` may name `load: always` rules:
   **confirmed**; the lines count toward the 1,200-word body. Re-pointing frozen checks:
-  **09 owns it** (DM-9), with 013's record shape; the mask is widened to `templates/`, `docs/`
+  **011 owns it** (DM-9), with 013's record shape; the mask is widened to `templates/`, `docs/`
   and class-indexed names, which every 11 path-only change between unmapped paths still satisfies.
 - Spec 012 — prompts in `tests/golden/cases/*/case.json`: **adopted** in scan set R (A-26).
 - Shared finding that the inventory is frozen: **verified** (Context fact 11); new checks are

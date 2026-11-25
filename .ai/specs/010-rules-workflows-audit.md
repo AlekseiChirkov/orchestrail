@@ -17,7 +17,7 @@
   exact changes to its requirements before the migration starts. The criteria of this document
   are checked by the completeness of the inventory and the reproducibility of the observations,
   not by the size of the report. Main decisions: ADR-0009, decisions 2, 3 and 7. Mandatory
-  prerequisite: completed specification 002. The full 08 audit precedes 09; a partial review of
+  prerequisite: completed specification 002. The full 010 audit precedes 011; a partial review of
   the workflows does not replace it."
 - **Snapshot the previous revision verified (translated from Russian, §2):**
   `8c2fa08c18115ffcf38a1798742c41e53a2c7461`; [source tree](https://github.com/AlekseiChirkov/agentic-workflows/tree/8c2fa08c18115ffcf38a1798742c41e53a2c7461).
@@ -1417,10 +1417,10 @@ resolved as A-01–A-28; open items are Q-01 and Q-02.
 
 ### Ownership between 09 and 08
 
-08 owns the audit: tool, inventory, link graph, duplicate clusters, mixed-kind detection,
+010 owns the audit: tool, inventory, link graph, duplicate clusters, mixed-kind detection,
 measurements, findings, proposals and proposed amendments. Spec 011 owns every contract and change
 in its Scope, including its maps (DM-10–DM-12), which 08 amends only through the owner's
-`/spec-sync` of spec 011. 08 counts words with spec 011's word count (DM-19), classifies with spec
+`/spec-sync` of spec 011. 010 counts words with spec 011's word count (DM-19), classifies with spec
 011 DM-2's rule kinds, and reports files missing from DM-10/DM-11 (spec09_default null). Places
 where 08 chose the narrower reading are A-08, A-15, A-18 and A-25.
 

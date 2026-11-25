@@ -2,7 +2,7 @@
 
 ## Source
 
-- [Edition 5.0 architecture and acceptance contract](../review_architecture_spec_v5.md), sections 1–12, supplied for standalone specification authoring on 2026-11-24. Source SHA-256 is `71593fe34d9f1e57c4bf8b47c2e9779acbfefb70e9626c4b02839d7f844ddfda`.
+- Edition 5.0 architecture and acceptance contract, sections 1–12 (historical source: `git show 42325d2:.ai/specs/review_architecture_spec_v5.md`), supplied for standalone specification authoring on 2026-11-24. Source SHA-256 is `71593fe34d9f1e57c4bf8b47c2e9779acbfefb70e9626c4b02839d7f844ddfda`.
 - The source asks the pilot to “Find distinct, consequential defects before the first useful report on a pinned change” and “Evaluate the behavior promised by the approved feature specification, including behavior entirely absent from the diff.” The source proposes resource ceilings and numeric acceptance thresholds for qualification. The Phase 1 change log records the owner's exploratory comparison decision.
 - Owner direction, translated from Russian (2026-11-24 repository conversation): “Update the specification. I need the spec-run implementation to proceed as quickly as possible, in parallel wherever possible. After updating the specification, run /spec-draft --auto-mode on it.” The preceding discussion defines a three-case rehearsal, a 10–15-case paired comparison, and independent review and scoring.
 

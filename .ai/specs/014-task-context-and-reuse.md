@@ -61,7 +61,7 @@ installed and does not introduce a new orchestration mechanism."
 context. Only materials whose bases have not changed are reused. When in doubt about
 completeness the agent widens its reading instead of continuing on an unconfirmed
 assumption.
-12 owns packets and their provenance. 11 owns mandatory loading of instructions; 13 —
+014 owns packets and their provenance. 013 owns mandatory loading of instructions; 015 —
 checkpoints; 15 — sufficiency of verification; 14 — delivery of complete tool output; 05 —
 measurements. Canonical project files remain the source of truth. A packet is not a status
 store, a permission to act or a substitute for the specification.

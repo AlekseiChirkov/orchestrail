@@ -984,7 +984,7 @@ belong to one namespace. Table delimiter rows are ignored. At `060ce6d`, rows
 Gate location (aligned 2026-11-14): in spec 011's `scripts/sync.sh` step list, after the
 contract validator (step 2) and before hook installation (step 4), the first step that
 writes outside the source root; the runtime guard (step 3) precedes it, and spec 013's
-`measure-context.sh check` gate follows it (11 Contracts → Deployment). Legacy reporting
+`measure-context.sh check` gate follows it (013 Contracts → Deployment). Legacy reporting
 precedes it only in spec 022's step list. Once spec 022 is delivered, the gate's position in
 `scripts/sync.sh` is owned by spec 022 (its REQ-64), which also runs the same command inside
 its installer engine (its REQ-40); this spec then owns only the command and its exit
@@ -1017,7 +1017,7 @@ today) and every spec 011 deploy case asserting the DM-14 assembly expect the ge
 `harness/<name>/always-on.md` plus the installation record; (3) because
 `tests/hook-install.sh` is an approved path of the frozen inventory, its resource entry in
 `tests/fixtures/validator-runtime/inventory-amendment.json` is re-amended in the amendment
-schema then in force (spec 011 DM-9 schema 2 once 09 is delivered), and `AMENDMENT_SHA256` in
+schema then in force (spec 011 DM-9 schema 2 once 011 is delivered), and `AMENDMENT_SHA256` in
 `tests/validator-runtime-oracle.py` is updated; (4) the source-guard records that pin
 `scripts/sync.sh`, `tests/hook-install.sh` and the oracle are refreshed under
 `tests/fixtures/validator-runtime/README.md:9-28` (ADR-0020 Decision 2 precedent).
@@ -1407,10 +1407,10 @@ Every AC-01–AC-27 names at least one REQ above.
 - A-48 | Gate location after spec 022 (2026-11-14) | Resolved: spec 022 owns the position (its REQ-64) and also gates its engine (its REQ-40); this spec owns the command and exit semantics | Source: spec 022 REQ-39, REQ-40, REQ-64 | Reversible: yes
 - A-49 | Rules and workflows added by later specs (12–18) (2026-11-14) | Resolved: no per-spec knowledge — the generator enumerates `workflows/*.md` and top-level `rules/*.md`, takes kinds from the DM-2 prefix and phases/steps from DM-3, so files named under spec 011's Notes → Files and sections created after this spec (for example `atomic-execution-repair`, step `4`) render without change | Source: spec 011 Notes → Files and sections created after this spec; DM-2, DM-3 | Reversible: yes
 - A-50 | `loads` on rules (2026-11-14) | Resolved: accepted and parsed, not rendered | Source: spec 013 DM-1, REQ-22; spec 011 DM-2 registered extension key | Reversible: yes
-- A-51 | Plain-value grammar (2026-11-14) | Resolved: inside `loads`, 013 DM-1's `[A-Za-z0-9_./-]+`; top-level scalars keep spec 011 DM-2's broader grammar, because 09 owns those fields and descriptions contain spaces and colons | Source: spec 013 DM-1; spec 011 DM-2 | Reversible: yes
+- A-51 | Plain-value grammar (2026-11-14) | Resolved: inside `loads`, 013 DM-1's `[A-Za-z0-9_./-]+`; top-level scalars keep spec 011 DM-2's broader grammar, because 011 owns those fields and descriptions contain spaces and colons | Source: spec 013 DM-1; spec 011 DM-2 | Reversible: yes
 - A-52 | Who changes the meter's always-on composition (2026-11-14) | Resolved: this delivery (Scope item 11, REQ-50), in the change that embeds the declaration | Source: spec 013 A-11 and its always-on composition paragraph (Contracts → Graph resolution), which name 021 REQ-50 as the change; spec 013 Notes → "Ownership statements for spec 021"; spec 013 is delivered first (Preconditions). No conflict between the specs | Reversible: yes
 - A-53 | Registration of spec 021's front-matter keys in spec 011's checker (2026-11-14) | Resolved: part of this delivery (Scope item 12, REQ-51) | Source: spec 011 DM-2 ("Until the owning spec registers its validator in the checker, an extension key is `metadata-unknown-field`") and DM-3 | Reversible: yes
-- A-54 | Metadata of files added by specs 014–17, and the parts of 09, 11, 16 and 20 this spec depends on (2026-11-14) | Resolved: the rule parser (REQ-49) accepts every key those specs prescribe for rules — `description`, `load: on-demand` and an optional `loads` (014 REQ-46, 017 REQ-38, 016 REQ-47, 019 REQ-63; 015 A-02 for `contract-checkpoints` and `contract-delta-operations`); the workflow parser (REQ-23, REQ-51) accepts `description`, `phase` and `step` for the workflow 17 adds (`atomic-execution-repair`, `phase: atomic-execution`, `step: 4`, matching 011 DM-3) and `loads` where 13, 15, 14 and 17 add entries. No prescribed key is rejected. One consequence: those specs do not prescribe `reads`, `writes` or `called_by` for that workflow, which this spec requires of every workflow, so its front matter gets `metadata-missing-field` until the delivery that adds the file also adds the three keys (`called_by` naming `spec-run`, with its `Called by:` line starting with the backticked command, REQ-35); the generator needs no change. Nothing in this design depends on the 13 items under revision in parallel (the stop wording of 011 REQ-37, the rule for extending its closed `requirement` set in 011 REQ-69, a decision on split targets that 09 cites from spec 013); 09 is cited only by the ids already used. Spec 011 itself holds no Q-07 (verified). Spec 018's `sub-agent-effort` record is accepted with `state: unknown` and renders `unavailable` in `## Behaviours` (REQ-48, AC-24). Spec 013 agrees with A-52. Spec 022 keeps both gates (REQ-22) | Source: specs 014, 015, 017, 016, 019 front-matter sections; 011 DM-2, DM-3; 018 DM-1; 013 A-11; 022 REQ-64 | Reversible: yes
+- A-54 | Metadata of files added by specs 014–17, and the parts of 09, 11, 16 and 20 this spec depends on (2026-11-14) | Resolved: the rule parser (REQ-49) accepts every key those specs prescribe for rules — `description`, `load: on-demand` and an optional `loads` (014 REQ-46, 017 REQ-38, 016 REQ-47, 019 REQ-63; 015 A-02 for `contract-checkpoints` and `contract-delta-operations`); the workflow parser (REQ-23, REQ-51) accepts `description`, `phase` and `step` for the workflow 019 adds (`atomic-execution-repair`, `phase: atomic-execution`, `step: 4`, matching 011 DM-3) and `loads` where 13, 15, 14 and 17 add entries. No prescribed key is rejected. One consequence: those specs do not prescribe `reads`, `writes` or `called_by` for that workflow, which this spec requires of every workflow, so its front matter gets `metadata-missing-field` until the delivery that adds the file also adds the three keys (`called_by` naming `spec-run`, with its `Called by:` line starting with the backticked command, REQ-35); the generator needs no change. Nothing in this design depends on the 13 items under revision in parallel (the stop wording of 011 REQ-37, the rule for extending its closed `requirement` set in 011 REQ-69, a decision on split targets that 09 cites from spec 013); 09 is cited only by the ids already used. Spec 011 itself holds no Q-07 (verified). Spec 018's `sub-agent-effort` record is accepted with `state: unknown` and renders `unavailable` in `## Behaviours` (REQ-48, AC-24). Spec 013 agrees with A-52. Spec 022 keeps both gates (REQ-22) | Source: specs 014, 015, 017, 016, 019 front-matter sections; 011 DM-2, DM-3; 018 DM-1; 013 A-11; 022 REQ-64 | Reversible: yes
 
 ## Decisions
 
@@ -1435,7 +1435,7 @@ No questions were asked. A reconciliation pass aligned this spec with the final 
 - Q-01 | resolved 2026-11-14 (A-44: spec 011 DM-3 admits these steps and fixes their order) | Spec 011 REQ-13 allowed `step` to be a positive integer or `"-"`,
   but current steps include `2.5` (`workflows/pd-select-model.md:2`), `4a`
   (`workflows/pv-classify-fixes.md:2`) and `4b` (`workflows/pd-archive.md:2`). Impact: the
-  sort order of `commands.md` follows whatever 09 finally allows; 09 owns the answer.
+  sort order of `commands.md` follows whatever 09 finally allows; 011 owns the answer.
 - Q-02 | resolved 2026-11-14 (A-42: spec 011 REQ-54 limits only the body; the risk remains in Risks) | The Claude always-on content (985 + 1,607 words today) exceeds the
   1,200-word limit that the previous spec 011 text imposed on that file, and this spec adds an
   11-word provenance line. Impact: if 09 delivers a file within 11 words of the limit,
@@ -1469,7 +1469,7 @@ No questions were asked. A reconciliation pass aligned this spec with the final 
   anchored lines); whole-file input digests (churn); deleting edited outputs without
   `--force`; rendering the installation result into the generated file (it is dynamic).
 - Follow-up for other specs: 09 has adopted the record form (DM-4) and the handover (REQ-36,
-  Notes → Spec 021 alignment); 21 consumes `--profile`, `docs/harness-matrix.md` and the
+  Notes → Spec 021 alignment); 023 consumes `--profile`, `docs/harness-matrix.md` and the
   always-on bytes (its REQ-39). Spec 013 already cites spec 011 DM-5 for "Harness" and records the
   composition change as carried out by this delivery (its A-11; 021 REQ-50, Scope item 11);
   nothing further is required of 11. Spec 022 keeps spec 013's meter gate step (013 REQ-08)

@@ -47,7 +47,7 @@ separate audit report mentioned by the source documents is absent from the snaps
 used as evidence of implementation. Receipts of reproducible checks, qualified cheaper modes
 and rechecking only the affected area are not yet declared implemented. This specification
 changes evidence preparation and the scope of review. Automatic repair and exemption from the
-stop are defined exclusively by [17](019-local-repair-and-escalation.md).
+stop are defined exclusively by [019](019-local-repair-and-escalation.md).
 
 **2. Goal and boundaries.** Repeat only those checks whose inputs or scope have justifiably
 changed, while keeping an independent assessment of all criteria and of the behaviour of the
@@ -266,7 +266,7 @@ Facts verified at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
    (spec 024 REQ-12, REQ-40).
 6. **Spec 014 supplies the Validator's context but leaves sufficiency here.** The validator
    packet carries the Task Contract, `base_commit`, the reviewed revision and the
-   `--no-renames` name-status list of changed paths; "15 decides sufficiency and may add sources
+   `--no-renames` name-status list of changed paths; "017 decides sufficiency and may add sources
    by expansion" (spec 014 C-8 row 017, REQ-19, DM-6 item 7).
    Packets are content-addressed and `task_contract_hash` is `sha256:` + the contract part
    digest (014 C-8 row 015); a contract change mid-leaf yields a successor packet and the Validator
@@ -1547,7 +1547,7 @@ Fixture cases run in `scripts/check-scoped-verification.py`; text cases read the
 | REQ-61 | AC-42 |
 | REQ-62 | AC-43 |
 
-Shared gates: G1 — REQ-08, C-6 (05 attribution facts, no invented counts); G2 — C-6 (10 owns
+Shared gates: G1 — REQ-08, C-6 (05 attribution facts, no invented counts); G2 — C-6 (012 owns
 comparable measurement; switch gives the comparison arm); G3 — REQ-02, REQ-04, REQ-07, REQ-28,
 REQ-30, REQ-44 (independent reviewer, frozen RED untouched, integration always full); G4 —
 REQ-45, NFR-06; G5 — REQ-36, Actors table (helper writes no shared state, spawns no model, is
@@ -1581,8 +1581,8 @@ no cost or time cap introduced).
 - A-09 | Required-check failures | Resolved: non-zero exit → finding ≥ important → NEEDS WORK; cannot complete → blocker; applied with and without the helper (REQ-55) so the disabled arm stays comparable; approved by the owner on 2026-11-14 (D-01) | Source: original REQ-02; D-01; `rules/tdd.md:208-210` blocker pattern; G2 comparability | Reversible: yes
 - A-10 | Storage | Resolved: receipts in the git common directory; records in `<task>/verification/`, ignored here | Source: spec 014 DM-10; spec 015 REQ-37 | Reversible: yes
 - A-11 | Obligation ids | Resolved: ordinal per kind, whole-section fallback | Source: `workflows/pae-tests.md:225` (`AC-1 →` digest convention); spec 015 note that descriptions carry no AC ids | Reversible: yes
-- A-12 | Relation to spec 014 digests | Resolved: own `contract_digest` always; 014's `task_contract_hash` compared only when both present; receipts independent of packet digests | Source: spec 014 C-8 rows 13 and 15, A-10; coordinator note | Reversible: yes
-- A-13 | Reviewer inputs beyond the validator packet | Resolved: diff content, untracked files, runbook, evidence paths, tdd notes, prior record | Source: 014 C-8 ("15 decides sufficiency"); original §7 | Reversible: yes
+- A-12 | Relation to spec 014 digests | Resolved: own `contract_digest` always; 014's `task_contract_hash` compared only when both present; receipts independent of packet digests | Source: spec 014 C-8 rows 015 and 017, A-10; coordinator note | Reversible: yes
+- A-13 | Reviewer inputs beyond the validator packet | Resolved: diff content, untracked files, runbook, evidence paths, tdd notes, prior record | Source: 014 C-8 ("017 decides sufficiency"); original §7 | Reversible: yes
 - A-14 | Spec 015 facts | Resolved: not consumed; reviewer re-derives them | Source: `.ai/specs/015-orchestrator-overhead.md` REQ-30 and C-10 row for spec 017 (both say 15 declines the `green` messages and `red`/`pinned` receipts because REQ-30 forbids passing any Implementer report, checkpoint message, receipt or journal path to a Validator) | Reversible: yes
 - A-15 | Output capture | Resolved: through spec 016's helper when available (DM-4a), own capture of complete streams otherwise; no preview | Source: coordinator ruling of the 2026-11-14 reconciliation; spec 016 C-7 row 017 and Q-05; roadmap order 14 before 017 (`.ai/specs/README.md` → "Dependency order") | Reversible: yes
 - A-16 | Notes entry | Resolved: `verification:` entry with spec 014's append rule, not protected; `none` marker on fallback | Source: spec 014 DM-11 append rule | Reversible: yes
@@ -1674,7 +1674,7 @@ Auto-mode resolutions are recorded under Assumptions. Owner decisions of 2026-11
 - 2026-11-14 — reconciliation with finished peer specs: capture delegated to spec 016's helper
   when available (DM-4a, REQ-57–REQ-60, REQ-17 wording, DM-4 `output`/`command_status`, DM-6
   `capture-unverifiable`, DM-10 `output_reference`, C-5 replaced sentences, C-6 row 016, A-15,
-  Q-04 resolved, AC-38–AC-42, REQ-61 for spec 016's suite, REQ-23/REQ-36 for the capture child); C-6 rows 17 and 18 name the exact fields and paths those specs
+  Q-04 resolved, AC-38–AC-42, REQ-61 for spec 016's suite, REQ-23/REQ-36 for the capture child); C-6 rows 019 and 020 name the exact fields and paths those specs
   read and state how rechecks behave while spec 019 defers the NEEDS WORK stop; C-6 row 018 and
   A-24 no longer imply spec 018 consumes anything. Readiness verdict unchanged.
 - 2026-11-14 — second reconciliation pass: spec 015, 11 and 23 citations by id instead of line
@@ -1685,7 +1685,7 @@ Auto-mode resolutions are recorded under Assumptions. Owner decisions of 2026-11
   commands never use receipts, a child-worktree receipt never stands for the merged tree, only the
   root-worktree composite review may reuse one, at `full-integration`); C-5 `loads:` row stated in
   013's grammar and the frozen-check note for the replaced sentences; Notes record that no text moves
-  out of a mapped rule (011 REQ-68). Confirmed unchanged: C-6 rows 16, 17, 18, A-19 and A-24 against
+  out of a mapped rule (011 REQ-68). Confirmed unchanged: C-6 rows 018, 019, 020, A-19 and A-24 against
   specs 018, 019, 020 and 012 REQ-52. No requirement, acceptance criterion or verdict changed.
 - 2026-11-14 — independent final review: C-5 replaces both step 5 sentences of `/pav-check` (`test:`, `lint:`, `typecheck:`), REQ-60 and AC-41 follow; C-6 row 23 states the record location and points to 23 Q-03 (since resolved, see the next entry); disable switch follows spec 014 REQ-32; A-02/A-21 clarified; own ids qualified; Finding source corrected; neutral provenance wording; citations by id.
 - 2026-11-14 — owner decisions recorded: D-01 (the REQ-55 classification of failing checks is approved; A-09, A-29, Risks, Scope text and Q-03 now say so) and D-02 (the root orchestrator runs `record` in parallel mode: REQ-62, AC-43, A-36, an Edge Cases row, C-6 row 23 no longer open). Counts updated; verdict unchanged.

@@ -36,7 +36,7 @@
     models".
   - REQ-01: "Define complete RED, GREEN, review and completion messages with task/leaf, role,
     event and attempt identifiers, source and checked tree, AC/evidence, exact change/test
-    paths, check outcomes, findings and the proposed delta. Short text per 11 does not
+    paths, check outcomes, findings and the proposed delta. Short text per 013 does not
     shorten the structured content."
   - REQ-02: "Merge repeated polls and retellings up to the next significant boundary,
     keeping RED before implementation, GREEN before independent review and every
@@ -1284,7 +1284,7 @@ REQ-35, REQ-39; G7 — REQ-33, REQ-46, C-8; G8 — REQ-47, NFR-05.
 ## Assumptions
 
 - A-01 | Language and identifiers | Resolved: English refinement in place; REQ-01–REQ-08 and AC-01–AC-05 keep their ids and subjects; remainders split into new ids | Source: `/spec-draft` Step 5 id rule; owner authorization | Reversible: yes
-- A-02 | File names | Resolved: today's names in text; 011's map at implementation; new rules named `contract-checkpoints` and `contract-delta-operations`, `load: on-demand` | Source: `.ai/specs/README.md` → "Dependency order" (09 precedes 10 precedes 13); spec 011 DM-10, DM-11 and Notes → Files and sections created after this spec | Reversible: yes
+- A-02 | File names | Resolved: today's names in text; 011's map at implementation; new rules named `contract-checkpoints` and `contract-delta-operations`, `load: on-demand` | Source: `.ai/specs/README.md` → "Dependency order" (09 precedes 012 precedes 015); spec 011 DM-10, DM-11 and Notes → Files and sections created after this spec | Reversible: yes
 - A-03 | Helper language and name | Resolved: one Python 3.11+ standard-library file `scripts/controller-step.py`, run with `python3 -I` without a Bash launcher; the previous `.sh` name becomes `.py`. Consequence: the entry file as a whole uses only syntax older Python 3 interpreters parse and loads 3.11-only code after the check, so that REQ-45's version check, not a syntax error, decides (spec 020 A-26: entry module plus path-loaded engine) | Source: ADR-0021 Decision 3 (`scripts/`); `scripts/model-catalog.py` pattern; spec 011 Scope item 3 (standard-library Python 3.11+ engine precedent) | Reversible: yes
 - A-04 | Who writes the journal | Resolved: the Orchestrator through Bash redirection and the save procedure; the helper writes nothing | Source: previous revision §2 helper row and AC-02 ("files unchanged") | Reversible: yes
 - A-05 | Journal location | Resolved: `<task>/checkpoints/`, ignored in this repository and in the consumer entries of project setup | Source: previous revision §6 ("durable in the task's local data"); spec 009 REQ-26 ignore precedent | Reversible: yes
@@ -1406,7 +1406,7 @@ successor after 011's renames (011's old-prefix translation: `pae-` → `atomic-
   DM-3 and DM-4; DM-8 delta paragraph cites REQ-36, REQ-50, REQ-08 and DM-5).
 - Specs 017, 016, 018, 019, 020: none; their contract rows agree with this spec's C-10 rows as
   amended on 2026-11-14 (15 declines messages and receipts; 16 declines the attempt record; 17
-  owns repair resume; 18 reads DM-10 `attempts`). Their line-number citations into this spec
+  owns repair resume; 020 reads DM-10 `attempts`). Their line-number citations into this spec
   drift with edits and should become id citations.
 
 ### Change log
@@ -1419,8 +1419,8 @@ successor after 011's renames (011's old-prefix translation: `pae-` → `atomic-
 - 2026-11-14 — reconciliation with refined peer specs: 11 citations by id (DM-7, DM-8,
   Terminology row "Full structured result"), the checkpoint message is the full structured
   result on the helper route only, and the delta route statements restated (Terminology, C-4,
-  C-8, C-10, REQ-36); C-10 rows 23, 15, 14, 16, 17, 18 aligned with the final peer texts (16 does
-  not use DM-2; 15 does not consume messages or receipts; repair resume is 019's `status`; 23
+  C-8, C-10, REQ-36); C-10 rows 23, 017, 016, 018, 019, 020 aligned with the final peer texts (018 does
+  not use DM-2; 017 does not consume messages or receipts; repair resume is 019's `status`; 23
   `repair` handoffs carry no receipt digest); spec 011 file-naming and rename note added; A-51
   appended; Context item 7, the Name mapping row and paragraph, and REQ-49's citation of 11
   REQ-01 added. No requirement id, acceptance criterion or id changed; REQ-36 gained one

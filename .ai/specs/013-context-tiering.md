@@ -138,7 +138,7 @@ implementation steps falls to at most half of a recorded baseline with no obliga
    `scripts/sync.sh` running `measure-context.sh check`, re-pointing of existing validator
    checks whose rule text moves (path-map entries in 011's schema-2 inventory amendment),
    knowledge-base updates and an ADR.
-9. Every proposal and every finding that the 08 audit assigns to owner 11 (010 REQ-02 and
+9. Every proposal and every finding that the 010 audit assigns to owner 11 (010 REQ-02 and
    the owner's decision on AUD-08-065, 2026-11-18), whatever its type: each is either
    implemented (with obligation-map rows where it moves an obligation) or listed as
    declined, with its reason, in the measurement summary.
@@ -908,14 +908,14 @@ REQ-51, REQ-52) with its `path_changes` and `contract_changes` lists, the class-
 mask, the oracle application, `APPROVED_PATHS`, `AMENDMENT_SHA256` and the source-guard
 refresh. This spec defines no amendment schema of its own. Division of work:
 
-- **11 supplies** the path map of its own re-pointing: one `path_changes` entry per frozen
+- **013 supplies** the path map of its own re-pointing: one `path_changes` entry per frozen
   expression, helper body or non-standard line whose read path this change moves (a new
   entry, or an updated `after` of 011's `path_changes` entry for the same `(target, key)`;
   text read by a check that 09 recorded under `contract_changes` stays in place unless the
   mask constraint below admits the move), and the
   `resources` changes and `paths`/`APPROVED_PATHS` additions for each `tests/` file it edits
   (at least `tests/workflow-instructions.py`, `:38-54`).
-- **09 keeps** the schema, the mask, the validation and application rules and the pins; 11
+- **011 keeps** the schema, the mask, the validation and application rules and the pins; 11
   re-pins `AMENDMENT_SHA256` and refreshes the source guard by 011's procedure after adding
   its entries.
 - **Mask constraint.** 011's mask maps every path of a name-map class (011 DM-1, DM-9) to that
@@ -1302,7 +1302,7 @@ with REQ-26 added to AC-05.
 | Agents ignore declarations (prose enforcement) | Instructions not loaded at runtime | Medium | Always-on `contract-loads`; P10 hook enforcement remains future work |
 | 011's DM-9 mask rejects moving checked text to a new split file | A needed split is blocked | Medium | 011 REQ-68 admits split targets of mapped rules; stop only for text of two rows |
 | The Claude capability declaration (1,607 words before 011's DM-4 records) consumes the 6,000-word always-on budget (011 A-03 leaves it to 11) | Less room for `load: always` rules | Medium | Measured by `check`; obligations move to on-demand rules, never dropped |
-| Spec 021's composition, `loads` grammar and rule fields diverge from 013 | Double-counted capability words; generator rejects valid 11 metadata | Low | Notes → "Ownership statements for spec 021"; composition counts the declaration once |
+| Spec 021's composition, `loads` grammar and rule fields diverge from 013 | Double-counted capability words; generator rejects valid 013 metadata | Low | Notes → "Ownership statements for spec 021"; composition counts the declaration once |
 | Splitting rules breaks frozen validator checks that read moved text | Validator fails or the inventory oracle rejects re-pointed expressions | High | REQ-25 re-pointing with the path-only amendment (A-37); new checks stay standalone in `scripts/` |
 | Deployment gate adds time to every sync | Slower deploys | Low | The meter reads small files once; duration recorded in the summary, not gated |
 | Baseline inflated by over-declaring mandatory loads | False pass of AC-03 | Low | `baseline-edge-unbacked` comparability condition; review |
@@ -1347,9 +1347,9 @@ with REQ-26 added to AC-05.
 - A-34 | Evidence path base | Resolved: two named bases, `work` (`WORK_DIR`) and `task` (parent task directory) | Source: `workflows/spec-run.md:238-239`; `rules/phase-atomic-execution.md:16-22` | Reversible: yes
 - A-35 | Baseline revision content | Resolved: declarations, citation line, `contract-loads`, the always-on lines naming every `load: always` rule, and REQ-22 only; `contract-loads` counted | Source: previous revision §8 step 4 ("add the load schema … then split texts"); best practice | Reversible: no once committed (REQ-28)
 - A-36 | Handling of 010's 11-owned proposals and findings | Resolved: implement or decline each proposal and each finding of any type with owner 11, recorded in the measurement summary | Source: 010 REQ-02; owner decision on AUD-08-065 (2026-11-18) | Reversible: yes
-- A-37 | Changed validator expressions under the frozen inventory | Resolved (amended 2026-11-14): reuse 011's schema-2 amendment (011 DM-9, REQ-51); 11 supplies `path_changes` entries and `resources` changes for its own re-pointing and defines no schema; the earlier fallback definition is withdrawn | Source: 011 DM-9, REQ-51, REQ-52, A-02; 09 Notes "Peer requests" ("09 owns it") | Reversible: yes
+- A-37 | Changed validator expressions under the frozen inventory | Resolved (amended 2026-11-14): reuse 011's schema-2 amendment (011 DM-9, REQ-51); 013 supplies `path_changes` entries and `resources` changes for its own re-pointing and defines no schema; the earlier fallback definition is withdrawn | Source: 011 DM-9, REQ-51, REQ-52, A-02; 09 Notes "Peer requests" ("011 owns it") | Reversible: yes
 - A-38 | Rules created after this spec and after the baseline | Resolved: 011's naming and placement rule; full `check`; counted only in after records; over-limit edits stop, with `/spec-sync` to the owning spec for word-fixed rules | Source: 09 Notes "Files and sections created after this spec"; 016 REQ-47, REQ-48; 015 REQ-49; REQ-28 | Reversible: yes
-- A-39 | Delivery order of 011's changes and 013's re-pointing | Resolved: 011's guard (A-28) stays; 11 adds its entries to 011's amendment after 011 has delivered it | Source: `.ai/specs/README.md` dependency order; 011 DM-9 ("reused by spec 013") | Reversible: yes
+- A-39 | Delivery order of 011's changes and 013's re-pointing | Resolved: 011's guard (A-28) stays; 013 adds its entries to 011's amendment after 011 has delivered it | Source: `.ai/specs/README.md` dependency order; 011 DM-9 ("reused by spec 013") | Reversible: yes
 
 ## Decisions
 
@@ -1374,7 +1374,7 @@ every resolution is recorded under `## Assumptions`.
   checker.
 - **Q-02 — resolved 2026-11-14.** Spec 011 applies its 1,200-word limit to the always-on body
   only and leaves the capability declaration to this spec's 6,000-word budget (011 REQ-54,
-  A-03); the always-on set definition and the composition rule follow it. 09 keeps its own
+  A-03); the always-on set definition and the composition rule follow it. 011 keeps its own
   question on restoring the stricter reading (its Q-01).
 - **Q-03 — resolved 2026-11-14.** The divergences from spec 021 are settled by the ownership
   statements in Notes → "Ownership statements for spec 021"; the composition change (former
@@ -1383,7 +1383,7 @@ every resolution is recorded under `## Assumptions`.
 - **Q-04 — resolved (A-37).** Settled by reuse of 011 DM-9 (amended 2026-11-14).
 - **Q-05 — resolved 2026-11-14.** The manifest field is `source_revision` (011 REQ-58, DM-6).
 - **Q-06 — resolved 2026-11-14 (answer to spec 016's Q-03).** Should this spec accept 016's
-  `OUTPUT` lines as a second evidence-reference kind? **No.** No requirement of 14 needs it:
+  `OUTPUT` lines as a second evidence-reference kind? **No.** No requirement of 016 needs it:
   copying the `command:` line, failing test names and error lines verbatim already meets
   REQ-07's "verbatim" branch, and acceptance would only let a report cite captured output by
   reference. `OUTPUT` lines may appear as `Evidence` list items; `evidence verify` does not
@@ -1391,12 +1391,12 @@ every resolution is recorded under `## Assumptions`.
 - **Q-07 (resolved 2026-11-14 by 011 REQ-68, option (a)).** 011's DM-9 mask rejected moving checked text from a name-map class
   path to a file this spec creates (Contracts → Existing validator checks, mask
   constraint). Impact: a rule whose frozen-checked text cannot stay in place within 700
-  words cannot be split until 011 decides. Options: (a) 09 lets a later spec append split
+  words cannot be split until 011 decides. Options: (a) 011 lets a later spec append split
   targets to the `new` list of the existing `rule` row (011 DM-1 already models a split that
-  way), which puts them in the class — recommended; (b) 09 adds a requirement of its own that
+  way), which puts them in the class — recommended; (b) 011 adds a requirement of its own that
   admits this spec's split re-pointing to the closed requirement set of `contract_changes`,
   with DM-20 rows; (c) keep the text in place (default until
-  09 decides). Resolution: 09 adopted option (a) as REQ-68; only text of two rows moving into
+  011 decides). Resolution: 011 adopted option (a) as REQ-68; only text of two rows moving into
   one file still stops.
 
 ## Notes
@@ -1491,7 +1491,7 @@ untouched by a rollback.
 #### 2026-11-14 — reconciliation with final specs 012, 021, 023, 011, 014, 015, 017, 016, 018, 019
 
 - Reused 011's schema-2 inventory amendment (011 DM-9); the own fallback definition is
-  withdrawn (A-37 amended); 11 supplies `path_changes` and `resources` entries; mask
+  withdrawn (A-37 amended); 013 supplies `path_changes` and `resources` entries; mask
   constraint and Q-07 added.
 - Q-01, Q-02, Q-03, Q-05 resolved from 011 DM-2/DM-3, REQ-54, REQ-58 and the spec 021
   ownership statements; always-on set and composition follow 011 REQ-54, DM-14 and 19

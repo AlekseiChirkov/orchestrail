@@ -75,7 +75,7 @@ savings or deployed behavior.
 That cleanup alone partially advanced 04/11/08/12/13/15 without completing them.
 Cached catalog selection, conservative quality/economic filtering, compatible plan
 resolution and installed workflow guidance were subsequently delivered under
-[04](completed/005-model-catalog-cache.md), with 594 required checks passing and 87 focused model tests.
+[005](completed/005-model-catalog-cache.md), with 594 required checks passing and 87 focused model tests.
 Full rule inventory/naming, reference tiers/load metadata, content-hash packets,
 effort/repair policies and economic evaluation remain separate work. Completed 00–06
 remain foundations, not work to repeat. No deployment or model-usage savings is claimed.

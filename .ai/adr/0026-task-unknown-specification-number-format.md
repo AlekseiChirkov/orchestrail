@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for the current working-tree renumbering; integration evidence is pending.
+Accepted; branch integration remains a separate action.
 
 ## Date
 
@@ -30,15 +30,15 @@ specification numbers unchanged, while retaining its intent of unambiguous numbe
 
 ## Consequences
 
-The knowledge-inventory check reads a pinned pre-renumbering baseline. Until a
-reviewed renumbering commit exists and the ledger is updated to an appropriate
-post-renumbering baseline, it reports the old tracked paths as missing; the working
-tree alone cannot provide that future commit. The audit tool's existing report-schema
-labels remain stable even though its migration-spec lookup uses the new filename.
-Installation synchronization and any commit or integration are separate actions.
+The knowledge-inventory check reads a pinned baseline. The identity ledger now names
+`bda0f3e928c119da5a7d8d108c6daf89a4777b0f`, the commit containing the reviewed
+renumbering and the owner-approved removal of the superseded source file. The audit
+tool's existing report-schema labels remain stable even though its migration-spec
+lookup uses the new filename. Installation synchronization and integration are separate.
 
 ## Verification
 
-The mapping, local references, the audit-tool lookup and the authoring format require
-verification on the renumbered tree. Full inventory validation requires the future
-baseline update described above.
+The mapping, audit-tool lookup, authoring format and knowledge inventory were checked
+on the renumbered branch. The full contract suite passed 725 checks with 2 skips and
+no failures. Final contextual-reference edits were applied during the run; the inventory
+and authoring checks were repeated afterward.

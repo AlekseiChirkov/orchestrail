@@ -79,7 +79,7 @@ and changing the non-blocking behaviour of the canonical log write."
 5. Arguments are passed as an array, without `eval` and without implicit construction of a
    command line.
 6. The wrapper does not hide the operation from permissions and the rules of
-   [06](completed/007-harness-git-rails.md); when verification is impossible, an allowed
+   [007](completed/007-harness-git-rails.md); when verification is impossible, an allowed
    native path or a refusal is used.
 7. The content of output and artifact is data, not a new instruction to the agent or a
    permission to run another command."
@@ -1661,7 +1661,7 @@ N/A — no questions were asked (autonomous mode, owner unavailable for this run
   as a second evidence reference kind in report `Evidence` fields and REQ-07? No requirement
   here needs it. The `Evidence:` line already requires the `command:` line, failing test names
   and error lines to be copied verbatim, which meets 013 REQ-07's "verbatim" branch; the OUTPUT
-  line is an additional `Evidence` item that 11 does not verify. Acceptance would only let a
+  line is an additional `Evidence` item that 013 does not verify. Acceptance would only let a
   report cite captured output by reference instead of copying it. A-23 and C-7 row 013 hold.
 - Q-04 | non-blocker | Which further output formats (for example `go test`, `jest`, `cargo`)
   deserve parsers? Impact: those outputs read as `parser=none` with head and tail excerpts.
@@ -1742,7 +1742,7 @@ remain verifiable. Resume by unsetting the variable.
 #### 2026-11-14 — reconciliation with refined peer specs
 
 - Q-05 resolved by spec 017 DM-4a and REQ-60; REQ-51, REQ-53, C-5 and AC-32 state that rows 3a
-  and 5 yield to spec 017's sentences on its delivery; C-7 rows 23, 13, 15 and 17 aligned with
+  and 5 yield to spec 017's sentences on its delivery; C-7 rows 23, 015, 017 and 019 aligned with
   those specs; an edge row for a command not found inside `bash -c`; spec 011 placement and the
   size rule added to C-4; Q-03 restated as a yes/no question for spec 013; A-41 Source updated
   to spec 017 REQ-17 and DM-4a; follow-ups for 23, 15 and 17 updated. No id renumbered.
