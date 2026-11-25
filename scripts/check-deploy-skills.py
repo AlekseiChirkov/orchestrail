@@ -953,5 +953,272 @@ runpy.run_path(sys.argv[0], run_name="__main__")
         self.assert_refused(fixture, "journal-invalid")
 
 
+class RegisteredProjectTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.registry = self.fixture.config / "orchestrail/projects"
+
+    def command(self, *arguments: str) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.run(
+            [sys.executable, "-I", str(ENGINE), *arguments],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            timeout=15,
+        )
+
+    def deploy(self) -> subprocess.CompletedProcess[bytes]:
+        return self.command(
+            "deploy", "--from", str(self.fixture.source), "--hook-result", HOOK_RESULT,
+        )
+
+    def project(self, name: str) -> Path:
+        project = self.fixture.root / name
+        project.mkdir(parents=True)
+        return project
+
+    def include_links(self, harness: str, directory: str) -> None:
+        adapter = self.fixture.adapter(harness)
+        adapter.write_bytes(adapter.read_bytes() + f"project_skills_link_dir={directory}\n".encode())
+
+    def assert_success(self, result: subprocess.CompletedProcess[bytes]) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def assert_link(self, link: Path, target: Path) -> None:
+        self.assertTrue(link.is_symlink(), link)
+        self.assertEqual(link.resolve(strict=True), target.resolve(strict=True))
+
+    def project_entries(self, *roots: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        relative = tuple(root.relative_to(self.fixture.root) for root in roots)
+        return {path: entry for path, entry in self.fixture.snapshot().items()
+                if any(path.is_relative_to(root) for root in relative)}
+
+    def test_lists_existing_projects_in_registry_order_without_writes(self) -> None:
+        parent = self.project("zéta project 'with spaces' ")
+        nested = self.project(f"{parent.name}/child")
+        first = self.project("alpha project")
+        missing = self.fixture.root / "missing"
+        file = self.fixture.root / "regular file"
+        file.write_bytes(b"Not a project directory\n")
+        roots = (parent, missing, first, SOURCE, parent, file, nested, first)
+        self.fixture.write(self.registry, "\n".join(map(str, roots)).encode())
+        self.fixture.write(self.fixture.home / ".config/orchestrail/projects", b"ignored/relative/path\n")
+        before = self.fixture.snapshot()
+
+        result = self.command("list-projects")
+
+        self.assert_success(result)
+        self.assertEqual(result.stdout, b"".join(os.fsencode(root) + b"\0" for root in (parent, first, nested)))
+        self.assertEqual(self.fixture.snapshot(), before)
+
+    def test_absent_registry_lists_nothing_and_deploy_does_not_discover_home_projects(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".alpha/skills")
+        unregistered = fixture.home / "unregistered project"
+        fixture.write(unregistered / ".devin/workflows/local.md", b"Legacy bytes\n")
+        (unregistered / ".alpha/skills").mkdir(parents=True)
+        before = fixture.snapshot()
+        project_before = self.project_entries(unregistered)
+
+        with self.subTest(command="list-projects"):
+            listed = self.command("list-projects")
+            self.assert_success(listed)
+            self.assertEqual(listed.stdout, b"")
+            self.assertEqual(fixture.snapshot(), before)
+
+        with self.subTest(command="deploy"):
+            result = self.deploy()
+            self.assert_success(result)
+            self.assertIn(
+                b"registry absent: no projects registered; run scripts/setup-new-project.sh in each project",
+                result.stdout.splitlines(),
+            )
+            self.assertEqual(fixture.skill("current").read_bytes(), SKILL_BYTES)
+            self.assertFalse(self.registry.exists())
+            self.assertEqual(self.project_entries(unregistered), project_before)
+
+    def test_links_declared_adapter_directories_and_preserves_existing_entries(self) -> None:
+        fixture = self.fixture
+        fixture.make_harness("gamma")
+        self.include_links("alpha", ".providers/alpha/skills")
+        self.include_links("omega", ".omega/custom")
+        project = self.project("explicit project")
+        alpha = project / ".providers/alpha/skills"
+        local = alpha / "manual"
+        fixture.write(local, b"Project-owned bytes\n")
+        foreign_link = alpha / "private"
+        foreign_link.symlink_to("../missing")
+        for name in ("current", "manual", "private"):
+            fixture.skill(name).parent.mkdir(parents=True)
+        fixture.write(fixture.skills_dir() / "notes.md", b"Global loose file\n")
+        fixture.skill("second", "omega").parent.mkdir(parents=True)
+        fixture.skill("unconfigured", "gamma").parent.mkdir(parents=True)
+
+        arguments = ("link-project", "--from", str(fixture.source), "--project", str(project))
+        self.assert_success(self.command(*arguments))
+
+        self.assert_link(alpha / "current", fixture.skills_dir() / "current")
+        self.assert_link(project / ".omega/custom/second", fixture.skills_dir("omega") / "second")
+        self.assertEqual(local.read_bytes(), b"Project-owned bytes\n")
+        self.assertEqual(os.readlink(foreign_link), "../missing")
+        self.assertEqual({path.name for path in alpha.iterdir()}, {"current", "manual", "private"})
+        self.assertEqual({path.name for path in project.iterdir()}, {".providers", ".omega"})
+        self.assertFalse(self.registry.exists())
+        after = fixture.snapshot()
+        self.assert_success(self.command(*arguments))
+        self.assertEqual(fixture.snapshot(), after)
+
+    def make_tracking_stub(self) -> None:
+        git = self.fixture.root / "bin/git"
+        git.write_text(r"""#!/bin/sh
+if [ "$1" = -C ]; then
+    cd -- "$2" || exit 1
+    shift 2
+fi
+[ "$1" = ls-files ] || exit 1
+if [ -f .git/tracked-knowledge ]; then
+    printf '%s\n' '.ai/README.md'
+fi
+""", encoding="utf-8")
+        git.chmod(0o755)
+
+    def test_deployment_refreshes_each_root_and_changes_only_owned_links_and_ignore(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        resolved = fixture.home / "resolved skills"
+        resolved.mkdir()
+        fixture.skills_dir().parent.mkdir()
+        fixture.skills_dir().symlink_to(resolved, target_is_directory=True)
+        self.assert_success(self.deploy())
+
+        parent = self.project("parent")
+        nested = self.project("parent/nested project")
+        empty = self.project("no configured link directory")
+        for project in (parent, nested):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+            fixture.write(project / ".gitignore", b"*.cache\n")
+            fixture.write(project / ".ai/README.md", b"Existing knowledge\n")
+        fixture.write(nested / ".git/tracked-knowledge", b"")
+        self.make_tracking_stub()
+
+        links = parent / ".providers/skills"
+        owned = links / "stale-declared"
+        owned.symlink_to(fixture.skills_dir() / "retired")
+        resolved_owned = links / "stale-resolved"
+        resolved_owned.symlink_to(resolved / "retired")
+        live = links / "live"
+        live.symlink_to(fixture.skills_dir() / "current")
+        foreign = links / "foreign"
+        foreign.symlink_to(f"{fixture.skills_dir()}-other/retired")
+        relative_foreign = links / "relative-foreign"
+        relative_foreign.symlink_to("../personal")
+        missing = fixture.root / "missing project"
+        roots = (parent, missing, fixture.source, nested, parent, empty)
+        registry_bytes = "".join(f"{root}\n" for root in roots).encode()
+        fixture.write(self.registry, registry_bytes)
+        for name in (".devin/workflows/old.md", ".windsurf/rules/old.md", "AGENTS.md", "CLAUDE.md"):
+            fixture.write(parent / name, f"Preserved {name}\n".encode())
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(
+            [line for line in result.stdout.splitlines() if line.startswith(b"project ")],
+            [
+                f"project updated {parent} (linked 1, unlinked 2)".encode(),
+                f"project missing {missing}".encode(),
+                f"project skipped (source checkout) {fixture.source}".encode(),
+                f"project updated {nested} (linked 1, unlinked 0)".encode(),
+                f"project updated {empty} (linked 0, unlinked 0)".encode(),
+            ],
+        )
+        self.assertFalse(owned.is_symlink())
+        self.assertFalse(resolved_owned.is_symlink())
+        self.assert_link(links / "current", resolved / "current")
+        self.assert_link(nested / ".providers/skills/current", resolved / "current")
+        self.assertFalse((empty / ".providers").exists())
+        self.assertEqual((parent / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+        after = fixture.snapshot()
+        removed = {owned.relative_to(fixture.root), resolved_owned.relative_to(fixture.root)}
+        added = {(project / ".providers/skills/current").relative_to(fixture.root)
+                 for project in (parent, nested)}
+        changed = {(project / ".providers/skills").relative_to(fixture.root)
+                   for project in (parent, nested)}
+        changed.add((parent / ".gitignore").relative_to(fixture.root))
+        self.assertEqual(set(before) - set(after), removed)
+        self.assertEqual(set(after) - set(before), added)
+        preserved = (before.keys() & after.keys()) - changed
+        self.assertEqual({path: before[path] for path in preserved}, {path: after[path] for path in preserved})
+
+        retry = self.deploy()
+        self.assert_success(retry)
+        self.assertIn(f"project updated {parent} (linked 0, unlinked 0)".encode(), retry.stdout.splitlines())
+        self.assertEqual(fixture.snapshot(), after)
+
+    def test_deployment_skips_legacy_destinations_and_symlinked_project_parents(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".windsurf/skills")
+        self.include_links("omega", ".devin/skills")
+        fixture.make_harness("gamma")
+        self.include_links("gamma", ".redirected/skills")
+        project = self.project("protected project")
+        fixture.write(project / ".windsurf/skills/legacy.md", b"Retired editor bytes\n")
+        fixture.write(project / ".devin/rules/legacy.md", b"Another retired editor's bytes\n")
+        (project / ".windsurf/skills/owned").symlink_to(fixture.skills_dir() / "retired")
+        external = self.project("outside project")
+        (external / "skills").mkdir()
+        (external / "skills/owned").symlink_to(fixture.skills_dir("gamma") / "retired")
+        (project / ".redirected").symlink_to(external, target_is_directory=True)
+        fresh = self.project("fresh project")
+        fixture.write(self.registry, f"{project}\n{fresh}\n".encode())
+        before = self.project_entries(project, fresh, external)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        lines = result.stdout.splitlines()
+        for root in (project, fresh):
+            self.assertIn(f"project updated {root} (linked 0, unlinked 0)".encode(), lines)
+        self.assertEqual(self.project_entries(project, fresh, external), before)
+
+    def test_rejects_invalid_registry_before_global_or_project_writes(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".alpha/skills")
+        project = self.project("registered project")
+        (project / ".alpha/skills").mkdir(parents=True)
+        (project / ".git").mkdir()
+        alias = fixture.root / "project alias"
+        alias.symlink_to(project, target_is_directory=True)
+        fixtures = {
+            "relative path": b"relative/path",
+            "noncanonical path": os.fsencode(alias),
+            "carriage return": os.fsencode(project) + b"\r",
+            "NUL": os.fsencode(project) + b"\0",
+            "invalid UTF-8": b"/invalid-\xff",
+            "empty line": b"\n",
+            "nonregular registry": None,
+        }
+        for name, payload in fixtures.items():
+            if payload is None:
+                self.registry.unlink()
+                self.registry.mkdir()
+            else:
+                fixture.write(self.registry, os.fsencode(project) + b"\n" + payload + b"\n")
+            before = fixture.snapshot()
+
+            for arguments in (("list-projects",),
+                              ("deploy", "--from", str(fixture.source), "--hook-result", HOOK_RESULT)):
+                with self.subTest(registry=name, command=arguments[0]):
+                    result = self.command(*arguments)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertTrue(result.stderr.startswith(b"ERROR registry-invalid: "), result.stderr)
+                    self.assertEqual(fixture.snapshot(), before)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
