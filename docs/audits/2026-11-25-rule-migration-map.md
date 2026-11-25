@@ -56,4 +56,4 @@ The inventory amendment compatibility change has zero superseded checks.
 | Path:line | Reference | Fix |
 | --- | --- | --- |
 
-Signed: Independent validator 2026-11-25 ff0c03d983b8a8435b758541e41eb832d8ea2b5e
+Signed: Independent validator 2026-11-25 bf2957d2146e81d5f87efc005cbc2018b745a90a
