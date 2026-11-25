@@ -23,6 +23,8 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 
 ## Analysis (`analysis/`)
 
+- [Parallel execution specification review](analysis/2026-11-24-parallel-specification-review.md) — historical backlog ownership and the earlier composite-only design
+- [Parallel subtask execution design](analysis/2026-11-24-parallel-phase-execution.md) — historical shared composite scheduling and candidate-side conflict recovery
 - [Validator runtime specification review](analysis/2026-11-05-validator-runtime-review.md) — current test architecture, measured git-rails cost, corrected runtime requirements and independent validation cycles
 - Historical usage telemetry specification review (`2026-10-27-usage-telemetry-spec-review.md`) — unavailable in the current tree; use the delivered [telemetry review](audits/2026-10-30-usage-telemetry-review.md) for available implementation evidence
 - [2026-09-16-comparative-analysis.ru.md](analysis/2026-09-16-comparative-analysis.ru.md) — full analysis vs BMAD, Spec Kit, Kiro, OpenSpec, Superpowers, Agent OS, Conductor; pros/cons; fit; improvements (English translation of the historical Russian record)
