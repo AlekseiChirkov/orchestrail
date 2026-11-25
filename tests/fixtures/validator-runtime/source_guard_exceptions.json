@@ -329,7 +329,7 @@
     "count": 1,
     "reason": "The relocated fixture iterates over a fixed list of setup scripts.",
     "dependencies": {
-      "scripts/deploy-skills.py": "e18635cec96833db5b30307c0715d3212ce38c67d1d375c6a59f697a2afe2ac4",
+      "scripts/deploy-skills.py": "4e171401ada67fe584ae62827f2d59291d143d9a41e7d82a4057402ebae9c780",
       "scripts/report-legacy-artifacts.sh": "c511658520fb154b818b833dca6650d68f48e91310d5de7a660583d00c010c71",
       "scripts/setup-all-repos.sh": "ddeb59cad58bb1bdb722b7920d398be95682010b7f4fc39676560e7f65c3df6f",
       "scripts/setup-new-project.sh": "257a31c208bf36d268a84c7d69e60899f44b018cf1b7350fa1bb0252f7cfacaa",
@@ -345,7 +345,7 @@
     "count": 1,
     "reason": "The isolated umbrella fixture exercises a generated child command from the pinned generator.",
     "dependencies": {
-      "scripts/deploy-skills.py": "e18635cec96833db5b30307c0715d3212ce38c67d1d375c6a59f697a2afe2ac4",
+      "scripts/deploy-skills.py": "4e171401ada67fe584ae62827f2d59291d143d9a41e7d82a4057402ebae9c780",
       "scripts/report-legacy-artifacts.sh": "c511658520fb154b818b833dca6650d68f48e91310d5de7a660583d00c010c71",
       "scripts/setup-new-project.sh": "257a31c208bf36d268a84c7d69e60899f44b018cf1b7350fa1bb0252f7cfacaa",
       "scripts/setup-umbrella.sh": "390e0aefd334c98c2f550e094d9e82764afe45eb9a49b66aaf6a007ebaae8d4a"
@@ -4608,7 +4608,7 @@
     "count": 1,
     "reason": "The reviewed helper runs one of its five fixed callers' argument lists: git check-ignore -q, with an optional --no-index, in this checkout (read only) on a literal task path or on the state.md paths found by a glob over this checkout's existing task directories, or without --no-index on a literal task path in a disposable project (read only); git init -q in a disposable project; git add -- on a literal fixture path in a disposable project; bash on the pinned project setup script in a disposable project with the stack prompt answered by stdin; or bash on the pinned umbrella setup script in a disposable directory; HOME and the XDG configuration, state and cache roots point into the test's temporary directory, the source root is this checkout (read only), inherited git variables, shell startup variables and test fault variables are removed, the running interpreter's directory leads PATH, no shell is requested and a 60 second timeout applies.",
     "dependencies": {
-      "scripts/deploy-skills.py": "e18635cec96833db5b30307c0715d3212ce38c67d1d375c6a59f697a2afe2ac4",
+      "scripts/deploy-skills.py": "4e171401ada67fe584ae62827f2d59291d143d9a41e7d82a4057402ebae9c780",
       "scripts/report-legacy-artifacts.sh": "c511658520fb154b818b833dca6650d68f48e91310d5de7a660583d00c010c71",
       "scripts/setup-new-project.sh": "257a31c208bf36d268a84c7d69e60899f44b018cf1b7350fa1bb0252f7cfacaa",
       "scripts/setup-umbrella.sh": "390e0aefd334c98c2f550e094d9e82764afe45eb9a49b66aaf6a007ebaae8d4a"

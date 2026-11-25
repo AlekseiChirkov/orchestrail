@@ -314,10 +314,15 @@ def _path_addresses(path: Path) -> set[Path]:
     }
 
 
+def _registry_addresses(registry: Path) -> set[Path]:
+    registration_lock = registry.with_name(registry.name + ".lock")
+    return _path_addresses(registry) | _path_addresses(registration_lock)
+
+
 def _state_paths(home: Path, config: Path) -> _DeploymentPaths:
     legacy_paths = _path_addresses(home / ".codeium")
     registry = config / _REGISTRY_PATH
-    registry_addresses = _path_addresses(registry)
+    registry_addresses = _registry_addresses(registry)
     manifest_subdirectory = Path("orchestrail/deploy")
     manifest_dir = Path(os.path.realpath(config)) / manifest_subdirectory
     declared_manifest_dir = Path(os.path.abspath(config)) / manifest_subdirectory
@@ -326,7 +331,7 @@ def _state_paths(home: Path, config: Path) -> _DeploymentPaths:
     if any(_overlap(path, legacy) for path in state_paths for legacy in legacy_paths):
         raise _DeploymentError("adapter-conflict", f"deployment state overlaps legacy paths: {manifest_dir}")
     if any(_overlap(path, address) for path in state_paths for address in registry_addresses):
-        raise _DeploymentError("adapter-conflict", f"deployment state overlaps the project registry: {registry}")
+        raise _DeploymentError("adapter-conflict", f"deployment state overlaps registry paths at {registry.parent}")
     _require_parent_tree(manifest_dir, "manifest-invalid")
     return _DeploymentPaths(
         manifest_dir, lock, (*state_paths, *registry_addresses), legacy_paths, registry, registry_addresses,
@@ -1180,7 +1185,7 @@ def _link_project(source: Path, project: Path) -> None:
     home, config = _deployment_home()
     adapters = _load_adapters(source, home)
     legacy = _path_addresses(home / ".codeium")
-    registry_addresses = _path_addresses(config / _REGISTRY_PATH)
+    registry_addresses = _registry_addresses(config / _REGISTRY_PATH)
     with _managed_directory(project):
         for adapter in adapters:
             _project_links(project, adapter, legacy, registry_addresses, refresh=False)
