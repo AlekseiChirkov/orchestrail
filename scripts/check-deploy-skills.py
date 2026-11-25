@@ -1538,6 +1538,29 @@ runpy.run_path(sys.argv[0], run_name='__main__')
         self.assertEqual(self.registry.read_bytes(), registry_bytes)
         self.assertFalse(fixture.manifest_path("journal").exists())
 
+    def test_unsafe_pending_replacement_is_refused_before_active_consumer_deferral(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        project = self.project("active consumer")
+        self.task(project, "running pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(project)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Updated workflow\n")
+        foreign = fixture.home / "personal.md"
+        fixture.write(foreign, b"Unowned bytes behind the temporary link\n")
+        temporary = fixture.skill("current", "omega").with_name(".SKILL.md.orchestrail-tmp")
+        temporary.symlink_to(foreign)
+        before = fixture.snapshot()
+        diagnostic = f"ERROR unsafe-target: {temporary} must be absent or a regular temporary file\n".encode()
+
+        for arguments in ((), ("--force",)):
+            with self.subTest(force=bool(arguments)):
+                result = self.deploy(*arguments)
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertEqual(result.stdout, b"")
+                self.assertEqual(result.stderr, diagnostic)
+                self.assertEqual(fixture.snapshot(), before)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
