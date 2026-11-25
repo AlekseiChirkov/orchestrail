@@ -3,7 +3,7 @@
 
 import argparse
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 import errno
 import fcntl
@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 from typing import Literal
 
@@ -34,6 +35,7 @@ _JOURNAL_ENTRY_KEYS = frozenset({"path", "old_sha256", "new_sha256"})
 _TEMPORARY_SUFFIX = ".orchestrail-tmp"
 _JOURNAL_NAME = "journal.json"
 _LOCK_NAME = "deploy.lock"
+_LEGACY_PROJECT_DIRS = frozenset({".windsurf", ".devin"})
 _DIRECTORY_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 _NO_NATIVE_HOOK = '{"reason":"no-native-adapter","status":"unavailable"}'
 _OWNERSHIP_RESOLUTION = (
@@ -614,13 +616,16 @@ def _plan_harness(
     return actions, (json.dumps(data, indent=2, sort_keys=True) + "\n").encode(), notices
 
 
+def _config_directory(home: Path) -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+
+
 def _deployment_home() -> tuple[Path, Path]:
     home_value = os.environ.get("HOME", "")
     if not _valid_absolute_path(home_value):
         raise _DeploymentError("home-invalid", "HOME must be a non-empty absolute path")
     home = Path(home_value)
-    config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
-    return home, config
+    return home, _config_directory(home)
 
 
 def _build_plan(
@@ -867,6 +872,189 @@ def _apply_plan(plan: _Plan, manifest_dir: Path) -> None:
             print(notice)
 
 
+def _read_project_registry(config: Path) -> tuple[Path, ...] | None:
+    """Read the registration format shared with the Git rails hook."""
+    registry = config / "orchestrail/projects"
+    try:
+        try:
+            descriptor = os.open(registry, os.O_RDONLY | os.O_NONBLOCK)
+        except FileNotFoundError:
+            return None
+        with os.fdopen(descriptor, "rb") as stream:
+            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                raise _DeploymentError("registry-invalid", f"{registry} must be a regular file")
+            lines = stream.read().decode("utf-8").split("\n")
+    except (OSError, UnicodeDecodeError) as error:
+        raise _DeploymentError("registry-invalid", f"cannot read {registry}: {error}") from error
+
+    if lines[-1] == "":
+        lines.pop()
+    roots: dict[str, Path] = {}
+    for number, line in enumerate(lines, 1):
+        if (not _valid_absolute_path(line) or "\r" in line or os.path.realpath(line) != line):
+            raise _DeploymentError("registry-invalid", f"{registry}:{number}: expected a canonical absolute path")
+        roots.setdefault(line, Path(line))
+    return tuple(roots.values())
+
+
+def _list_projects() -> None:
+    home = os.environ.get("HOME")
+    if not home and not os.environ.get("XDG_CONFIG_HOME"):
+        return
+    source = Path(__file__).resolve().parents[1]
+    projects = _read_project_registry(_config_directory(Path(home or "")))
+    for project in projects or ():
+        if project != source and project.is_dir():
+            sys.stdout.buffer.write(os.fsencode(project) + b"\0")
+
+
+def _add_project_links(adapter: _Adapter, destination: Path, directory: int) -> int:
+    try:
+        entries = os.scandir(adapter.skills_dir)
+    except FileNotFoundError:
+        return 0
+    linked = 0
+    with entries:
+        for entry in entries:
+            try:
+                if not entry.is_dir():
+                    continue
+            except OSError as error:
+                if error.errno == errno.ELOOP:
+                    continue
+                raise
+            _check_directory_identity(destination, directory)
+            try:
+                os.symlink(f"{entry.path}/", entry.name, dir_fd=directory)
+            except FileExistsError:
+                continue
+            linked += 1
+    return linked
+
+
+def _remove_broken_project_links(adapter: _Adapter, destination: Path, directory: int) -> int:
+    prefixes = (f"{adapter.skills_dir}/", f"{adapter.skills_dir_resolved}/")
+    unlinked = 0
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if not entry.is_symlink():
+                continue
+            try:
+                original = entry.stat(follow_symlinks=False)
+                if not os.readlink(entry.name, dir_fd=directory).startswith(prefixes):
+                    continue
+                try:
+                    os.stat(entry.name, dir_fd=directory)
+                except OSError as error:
+                    if error.errno not in {errno.ENOENT, errno.ENOTDIR, errno.ELOOP}:
+                        raise
+                else:
+                    continue
+                _check_directory_identity(destination, directory)
+                current = os.stat(entry.name, dir_fd=directory, follow_symlinks=False)
+                if os.path.samestat(original, current):
+                    os.unlink(entry.name, dir_fd=directory)
+                    unlinked += 1
+            except FileNotFoundError:
+                continue
+    return unlinked
+
+
+def _project_links(project: Path, adapter: _Adapter, *, refresh: bool) -> tuple[int, int]:
+    relative = adapter.project_skills_link_dir
+    if relative is None:
+        return 0, 0
+    destination = project / relative
+    if _LEGACY_PROJECT_DIRS.intersection(destination.parts):
+        return 0, 0
+    with ExitStack() as stack:
+        try:
+            directory = stack.enter_context(_managed_directory(destination, create=not refresh))
+        except OSError as error:
+            if refresh and error.errno in {errno.ENOENT, errno.ENOTDIR, errno.ELOOP}:
+                return 0, 0
+            raise
+        unlinked = _remove_broken_project_links(adapter, destination, directory) if refresh else 0
+        return _add_project_links(adapter, destination, directory), unlinked
+
+
+def _link_project(source: Path, project: Path) -> None:
+    home, _ = _deployment_home()
+    adapters = _load_adapters(source, home)
+    with _managed_directory(project):
+        for adapter in adapters:
+            _project_links(project, adapter, refresh=False)
+
+
+def _has_tracked_knowledge(project: Path) -> bool:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(project), "ls-files", "--", ".ai"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=5,
+        )
+    except FileNotFoundError:
+        return False
+    except subprocess.TimeoutExpired as error:
+        raise OSError(errno.ETIMEDOUT, "cannot check tracked project knowledge", project) from error
+    return bool(result.stdout)
+
+
+def _has_knowledge_ignore(contents: bytes) -> bool:
+    return bool({b".ai", b".ai/"}.intersection(contents.split(b"\n")))
+
+
+def _ignore_untracked_knowledge(project: Path) -> None:
+    if (_LEGACY_PROJECT_DIRS.intersection(project.parts) or not (project / ".git").is_dir()
+            or _has_tracked_knowledge(project)):
+        return
+    with _managed_directory(project) as directory:
+        name = ".gitignore"
+        flags = os.O_RDWR | os.O_APPEND | os.O_NOFOLLOW | os.O_NONBLOCK
+        try:
+            previous = os.stat(name, dir_fd=directory, follow_symlinks=False)
+        except FileNotFoundError:
+            previous = None
+            flags |= os.O_CREAT | os.O_EXCL
+        # A linked ignore file may share its bytes with another project's file.
+        if previous is not None and (not stat.S_ISREG(previous.st_mode) or previous.st_nlink != 1):
+            return
+        try:
+            descriptor = os.open(name, flags, mode=0o666, dir_fd=directory)
+        except PermissionError:
+            if _has_knowledge_ignore(_read_at(directory, name) or b""):
+                return
+            raise
+        with os.fdopen(descriptor, "r+b") as stream:
+            info = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                    or (previous is not None and not os.path.samestat(previous, info))):
+                return
+            contents = stream.read()
+            if not _has_knowledge_ignore(contents):
+                _check_directory_identity(project, directory)
+                separator = b"\n" if contents and not contents.endswith(b"\n") else b""
+                stream.write(separator + b".ai/\n")
+
+
+def _refresh_projects(source: Path, projects: tuple[Path, ...] | None, adapters: list[_Adapter]) -> None:
+    if projects is None:
+        print("registry absent: no projects registered; run scripts/setup-new-project.sh in each project")
+        return
+    for project in projects:
+        if not project.is_dir():
+            print(f"project missing {project}")
+        elif project == source:
+            print(f"project skipped (source checkout) {project}")
+        else:
+            linked = unlinked = 0
+            for adapter in adapters:
+                added, removed = _project_links(project, adapter, refresh=True)
+                linked += added
+                unlinked += removed
+            _ignore_untracked_knowledge(project)
+            print(f"project updated {project} (linked {linked}, unlinked {unlinked})")
+
+
 def _deploy(source: Path, hook_result: str) -> None:
     home, config = _deployment_home()
     state = _state_paths(home, config)
@@ -874,11 +1062,15 @@ def _deploy(source: Path, hook_result: str) -> None:
     lock_mode = _mode(state.lock, "unsafe-target")
     if lock_mode is None:
         _validate_targets(_load_adapters(source, home), state)
+        # A malformed registry must not create the persistent lock on a first run.
+        _read_project_registry(config)
     elif not stat.S_ISREG(lock_mode):
         raise _DeploymentError("unsafe-target", f"{state.lock} must be a regular lock file")
     with _deployment_lock(state.lock):
+        projects = _read_project_registry(config)
         plan = _build_plan(source, hook_result, home, state, recover=True)
         _apply_plan(plan, state.manifest_dir)
+        _refresh_projects(source, projects, plan.adapters)
 
 
 def main() -> int:
@@ -888,11 +1080,20 @@ def main() -> int:
     deploy.add_argument("--from", dest="source", type=Path, required=True)
     deploy.add_argument("--hook-result", required=True)
     deploy.add_argument("--force", action="store_true")
+    commands.add_parser("list-projects", allow_abbrev=False)
+    link = commands.add_parser("link-project", allow_abbrev=False)
+    link.add_argument("--from", dest="source", type=Path, required=True)
+    link.add_argument("--project", type=Path, required=True)
     args = parser.parse_args()
-    if "\r" in args.hook_result or "\n" in args.hook_result:
-        deploy.error("--hook-result must be a single line")
     try:
-        _deploy(Path(os.path.realpath(args.source)), args.hook_result)
+        if args.command == "deploy":
+            if "\r" in args.hook_result or "\n" in args.hook_result:
+                deploy.error("--hook-result must be a single line")
+            _deploy(Path(os.path.realpath(args.source)), args.hook_result)
+        elif args.command == "list-projects":
+            _list_projects()
+        else:
+            _link_project(Path(os.path.realpath(args.source)), Path(os.path.abspath(args.project)))
     except _DeploymentError as error:
         print(error, file=sys.stderr)
         return error.exit_status
