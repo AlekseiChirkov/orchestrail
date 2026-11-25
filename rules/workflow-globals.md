@@ -29,8 +29,8 @@ skill under the `rule-` prefix — `workflow-globals` → `rule-workflow-globals
 
 A skill is model-invoked, not always-on. Deploying an `always_on` rule as a skill therefore
 changes its trigger semantics: the file is reachable, but it is not loaded unbidden. That is why
-the always-on essentials stay duplicated in `rules/global-claude.md` (→ `~/.claude/CLAUDE.md`)
-and `templates/codex-global-AGENTS.md` (→ `~/.codex/AGENTS.md`), which those agents do read on
+the always-on essentials stay duplicated in `harness/claude/always-on.md` (→ `~/.claude/CLAUDE.md`)
+and `harness/codex/always-on.md` (→ `~/.codex/AGENTS.md`), which those agents do read on
 every session. The `rule-*` skills carry the full contracts those summaries point at.
 
 Rules define the exact load order, what to extract, and phase-specific behaviors.

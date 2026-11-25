@@ -20,12 +20,12 @@ invoked Finalization closes the selected task with safe cleanup and archival. Pr
 is persisted in the target project's `.ai/tasks/…/state.md`; ordinary runs attempt
 best-effort telemetry to the central store that `/retro` reads, while dry-run emits none.
 
-Current inventory: 43 workflows, 15 rules, 4 principles, 11 shell scripts and 46 Python
-helpers under `scripts/`, with automated consistency and smoke checks.
+Current inventory: 43 workflows, 14 rules, 4 principles, 12 shell and 50 Python files
+under `scripts/`, with automated consistency and smoke checks.
 
 ## Components
 
-### Layer 1 — `rules/` (always-on contracts, 15 files)
+### Layer 1 — `rules/` (always-on contracts, 14 files)
 Policies every workflow obeys. Deployed as Windsurf/Devin global rules, and — because
 Claude Code and Codex have no rules directory — as skills under the mandatory `rule-`
 prefix (six basenames collide with workflows). Key files:
@@ -41,7 +41,6 @@ prefix (six basenames collide with workflows). Key files:
 | `run-log.md` | log store, three `scripts/log-step.sh` calls, field vocabulary, never-block rule, canonical per-boundary capability/evidence routing and receipt-confirmed suppression; unobserved prompt boundaries remain approximate |
 | `language.md` | English in every project file |
 | `phase-*.md` (6) | per-phase Context Bootstrap (which `.ai/` files to load and in what order), Blocker Reconciliation |
-| `global-claude.md` | the content of `~/.claude/CLAUDE.md` — always-on essentials for Claude Code |
 
 ### Layer 2 — `principles/` (engineering standards, 4 files)
 `code-quality.md`, `python-standards.md`, `testing-standards.md`, `infra-standards.md`.
@@ -72,14 +71,23 @@ run the full Context Bootstrap when they are.
 
 ### Layer 4 — `templates/`
 `.ai/` skeleton (seeded into projects, never overwrites), `.ai-umbrella/` (multi-repo
-root), `AGENTS.md` (Codex, per project), `codex-global-AGENTS.md` (→ `~/.codex/AGENTS.md`),
-`subtask-description.md` and `spec.md` (reference skeletons), `stacks/python-fastapi.md`.
+root), `AGENTS.md` (Codex, per project), `subtask-description.md` and `spec.md`
+(reference skeletons), `stacks/python-fastapi.md`.
+
+### Harness adapters
+
+`harness/claude/always-on.md` supplies `~/.claude/CLAUDE.md` and
+`harness/codex/always-on.md` supplies `~/.codex/AGENTS.md`. Each adapter declares
+its global paths in `deploy.env` and includes ordered canonical records in
+`capabilities.md`. Hook support describes the shipped implementation, with current
+installation and checkpoint coverage verified separately.
 
 ### Layer 5 — scripts
 | Script | Role |
 |---|---|
 | `scripts/validate-contracts.sh` | Consistency and smoke checks across layers 1–3, including bidirectional canonical JSON-table/runtime contract comparison (`--run-log-contract-only`); includes an optional tracked-file public-hygiene scanner using local patterns (`--hygiene-only`, `--root`, `--denylist`); run by `scripts/sync.sh`; any failure blocks deploy |
 | `scripts/validate-task.sh` | applies the same contracts to one task directory's artifacts; run by `/pd-finalize` and `/pe-finalize` |
+| `scripts/lint-instructions.py` | Standalone checker for instruction metadata, capability records, executable references and retired names. It validates the name map and its usage table. The frozen validator oracle pins the map digest for path-only changes. |
 | `scripts/sync.sh` | Mandatory full and finalization preflight → generate Windsurf, Claude Code and Codex outputs; normal mode then installs and refreshes projects with `.devin/`; `--stage <directory>` generates isolated artifacts without hook installation or consumer scans |
 | `scripts/setup-new-project.sh` | seed a project (auto-detects umbrella `../.ai/`) |
 | `scripts/setup-umbrella.sh`, `scripts/setup-all-repos.sh` | multi-repo initialization |

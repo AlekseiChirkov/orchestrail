@@ -8167,7 +8167,7 @@
             {
               "path": "tests/hook-install.sh",
               "provenance": "direct lexical reference",
-              "sha256": "689efc26f278948130446382880246b7dd8822d93398754d4a9520f47e6b729a"
+              "sha256": "17601a5c4f3df9389ec69aad043fc4e3cdb56ffa3d800fa41c9560555b667a8d"
             }
           ],
           "before": [
@@ -9226,12 +9226,12 @@
             },
             {
               "line": 792,
-              "line_sha256": "312720bb20b3ba6e6c22110ad0bd535c2e061173137def0c438c707f07110b88",
+              "line_sha256": "331d5f1e19e3501217bbf8e99061ae88385b7953832cfa29929eb093e5c6c46d",
               "path": "tests/hook-install.sh"
             },
             {
               "line": 793,
-              "line_sha256": "cc0028a9001cd239606941a2eab017e93b572a7c713f84743d590545d985431b",
+              "line_sha256": "705415f3221ea942a82ae4f440d26957dd61ce6e97d2aa5028b71c8fe731cf08",
               "path": "tests/hook-install.sh"
             },
             {

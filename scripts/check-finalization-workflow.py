@@ -1500,8 +1500,8 @@ class InstructionContracts(unittest.TestCase):
                     'rules/workflow-reference.md': ('Finalization', 'current-location', 'original snapshots'),
                     'rules/orchestration.md': ('/phase-finalize',),
                     'rules/run-log.md': ('/phase-finalize',),
-                    'rules/global-claude.md': ('/phase-finalize',),
-                    'templates/codex-global-AGENTS.md': ('/phase-finalize',),
+                    'harness/claude/always-on.md': ('/phase-finalize',),
+                    'harness/codex/always-on.md': ('/phase-finalize',),
                     'templates/.ai/memory/state.md': ('finalization',),
                     'templates/.ai-umbrella/memory/state.md': ('finalization',)}
         for path, tokens in expected.items():

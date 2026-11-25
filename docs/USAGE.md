@@ -104,8 +104,8 @@ with explicit state on disk. The AI assistant is constrained by:
 │   ├── git-flow.md                  branch stack, commits, PR policy, git safety rails
 │   ├── orchestration.md             agent roles, context boundaries, class A/B escalation
 │   ├── quick-flow.md                quick vs full tier, escalation gate
-│   ├── language.md                  English in every project file (chat language is user-specific)
-│   └── global-claude.md             contents written to ~/.claude/CLAUDE.md by scripts/sync.sh
+│   └── language.md                English in every project file (chat language is user-specific)
+├── harness/                        Claude Code and Codex adapters, each with an always-on source
 │
 ├── principles/                      always-on engineering standards (Windsurf global_rules)
 │   ├── code-quality.md              clean architecture, SOLID, naming, error handling, DI
@@ -174,10 +174,10 @@ with explicit state on disk. The AI assistant is constrained by:
 | Source                | Deployed to (Windsurf)                    | Deployed to (Claude Code)            | Deployed to (Codex)       |
 |-----------------------|-------------------------------------------|--------------------------------------|---------------------------|
 | `workflows/*.md`      | `~/.codeium/windsurf/global_workflows/`   | `~/.claude/skills/<name>/SKILL.md`   | `~/.codex/skills/<name>/SKILL.md` |
-| `rules/*.md`          | `~/.codeium/windsurf/global_rules/`       | `~/.claude/skills/rule-<name>/SKILL.md`, plus `~/.claude/CLAUDE.md` from `global-claude` | `~/.codex/skills/rule-<name>/SKILL.md`, plus `~/.codex/AGENTS.md` |
+| `rules/*.md`          | `~/.codeium/windsurf/global_rules/`       | `~/.claude/skills/rule-<name>/SKILL.md` | `~/.codex/skills/rule-<name>/SKILL.md` |
 | `principles/*.md`     | `~/.codeium/windsurf/global_rules/`       | `~/.claude/skills/principle-*/SKILL.md`   | `~/.codex/skills/principle-*/SKILL.md` |
 | `templates/AGENTS.md` | —                                         | —                                    | `<project>/AGENTS.md`     |
-
+| `harness/<name>/always-on.md` | — | `~/.claude/CLAUDE.md` from the Claude adapter | `~/.codex/AGENTS.md` from the Codex adapter |
 | `templates/.ai-umbrella/` | —                                        | —                                    | —                         |
 
 ---
@@ -268,11 +268,11 @@ It then performs:
 3. For each `workflows/<name>.md` → `~/.claude/skills/<name>/SKILL.md`, each
    `principles/<name>.md` → `~/.claude/skills/principle-<name>/SKILL.md`, and each
    `rules/<name>.md` → `~/.claude/skills/rule-<name>/SKILL.md`.
-   Also write/refresh `~/.claude/CLAUDE.md` from `rules/global-claude.md`.
+   Also write/refresh `~/.claude/CLAUDE.md` from `harness/claude/always-on.md`.
    The `rule-` prefix is required: six basenames exist in both `workflows/` and `rules/`, so
    an unprefixed rule skill would overwrite the workflow skill of the same name.
 4. The same three skill layouts under `~/.codex/skills/`, plus `~/.codex/AGENTS.md` from
-   `templates/codex-global-AGENTS.md`.
+   `harness/codex/always-on.md`.
 5. Walk every project containing a `.devin/` directory: refresh its `.devin/rules/` and
    `.windsurf/rules/` copies, refresh `.claude/skills/` symlinks, delete local workflow
    copies that shadow the global ones, and preserve repositories that track `.ai/`.
@@ -732,7 +732,7 @@ required checks blocks staging. See [repository scripts](../scripts/README.md#fo
 | You edit                                    | Effect after `scripts/sync.sh`                                              |
 |---------------------------------------------|---------------------------------------------------------------------|
 | `workflows/<x>.md`                          | Windsurf workflow `/x` updated, Claude skill `x/SKILL.md` updated   |
-| `rules/global-claude.md`                    | `~/.claude/CLAUDE.md` rewritten / appended; also redeployed as skill `rule-global-claude` |
+| `harness/<name>/always-on.md`              | The harness global instructions are refreshed with its capability declaration |
 | `rules/workflow-globals.md`                 | Windsurf rule updated; Claude Code and Codex skill `rule-workflow-globals` updated; project copies in `.windsurf/rules/` and `.devin/rules/` refreshed by the per-project pass |
 | `rules/<x>.md` (any other rule)             | Windsurf global rule updated; Claude Code and Codex skill `rule-<x>` updated                |
 | `principles/<x>.md`                         | Windsurf global rule updated; Claude Code and Codex skill `principle-<x>` updated           |
@@ -799,7 +799,7 @@ files are clean. Logs and local machine settings stay ignored in this repository
 | `run-log.md`               | Always-on. Run log contract: the central store, the three `scripts/log-step.sh` calls, the field vocabulary, what must never be logged, and the rule that logging never blocks a run. |
 | `quick-flow.md`            | Always-on. Quick vs full tier: four-condition escalation gate, what the quick path skips and still mandates (inline contract + inline TDD step), mid-flight promotion to full. |
 | `phase-discovery.md`, `phase-execution.md`, `phase-validation.md`, `phase-finalize.md`, `phase-atomic-execution.md`, `phase-atomic-validation.md` | Model-decision trigger. Per-phase Context Bootstrap (which `.ai/` files to load, in what order), phase behaviours, and — for atomic execution — the Blocker Reconciliation procedure. Every phase workflow cites these by name. |
-| `global-claude.md`         | Content for `~/.claude/CLAUDE.md`. Architecture principles + Python/testing/infra/naming/forbidden summaries. |
+| `harness/<name>/always-on.md` | Source of the global instruction file for each harness. |
 
 ### `principles/`
 

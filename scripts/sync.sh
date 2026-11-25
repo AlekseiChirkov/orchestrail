@@ -135,7 +135,7 @@ echo "  $(ls "$OUTPUT_ROOT"/.claude/skills/ | wc -l) skills → "$OUTPUT_ROOT"/.
 
 # Global CLAUDE.md — principles + standards for Claude Code
 GLOBAL_CLAUDE="$OUTPUT_ROOT/.claude/CLAUDE.md"
-cp "$RULES/global-claude.md" "$GLOBAL_CLAUDE"
+cp "$ROOT/harness/claude/always-on.md" "$GLOBAL_CLAUDE"
 append_logging_capabilities "$GLOBAL_CLAUDE" claude "$HOOK_INSTALL_RESULT"
 echo "  updated: "$OUTPUT_ROOT"/.claude/CLAUDE.md"
 
@@ -195,13 +195,13 @@ echo "  $(ls "$PRINCIPLES"/*.md | wc -l | tr -d ' ') principles → "$OUTPUT_ROO
 
 # ── 4c. Codex: global AGENTS.md (always-on rules, incl. language) ─────
 echo "[4c/5] Codex global AGENTS.md"
-if [ -f "$ROOT/templates/codex-global-AGENTS.md" ]; then
+if [ -f "$ROOT/harness/codex/always-on.md" ]; then
   mkdir -p "$OUTPUT_ROOT"/.codex
-  cp "$ROOT/templates/codex-global-AGENTS.md" "$OUTPUT_ROOT"/.codex/AGENTS.md
+  cp "$ROOT/harness/codex/always-on.md" "$OUTPUT_ROOT"/.codex/AGENTS.md
   append_logging_capabilities "$OUTPUT_ROOT/.codex/AGENTS.md" codex '{"reason":"no-native-adapter","status":"unavailable"}'
   echo "  updated: "$OUTPUT_ROOT"/.codex/AGENTS.md"
 else
-  echo "  WARNING: templates/codex-global-AGENTS.md not found — global AGENTS.md not deployed"
+  echo "  WARNING: harness/codex/always-on.md not found — global AGENTS.md not deployed"
 fi
 
 # ── 4d. Codex: rules as skills ────────────────────────────────────────

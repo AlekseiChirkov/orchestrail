@@ -13,7 +13,7 @@ searches the web.
   `~/.claude/CLAUDE.md` global instructions; per-project `CLAUDE.md`.
 - Used by: every workflow; `/spec-run` relies on spawning sub-agents, keeping the Arbiter
   alive and addressing it by message, and pausing the Implementer mid-run.
-- Assumptions: skills are model-invoked (not always-on) — hence `global-claude.md`
+- Assumptions: skills are model-invoked (not always-on) — hence `harness/claude/always-on.md`
   duplicates the essentials; a project-local `.claude/skills/` hides global skills
   (`scripts/link-skills.sh`). Hooks and permission deny-lists are available but **not used yet**
   (`specs/03`, `specs/06`).

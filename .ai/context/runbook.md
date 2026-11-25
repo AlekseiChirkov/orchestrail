@@ -113,7 +113,7 @@ requires a configured file and fails closed.
 3. Grep `workflows/ rules/ docs/ templates/` for every reader of the
    changed text; update them.
 4. If it is always-on essential for Claude Code/Codex, update the summary in
-   `rules/global-claude.md` and `templates/codex-global-AGENTS.md` (both are deployed
+   `harness/claude/always-on.md` and `harness/codex/always-on.md` (both are deployed
    verbatim).
 5. `scripts/setup-new-project.sh` copies a fixed list of rule files into `.windsurf/rules/` and
    `.devin/rules/` — add a new rule to that list, and to the count in `docs/USAGE.md → ## 5`.

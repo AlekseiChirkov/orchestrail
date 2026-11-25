@@ -84,7 +84,7 @@ non-vocabulary statuses); the interpreter of these rules is probabilistic.
 ### P11 — Environment parity is stated, not assumed
 Where a harness cannot execute a mechanism (sub-agents on Windsurf, always-on rules on
 Claude Code), the documentation says so and the rule provides the closest substitute
-(`rule-*` skills, `global-claude.md` essentials). A capability that only works in one
+(`rule-*` skills, `harness/<name>/always-on.md` essentials). A capability that only works in one
 harness is labelled with that harness.
 *Rationale:* an undocumented gap is a workflow that silently does something else.
 

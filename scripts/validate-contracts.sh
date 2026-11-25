@@ -1034,9 +1034,16 @@ check "ORCH: commits carry no AI authorship attribution" \
 check "ORCH: no-attribution rule overrides harness defaults" \
   "$(grep -qi 'overrides any tool default' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must state the no-attribution rule overrides harness defaults that append a trailer')"
 
-for f in rules/global-claude.md templates/codex-global-AGENTS.md templates/AGENTS.md; do
+managed_instruction_sources=(
+  'global-claude.md:harness/claude/always-on.md'
+  'codex-global-AGENTS.md:harness/codex/always-on.md'
+  'AGENTS.md:templates/AGENTS.md'
+)
+for entry in "${managed_instruction_sources[@]}"; do
+  f=${entry%%:*}
+  instruction_source=${entry#*:}
   check "ORCH: no-attribution rule present in $(basename $f)" \
-    "$(grep -q 'Co-Authored-By' "$f" 2>/dev/null && grep -qi 'overrides any tool default' "$f" 2>/dev/null && echo pass || echo "$f missing the no-attribution commit rule — harness defaults would append an attribution trailer")"
+    "$(grep -q 'Co-Authored-By' "$instruction_source" 2>/dev/null && grep -qi 'overrides any tool default' "$instruction_source" 2>/dev/null && echo pass || echo "$instruction_source missing the no-attribution commit rule — harness defaults would append an attribution trailer")"
 done
 
 check "ORCH: Co-Authored-By named as forbidden" \
@@ -1137,9 +1144,11 @@ check "ORCH: PR stack line names predecessors by branch" \
 check "ORCH: code-quality forbids pipeline references in code" \
   "$(grep -qi 'AI-pipeline artifacts in code' principles/code-quality.md 2>/dev/null && echo pass || echo 'code-quality.md must forbid T-XX / ADR / .ai references in code and comments')"
 
-for f in rules/global-claude.md templates/codex-global-AGENTS.md templates/AGENTS.md; do
+for entry in "${managed_instruction_sources[@]}"; do
+  f=${entry%%:*}
+  instruction_source=${entry#*:}
   check "ORCH: identifier ban present in $(basename $f)" \
-    "$(grep -qi 'No internal planning identifiers' "$f" 2>/dev/null && echo pass || echo "$f missing the no-identifier rule for commits and code")"
+    "$(grep -qi 'No internal planning identifiers' "$instruction_source" 2>/dev/null && echo pass || echo "$instruction_source missing the no-identifier rule for commits and code")"
 done
 
 check "ORCH: report warns hashes are pre-merge" \
@@ -1296,7 +1305,8 @@ check "QUICK: phase-execution quick branch records ## TDD (quick)" \
 # Checking two named rules passed while quick-flow and all five phase-* rules were absent
 # from scripts/setup-new-project.sh: a workflow saying "follow phase-atomic-execution rules" had
 # nothing to follow in a freshly set-up project.
-for rule in rules/*.md; do
+# Preserve the former Claude collision label while the deployment names migrate.
+for rule in rules/*.md 'global-claude.md'; do
   name=$(basename "$rule")
   base="${name%.md}"
   # Claude Code and Codex have no rules directory: every rule is deployed as a skill under the

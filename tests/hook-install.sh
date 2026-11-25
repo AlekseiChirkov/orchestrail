@@ -789,8 +789,8 @@ class HookInstallation(unittest.TestCase):
         self.assertTrue(claude_cap.exists(), 'sync requires declared native hook capability')
         self.assertTrue(codex_cap.exists(), 'sync requires an explicit fallback capability')
         for target, body, capability in (
-            (self.home / '.claude' / 'CLAUDE.md', self.checkout / 'rules' / 'global-claude.md', claude_cap),
-            (self.home / '.codex' / 'AGENTS.md', self.checkout / 'templates' / 'codex-global-AGENTS.md', codex_cap)):
+            (self.home / '.claude' / 'CLAUDE.md', self.checkout / 'harness' / 'claude' / 'always-on.md', claude_cap),
+            (self.home / '.codex' / 'AGENTS.md', self.checkout / 'harness' / 'codex' / 'always-on.md', codex_cap)):
             content = target.read_text()
             self.assertTrue(content.startswith(body.read_text()))
             self.assertEqual(content.count(capability.read_text().strip()), 1)
