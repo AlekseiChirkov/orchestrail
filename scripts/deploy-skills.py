@@ -569,7 +569,7 @@ def _check_recovery_digest(path: Path, digest: str | None, entry: _JournalEntry)
 
 def _plan_harness(
     adapter: _Adapter, skills: dict[str, bytes], hook_result: str, manifest: _Manifest | None,
-    journal: dict[Path, _JournalEntry],
+    journal: dict[Path, _JournalEntry], *, source_revision: str | None,
 ) -> tuple[list[_Action], bytes, list[str]]:
     desired: dict[Path, tuple[str | None, bytes]] = {
         adapter.skills_dir_resolved / name / "SKILL.md": (name, data) for name, data in skills.items()
@@ -625,7 +625,8 @@ def _plan_harness(
     data = {
         "schema_version": 1, "harness": adapter.name, "install_id": adapter.install_id,
         "skills_dir": str(adapter.skills_dir), "skills_dir_resolved": str(adapter.skills_dir_resolved),
-        "always_on_path": str(adapter.always_on_path), "source_revision": None, "objects": objects,
+        "always_on_path": str(adapter.always_on_path), "source_revision": source_revision,
+        "objects": objects,
     }
     return actions, (json.dumps(data, indent=2, sort_keys=True) + "\n").encode(), notices
 
@@ -642,6 +643,25 @@ def _deployment_home() -> tuple[Path, Path]:
     return home, _config_directory(home)
 
 
+def _source_revision(source: Path) -> str | None:
+    environment = os.environ.copy()
+    # A caller's Git repository overrides must not redirect the selected source query.
+    for name in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE", "GIT_NAMESPACE"):
+        environment.pop(name, None)
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(source), "rev-parse", "--verify", "HEAD"],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            env=environment, timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    revision = result.stdout.removesuffix(b"\n").decode("ascii", errors="replace")
+    return revision if _REVISION.fullmatch(revision) else None
+
+
 def _build_plan(
     source: Path, hook_result: str, home: Path, state: _DeploymentPaths, *, recover: bool,
 ) -> _Plan:
@@ -650,6 +670,7 @@ def _build_plan(
     manifest_dir = state.manifest_dir
     journal = _read_journal(manifest_dir / _JOURNAL_NAME, adapters) if recover else _Journal({}, None)
     skills = _load_skill_sources(source)
+    source_revision = _source_revision(source)
 
     actions: list[_Action] = []
     notices: list[str] = []
@@ -660,7 +681,9 @@ def _build_plan(
         manifest = _read_manifest(path, adapter)
         adapter_journal = {key: entry for key, entry in journal.entries.items()
                            if _adapter_target(adapter, key) is not None}
-        changes, updated, messages = _plan_harness(adapter, skills, hook_result, manifest, adapter_journal)
+        changes, updated, messages = _plan_harness(
+            adapter, skills, hook_result, manifest, adapter_journal, source_revision=source_revision,
+        )
         actions.extend(changes)
         notices.extend(messages)
         if manifest is None or manifest.contents != updated:
