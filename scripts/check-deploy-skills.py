@@ -1680,5 +1680,172 @@ printf '%s\n' "$revision"
         )
 
 
+class DeploymentLeftoverTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.name_map = self.fixture.source / "docs/name-map.json"
+
+    def write_map(self, *rows: tuple[str, str, list[str]]) -> None:
+        data = {"schema_version": 1, "rows": [
+            {"kind": kind, "old": old, "new": new} for kind, old, new in sorted(rows)
+        ]}
+        self.fixture.write(self.name_map, self.fixture.manifest_bytes(data))
+
+    def deploy(self) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, "-I", str(ENGINE), "deploy", "--from", str(self.fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+
+    def assert_leftovers(self, result: subprocess.CompletedProcess[str], *directories: Path) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertCountEqual(
+            [line for line in result.stdout.splitlines() if line.startswith("leftover ")],
+            [f"leftover {directory} (not removed; review, then remove it manually)"
+             for directory in directories],
+        )
+
+    def snapshot_paths(self, *paths: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        roots = {path.relative_to(self.fixture.root) for path in paths}
+        return {path: entry for path, entry in self.fixture.snapshot().items()
+                if path in roots or roots.intersection(path.parents)}
+
+    def test_reports_only_mapped_old_directories_on_every_deploy(self) -> None:
+        fixture = self.fixture
+        old_pipeline = Path("workflows/PIPELINE.md")
+        old_claude = Path("rules/global-claude.md")
+        old_codex = Path("templates/codex-global-AGENTS.md")
+        self.write_map(
+            ("file", str(old_claude), ["harness/claude/always-on.md"]),
+            ("file", str(old_codex), ["harness/codex/always-on.md"]),
+            ("file", str(old_pipeline), [str(Path("docs") / old_pipeline.name)]),
+            ("rule", "retired-guide", ["contract-guide", "procedure-guide"]),
+            ("workflow", "missing-command", ["replacement-command"]),
+            ("workflow", "regular-file", ["file-command"]),
+            ("workflow", "retired-command", ["current-command"]),
+            ("workflow", "rule-retired-guide", ["guide-command"]),
+            ("workflow", "symbolic-link", ["link-command"]),
+        )
+        present = [fixture.skill(name).parent for name in (
+            old_pipeline.stem, f"rule-{old_claude.stem}", "rule-retired-guide", "retired-command",
+        )]
+        present.append(fixture.skill("retired-command", "omega").parent)
+        ignored = [fixture.skill(name).parent for name in (
+            old_codex.stem, "personal-skill", "rule-procedure-guide", "current-command",
+        )]
+        for directory in present + ignored:
+            fixture.write(directory / "SKILL.md", f"Custom content for {directory.name}\n".encode())
+            fixture.write(directory / "notes/details.md", b"Personal notes\n")
+        regular_file = fixture.skills_dir() / "regular-file"
+        fixture.write(regular_file, b"Custom file\n")
+        symlink = fixture.skills_dir() / "symbolic-link"
+        symlink.symlink_to(ignored[0], target_is_directory=True)
+        protected = [*present, *ignored, regular_file, symlink]
+        before = self.snapshot_paths(*protected)
+        for run in ("first deployment", "repeat deployment", "without a map"):
+            with self.subTest(run=run):
+                if run == "without a map":
+                    self.name_map.unlink()
+
+                result = self.deploy()
+
+                self.assertEqual(self.snapshot_paths(*protected), before)
+                for harness in ("alpha", "omega"):
+                    self.assertFalse(fixture.skill("missing-command", harness).parent.exists())
+                self.assert_leftovers(result, *(present if run != "without a map" else []))
+
+    def test_distinguishes_current_owned_and_unowned_mapped_skills(self) -> None:
+        fixture = self.fixture
+        self.write_map(
+            ("rule", "live-guide", ["contract-live-guide"]),
+            ("workflow", "current", ["renamed-current"]),
+            ("workflow", "edited-command", ["renamed-edited"]),
+            ("workflow", "old-command", ["renamed-old"]),
+        )
+        fixture.write(fixture.source / "rules/live-guide.md", SKILL_BYTES)
+        owned = fixture.skill("old-command")
+        edited = fixture.skill("edited-command")
+        foreign = fixture.skill("old-command", "omega")
+        old = b"Owned deployment bytes\n"
+        custom = b"Personal skill bytes\n"
+        fixture.write(owned, old)
+        for skill in (edited, foreign, fixture.skill("current"), fixture.skill("rule-live-guide")):
+            fixture.write(skill, custom)
+        leftover_temporary = foreign.with_name(".SKILL.md.orchestrail-tmp")
+        managed_temporary = fixture.skill("current").with_name(".SKILL.md.orchestrail-tmp")
+        fixture.write(leftover_temporary, custom)
+        fixture.write(managed_temporary, b"Incomplete deployment bytes\n")
+        leftover_before = self.snapshot_paths(edited.parent, foreign.parent)
+        manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(owned, old, "old-command"),
+            fixture.manifest_object(edited, old, "edited-command"),
+            fixture.manifest_object(fixture.skill("current"), custom, "current"),
+            fixture.manifest_object(fixture.skill("rule-live-guide"), custom, "rule-live-guide"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+
+        for run in ("first deployment", "repeat deployment"):
+            with self.subTest(run=run):
+                result = self.deploy()
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertFalse(owned.parent.exists())
+                self.assertEqual(edited.read_bytes(), custom)
+                self.assertEqual(foreign.read_bytes(), custom)
+                self.assertFalse(managed_temporary.exists())
+                self.assertEqual(self.snapshot_paths(edited.parent, foreign.parent), leftover_before)
+                for harness in ("alpha", "omega"):
+                    self.assertEqual(fixture.skill("current", harness).read_bytes(), SKILL_BYTES)
+                    self.assertEqual(fixture.skill("rule-live-guide", harness).read_bytes(), SKILL_BYTES)
+                self.assert_leftovers(result, edited.parent, foreign.parent)
+
+    def test_refuses_malformed_name_map_before_writes(self) -> None:
+        fixture = self.fixture
+        fixture.write(fixture.skill("retired-command"), b"Personal skill bytes\n")
+        row = {"kind": "workflow", "old": "retired-command", "new": ["current-command"]}
+        invalid_rows = {
+            "unknown field": [{**row, "note": "Renamed"}],
+            "duplicate identity": [row, {**row, "new": ["other-command"]}],
+            "duplicate target": [row, {**row, "old": "unused-command"}],
+            "target is an old name": [{**row, "new": ["retired-command"]}],
+            "unsorted rows": [{**row, "old": "unused-command", "new": ["other-command"]}, row],
+            "workflow split": [{**row, "new": ["current-command", "other-command"]}],
+            "unsafe file path": [{"kind": "file", "old": "rules/../outside.md",
+                                   "new": ["docs/Outside.md"]}],
+            "command substitution": [{**row, "old": "$(touch fixture-marker)"}],
+        }
+        invalid_maps = {label: fixture.manifest_bytes({"schema_version": 1, "rows": rows})
+                        for label, rows in invalid_rows.items()}
+        invalid_maps.update({
+            "duplicate JSON key": b'{"schema_version": 1, "rows": [], "rows": []}',
+            "incorrect schema version": b'{"schema_version": true, "rows": []}',
+            "invalid JSON": b"[",
+            "invalid UTF-8": b"\xff",
+        })
+
+        for label, content in invalid_maps.items():
+            with self.subTest(mutation=label):
+                fixture.write(self.name_map, content)
+                before = fixture.snapshot()
+
+                result = self.deploy()
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertEqual(result.stdout, "")
+                self.assertTrue(result.stderr.startswith("ERROR name-map-invalid"), result.stderr)
+                self.assertIn(str(self.name_map), result.stderr)
+                self.assertEqual(fixture.snapshot(), before)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
