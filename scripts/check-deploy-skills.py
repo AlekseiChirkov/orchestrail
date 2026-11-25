@@ -1575,12 +1575,20 @@ class DeploymentSourceRevisionTests(unittest.TestCase):
         fixture.write(head, (self.initial_revision + "\n").encode())
         git = fixture.root / "bin/git"
         git.write_text(r"""#!/bin/sh
-[ "$#" -eq 5 ] && [ "$1" = -C ] && [ "$3" = rev-parse ] &&
-    [ "$4" = --verify ] && [ "$5" = HEAD ] || exit 2
+[ "$#" -ge 4 ] && [ "$1" = -C ] && [ "$3" = rev-parse ] || exit 2
 if [ ! -f "$2/.git/fixture-head" ]; then
     printf '%s\n' 'fatal: not a git repository' >&2
     exit 128
 fi
+if [ "$#" -eq 4 ] && [ "$4" = --is-inside-work-tree ]; then
+    if [ -f "$2/.git/fixture-bare" ]; then
+        printf '%s\n' false
+    else
+        printf '%s\n' true
+    fi
+    exit 0
+fi
+[ "$#" -eq 5 ] && [ "$4" = --verify ] && [ "$5" = HEAD ] || exit 2
 IFS= read -r revision < "$2/.git/fixture-head" || exit 1
 printf '%s\n' "$revision"
 """, encoding="utf-8")
@@ -1659,6 +1667,17 @@ printf '%s\n' "$revision"
                 ])
                 self.assertEqual([manifest["source_revision"] for manifest in previous_manifests],
                                  [self.initial_revision, self.initial_revision])
+
+    def test_manifest_revision_is_null_for_bare_repository_with_head(self) -> None:
+        fixture, head, _ = self.source_fixture()
+        fixture.write(head.with_name("fixture-bare"), b"")
+
+        self.deploy(fixture)
+
+        self.assertEqual(
+            [manifest["source_revision"] for manifest in self.manifests(fixture)],
+            [None, None],
+        )
 
 
 if __name__ == "__main__":
