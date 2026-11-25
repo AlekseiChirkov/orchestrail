@@ -1562,5 +1562,104 @@ runpy.run_path(sys.argv[0], run_name='__main__')
                 self.assertEqual(fixture.snapshot(), before)
 
 
+class DeploymentSourceRevisionTests(unittest.TestCase):
+    initial_revision = "0123456789abcdef0123456789abcdef01234567"
+    next_revision = "fedcba9876543210fedcba9876543210fedcba98"
+    harnesses = ("alpha", "omega")
+
+    def source_fixture(self) -> tuple[PlannerFixture, Path, Path]:
+        temporary = tempfile.TemporaryDirectory(prefix="deployment's source ")
+        self.addCleanup(temporary.cleanup)
+        fixture = PlannerFixture(Path(temporary.name).resolve())
+        head = fixture.source / ".git/fixture-head"
+        fixture.write(head, (self.initial_revision + "\n").encode())
+        git = fixture.root / "bin/git"
+        git.write_text(r"""#!/bin/sh
+[ "$#" -eq 5 ] && [ "$1" = -C ] && [ "$3" = rev-parse ] &&
+    [ "$4" = --verify ] && [ "$5" = HEAD ] || exit 2
+if [ ! -f "$2/.git/fixture-head" ]; then
+    printf '%s\n' 'fatal: not a git repository' >&2
+    exit 128
+fi
+IFS= read -r revision < "$2/.git/fixture-head" || exit 1
+printf '%s\n' "$revision"
+""", encoding="utf-8")
+        git.chmod(0o755)
+        return fixture, head, git
+
+    def deploy(self, fixture: PlannerFixture) -> subprocess.CompletedProcess[str]:
+        result = subprocess.run(
+            [sys.executable, "-I", str(ENGINE), "deploy", "--from", str(fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=fixture.root,
+            env=fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        return result
+
+    def manifests(self, fixture: PlannerFixture) -> list[dict]:
+        return [json.loads(fixture.manifest_path(name).read_bytes()) for name in self.harnesses]
+
+    def test_manifest_records_selected_source_head(self) -> None:
+        fixture, _, _ = self.source_fixture()
+
+        self.deploy(fixture)
+
+        self.assertEqual(
+            [manifest["source_revision"] for manifest in self.manifests(fixture)],
+            [self.initial_revision, self.initial_revision],
+        )
+
+    def test_revision_change_rewrites_only_manifests_then_becomes_noop(self) -> None:
+        fixture, head, _ = self.source_fixture()
+        self.deploy(fixture)
+        previous_manifests = self.manifests(fixture)
+        head.write_text(self.next_revision + "\n", encoding="utf-8")
+        before_update = fixture.snapshot()
+
+        update = self.deploy(fixture)
+        after_update = fixture.snapshot()
+        repeat = self.deploy(fixture)
+
+        self.assertEqual(self.manifests(fixture), [
+            manifest | {"source_revision": self.next_revision} for manifest in previous_manifests
+        ])
+        self.assertEqual([manifest["source_revision"] for manifest in previous_manifests],
+                         [self.initial_revision, self.initial_revision])
+        for name in self.harnesses:
+            for path in (fixture.skill("current", name), fixture.always_on(name)):
+                relative = path.relative_to(fixture.root)
+                self.assertEqual(after_update[relative], before_update[relative])
+        for result in (update, repeat):
+            self.assertNotRegex(result.stdout, r"(?m)^(?:adopt|create|remove|replace) ")
+        self.assertFalse(fixture.manifest_path("journal").exists())
+        self.assertEqual(fixture.snapshot(), after_update)
+
+    def test_manifest_revision_clears_when_source_provenance_is_unavailable(self) -> None:
+        for reason in ("plain copy", "missing Git"):
+            with self.subTest(reason=reason):
+                fixture, head, git = self.source_fixture()
+                self.deploy(fixture)
+                previous_manifests = self.manifests(fixture)
+                if reason == "plain copy":
+                    head.unlink()
+                    head.parent.rmdir()
+                else:
+                    git.unlink()
+
+                self.deploy(fixture)
+
+                self.assertEqual(self.manifests(fixture), [
+                    manifest | {"source_revision": None} for manifest in previous_manifests
+                ])
+                self.assertEqual([manifest["source_revision"] for manifest in previous_manifests],
+                                 [self.initial_revision, self.initial_revision])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
