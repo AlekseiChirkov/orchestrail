@@ -1970,7 +1970,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-output-relocation.py",
@@ -2007,7 +2007,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-output-relocation.py",
@@ -2044,7 +2044,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2081,7 +2081,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2118,7 +2118,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2155,7 +2155,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2192,7 +2192,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2229,7 +2229,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-delivery-integration.py",
@@ -2266,7 +2266,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2303,7 +2303,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2340,7 +2340,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2377,7 +2377,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2414,7 +2414,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2451,7 +2451,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -2488,7 +2488,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-selection.py",
@@ -2503,7 +2503,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-selection.py",
@@ -2518,7 +2518,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-selection.py",
@@ -2533,7 +2533,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-selection.py",
@@ -2548,7 +2548,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-analyze-cli-errors.py",
@@ -2585,7 +2585,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-analyze-cli-evidence.py",
@@ -2622,7 +2622,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-analyze-cli-evidence.py",
@@ -2659,7 +2659,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -2696,7 +2696,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -2733,7 +2733,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -2770,7 +2770,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-retrospective-integration.py",
@@ -2807,7 +2807,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-guard-regressions.py",
@@ -2817,7 +2817,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes only the pinned local guard or an isolated copy of pinned test source.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-guard-regressions.py",
@@ -2827,7 +2827,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes only the pinned local guard or an isolated copy of pinned test source.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-security.py",
@@ -2837,7 +2837,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes only the pinned local guard or an isolated copy of pinned test source.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-integrated.py",
@@ -2847,7 +2847,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes only the pinned local guard or an isolated copy of pinned test source.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-warning-guard.py",
@@ -2857,7 +2857,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes only the pinned local guard or an isolated copy of pinned test source.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2867,7 +2867,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2877,7 +2877,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2887,7 +2887,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2897,7 +2897,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2907,7 +2907,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2917,7 +2917,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -2927,7 +2927,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed test invokes a fixed local test module included in the pinned source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-report-consumer.py",
@@ -2964,7 +2964,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-report-consumer.py",
@@ -3001,7 +3001,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-status-cli-integration.py",
@@ -3038,7 +3038,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-catalog.py",
@@ -3053,7 +3053,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-plan.py",
@@ -3068,7 +3068,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-normalize-cli.py",
@@ -3106,7 +3106,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -3144,7 +3144,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -3182,7 +3182,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -3220,7 +3220,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -3258,7 +3258,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-cli.py",
@@ -3296,7 +3296,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-late-import.py",
@@ -3334,7 +3334,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-late-import.py",
@@ -3372,7 +3372,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-late-import.py",
@@ -3410,7 +3410,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-publication-run-race.py",
@@ -3448,7 +3448,7 @@
       "scripts/usage_telemetry_sources.py": "3904b61669f252b35704ebc906b7d02816d4659c86e6358cf9f1c59cd0a257ed",
       "scripts/usage_telemetry_stream.py": "d61730a78f56b0c6416d4e670e4c91c0624c8c8661bed93123f971acd610371e"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-characterization.py",
@@ -3458,7 +3458,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "All current callers and their generated source are reviewed and bound to the complete source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-warning.py",
@@ -3468,7 +3468,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "All current callers and their generated source are reviewed and bound to the complete source inventory.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -3478,7 +3478,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -3488,7 +3488,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -3498,7 +3498,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -3508,7 +3508,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-identity.py",
@@ -3518,7 +3518,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-identity.py",
@@ -3528,7 +3528,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-identity.py",
@@ -3538,7 +3538,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-oracle.py",
@@ -3548,7 +3548,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-version-isolation.py",
@@ -3558,7 +3558,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/log-step.sh": "6ffd7cfb89f263b1e85186cebb268967be05da692098c428e9a5691024118e3a"
     }
@@ -3571,7 +3571,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "docs/MODEL-CATALOG.md": "705c920c60218461404d3b76b6ef77f04b42f72b659800dec2cba2d5ef507ad4",
       "rules/workflow-reference.md": "3bf500003458ea7ec0b9c1b0e6e09a16973461e0d6b09e38454a2379f487a046",
@@ -3593,7 +3593,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "docs/MODEL-CATALOG.md": "705c920c60218461404d3b76b6ef77f04b42f72b659800dec2cba2d5ef507ad4",
       "rules/workflow-reference.md": "3bf500003458ea7ec0b9c1b0e6e09a16973461e0d6b09e38454a2379f487a046",
@@ -3615,7 +3615,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3652,7 +3652,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3689,7 +3689,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3726,7 +3726,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3763,7 +3763,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3800,7 +3800,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3837,7 +3837,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3874,7 +3874,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3911,7 +3911,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3948,7 +3948,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/usage-report-publish.py": "cd60a9f31fe4f088ded7c933e47fbde521d3929d7270b079f78964f3731cdb47",
       "scripts/usage-telemetry.py": "2499a9b195bb5f898cc74ccacfcf3b2b7f664cb97ca264a0057d3b1ef0c33180",
@@ -3985,7 +3985,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-guard-executable.py",
@@ -3995,7 +3995,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4005,7 +4005,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4015,7 +4015,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4025,7 +4025,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4035,7 +4035,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4045,7 +4045,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4055,7 +4055,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/fixtures/validator-runtime/source_guard.py",
@@ -4065,7 +4065,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4075,7 +4075,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4085,7 +4085,7 @@
     "detail": "unclassified Python argument",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4095,7 +4095,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4105,7 +4105,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4115,7 +4115,7 @@
     "detail": "unclassified Python argument",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4125,7 +4125,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4135,7 +4135,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-external-source-guard.py",
@@ -4145,7 +4145,7 @@
     "detail": "unclassified Python reference",
     "count": 1,
     "reason": "The reviewed fixture uses a fixed test module or compares extracted shell with the trusted project source before execution.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/model-selection.py",
@@ -4160,7 +4160,7 @@
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4170,7 +4170,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4180,7 +4180,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4190,7 +4190,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4200,7 +4200,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4210,7 +4210,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/log-step.sh",
@@ -4220,7 +4220,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/log-step.sh",
@@ -4230,7 +4230,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed statement is Python data inside a pinned heredoc, not a shell source command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/git-rails.sh",
@@ -4240,7 +4240,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed heredoc line is test input data for the command policy, not a shell invocation.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/log-step.sh",
@@ -4250,7 +4250,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed fixture sources focused functions extracted from the pinned validator and runs only their enumerated names.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79",
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec",
     "dependencies": {
       "scripts/log-step.sh": "6ffd7cfb89f263b1e85186cebb268967be05da692098c428e9a5691024118e3a"
     }
@@ -4263,7 +4263,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call generates an RSA key in a temporary fixture using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-authority.py",
@@ -4273,7 +4273,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call derives a public key from a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-authority.py",
@@ -4283,7 +4283,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection-token-scalars.py",
@@ -4293,7 +4293,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection.py",
@@ -4303,7 +4303,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call generates an RSA key in a temporary fixture using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection.py",
@@ -4313,7 +4313,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call derives a public key from a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection.py",
@@ -4323,7 +4323,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection.py",
@@ -4333,7 +4333,7 @@
     "detail": "unclassified Python executable",
     "count": 2,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-lifecycle-projection.py",
@@ -4343,7 +4343,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -4353,7 +4353,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call generates an RSA key in a temporary fixture using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -4363,7 +4363,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call derives a public key from a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -4373,7 +4373,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call generates an RSA key in a temporary fixture using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -4383,7 +4383,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call derives a public key from a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/usage-producer-epochs-cli.py",
@@ -4393,7 +4393,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call signs fixture data with a temporary fixture key using the PATH-selected openssl command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-identity.py",
@@ -4403,7 +4403,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed call lists available locales using the PATH-selected locale command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/validator-runtime-identity.py",
@@ -4413,7 +4413,7 @@
     "detail": "unclassified Python executable",
     "count": 1,
     "reason": "The reviewed helper runs its callers’ fixed git fixture operations in the temporary repository using the PATH-selected git command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "scripts/validate-contracts.sh",
@@ -4423,7 +4423,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is a check label; its quoted text is not an executable path.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/git-rails.sh",
@@ -4433,7 +4433,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/git-rails.sh",
@@ -4443,7 +4443,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is Python heredoc data written to a fixture exclusion file, not a shell command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/git-rails.sh",
@@ -4453,7 +4453,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is Python heredoc data written to a fixture exclusion file, not a shell command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-install.sh",
@@ -4463,7 +4463,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-shell-quality.sh",
@@ -4473,7 +4473,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-timing.sh",
@@ -4483,7 +4483,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/hook-workflow-contract.sh",
@@ -4493,7 +4493,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/log-step-hook.sh",
@@ -4503,7 +4503,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/log-step.sh",
@@ -4513,7 +4513,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed assignment resolves the test source directory using cd, dirname, and pwd; the path fragment is not a command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "scripts/validate-contracts.sh",
@@ -4523,7 +4523,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is a case pattern selecting a tracked data file, not an executable command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "scripts/validate-contracts.sh",
@@ -4533,7 +4533,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is an element of the helper documentation path array, not an executable command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "scripts/validate-contracts.sh",
@@ -4543,7 +4543,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed line is an element of the helper documentation path array, not an executable command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "scripts/validate-contracts.sh",
@@ -4553,7 +4553,7 @@
     "detail": "dynamic executable requires review",
     "count": 1,
     "reason": "The reviewed Python heredoc statement creates a fixture symlink and is not a shell command.",
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/state-tool.py",
@@ -4566,7 +4566,7 @@
     "dependencies": {
       "scripts/state-tool.py": "d7026ce00adf4c88a99ea80a9ce58a852173519f60326c70a445e0bbbe935ae2"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/state-tool.py",
@@ -4579,7 +4579,7 @@
     "dependencies": {
       "scripts/state-tool.py": "d7026ce00adf4c88a99ea80a9ce58a852173519f60326c70a445e0bbbe935ae2"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/state-tool.py",
@@ -4592,7 +4592,7 @@
     "dependencies": {
       "scripts/validate-task.sh": "89beff0edbcbc2b116a9d8b462bc794d4944ac4d45d35101e0074f1f0480fb06"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   },
   {
     "path": "tests/state-tool.py",
@@ -4606,6 +4606,6 @@
       "scripts/setup-new-project.sh": "b4df6ddde97277b296d32480e785040e754ce72656624aadf986ef7a4237e018",
       "scripts/setup-umbrella.sh": "390e0aefd334c98c2f550e094d9e82764afe45eb9a49b66aaf6a007ebaae8d4a"
     },
-    "inventory_sha256": "636645d5892f21fea64805deb17ec35a5f3afcea988a67450d05350bb6136d79"
+    "inventory_sha256": "d874f9b4bff09a6a1c8a6d4008e2edcdd900e8a59622f6d343a61cdb48b984ec"
   }
 ]

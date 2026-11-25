@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "kind": "file",
+      "old": "rules/global-claude.md",
+      "new": ["harness/claude/always-on.md"]
+    },
+    {
+      "kind": "file",
+      "old": "templates/codex-global-AGENTS.md",
+      "new": ["harness/codex/always-on.md"]
+    }
+  ]
+}

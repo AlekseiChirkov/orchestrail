@@ -2,6 +2,8 @@
 """Check instruction sources and print path-qualified findings."""
 
 import argparse
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 from datetime import date
 import json
 from pathlib import Path
@@ -31,24 +33,79 @@ CANONICAL_CAPABILITIES = (
 )
 VERIFIED_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
+INSTRUCTION_DIRECTORIES = ("rules", "workflows", "harness", "principles", "templates")
+LEGACY_SCRIPTS = (
+    "sync.sh", "setup-new-project.sh", "setup-all-repos.sh", "setup-umbrella.sh", "link-skills.sh",
+)
+LEGACY_NAME = re.compile(r"windsurf|codeium|\bdevin\b", re.IGNORECASE)
+NAME_MAP = "docs/name-map.json"
+USAGE = "docs/USAGE.md"
+USAGE_HEADING = "## Renamed commands and rules"
+REMOVED_HEADING = "## Removed integrations"
+NAME_STEM = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+REFERENCE_STEM = re.compile(r"[a-z0-9][a-z0-9-]*")
+MAP_PATH = re.compile(r"(rules|workflows|templates|harness|docs)(?:/[A-Za-z0-9_.-]+)+")
+HEADING = re.compile(r" {0,3}(#{1,6})(?:[ \t]+|$)")
+FENCE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)")
+BACKTICKS = re.compile(r"`+")
+COMMAND = re.compile(r"/([a-z0-9][a-z0-9-]*)(\.md)?(?: .*)?")
+SECTION = re.compile(r"/?([a-z0-9][a-z0-9-]*)(\.md)? → (#{2,3} .+)")
+NEXT_HEADING = re.compile(r" → (?=#{2,4} .)")
+RULE_SKILL = re.compile(r"rule-([a-z0-9-]+)")
+RULE_SUFFIX = re.compile(r" rules?\b")
+REPOSITORY_PATH = re.compile(r"(?:rules|workflows|harness|templates)/[A-Za-z0-9_./-]+")
+CHECK_DESCRIPTION = re.compile(r'(^[ \t]*check[ \t]+|(?<=[;&|])[ \t]*check[ \t]+)"(?:[^"\\]|\\.)*"')
+RETAINED_NAME_RECORD = "docs/audits/*-rule-migration-map.md"
+FROZEN_FIXTURES = "tests/fixtures/validator-runtime/"
+REFERENCE_EXCLUSIONS = frozenset({"scripts/check-lint-instructions.py", "scripts/check-deploy-skills.py"})
+# Keep exact retired spellings out of the executable source scanned for them.
+BARE_RULES = frozenset({
+    "workflow" + "-globals", "workflow" + "-reference",
+    *(f"phase-{phase}" for phase in (
+        "discovery", "execution", "validation", "atomic-execution", "atomic-validation", "finalize",
+    )),
+})
+BARE_FILES = frozenset({"global" + "-claude", "codex-global" + "-AGENTS"})
+
+
+@dataclass(frozen=True)
+class NameRow:
+    kind: str
+    old: str
+    new: tuple[str, ...]
+
 
 class InstructionLint:
     def __init__(self, root: Path) -> None:
         self.root = root
+        self.resolved_root = root.resolve()
         self.findings: list[str] = []
+        self.inputs: dict[Path, str | None] = {}
 
     def report(self, code: str, path: Path, line: int, message: str) -> None:
         relative = path.relative_to(self.root).as_posix()
         self.findings.append(f"{code} {relative}:{line} {message}")
 
     def read_text(self, path: Path) -> str | None:
+        if path not in self.inputs:
+            self.inputs[path] = self.read_input(path)
+        return self.inputs[path]
+
+    def read_input(self, path: Path) -> str | None:
         try:
-            text = path.read_bytes().decode("utf-8")
+            resolved = path.resolve()
+            if not resolved.is_relative_to(self.resolved_root):
+                self.report("input-encoding", path, 0, "Input points outside the source tree.")
+                return None
+            text = resolved.read_bytes().decode("utf-8")
         except UnicodeDecodeError:
             self.report("input-encoding", path, 0, "File must be valid UTF-8.")
             return None
         except OSError as error:
             self.report("input-encoding", path, 0, f"Cannot read input: {error.strerror}.")
+            return None
+        except RuntimeError:
+            self.report("input-encoding", path, 0, "Cannot resolve input path.")
             return None
         separator = FORBIDDEN_SEPARATORS.search(text)
         if separator is not None:
@@ -56,6 +113,336 @@ class InstructionLint:
             self.report("input-encoding", path, line, "Forbidden text separator U+001C–U+001F.")
             return None
         return text
+
+
+def outside_fences(lines: Iterable[str]) -> Iterator[tuple[int, str]]:
+    fence = ""
+    for number, line in enumerate(lines, 1):
+        marker = FENCE.fullmatch(line)
+        if fence:
+            if marker and marker[1].startswith(fence) and not marker[2].strip():
+                fence = ""
+        elif marker and (marker[1][0] == "~" or "`" not in marker[2]):
+            fence = marker[1]
+        else:
+            yield number, line
+
+
+def markdown_sections(lines: list[str], heading: str) -> Iterator[tuple[int, int]]:
+    start = None
+    level = len(heading.split(maxsplit=1)[0])
+    for number, line in outside_fences(lines):
+        marker = HEADING.match(line)
+        if marker and len(marker[1]) <= level and start is not None:
+            yield start, number
+            start = None
+        if line == heading:
+            start = number
+    if start is not None:
+        yield start, len(lines) + 1
+
+
+def input_lines(text: str) -> list[str]:
+    return text.replace("\r\n", "\n").split("\n")
+
+
+def safe_parts(value: str) -> bool:
+    return not {"", ".", ".."}.intersection(value.split("/"))
+
+
+def source_paths(root: Path, patterns: Iterable[str]) -> Iterator[Path]:
+    root_path = root.resolve()
+    for path in sorted({path for pattern in patterns for path in root.glob(pattern)}):
+        if ("__pycache__" not in path.relative_to(root).parts and path.is_file()
+                and path.resolve().is_relative_to(root_path)):
+            yield path
+
+
+def check_legacy_mentions(lint: InstructionLint) -> None:
+    patterns = [f"{directory}/**/*" for directory in INSTRUCTION_DIRECTORIES]
+    patterns.extend(f"scripts/{name}" for name in LEGACY_SCRIPTS)
+    patterns.extend(("CLAUDE.md", USAGE))
+    for path in source_paths(lint.root, patterns):
+        text = lint.read_text(path)
+        if text is None:
+            continue
+        lines = input_lines(text)
+        excluded = list(markdown_sections(lines, REMOVED_HEADING)) if path == lint.root / USAGE else []
+        for number, line in enumerate(lines, 1):
+            if any(start <= number < end for start, end in excluded):
+                continue
+            for mention in LEGACY_NAME.finditer(line):
+                lint.report("legacy-mention", path, number, f"Legacy integration mention: {mention[0]}.")
+
+
+def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Repeated JSON key {key!r}.")
+        result[key] = value
+    return result
+
+
+def parse_name_map(text: str) -> list[NameRow]:
+    data = json.loads(text, object_pairs_hook=unique_object)
+    if (not isinstance(data, dict) or set(data) != {"schema_version", "rows"}
+            or type(data["schema_version"]) is not int or data["schema_version"] != 1
+            or not isinstance(data["rows"], list)):
+        raise ValueError("Expected schema_version 1 and a rows list.")
+    rows = []
+    old_names: set[str] = set()
+    targets: set[str] = set()
+    previous: tuple[str, str] | None = None
+    for index, row in enumerate(data["rows"], 1):
+        if not isinstance(row, dict) or set(row) != {"kind", "old", "new"}:
+            raise ValueError(f"Row {index} must contain exactly kind, old and new.")
+        kind, old, new = row["kind"], row["old"], row["new"]
+        if (kind not in ("rule", "workflow", "file") or not isinstance(new, list)
+                or not new or (kind != "rule" and len(new) != 1)):
+            raise ValueError(f"Row {index} has an invalid kind or target count.")
+        pattern = MAP_PATH if kind == "file" else NAME_STEM
+        if any(not isinstance(value, str) or not pattern.fullmatch(value) or not safe_parts(value)
+               for value in (old, *new)):
+            raise ValueError(f"Row {index} contains an invalid name or path.")
+        identity = (kind, old)
+        if previous is not None and previous >= identity:
+            raise ValueError(f"Row {index} repeats an identity or is out of order.")
+        if len(set(new)) != len(new) or targets.intersection(new):
+            raise ValueError(f"Row {index} repeats a target.")
+        rows.append(NameRow(kind, old, tuple(new)))
+        previous = identity
+        old_names.add(old)
+        targets.update(new)
+    if old_names.intersection(targets):
+        raise ValueError("A target is also listed as an old name.")
+    return rows
+
+
+def read_name_map(lint: InstructionLint) -> list[NameRow] | None:
+    path = lint.root / NAME_MAP
+    if not path.exists() and not path.is_symlink():
+        return None
+    text = lint.read_text(path)
+    if text is None:
+        return None
+    try:
+        return parse_name_map(text)
+    except (ValueError, RecursionError) as error:
+        lint.report("name-map-invalid", path, 0, str(error).split("\n", 1)[0])
+        return None
+
+
+def table_cells(line: str) -> list[str]:
+    line = line.strip()
+    if not (line.startswith("|") and line.endswith("|")):
+        return []
+    return [cell.strip() for cell in re.split(r"(?<!\\)\|", line[1:-1])]
+
+
+def table_rows(lines: list[str], start: int, end: int, header: list[str]) -> list[list[str]] | None:
+    visible = {number: line for number, line in outside_fences(lines)}
+    headers = [number for number in range(start + 1, end) if table_cells(visible.get(number, "")) == header]
+    if len(headers) != 1:
+        return None
+    number = headers[0] + 1
+    divider = table_cells(visible.get(number, ""))
+    if len(divider) != len(header) or any(not re.fullmatch(r":?-{3,}:?", cell) for cell in divider):
+        return None
+    rows = []
+    for number in range(number + 1, end):
+        cells = table_cells(visible.get(number, ""))
+        if not cells:
+            break
+        rows.append(cells)
+    return rows
+
+
+def check_usage_map(lint: InstructionLint, rows: list[NameRow]) -> None:
+    path = lint.root / USAGE
+    text = lint.read_text(path) if path.exists() or path.is_symlink() else None
+    lines = input_lines(text) if text is not None else []
+    sections = list(markdown_sections(lines, USAGE_HEADING))
+    actual = table_rows(lines, *sections[0], ["Kind", "Old", "New"]) if len(sections) == 1 else None
+    expected = [[row.kind, f"`{row.old}`", ", ".join(f"`{name}`" for name in row.new)] for row in rows]
+    if actual != expected:
+        line = sections[0][0] if sections else 0
+        lint.report("usage-map-mismatch", path, line, "The renamed names table must match the name map in order.")
+
+
+def inline_references(line: str) -> Iterator[tuple[str, str]]:
+    ticks = list(BACKTICKS.finditer(line))
+    following: dict[int, int] = {}
+    next_tick: dict[int, int] = {}
+    for i in range(len(ticks) - 1, -1, -1):
+        length = len(ticks[i][0])
+        if length in following:
+            next_tick[i] = following[length]
+        following[length] = i
+
+    i = 0
+    while i < len(ticks):
+        opening = ticks[i]
+        preceding = opening.start()
+        while preceding and line[preceding - 1] == "\\":
+            preceding -= 1
+        if (opening.start() - preceding) % 2 or i not in next_tick:
+            i += 1
+            continue
+        i = next_tick[i]
+        if opening[0] == "`":
+            yield line[opening.end():ticks[i].start()], line[ticks[i].end():]
+        i += 1
+
+
+def headings_in_order(reference: str, headings: list[str]) -> bool:
+    target = iter(headings)
+    return all(any(line == heading or line.startswith(heading + " — ") for line in target)
+               for heading in NEXT_HEADING.split(reference))
+
+
+def reference_findings(
+    lint: InstructionLint, span: str, after: str, rules: dict[str, list[str]], workflows: dict[str, list[str]],
+) -> Iterator[tuple[str, str]]:
+    if " → " in span:
+        section = SECTION.fullmatch(span)
+        if section is None:
+            return
+        stem, suffix, headings = section.groups()
+        targets = [sources[stem] for sources in (rules, workflows) if stem in sources]
+        if suffix:
+            if not targets:
+                return
+            yield "reference-md-suffix", f"Use {stem} without the .md suffix."
+        if not targets:
+            yield "reference-missing", f"Instruction {stem} does not exist."
+        elif not any(headings_in_order(headings, target) for target in targets):
+            yield "heading-missing", f"Could not find {headings} in order in {stem}."
+        return
+
+    command = COMMAND.fullmatch(span)
+    if command:
+        stem, suffix = command.groups()
+        if suffix:
+            yield "reference-md-suffix", f"Use /{stem} without the .md suffix."
+        if stem not in workflows:
+            yield "reference-missing", f"Workflow {stem} does not exist."
+        return
+
+    skill = RULE_SKILL.fullmatch(span)
+    if skill or (REFERENCE_STEM.fullmatch(span) and RULE_SUFFIX.match(after)):
+        stem = skill[1] if skill else span
+        if stem not in rules:
+            yield "reference-missing", f"Rule {stem} does not exist."
+    elif REPOSITORY_PATH.fullmatch(span):
+        target = lint.root / span
+        if (not safe_parts(span) or not target.exists()
+                or not target.resolve().is_relative_to(lint.resolved_root)):
+            yield "reference-missing", f"Path {span} does not exist in the source tree."
+
+
+def check_executable_references(lint: InstructionLint) -> None:
+    sources = {path: text for path in source_paths(lint.root, (
+        "rules/*.md", "workflows/*.md", "harness/*/always-on.md",
+    )) if (text := lint.read_text(path)) is not None}
+    visible = {path: list(outside_fences(input_lines(text))) for path, text in sources.items()}
+
+    def by_stem(directory: str) -> dict[str, list[str]]:
+        return {path.stem: [line for _, line in lines if HEADING.match(line)]
+                for path, lines in visible.items() if path.parent == lint.root / directory}
+
+    rules, workflows = by_stem("rules"), by_stem("workflows")
+    for path, lines in visible.items():
+        for number, line in lines:
+            for span, after in inline_references(line):
+                for code, message in reference_findings(lint, span, after, rules, workflows):
+                    lint.report(code, path, number, message)
+
+
+def whole_token(pattern: str) -> str:
+    return rf"(?<![A-Za-z0-9_-])(?:{pattern})(?![A-Za-z0-9_-])"
+
+
+def stale_pattern(row: NameRow) -> re.Pattern[str]:
+    old = re.escape(row.old)
+    quoted_forms = []
+    if row.kind == "workflow":
+        forms = [rf"workflows/{old}\.md", rf"/{old}", rf"{old}\.md", old]
+    elif row.kind == "rule":
+        forms = [rf"rule-{old}", rf"rules/{old}\.md", rf"{old}\.md"]
+        quoted_forms = [rf"`{old}`(?= rules?\b)", rf"`{old} → "]
+        if row.old in BARE_RULES:
+            forms.append(old)
+    else:
+        forms = [old]
+        stem = Path(row.old).stem
+        if stem in BARE_FILES:
+            forms.extend((rf"{re.escape(stem)}\.md", re.escape(stem)))
+    return re.compile("|".join([whole_token("|".join(forms)), *quoted_forms]))
+
+
+def successor_paths(row: NameRow) -> re.Pattern[str]:
+    paths = row.new if row.kind == "file" else tuple(f"{row.kind}s/{value}.md" for value in row.new)
+    return re.compile(whole_token("|".join(re.escape(path) for path in paths)))
+
+
+def read_retained_names(lint: InstructionLint) -> set[tuple[str, str]]:
+    records = list(source_paths(lint.root, (RETAINED_NAME_RECORD,)))
+    if len(records) != 1:
+        if records:
+            lint.report("semantics-record-ambiguous", records[0], 0, "Expected at most one migration record.")
+        return set()
+    text = lint.read_text(records[0])
+    if text is None:
+        return set()
+    lines = input_lines(text)
+    sections = list(markdown_sections(lines, "## Retained old names"))
+    entries = table_rows(lines, *sections[0], ["Path", "Line text", "Reason"]) if len(sections) == 1 else None
+    retained = set()
+    for entry in entries or []:
+        if len(entry) != 3 or not entry[2]:
+            continue
+        path, line = (unquote_record_cell(cell) for cell in entry[:2])
+        retained.add((path, line))
+    return retained
+
+
+def unquote_record_cell(cell: str) -> str:
+    quoted = re.fullmatch(r"(`+)(.+?)\1", cell)
+    if quoted:
+        cell = quoted[2]
+        if cell.startswith(" ") and cell.endswith(" ") and cell.strip():
+            cell = cell[1:-1]
+    return cell.replace(r"\|", "|")
+
+
+def check_stale_names(lint: InstructionLint, rows: list[NameRow]) -> None:
+    retained = read_retained_names(lint)
+    if not rows:
+        return
+    names = [(row.old, stale_pattern(row), successor_paths(row)) for row in rows]
+    patterns = [f"{directory}/**/*" for directory in (*INSTRUCTION_DIRECTORIES, "hooks", "scripts", "tests")]
+    patterns.extend(("CLAUDE.md", "README.md", "docs/*.md", ".ai/principles/*.md", ".ai/context/*.md",
+                     ".ai/memory/architecture.md"))
+    for path in source_paths(lint.root, patterns):
+        relative = path.relative_to(lint.root).as_posix()
+        if relative in REFERENCE_EXCLUSIONS or relative.startswith(FROZEN_FIXTURES):
+            continue
+        text = lint.read_text(path)
+        if text is None:
+            continue
+        lines = input_lines(text)
+        excluded = list(markdown_sections(lines, USAGE_HEADING)) if relative == USAGE else []
+        for number, line in enumerate(lines, 1):
+            if any(start <= number < end for start, end in excluded) or (relative, line) in retained:
+                continue
+            if relative == "scripts/validate-contracts.sh":
+                if line.lstrip().startswith("#"):
+                    continue
+                line = CHECK_DESCRIPTION.sub(r"\1", line)
+            stale = sorted({old for old, pattern, allowed in names if pattern.search(allowed.sub(" ", line))})
+            if stale:
+                lint.report("stale-name", path, number, f"Stale names: {', '.join(stale)}.")
 
 
 def scalar(raw: str) -> str:
@@ -298,6 +685,12 @@ def main() -> int:
     lint = InstructionLint(args.root)
     check_source_metadata(lint)
     check_harness_instructions(lint)
+    check_legacy_mentions(lint)
+    check_executable_references(lint)
+    rows = read_name_map(lint)
+    if rows is not None:
+        check_usage_map(lint, rows)
+    check_stale_names(lint, rows or [])
     for finding in lint.findings:
         print(finding)
     return int(bool(lint.findings))

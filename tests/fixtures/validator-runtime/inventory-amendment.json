@@ -10177,7 +10177,7 @@
     }
   ],
   "schema": 2,
-  "name_map_sha256": null,
+  "name_map_sha256": "bcee32296e20c81ca4f1c06d9dec80648031b869b492851e4ce73b59fc9616b9",
   "path_changes": [],
   "contract_changes": []
 }
