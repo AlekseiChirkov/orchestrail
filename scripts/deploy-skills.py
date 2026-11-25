@@ -18,8 +18,10 @@ import sys
 from typing import Literal
 
 
-_HARNESS_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+_NAME_STEM = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _PATH_SEGMENTS = re.compile(r"[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*")
+_NAME_MAP_PATH = re.compile(r"(?:rules|workflows|templates|harness|docs)(?:/[A-Za-z0-9_.-]+)+")
+_SKILL_SOURCE_PREFIXES = {"workflows": "", "rules": "rule-", "principles": "principle-"}
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _REVISION = re.compile(r"[0-9a-f]{40}")
 _ACTIVE_PHASE_LINE = re.compile(r"- (discovery|execution|validation): in-progress[ \t]*")
@@ -122,6 +124,7 @@ class _Plan:
     previous_manifests: dict[Path, str | None]
     adapters: list[_Adapter]
     journal: _Journal
+    leftovers: tuple[Path, ...]
 
 
 def _digest(data: bytes) -> str:
@@ -270,7 +273,7 @@ def _load_adapters(source: Path, home: Path) -> list[_Adapter]:
     resolved_home = Path(os.path.realpath(home))
     adapters = []
     for directory in directories:
-        if not _HARNESS_NAME.fullmatch(directory.name):
+        if not _NAME_STEM.fullmatch(directory.name):
             continue
         mode = _mode(directory, "adapter-incomplete")
         if mode is None or not stat.S_ISDIR(mode):
@@ -405,6 +408,57 @@ def _valid_skill_name(value: object) -> bool:
             and not any(character in value for character in "/\x00\r\n"))
 
 
+def _load_leftover_names(source: Path) -> set[str]:
+    path = source / "docs/name-map.json"
+    contents = _read_optional_file(path, "name-map-invalid")
+    if contents is None:
+        return set()
+    try:
+        data = json.loads(contents.decode("utf-8"), object_pairs_hook=_unique_json_object)
+    except (ValueError, RecursionError) as error:
+        raise _DeploymentError("name-map-invalid", f"{path}: invalid JSON ({error})") from error
+    if (not isinstance(data, dict) or data.keys() != {"schema_version", "rows"}
+            or type(data["schema_version"]) is not int or data["schema_version"] != 1
+            or not isinstance(data["rows"], list)):
+        raise _DeploymentError("name-map-invalid", f"{path}: invalid name map fields")
+
+    names: set[str] = set()
+    old_names: set[str] = set()
+    targets: set[str] = set()
+    previous: tuple[str, str] | None = None
+    for index, row in enumerate(data["rows"], 1):
+        if not isinstance(row, dict) or row.keys() != {"kind", "old", "new"}:
+            raise _DeploymentError("name-map-invalid", f"{path}: invalid fields in row {index}")
+        kind, old, new = row["kind"], row["old"], row["new"]
+        if (kind not in ("rule", "workflow", "file") or not isinstance(new, list)
+                or not new or (kind != "rule" and len(new) != 1)):
+            raise _DeploymentError("name-map-invalid", f"{path}: invalid kind or target count in row {index}")
+        pattern = _NAME_MAP_PATH if kind == "file" else _NAME_STEM
+        if any(not isinstance(value, str) or not pattern.fullmatch(value)
+               or {".", ".."}.intersection(value.split("/")) for value in (old, *new)):
+            raise _DeploymentError("name-map-invalid", f"{path}: invalid name or path in row {index}")
+        identity = (kind, old)
+        if previous is not None and previous >= identity:
+            raise _DeploymentError("name-map-invalid", f"{path}: repeated or unsorted row {index}")
+        if len(set(new)) != len(new) or targets.intersection(new):
+            raise _DeploymentError("name-map-invalid", f"{path}: repeated target in row {index}")
+        previous = identity
+        old_names.add(old)
+        targets.update(new)
+
+        if kind != "file":
+            names.add(_SKILL_SOURCE_PREFIXES[f"{kind}s"] + old)
+            continue
+        directory, _, filename = old.partition("/")
+        # Only files that deployed as top-level Markdown skill sources have former installed names.
+        if directory in _SKILL_SOURCE_PREFIXES and "/" not in filename and filename.endswith(".md"):
+            names.add(_SKILL_SOURCE_PREFIXES[directory] + Path(filename).stem)
+
+    if old_names.intersection(targets):
+        raise _DeploymentError("name-map-invalid", f"{path}: a target is also an old name")
+    return names
+
+
 def _read_manifest(path: Path, adapter: _Adapter) -> _Manifest | None:
     contents = _read_managed_file(path, "manifest-invalid")
     if contents is None:
@@ -461,7 +515,7 @@ def _read_manifest(path: Path, adapter: _Adapter) -> _Manifest | None:
 def _load_skill_sources(source: Path) -> dict[str, bytes]:
     skills: dict[str, bytes] = {}
     names: set[str] = set()
-    for directory, prefix in (("workflows", ""), ("rules", "rule-"), ("principles", "principle-")):
+    for directory, prefix in _SKILL_SOURCE_PREFIXES.items():
         source_dir = source / directory
         try:
             paths = sorted(source_dir.iterdir())
@@ -569,8 +623,8 @@ def _check_recovery_digest(path: Path, digest: str | None, entry: _JournalEntry)
 
 def _plan_harness(
     adapter: _Adapter, skills: dict[str, bytes], hook_result: str, manifest: _Manifest | None,
-    journal: dict[Path, _JournalEntry], *, source_revision: str | None,
-) -> tuple[list[_Action], bytes, list[str]]:
+    journal: dict[Path, _JournalEntry], *, source_revision: str | None, leftover_names: list[str],
+) -> tuple[list[_Action], bytes, list[str], list[Path]]:
     desired: dict[Path, tuple[str | None, bytes]] = {
         adapter.skills_dir_resolved / name / "SKILL.md": (name, data) for name, data in skills.items()
     }
@@ -602,7 +656,8 @@ def _plan_harness(
         else:
             raise _DeploymentError("ownership-conflict", _OWNERSHIP_RESOLUTION, path=path)
 
-    obsolete = (owned.keys() | journal.keys()) - desired.keys() if manifest is not None else set()
+    obsolete = (owned.keys() | journal.keys()) - desired.keys()
+    owned_obsolete: set[Path] = set()
     for path in sorted(obsolete, key=str):
         digest = _read_target_digest(path, adapter)
         entry = journal.get(path)
@@ -613,6 +668,9 @@ def _plan_harness(
         if digest != owned.get(path) and (entry is None or not entry.owns(digest)):
             notices.append(f"release-modified {path}")
             continue
+        owned_obsolete.add(path.parent)
+        if manifest is None:
+            continue
         actions.append(_Action("remove", path, digest, None, None))
         try:
             if any(entry != path for entry in path.parent.iterdir()):
@@ -622,13 +680,22 @@ def _plan_harness(
                 "unsafe-target", f"cannot read {path.parent}: {error.strerror}",
             ) from error
 
+    leftovers = []
+    for name in leftover_names:
+        directory = adapter.skills_dir_resolved / name
+        if directory in owned_obsolete:
+            continue
+        mode = _mode(directory, "unsafe-target")
+        if mode is not None and stat.S_ISDIR(mode):
+            leftovers.append(directory)
+
     data = {
         "schema_version": 1, "harness": adapter.name, "install_id": adapter.install_id,
         "skills_dir": str(adapter.skills_dir), "skills_dir_resolved": str(adapter.skills_dir_resolved),
         "always_on_path": str(adapter.always_on_path), "source_revision": source_revision,
         "objects": objects,
     }
-    return actions, (json.dumps(data, indent=2, sort_keys=True) + "\n").encode(), notices
+    return actions, (json.dumps(data, indent=2, sort_keys=True) + "\n").encode(), notices, leftovers
 
 
 def _config_directory(home: Path) -> Path:
@@ -674,10 +741,12 @@ def _build_plan(
     manifest_dir = state.manifest_dir
     journal = _read_journal(manifest_dir / _JOURNAL_NAME, adapters) if recover else _Journal({}, None)
     skills = _load_skill_sources(source)
+    leftover_names = sorted(_load_leftover_names(source) - skills.keys())
     source_revision = _source_revision(source)
 
     actions: list[_Action] = []
     notices: list[str] = []
+    leftovers: list[Path] = []
     manifests: dict[Path, bytes] = {}
     previous_manifests: dict[Path, str | None] = {}
     for adapter in adapters:
@@ -685,15 +754,17 @@ def _build_plan(
         manifest = _read_manifest(path, adapter)
         adapter_journal = {key: entry for key, entry in journal.entries.items()
                            if _adapter_target(adapter, key) is not None}
-        changes, updated, messages = _plan_harness(
+        changes, updated, messages, leftover_directories = _plan_harness(
             adapter, skills, hook_result, manifest, adapter_journal, source_revision=source_revision,
+            leftover_names=leftover_names,
         )
         actions.extend(changes)
         notices.extend(messages)
+        leftovers.extend(leftover_directories)
         if manifest is None or manifest.contents != updated:
             manifests[path] = updated
             previous_manifests[path] = None if manifest is None else _digest(manifest.contents)
-    return _Plan(tuple(actions), manifests, tuple(notices), previous_manifests, adapters, journal)
+    return _Plan(tuple(actions), manifests, tuple(notices), previous_manifests, adapters, journal, tuple(leftovers))
 
 
 def _plan_deployment(source: Path, hook_result: str) -> _Plan:
@@ -813,7 +884,7 @@ def _clean_target_temporaries(
 ) -> None:
     try:
         with _managed_directory(path) as directory:
-            names = os.listdir(directory)
+            names = [name for name in os.listdir(directory) if preserve is None or name not in preserve]
             if visit_children:
                 for name in names:
                     try:
@@ -826,22 +897,24 @@ def _clean_target_temporaries(
                         _clean_temporaries(child, os.listdir(child))
                     finally:
                         os.close(child)
-            _clean_temporaries(directory, names if preserve is None else [name for name in names if name not in preserve])
+            _clean_temporaries(directory, names)
     except FileNotFoundError:
         return
 
 
-def _clean_deployment_temporaries(adapters: list[_Adapter], state: _DeploymentPaths) -> None:
-    for adapter in adapters:
-        _clean_target_temporaries(adapter.skills_dir_resolved, visit_children=True)
-    for directory in {adapter.always_on_resolved.parent for adapter in adapters}:
+def _clean_deployment_temporaries(plan: _Plan, state: _DeploymentPaths) -> None:
+    for adapter in plan.adapters:
+        root = adapter.skills_dir_resolved
+        preserve = {path.name for path in plan.leftovers if path.parent == root}
+        _clean_target_temporaries(root, visit_children=True, preserve=preserve)
+    for directory in {adapter.always_on_resolved.parent for adapter in plan.adapters}:
         preserve = {path.name for path in state.registry_addresses if path.parent == directory}
         _clean_target_temporaries(directory, preserve=preserve)
     # An interrupted journal or manifest replacement can leave these exact state temporaries.
     try:
         with _managed_directory(state.manifest_dir) as directory:
             names = [_temporary_name(_JOURNAL_NAME)]
-            names.extend(_temporary_name(f"{adapter.name}.json") for adapter in adapters)
+            names.extend(_temporary_name(f"{adapter.name}.json") for adapter in plan.adapters)
             _clean_temporaries(directory, names)
     except FileNotFoundError:
         return
@@ -879,7 +952,7 @@ def _apply_plan(
     manifest_dir = state.manifest_dir
     journal_path = manifest_dir / _JOURNAL_NAME
     journal_digest = plan.journal.sha256
-    _clean_deployment_temporaries(plan.adapters, state)
+    _clean_deployment_temporaries(plan, state)
     if write_journal:
         journal_bytes = _journal_payload(plan)
         _replace_file(journal_path, journal_bytes, journal_digest)
@@ -907,6 +980,8 @@ def _apply_plan(
     for notice in plan.notices:
         if not notice.startswith("keep-nonempty "):
             print(notice)
+    for directory in plan.leftovers:
+        print(f"leftover {directory} (not removed; review, then remove it manually)")
 
 
 def _read_project_registry(registry: Path) -> tuple[Path, ...] | None:
@@ -1165,8 +1240,9 @@ def _deploy(source: Path, hook_result: str, *, force: bool) -> int:
     lock_mode = _mode(state.lock, "unsafe-target")
     if lock_mode is None:
         _validate_targets(_load_adapters(source, home), state)
-        # A malformed registry must not create the persistent lock on a first run.
+        # Malformed registry or name-map input must leave the first-run lock absent.
         _read_project_registry(state.registry)
+        _load_leftover_names(source)
     elif not stat.S_ISREG(lock_mode):
         raise _DeploymentError("unsafe-target", f"{state.lock} must be a regular lock file")
     with _deployment_lock(state.lock):
