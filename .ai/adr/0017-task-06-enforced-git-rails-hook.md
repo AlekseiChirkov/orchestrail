@@ -10,7 +10,7 @@ Accepted (2026-11-05; recorded provisionally on 2026-11-03)
 
 ## Related Task
 
-- Task: [task-06-harness-git-rails](../tasks/completed/task-06-harness-git-rails/state.md)
+- Task: [task-06-harness-git-rails](../tasks/completed/task-007-harness-git-rails/state.md)
 - Related pull requests: #64–#75 (one stacked pull request per subtask and fix group)
 - Related files: `hooks/git-rails.sh`, `hooks/git_rails.py`, `harness/claude/hooks.json`,
   `harness/claude/permissions.json`, `harness/claude/capabilities.md`,

@@ -67,7 +67,7 @@ and the audit spec — dates are those recorded in the sources.
   the release tag remain owner-deferred. The reconciled spec records three implemented-
   differently and two not-implemented deltas; the full validator passes 551 checks.
 
-- **2026-10-19 — Public-hygiene delivery completed.** The owner authorized merging PRs #2, #3, and #4 in dependency order. Review corrections preserve source overrides in suggested child setup commands and make readability fixtures deterministic for root. Validation passes 542 checks as the normal user and UID 0. Task records moved to `tasks/completed/task-00-sensitive-data-scrub/`; the source specification moved to `specs/completed/001-sensitive-data-scrub.md`. Its exact scanner exception moved with it; the former path is scanned. Existing history is retained. Optional fixture isolation remains a separate followup.
+- **2026-10-19 — Public-hygiene delivery completed.** The owner authorized merging PRs #2, #3, and #4 in dependency order. Review corrections preserve source overrides in suggested child setup commands and make readability fixtures deterministic for root. Validation passes 542 checks as the normal user and UID 0. Task records moved to `tasks/completed/task-001-sensitive-data-scrub/`; the source specification moved to `specs/completed/001-sensitive-data-scrub.md`. Its exact scanner exception moved with it; the former path is scanned. Existing history is retained. Optional fixture isolation remains a separate followup.
 
 - **2026-10-19 — Public hygiene and local-only delivery.** Three reviewed local branches remove private references and add an indexed literal-token guard. All 44 baseline knowledge files are preserved; all 45 current files are included. Validation: 542 checks pass, 23 contract requirements pass, manual sweep 152 files with zero matches/errors. Five source differences reconciled (four implemented differently, one additional inclusion requirement); ADR-0010 accepted. Existing history remains unchanged and remote publication is withheld. One optional fixture-isolation improvement is deferred.
 
@@ -219,3 +219,11 @@ Defect found while archiving task 08: the archive's Markdown link relocation ski
 A consumer dry run reproduced a refusal on a three-column review table. Nine isolated regression tests produced 15 failing assertions before implementation. The reader now binds acceptance criteria by ID, requires unique evidenced matches for shortened review labels, resolves approved fix aliases against reviewed plan and progress records, and validates paired PR numbers and URLs before consulting GitHub. The unchanged consumer task then reached the integration-object check. Its two advertised remote integration commits were absent from their local repositories. No consumer files or refs were changed during diagnosis.
 
 - **2026-11-25 — Offline pilot integration verified and stack branches cleaned up.** GitHub reports PRs #132–#137 merged at `04f2c35`. The clean `main` checkout at `cb7b720` passed 27 offline fixture tests and 23 task checks. Finalization verified a self-contained recovery pack and confirmed removal of six local and six remote stack refs. Historical execution and standalone service work remain pending.
+
+## 2026-11-25 — Task and specification numbering review
+
+Compared task state pointers with all specification files and aligned eleven task directory numbers. The phase-one review task retains its earlier number because the local finalization journal binds its original path. See `docs/analysis/2026-11-25-task-specification-numbering.md` for scope and exceptions.
+
+## 2026-11-25 — Archive implemented specifications
+
+Archived the rules and workflows audit and task finalization specifications after reviewing their completed validation and integration evidence. The audit identity-ledger row and current task pointers now name the archived paths; the finalization task itself remains unarchived and deployment remains unverified. The archived review-pilot specification still contains an explicitly deferred second phase and is not evidence of whole-spec delivery.

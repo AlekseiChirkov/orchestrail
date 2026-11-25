@@ -1789,7 +1789,7 @@ A-01–A-30 and Q-01–Q-06.
   run's wording); a single cumulative spend counter without per-attempt cap (cannot stop an
   in-flight overrun); approval embedded in the manifest (circular hash); requiring a composite
   for acceptance (the classifier's nesting choice is legitimate either way).
-- **Identity ledger (follow-up outside this spec):** the ledger row(s) at `.ai/tasks/completed/task-01-git-source-of-truth/state.md` line 207 pins a former-name occurrence at this spec's line 19, which the refined text no longer holds; the change that commits this revision removes them, as spec 023 A-41 does for its own row.
+- **Identity ledger (follow-up outside this spec):** the ledger row(s) at `.ai/tasks/completed/task-002-git-source-of-truth/state.md` line 207 pins a former-name occurrence at this spec's line 19, which the refined text no longer holds; the change that commits this revision removes them, as spec 023 A-41 does for its own row.
 
 ### Change Log
 

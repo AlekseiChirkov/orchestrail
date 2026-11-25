@@ -16,7 +16,7 @@ Off-limits: Product helpers, hooks, installer, CI, public focused flags, W6/W7, 
 ## Scope
 - **In scope:** Integrated complete performance acceptance and operating guidance; each child owns its distinct component and RED/characterization evidence.
 - **Out of scope:** Product helpers, hooks, installer, CI, public focused flags, W6/W7, coverage reductions, historical log changes, deployment and history rewriting.
-- **Target files:** `.ai/memory/progress.md`, `.ai/tasks/todo/task-06-1-test-suite-runtime/state.md`, `.ai/context/runbook.md`, `docs/USAGE.md`, `.ai/adr/0018-task-06-1-bounded-validator-runtime.md`, `.ai/adr/index.md`, `.ai/memory/architecture.md`
+- **Target files:** `.ai/memory/progress.md`, `.ai/tasks/todo/task-008-test-suite-runtime/state.md`, `.ai/context/runbook.md`, `docs/USAGE.md`, `.ai/adr/0018-task-06-1-bounded-validator-runtime.md`, `.ai/adr/index.md`, `.ai/memory/architecture.md`
 
 ## Steps
 See children: T-08a (Measure the complete optimized validator against the baseline), T-08b (Document the verified validator behavior and decisions).

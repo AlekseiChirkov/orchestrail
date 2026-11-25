@@ -1,4 +1,4 @@
-spec_path: .ai/specs/025-task-finalization.md
+spec_path: .ai/specs/completed/025-task-finalization.md
 flow: full
 
 ## Phases
@@ -225,7 +225,7 @@ Owner follow-ups: integrate the dependency and this local stack through the norm
 Independent exhaustive read-only audit passed for all 188 regular files against pinned source `9e5b062a22cf919d39d86f1e7c38d62ac9d4fd23`: 43 Windsurf workflows plus 19 rules/principles, 62 skills each for Claude and Codex, and two global instruction files. No missing/extra/symlink output; six workflow/rule name collisions remain separate. Global instructions contain exactly the canonical prefix, single capability appendix and honest unavailable-installation result. All four setup/sync explicit context lists contain exactly 14 project rules, including phase-finalize. Proof `/tmp/orchestrail-finalization-independent-parity.json`; report `/tmp/orchestrail-finalization-independent-parity.txt`. This verifies isolated export, not live installation.
 
 ### Metadata audit
-Final metadata-only checks passed: `bash scripts/validate-task.sh .ai/tasks/todo/task-24-task-finalization` reports 23 passed, 0 failed, 0 skipped. Direct read-only `finalization_evidence.validation` accepts the canonical full-flow contract with `fresh_tests: false` and `requires_final_receipt: true`; it creates no journal or Git mutation and does not replace future source-bound post-integration evidence. Exact comparison against the validated source retains all 66 original notes, original branch/base/PR fields and append-only commit lists. Requirement-section SHA256 remains 720fc9f35e45d744ecc80798e853344cc23f2a1d38ef9534f802b262dff208a5; criterion-section SHA256 remains 3a0005b8dba222685042c9f7f7f3333d213be650a66e2349dc8fa316ddd1d821. Only seven shared `.ai/` records changed after full validation; tested product/provider-source bytes remain unchanged.
+Final metadata-only checks passed: `bash scripts/validate-task.sh .ai/tasks/todo/task-025-task-finalization` reports 23 passed, 0 failed, 0 skipped. Direct read-only `finalization_evidence.validation` accepts the canonical full-flow contract with `fresh_tests: false` and `requires_final_receipt: true`; it creates no journal or Git mutation and does not replace future source-bound post-integration evidence. Exact comparison against the validated source retains all 66 original notes, original branch/base/PR fields and append-only commit lists. Requirement-section SHA256 remains 720fc9f35e45d744ecc80798e853344cc23f2a1d38ef9534f802b262dff208a5; criterion-section SHA256 remains 3a0005b8dba222685042c9f7f7f3333d213be650a66e2349dc8fa316ddd1d821. Only seven shared `.ai/` records changed after full validation; tested product/provider-source bytes remain unchanged.
 
 Independent final metadata review passed with its own 23/0/0 task check and read-only prerequisite-reader check; proof `/tmp/orchestrail-finalization-independent-metadata-audit.json`. No remaining required findings or proposals.
 
@@ -244,12 +244,12 @@ Canonical changed files relative to the pinned dependency (all retained in this 
 .ai/principles/domain.md
 .ai/specs/025-task-finalization.md
 .ai/specs/README.md
-.ai/tasks/completed/task-01-git-source-of-truth/state.md
-.ai/tasks/todo/task-24-task-finalization/T-01-finalization-evidence/description.md
-.ai/tasks/todo/task-24-task-finalization/T-02-finalization-safety/description.md
-.ai/tasks/todo/task-24-task-finalization/T-03-finalization-workflow/description.md
-.ai/tasks/todo/task-24-task-finalization/plan.md
-.ai/tasks/todo/task-24-task-finalization/state.md
+.ai/tasks/completed/task-002-git-source-of-truth/state.md
+.ai/tasks/todo/task-025-task-finalization/T-01-finalization-evidence/description.md
+.ai/tasks/todo/task-025-task-finalization/T-02-finalization-safety/description.md
+.ai/tasks/todo/task-025-task-finalization/T-03-finalization-workflow/description.md
+.ai/tasks/todo/task-025-task-finalization/plan.md
+.ai/tasks/todo/task-025-task-finalization/state.md
 README.md
 docs/README.md
 docs/SPEC-RUN-QUICKSTART.md

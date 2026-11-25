@@ -996,7 +996,7 @@ remains the authority for boundaries handled manually.
 
 `python3 -I scripts/check-controller-step.py` builds disposable git repositories in a temporary
 directory (tracked and ignored `.ai/` variants, real `state.md`/`plan.md` shapes copied from
-`.ai/tasks/completed/task-06-harness-git-rails/`), a scripted spec-11
+`.ai/tasks/completed/task-007-harness-git-rails/`), a scripted spec-11
 `rules/contract-reports.md` and synthetic worker reports, runs the helper as a subprocess with
 `ORCHESTRAIL_HOME` pointing at a temporary checkout copy, and exits 0 only when every AC case
 passes. It reads, never edits, the repository's rules and workflows for the contract cases.

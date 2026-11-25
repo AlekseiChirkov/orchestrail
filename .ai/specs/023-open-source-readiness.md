@@ -226,7 +226,7 @@ Verified at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
   exist (REQ-86, Q-07).
 - The identity scan compares every occurrence of the former repository name against an
   exact ledger of `(path, line, count)` rows
-  (`.ai/tasks/completed/task-01-git-source-of-truth/state.md:184-208`), including
+  (`.ai/tasks/completed/task-002-git-source-of-truth/state.md:184-208`), including
   `docs/USAGE.md:254` (`:204`) and line-pinned rows for both `.ru.md` files (`:200-203`). An
   edit that adds an occurrence or moves a listed line fails the scan until the ledger row is
   updated in the same change.
@@ -972,7 +972,7 @@ Every AC names at least one REQ; AC-34 and AC-37 are release gates outside imple
 
 - A-01 | Language | Resolved: English spec; the Russian text stays in history at `060ce6d`, translated under Source | Source: `rules/language.md`; `.ai/principles/coding.md:11` | Reversible: yes
 - A-24 | README length | Resolved: at most 60 lines | Source: `scripts/validate-contracts.sh:4618` (existing, frozen expression) is stricter than and satisfies original REQ-10's 120 | Reversible: yes
-- A-25 | Clone URL in README | Resolved: not in README; link to USAGE section 4 | Source: identity ledger (`.ai/tasks/completed/task-01-git-source-of-truth/state.md:184-208`) | Reversible: yes
+- A-25 | Clone URL in README | Resolved: not in README; link to USAGE section 4 | Source: identity ledger (`.ai/tasks/completed/task-002-git-source-of-truth/state.md:184-208`) | Reversible: yes
 - A-26 | `CONTRIBUTING.md` location | Resolved: `docs/CONTRIBUTING.md` | Source: `.ai/principles/coding.md:80` (guides in `docs/`), `:83-85` (root holds only listed files) | Reversible: yes
 - A-27 | Russian originals (ADR-0009 Decision 6 "kept alongside" vs `rules/language.md`) | Resolved: originals stay byte-exact in history at pinned blobs; each translation names its blob; no Russian text is written to the tree; names keep `.ru.md` | Source: `rules/language.md` and `.ai/principles/coding.md:11` (principles precede ADRs); delivered state `docs/README.md:26`, `:28`; ledger and legend checks pin the names | Reversible: yes (Q-02 resolved 2026-11-14: owner accepted, D-02; ADR at delivery)
 - A-28 | CI for required status checks | Resolved 2026-11-14 (supersedes the earlier "not created"): this spec creates one offline workflow, REQ-81; RC-13 is `blocked` only while the workflow or the required-check setting is missing | Source: owner decision D-03 (Q-03); spec 012 Out of Scope and A-24 (that spec creates none); G6 | Reversible: yes

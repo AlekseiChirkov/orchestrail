@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-06-harness-git-rails
+completed_task: task-007-harness-git-rails
 completed_at: 2026-11-05
 ---
 
@@ -12,7 +12,7 @@ completed_at: 2026-11-05
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** The Bash hook, decision core, deny fragment, owned installer, restack journal checks, and enforcement documentation are in main.
 - **Outstanding scope and limits:** PR #64 is marked merged; #65-#75 were closed after local stack integration. Residual risks X1-X20 and the Codex textual-only capability remain. Current host installation was not revalidated.
-- **Sources:** [`hooks/git-rails.sh`](../../../hooks/git-rails.sh), [`hooks/git_rails.py`](../../../hooks/git_rails.py), [`harness/claude/permissions.json`](../../../harness/claude/permissions.json), [`harness/codex/capabilities.md`](../../../harness/codex/capabilities.md), [`tests/git-rails.sh`](../../../tests/git-rails.sh), [`.ai/tasks/completed/task-06-harness-git-rails/state.md`](../../../.ai/tasks/completed/task-06-harness-git-rails/state.md).
+- **Sources:** [`hooks/git-rails.sh`](../../../hooks/git-rails.sh), [`hooks/git_rails.py`](../../../hooks/git_rails.py), [`harness/claude/permissions.json`](../../../harness/claude/permissions.json), [`harness/codex/capabilities.md`](../../../harness/codex/capabilities.md), [`tests/git-rails.sh`](../../../tests/git-rails.sh), [`.ai/tasks/completed/task-007-harness-git-rails/state.md`](../../../.ai/tasks/completed/task-007-harness-git-rails/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

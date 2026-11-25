@@ -10,7 +10,7 @@ Accepted
 
 ## Related Task
 
-- Task: .ai/tasks/completed/task-04-model-catalog-cache
+- Task: .ai/tasks/completed/task-005-model-catalog-cache
 - Related pull requests: #31, #32, #33, #34, #35, #36
 - Related files: scripts/model-catalog.py, scripts/model_selection.py, scripts/model_plan.py, workflows/pd-select-model.md
 
@@ -108,5 +108,5 @@ The selector is 1,017 words. 100 warm isolated fixture lookups remain below one 
 
 ## References
 
-- Task: .ai/tasks/completed/task-04-model-catalog-cache/state.md
+- Task: .ai/tasks/completed/task-005-model-catalog-cache/state.md
 - Related documents: .ai/specs/completed/005-model-catalog-cache.md; .ai/specs/README.md; ADR-0009 Decision 6; ADR-0013 Decision 2

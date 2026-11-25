@@ -584,7 +584,7 @@ T-14 | Retain conditional pricing semantics in warnings | atomic-tests: green | 
 
 T-15 | Restore complete validation metadata | atomic-tests: n-a | atomic-execution: complete | atomic-validation: complete
   last_action: independent repair recheck passed; all repair criteria met
-  target_files: .ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md, .ai/tasks/completed/task-01-git-source-of-truth/state.md, .ai/memory/architecture.md
+  target_files: .ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md, .ai/tasks/completed/task-002-git-source-of-truth/state.md, .ai/memory/architecture.md
   blocker: none
   notes: Owner-authorized repair of PR #63; preserve existing validators and frozen behavioral checks.
   notes: tdd: none — metadata-only repair; unchanged existing validators verify the exact documentary contract; commits: 41cea8393f227e5dd8b2ef7ca109aab39e248e1c

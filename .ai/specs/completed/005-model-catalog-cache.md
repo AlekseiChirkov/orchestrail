@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-04-model-catalog-cache
+completed_task: task-005-model-catalog-cache
 completed_at: 2026-10-28
 ---
 
@@ -12,7 +12,7 @@ completed_at: 2026-10-28
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Cached catalog refresh/validation, conservative recommendation, provider plan columns, and current-invocation resolution are implemented. Main also contains configured recommendation-fallback refinements.
 - **Outstanding scope and limits:** Catalog data, actual worker identity, and effort support require fresh evidence. This does not deliver the separate role/stage effort policy in spec 018 or prove economic optimality.
-- **Sources:** [`scripts/model-catalog.py`](../../../scripts/model-catalog.py), [`scripts/model_selection.py`](../../../scripts/model_selection.py), [`scripts/model_plan.py`](../../../scripts/model_plan.py), [`tests/model-selection.py`](../../../tests/model-selection.py), [`docs/MODEL-CATALOG.md`](../../../docs/MODEL-CATALOG.md), [`.ai/tasks/completed/task-04-model-catalog-cache/state.md`](../../../.ai/tasks/completed/task-04-model-catalog-cache/state.md).
+- **Sources:** [`scripts/model-catalog.py`](../../../scripts/model-catalog.py), [`scripts/model_selection.py`](../../../scripts/model_selection.py), [`scripts/model_plan.py`](../../../scripts/model_plan.py), [`tests/model-selection.py`](../../../tests/model-selection.py), [`docs/MODEL-CATALOG.md`](../../../docs/MODEL-CATALOG.md), [`.ai/tasks/completed/task-005-model-catalog-cache/state.md`](../../../.ai/tasks/completed/task-005-model-catalog-cache/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

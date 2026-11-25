@@ -267,7 +267,7 @@ deployment, price ledger or full harness migration is introduced.
 
 ## Contract validator runtime — partial delivery, owner-closed
 
-The [archived runtime plan](../tasks/completed/task-06-1-test-suite-runtime/plan.md)
+The [archived runtime plan](../tasks/completed/task-008-test-suite-runtime/plan.md)
 records the remaining design. Main contains the guarded real warning prefix, per-file
 identity matching, lighter isolated fixtures, and bounded source-reference protection
 from PRs #77–#79. The owner closed the task administratively on 2026-11-06; this is not

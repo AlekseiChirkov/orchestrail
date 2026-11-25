@@ -97,7 +97,7 @@ the analysis that motivated it stays in `docs/`.
   match the workflow (until `specs/19-generated-reference-docs.md` makes them generated).
 - Numbers quoted in docs (check counts, file counts) are updated in the same change that
   changes them.
-- The identity ledger in `.ai/tasks/completed/task-01-git-source-of-truth/state.md` pins
+- The identity ledger in `.ai/tasks/completed/task-002-git-source-of-truth/state.md` pins
   exact line numbers in other files, `docs/USAGE.md` among them. A change that adds or
   removes a line above a pinned line refreshes that ledger row in the same change. No other
   file that git does not ignore may contain the ledger's heading line, because the contract

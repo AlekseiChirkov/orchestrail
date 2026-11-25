@@ -336,12 +336,12 @@ recorded_paths:
 - .ai/specs/README.md
 - .ai/tasks/completed/.gitkeep
 - .ai/tasks/todo/.gitkeep
-- .ai/tasks/todo/task-00-sensitive-data-scrub/T-01-portable-script-paths/description.md
-- .ai/tasks/todo/task-00-sensitive-data-scrub/T-02-neutral-public-examples/description.md
-- .ai/tasks/todo/task-00-sensitive-data-scrub/T-03-public-hygiene-guard/description.md
-- .ai/tasks/todo/task-00-sensitive-data-scrub/plan.md
-- .ai/tasks/todo/task-00-sensitive-data-scrub/state-archive.md
-- .ai/tasks/todo/task-00-sensitive-data-scrub/state.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/T-01-portable-script-paths/description.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/T-02-neutral-public-examples/description.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/T-03-public-hygiene-guard/description.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/plan.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/state-archive.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/state.md
 
 ## Final Verification
 - Full contract and smoke suite: 542 passed, 0 failed.
@@ -366,7 +366,7 @@ expected_parent: 0867afedd2bb343b9326daeef0ef2cbbe9e2bbac
 allowed_scope: exactly the three paths below; no source-code changes
 Reconciliation must first verify this metadata commit against its parent and path list, then verify the original closure snapshot against the historical descriptor. Its own hash is reported externally because this tracked record cannot contain its enclosing commit hash. Original subtask commits and immutable branch-point hashes remain unchanged.
 recorded_paths:
-- .ai/tasks/todo/task-00-sensitive-data-scrub/state.md
+- .ai/tasks/todo/task-001-sensitive-data-scrub/state.md
 - .ai/memory/state.md
 - .ai/adr/0010-task-unknown-public-hygiene-and-local-publication.md
 
@@ -383,7 +383,7 @@ recorded_paths:
 ### Review Followup Commit
 branch: fix/public-hygiene-guard
 expected_parent: 906eab85b00e42f33e38f24e4d80b38a5eb50689
-allowed_scope: setup-umbrella.sh, validate-contracts.sh, .ai/tasks/todo/task-00-sensitive-data-scrub/state.md
+allowed_scope: setup-umbrella.sh, validate-contracts.sh, .ai/tasks/todo/task-001-sensitive-data-scrub/state.md
 The publication metadata commit is a4602e115cafb393f791031b60ca95a4e8f66938 and its parent is the previously recorded closure snapshot. The regression commit follows that metadata commit and changes only validate-contracts.sh. The review correction follows the regression commit with the exact scope above; its enclosing hash is reported externally. Reconciliation must validate these additive followups before applying the historical metadata descriptors. Original branch points and subtask implementation hashes remain unchanged.
 
 ## Task Closure — 2026-10-19
@@ -393,7 +393,7 @@ The owner explicitly authorized merging the three reviewed pull requests, closin
 - PR #3 retargeted to main and integrated at 457f0ac9b6d026ea4500c186ec05d725fa1a79a6.
 - PR #4 carries the reviewed corrections and this closure; its final integration hash is reported externally because this record is included in that integration.
 - All phases are complete and all subtasks remain reviewed. No critical or important issues remain. The optional Git-error fixture refinement and the unrelated template example followup remain outside this task.
-- Complete task retained at .ai/tasks/completed/task-00-sensitive-data-scrub/; source retained at .ai/specs/completed/001-sensitive-data-scrub.md. No knowledge-base content was discarded.
+- Complete task retained at .ai/tasks/completed/task-001-sensitive-data-scrub/; source retained at .ai/specs/completed/001-sensitive-data-scrub.md. No knowledge-base content was discarded.
 - Current source references and roadmap links were updated; historical path lists above describe their original commits and remain unchanged.
 - Scanner exemption is limited to the root denylist and the exact completed source path. A regression verifies the old source location is scanned normally.
 - Earlier final-state descriptors are historical. The latest closure commit follows regression commit 6a4e38e7e825a91f7c354e0eb44c29788213e12c; it contains the record moves, related knowledge-base links/status, and the scanner exemption update. Its hash and PR #4 integration hash are reported externally. Original branch-point hashes remain immutable.

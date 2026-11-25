@@ -63,7 +63,7 @@ status: completed
 - Resume against `main` after merge commit 43d5c6faa1048e1a1350a9b7a68641e9d8193baf, or a verified descendant. PR #77 merged as f2b156b767a06cf730c50d8fada2c7efed60c400; PR #78 merged as 43d5c6faa1048e1a1350a9b7a68641e9d8193baf. Each PR had a separate reviewer; #78 was reviewed again after its documentation-only correction. Their merged work is partial delivery, not task completion.
 - Resume at T-01 reconciliation and validation: compare its recorded branch and checkpoints with the merged implementation, preserve the original base and commit history, and assess the remaining acceptance criteria before changing any atomic status. T-02 through T-05 also have implementation in the merged PRs and require criteria-by-criteria reconciliation; do not recreate their work or claim atomic validation solely from PR approval. T-06, T-07 and its children, and T-08 and its children remain unfinished.
 - `spec-run` requires a clean tracked working tree at preflight. The owner explicitly requested committing all existing changes to `main`; use a clean checkout of the updated `main` for the next invocation. Reconcile the recorded T-01 branch and its checkpoint at 600e948 explicitly against the merged work; do not assume that the old branch is the new delivery base.
-- Resume command after clean-tree and state reconciliation: `/spec-run .ai/tasks/todo/task-06-1-test-suite-runtime --allow-pr`. Keep the owner's no-decomposition instruction and the 15-minute testing limit; use small, fast tests and exclusive full-run measurements.
+- Resume command after clean-tree and state reconciliation: `/spec-run .ai/tasks/todo/task-008-test-suite-runtime --allow-pr`. Keep the owner's no-decomposition instruction and the 15-minute testing limit; use small, fast tests and exclusive full-run measurements.
 - The owner requested a necessity review of all tests, removal of scores at or below 25–30, and review of each eventual PR. Individual reviews of the inventoried inline, usage, Git, hook, model and runtime cases are recorded in adjacent files under `docs/audits/`; loops within a named method remain grouped with that method. Review and removal decisions are recorded, but integration validation and remaining task work are not complete.
 - Confirmed duplicate runtime, inline and usage tests scored 10–25 and were removed. Selected-part fixtures no longer generate 7,000 sources, bounded-read/schema boundary tests use small patched limits, and model-selection checks use pairwise cases. Focused checks and the 568.838-second full run passed after these edits. The reduced fixtures do not prove behavior at the real absolute byte limits or under large input.
 - A version fixture previously inherited the caller's log root and could write outside its isolated checkout. A focused regression reproduced the issue and passed after the fixture explicitly selected its temporary log root; source-guard exceptions were updated for the reviewed commands.
@@ -162,7 +162,7 @@ T-07c | Integrate original expressions and ordered output | atomic-tests: not-st
 
 T-08a | Measure the complete optimized validator against the baseline | atomic-tests: not-started | atomic-execution: not-started | atomic-validation: not-started
   last_action: Discovery defined scope, acceptance and test scenarios; implementation has not started.
-  target_files: .ai/memory/progress.md, .ai/tasks/todo/task-06-1-test-suite-runtime/state.md
+  target_files: .ai/memory/progress.md, .ai/tasks/todo/task-008-test-suite-runtime/state.md
   blocker: none
   notes: planned TDD mode: characterize: compare the frozen full-run contract; external performance acceptance is measured evidence, not synthetic RED or a new in-suite threshold.
 
@@ -443,7 +443,7 @@ uses observed RED then GREEN under `rules/tdd.md`.
   the spec's already out-of-scope W6/W7. No timing or performance proof was run here.
 
 ## Discovery Verification
-- Task artifacts: repository-local `bash scripts/validate-task.sh .ai/tasks/todo/task-06-1-test-suite-runtime --phase discovery` passed 13 checks, failed 0, skipped 3 (execution/validation checks not applicable).
+- Task artifacts: repository-local `bash scripts/validate-task.sh .ai/tasks/todo/task-008-test-suite-runtime --phase discovery` passed 13 checks, failed 0, skipped 3 (execution/validation checks not applicable).
 - Supplemental structural audit passed: 13 descriptions, 11 healthy leaves, 2 depth-2 composites; unique IDs; acyclic ordered dependencies; exact description/plan/progress target inventories; one observable scenario per criterion; all 17 spec acceptance criteria retained verbatim.
 - `compress-state --auto`: file is current; no stale or duplicate unprotected content needs removal. Use the prescribed Discovery archive for verbose analysis and rejected variants instead of weakening protected sections.
 - Optional configured logging/helper routing: ORCHESTRAIL_HOME is unset, so no run log or configured helper was used. The already inspected repository-local artifact validator was executed explicitly as supplemental verification. No native precision is claimed.

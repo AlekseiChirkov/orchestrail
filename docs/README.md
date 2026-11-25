@@ -13,7 +13,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 
 ## Audits (`audits/`)
 
-- [Rules and workflows audit](audits/2026-11-17-rules-workflows-audit.md) — pinned audit of every rule, workflow and harness adapter before the naming migration: migration map, statement coverage, 72 findings (15 major, 9 blocking the migration) and seven proposed amendments to the migration specification, with the machine-readable inventory and assessment beside it; independently reviewed, owner acceptance pending
+- [Rules and workflows audit](audits/2026-11-17-rules-workflows-audit.md) — pinned audit of every rule, workflow and harness adapter before the naming migration: migration map, statement coverage, 72 findings (15 major, 9 blocking the migration) and seven proposed amendments to the migration specification, with the machine-readable inventory and assessment beside it; independently reviewed and accepted by the owner on 2026-11-18
 - [Specification delivery review](audits/2026-11-06-specification-delivery-review.md) — all 23 specifications, delivered foundations, outstanding scope, owner-directed runtime closure, and verification limits
 - [Usage telemetry review](audits/2026-10-30-usage-telemetry-review.md) — isolated per-PR reviews, behavioral repairs, independent rechecks and integration evidence
 - Historical workflow clarity and size audit (`2026-10-28-workflow-clarity-and-size.md`) — unavailable in the current tree; do not use it as evidence of delivery
@@ -23,6 +23,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 
 ## Analysis (`analysis/`)
 
+- [Task and specification numbering review](analysis/2026-11-25-task-specification-numbering.md) — task-to-specification mapping, renamed directories and the journal-bound exception
 - [Parallel execution specification review](analysis/2026-11-24-parallel-specification-review.md) — historical backlog ownership and the earlier composite-only design
 - [Parallel subtask execution design](analysis/2026-11-24-parallel-phase-execution.md) — historical shared composite scheduling and candidate-side conflict recovery
 - [Validator runtime specification review](analysis/2026-11-05-validator-runtime-review.md) — current test architecture, measured git-rails cost, corrected runtime requirements and independent validation cycles

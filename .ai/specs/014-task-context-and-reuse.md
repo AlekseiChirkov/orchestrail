@@ -328,11 +328,11 @@ Facts verified on 2026-11-14 at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
    (`workflows/pd-decompose.md:107-111`). Real `Target files:` lines carry trailing prose,
    for example "Target files: hooks/log-step-hook.sh, tests/log-step-hook.sh,
    rules/run-log.md. Paths may be refined after inspecting existing patterns; report
-   additions explicitly." (`.ai/tasks/completed/task-03-hook-based-logging/T-02-hook-event-adapter/description.md:16`).
+   additions explicitly." (`.ai/tasks/completed/task-004-hook-based-logging/T-02-hook-event-adapter/description.md:16`).
    `/pae-finalize` returns `memory/architecture.md` updates after each leaf
    (`workflows/pae-finalize.md:44-47`). The heading `### Invariants` occurs twice in a real
    task state (under `## Solution Design` and `## Contract Check`,
-   `.ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md:89,638`), so sections
+   `.ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md:89,638`), so sections
    must be addressed by heading path.
 6. **Frozen validator and text anchors.** The validator inventory is frozen: the oracle
    requires exactly 36 acceptance expressions and 37 focused modes

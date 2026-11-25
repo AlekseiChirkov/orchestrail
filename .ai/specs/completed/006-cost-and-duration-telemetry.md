@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-05-cost-and-duration-telemetry
+completed_task: task-006-cost-and-duration-telemetry
 completed_at: 2026-10-30
 ---
 
@@ -12,7 +12,7 @@ completed_at: 2026-10-30
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Explicit-source normalization, immutable usage publication, exact pricing/resolution, retrospective reports, and advisory status/warning contracts are implemented.
 - **Outstanding scope and limits:** Synthetic fixtures and historical validation do not certify live external authority deployment, available provider counters, or measured model/cost savings.
-- **Sources:** [`scripts/usage-telemetry.py`](../../../scripts/usage-telemetry.py), [`scripts/usage_telemetry_publication.py`](../../../scripts/usage_telemetry_publication.py), [`scripts/usage_telemetry_resolution.py`](../../../scripts/usage_telemetry_resolution.py), [`tests/usage-retrospective-integration.py`](../../../tests/usage-retrospective-integration.py), [`.ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md`](../../../.ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md).
+- **Sources:** [`scripts/usage-telemetry.py`](../../../scripts/usage-telemetry.py), [`scripts/usage_telemetry_publication.py`](../../../scripts/usage_telemetry_publication.py), [`scripts/usage_telemetry_resolution.py`](../../../scripts/usage_telemetry_resolution.py), [`tests/usage-retrospective-integration.py`](../../../tests/usage-retrospective-integration.py), [`.ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md`](../../../.ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

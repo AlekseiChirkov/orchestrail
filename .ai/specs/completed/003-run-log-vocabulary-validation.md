@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-02-run-log-vocabulary-validation
+completed_task: task-003-run-log-vocabulary-validation
 completed_at: 2026-10-21
 ---
 
@@ -12,7 +12,7 @@ completed_at: 2026-10-21
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** The producer validates canonical vocabulary, supports read-only lint, and supplies retrospective/drift fixtures.
 - **Outstanding scope and limits:** The former pending-integration note is historical: the implementation is in main. Historical logs are not rewritten or recertified by this review.
-- **Sources:** [`scripts/log-step.sh`](../../../scripts/log-step.sh), [`tests/log-step.sh`](../../../tests/log-step.sh), [`workflows/retro.md`](../../../workflows/retro.md), [`.ai/tasks/completed/task-02-run-log-vocabulary-validation/state.md`](../../../.ai/tasks/completed/task-02-run-log-vocabulary-validation/state.md).
+- **Sources:** [`scripts/log-step.sh`](../../../scripts/log-step.sh), [`tests/log-step.sh`](../../../tests/log-step.sh), [`workflows/retro.md`](../../../workflows/retro.md), [`.ai/tasks/completed/task-003-run-log-vocabulary-validation/state.md`](../../../.ai/tasks/completed/task-003-run-log-vocabulary-validation/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

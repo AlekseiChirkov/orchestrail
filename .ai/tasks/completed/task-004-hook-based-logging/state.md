@@ -408,15 +408,15 @@ recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/completed/task-01-git-source-of-truth/state.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-01-correlated-event-contract/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-02-hook-event-adapter/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-03-user-hook-installation/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-04-workflow-logging-coverage/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-05-retrospective-timing/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state-archive.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/completed/task-002-git-source-of-truth/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-01-correlated-event-contract/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-02-hook-event-adapter/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-03-user-hook-installation/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-04-workflow-logging-coverage/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-05-retrospective-timing/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state-archive.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Reviewed owned hook installation
 
@@ -426,9 +426,9 @@ allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-05-retrospective-timing/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-05-retrospective-timing/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Reviewed native completion adapter
 
@@ -438,8 +438,8 @@ allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Reviewed workflow coverage integration
 
@@ -449,8 +449,8 @@ allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Reviewed exact timing and completed execution
 
@@ -464,10 +464,10 @@ recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/completed/task-01-git-source-of-truth/state.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-05-retrospective-timing/description.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/completed/task-002-git-source-of-truth/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-05-retrospective-timing/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Validated correlated hooks and exact timing
 
@@ -483,9 +483,9 @@ recorded_paths:
 - .ai/memory/state.md
 - .ai/specs/004-hook-based-logging.md
 - .ai/specs/README.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-06-fix-hook-function-boundaries/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-06-fix-hook-function-boundaries/description.md
 
 ### Published review-ready hook logging stack
 
@@ -495,7 +495,7 @@ allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/progress.md
 - .ai/memory/state.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
 
 ### Independently verified private producer acceptance
 
@@ -504,9 +504,9 @@ expected_parent: da4e027b708d42cb6ae858d032c84ceb71b8fd5f
 allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/specs/004-hook-based-logging.md
-- .ai/tasks/todo/task-03-hook-based-logging/plan.md
-- .ai/tasks/todo/task-03-hook-based-logging/state.md
-- .ai/tasks/todo/task-03-hook-based-logging/T-07-fix-private-event-replay/description.md
+- .ai/tasks/todo/task-004-hook-based-logging/plan.md
+- .ai/tasks/todo/task-004-hook-based-logging/state.md
+- .ai/tasks/todo/task-004-hook-based-logging/T-07-fix-private-event-replay/description.md
 
 ## Execution Report
 

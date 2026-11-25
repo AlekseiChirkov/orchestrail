@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-07-state-tool
+completed_task: task-009-state-tool
 completed_at: 2026-11-16
 ---
 
@@ -34,7 +34,7 @@ completed_at: 2026-11-16
 - **Verified source scope:** stack tip `fc63efb` over base `060ce6d` (ten changes and three fixes on stacked branches, pull requests #80–#92, not yet merged at the time of this record).
 - **Delivered evidence:** `scripts/state-tool.py` with the six commands; acceptance suite `tests/state-tool.py` (232 tests) registered in the contract validator as `--state-tool-only` and `test_state_tool_acceptance`; the `state_receipts:` definition, protection and validator checks; ignore rules; the operating manual section. The complete contract validator on that tip: 721 passed, 0 failed, 2 skipped (hygiene checks that need a local pattern file).
 - **Outstanding scope and limits:** none of the requirements is deferred. The tool is optional and no workflow calls it (D-07). Improvement proposals recorded by the reviews are pending with the owner and are not requirements of this specification.
-- **Sources:** `.ai/tasks/completed/task-07-state-tool/state.md` (contract check, code review, issue list, execution report), `.ai/adr/0021-task-07-schedule-state-tool.md`, `.ai/adr/0022-task-07-state-tool-receipts-and-line-preserving-writes.md`.
+- **Sources:** `.ai/tasks/completed/task-009-state-tool/state.md` (contract check, code review, issue list, execution report), `.ai/adr/0021-task-07-schedule-state-tool.md`, `.ai/adr/0022-task-07-state-tool-receipts-and-line-preserving-writes.md`.
 
 ### Delivery record — 2026-11-16, follow-up changes
 
@@ -44,7 +44,7 @@ completed_at: 2026-11-16
 - **Review follow-ups (2026-11-16, tip `52b0680`):** the optional findings of the independent reviews were fixed in one further change: a start-up interrupt ends the tool silently once its first statement has run and only when it runs as the main program; error messages keep each diagnostic on one line; both setup scripts end an ignore file whose last byte is not a line feed (NUL included) and the umbrella setup compares whole lines; two manual sentences were corrected. Suite: 357 tests; complete contract validator: 721 passed, 0 failed, 2 skipped.
 - **Integration (2026-11-16):** by owner instruction the stack was merged into main in order through pull requests #80–#98, after main's refined roadmap specifications were merged into the stack tip (conflicts only in the progress log, the state index and the roadmap table, resolved by keeping both sides); this specification and its task were then archived under `completed/`.
 - **Outstanding scope and limits:** none of the requirements is deferred and no proposal is pending. The tool is optional and no workflow calls it (D-07). A column-0 fence that is never closed stays a documented limit; read commands on a platform without `fcntl` are not covered by the acceptance suite.
-- **Sources:** `.ai/tasks/completed/task-07-state-tool/state.md` (`## Proposal Resolution` and the progress blocks of the five follow-up subtasks), `.ai/adr/0022-task-07-state-tool-receipts-and-line-preserving-writes.md` (Decisions 6–10).
+- **Sources:** `.ai/tasks/completed/task-009-state-tool/state.md` (`## Proposal Resolution` and the progress blocks of the five follow-up subtasks), `.ai/adr/0022-task-07-state-tool-receipts-and-line-preserving-writes.md` (Decisions 6–10).
 
 ### Original text (translated from Russian)
 
@@ -182,10 +182,10 @@ migration of new protected fields. This refinement resolves all of them (see `##
   `workflows/pe-finalize.md:92-95`), which is stricter than ADR-0009's interim "warn-only"
   wording (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:201-202`).
 - Real progress blocks are richer than the template: `notes:` continues on lines indented by
-  9 spaces (`.ai/tasks/completed/task-00-sensitive-data-scrub/state.md:88-89`), continuation
+  9 spaces (`.ai/tasks/completed/task-001-sensitive-data-scrub/state.md:88-89`), continuation
   runs contain blank lines (`…/task-00-sensitive-data-scrub/state.md:134-136`), note values may
-  be quoted (`.ai/tasks/completed/task-01-git-source-of-truth/state.md:38`), and column-0 foreign
-  lines sit between blocks (`.ai/tasks/completed/task-03-hook-based-logging/state.md:362`).
+  be quoted (`.ai/tasks/completed/task-002-git-source-of-truth/state.md:38`), and column-0 foreign
+  lines sit between blocks (`.ai/tasks/completed/task-004-hook-based-logging/state.md:362`).
 - Initial blocks are written by `/pd-decompose` (`workflows/pd-decompose.md:159-171`) and
   `/pv-create-fixes` (`workflows/pv-create-fixes.md:109-111`); fix-task ids have the form
   `T-NN-fix-<slug>` and `T-04d-fix-<slug>` (`workflows/pv-create-fixes.md:59,75`).
@@ -428,7 +428,7 @@ insertion such a line counts as non-blank.
 | Block end | Line before the next block header, a column-0 non-blank line, trailing blank lines (blank lines not followed by a continuation line or an in-block fence), or the section end |
 | Foreign line | Any section line outside blocks; preserved byte for byte |
 | Field group | A field line plus its continuation lines |
-| Repeated field | `notes` may occur in several field groups of one block (observed: `.ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md:133-136`); the note text of a block is all `notes` groups in file order. An unknown field may repeat and is preserved. A repeated known field other than `notes` makes the block malformed. A repeated known header field makes the block malformed. |
+| Repeated field | `notes` may occur in several field groups of one block (observed: `.ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md:133-136`); the note text of a block is all `notes` groups in file order. An unknown field may repeat and is preserved. A repeated known field other than `notes` makes the block malformed. A repeated known header field makes the block malformed. |
 | Malformed line | Inside a block: a line indented by exactly 1 space, a two-space line that is not a field line, a tab-indented line, or a continuation line with no preceding field line, or an in-block fence that is never closed |
 
 Known header fields: leaf `atomic-tests`, `atomic-execution`, `atomic-validation`; composite
@@ -1104,7 +1104,7 @@ file remains after a refusal.
 - A-05 | Hang threshold | Resolved: 600 s sets `stale_suspected`, never takeover | Source: ADR-0009 Decision 5 ten minutes, reinterpreted by D-03 | Reversible: yes
 - A-06 | Git fields, `children:` and unknown fields | Resolved: read-only in this version | Source: `rules/workflow-globals.md:233-236`; smallest reversible choice | Reversible: yes
 - A-07 | Notes and target files mutation | Resolved: append-only / add-only | Source: `rules/workflow-globals.md:226-238`; `.ai/principles/domain.md:60-61` | Reversible: yes
-- A-08 | Note continuation indentation | Resolved: 9 spaces | Source: `.ai/tasks/completed/task-00-sensitive-data-scrub/state.md:88-89` | Reversible: yes
+- A-08 | Note continuation indentation | Resolved: 9 spaces | Source: `.ai/tasks/completed/task-001-sensitive-data-scrub/state.md:88-89` | Reversible: yes
 - A-09 | Encoding and line endings | Resolved: UTF-8 without BOM and without NUL bytes, LF only; otherwise exit 3 | Source: best practice | Reversible: yes
 - A-10 | Section creation and insertion point | Resolved: `init-block` needs an existing section and inserts after its last non-blank line | Source: `workflows/pd-decompose.md:159` owns section initialization | Reversible: yes
 - A-11 | Locking for reads | Resolved: reads take no lock | Source: best practice (atomic rename gives readers a complete file) | Reversible: yes
@@ -1116,9 +1116,9 @@ file remains after a refusal.
 - A-17 | Required values | Resolved: `last_action` and `blocker` values non-empty when set; `last_action:` empty at creation | Source: `rules/workflow-globals.md:178-180`; `workflows/pd-decompose.md:160-162` | Reversible: yes
 - A-18 | Directory sync failure after rename | Resolved: `applied` with a warning | Source: best practice (the change is already visible) | Reversible: yes
 - A-19 | Header `NAME` and block id grammar | Resolved: patterns under `## Data Model` | Source: `workflows/pv-create-fixes.md:59,75`; observed ids | Reversible: yes
-- A-20 | Repeated field lines | Resolved: `notes` repeatable; other repeated known fields malformed; unknown repeats preserved | Source: `.ai/tasks/completed/task-05-cost-and-duration-telemetry/state.md:133-136` (only `notes` repeats across the eight completed tasks) | Reversible: yes
+- A-20 | Repeated field lines | Resolved: `notes` repeatable; other repeated known fields malformed; unknown repeats preserved | Source: `.ai/tasks/completed/task-006-cost-and-duration-telemetry/state.md:133-136` (only `notes` repeats across the eight completed tasks) | Reversible: yes
 - A-21 | Invariant scope on legacy blocks | Resolved: write invariants apply to changed fields; other violations become warnings | Source: best practice (refuse no unrelated write on legacy data) | Reversible: yes
-- A-22 | `init-block` layout | Resolved: one blank separator except directly after the heading | Source: `.ai/tasks/completed/task-03-hook-based-logging/state.md:361-363`; `.ai/tasks/completed/task-01-git-source-of-truth/state.md:33-34` | Reversible: yes
+- A-22 | `init-block` layout | Resolved: one blank separator except directly after the heading | Source: `.ai/tasks/completed/task-004-hook-based-logging/state.md:361-363`; `.ai/tasks/completed/task-002-git-source-of-truth/state.md:33-34` | Reversible: yes
 - A-23 | Missing tool `VERSION` with a versioned task | Resolved: writes refused, reads warn | Source: best practice (fail closed for writes) | Reversible: yes
 - A-24 | "Unchanged" for a refused write | Resolved: `state.md` unchanged and no temporary file; the lock file may be created or have its metadata rewritten, because the lock is taken before the read | Source: write algorithm step 3; REQ-06 | Reversible: yes
 - A-25 | Block and child id validation | Resolved: ids must match the header id pattern; children split on `,` without spaces, no empty, repeated or self item; violations exit 2; child existence not checked | Source: `## Data Model` header rule; best practice (smallest check) | Reversible: yes

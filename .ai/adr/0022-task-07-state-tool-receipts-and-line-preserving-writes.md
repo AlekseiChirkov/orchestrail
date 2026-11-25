@@ -10,7 +10,7 @@ Accepted
 
 ## Related Task
 
-- Task: `.ai/tasks/completed/task-07-state-tool/` (spec `.ai/specs/completed/009-state-tool.md`)
+- Task: `.ai/tasks/completed/task-009-state-tool/` (spec `.ai/specs/completed/009-state-tool.md`)
 - Related pull request: #80–#92 and the follow-up series (stacked; ten changes and three
   fixes, then five follow-up changes)
 - Related files: `scripts/state-tool.py`, `tests/state-tool.py`,

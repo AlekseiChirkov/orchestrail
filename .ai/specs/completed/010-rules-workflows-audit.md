@@ -36,7 +36,7 @@
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Instruction-contract tests and narrower test-suite audits exist.
 - **Outstanding scope and limits:** There is no delivered full rules/workflows audit with all required file rows, read-coverage evidence, link graph, duplicate clusters, and accepted migration map. This specification-delivery review is not that full audit. The historical workflow-clarity report remains unavailable.
-- **Sources:** [`tests/workflow-instructions.py`](../../tests/workflow-instructions.py), `docs/audits/2026-11-06-test-suite-review.md` (absent from the current tree; link removed in this revision), [`rules/workflow-reference.md`](../../rules/workflow-reference.md).
+- **Sources:** [`tests/workflow-instructions.py`](../../../tests/workflow-instructions.py), `docs/audits/2026-11-06-test-suite-review.md` (absent from the current tree; link removed in this revision), [`rules/workflow-reference.md`](../../../rules/workflow-reference.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 ## Context & Problem
@@ -99,7 +99,7 @@ Verified at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
    mechanism (REQ-51, REQ-52; schema 2 of `tests/fixtures/validator-runtime/inventory-amendment.json`).
 10. **Every tracked file is scanned for the former repository name.** The validator assembles a
     case-insensitive pattern (`scripts/validate-contracts.sh:4682-4685,4801`) and compares every
-    match with the exact ledger `.ai/tasks/completed/task-01-git-source-of-truth/state.md:184-214`;
+    match with the exact ledger `.ai/tasks/completed/task-002-git-source-of-truth/state.md:184-214`;
     a public-hygiene scanner also checks tracked files against local patterns
     (`scripts/validate-contracts.sh:371-427`). New audit outputs must therefore not contain the
     former name.
@@ -275,7 +275,7 @@ Rejected synonyms: "category" or "type" for kind; "link" for edge (a link is one
   under `.ai/tasks/completed/`, the 08 row of `.ai/specs/README.md`, this spec file
   (`/spec-sync` only), and, only when the pipeline archives this spec to
   `.ai/specs/completed/010-rules-workflows-audit.md`, the path cell of identity-ledger row
-  `.ai/tasks/completed/task-01-git-source-of-truth/state.md:214` (the precedent of the archived
+  `.ai/tasks/completed/task-002-git-source-of-truth/state.md:214` (the precedent of the archived
   rows above it).
 - **REQ-12 Read coverage.** THE assessment SHALL hold exactly one coverage entry per audited path
   with status `read`, `unavailable`, `changed` or `not-a-file` (only for `symlink` and `other`
@@ -1495,7 +1495,7 @@ extraction (they are readers, so `--strict` is run on a checkout of `source_revi
   DM-7's amendment target forms cannot address those `## ` table rows.
 - Spec 013: Scope item 9 consumes findings of proposal types with owner `11` by `AUD-08-NNN` id.
 - `docs/README.md:13-20` links five absent audit files (Context fact 6); an owner decision.
-- The identity ledger row `.ai/tasks/completed/task-01-git-source-of-truth/state.md:214`
+- The identity ledger row `.ai/tasks/completed/task-002-git-source-of-truth/state.md:214`
   expects the former name once on line 23 of this file; this revision keeps that line.
 
 ### Change log

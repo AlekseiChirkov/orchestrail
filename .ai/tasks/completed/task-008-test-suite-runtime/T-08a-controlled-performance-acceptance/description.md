@@ -14,7 +14,7 @@ Off-limits: Product helpers, hooks, installer, CI, public focused flags, W6/W7, 
 ## Scope
 - **In scope:** Run complete correctness/performance acceptance with unchanged source during each comparison; record all samples and budget misses.
 - **Out of scope:** Product helpers, hooks, installer, CI, public focused flags, W6/W7, coverage reductions, historical log changes, deployment and history rewriting.
-- **Target files:** `.ai/memory/progress.md`, `.ai/tasks/todo/task-06-1-test-suite-runtime/state.md`
+- **Target files:** `.ai/memory/progress.md`, `.ai/tasks/todo/task-008-test-suite-runtime/state.md`
 
 ## Steps
 1. Check baseline provenance and stable intended-only source/config/cache differences against T-01; invalidate affected comparisons after unrelated source changes and repeat required baselines rather than reuse historical figures.

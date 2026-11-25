@@ -1475,7 +1475,7 @@ No questions were asked. A reconciliation pass aligned this spec with the final 
   nothing further is required of 11. Spec 022 keeps spec 013's meter gate step (013 REQ-08)
   next to the `gen-docs.py --check` step (022 REQ-64 and its `sync.sh` step list). The
   deployment must keep both gates, so that load cycles stay checked at deployment.
-- **Identity ledger (follow-up outside this spec):** the ledger row(s) at `.ai/tasks/completed/task-01-git-source-of-truth/state.md` line 208 pins a former-name occurrence at this spec's line 19, which the refined text no longer holds; the change that commits this revision removes them, as spec 023 A-41 does for its own row.
+- **Identity ledger (follow-up outside this spec):** the ledger row(s) at `.ai/tasks/completed/task-002-git-source-of-truth/state.md` line 208 pins a former-name occurrence at this spec's line 19, which the refined text no longer holds; the change that commits this revision removes them, as spec 023 A-41 does for its own row.
 
 ### Change log
 

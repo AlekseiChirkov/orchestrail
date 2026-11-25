@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-03-hook-based-logging
+completed_task: task-004-hook-based-logging
 completed_at: 2026-10-26
 ---
 
@@ -12,7 +12,7 @@ completed_at: 2026-10-26
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Explicit dispatch/report correlation, owned hook installation, exact offline timing, and isolated acceptance fixtures exist.
 - **Outstanding scope and limits:** Native checkpoint coverage and current installation must still be observed for each invocation. Codex native logging remains unavailable in the shipped capability record.
-- **Sources:** [`hooks/log-step-hook.sh`](../../../hooks/log-step-hook.sh), [`scripts/install-hooks.py`](../../../scripts/install-hooks.py), [`scripts/run-log-timing.py`](../../../scripts/run-log-timing.py), [`harness/codex/capabilities.md`](../../../harness/codex/capabilities.md), [`.ai/tasks/completed/task-03-hook-based-logging/state.md`](../../../.ai/tasks/completed/task-03-hook-based-logging/state.md).
+- **Sources:** [`hooks/log-step-hook.sh`](../../../hooks/log-step-hook.sh), [`scripts/install-hooks.py`](../../../scripts/install-hooks.py), [`scripts/run-log-timing.py`](../../../scripts/run-log-timing.py), [`harness/codex/capabilities.md`](../../../harness/codex/capabilities.md), [`.ai/tasks/completed/task-004-hook-based-logging/state.md`](../../../.ai/tasks/completed/task-004-hook-based-logging/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

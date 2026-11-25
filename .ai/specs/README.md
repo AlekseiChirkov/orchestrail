@@ -38,7 +38,7 @@ on 2026-11-19, and the post-merge closure implementation below does not advance 
 
 ## Owner-scheduled post-merge closure
 
-On 2026-11-17 the owner approved [task finalization](025-task-finalization.md) as a separate development task, outside the earlier roadmap ordering. Implementation was independently validated locally on 2026-11-18 on the pinned multi-repository support dependency: full validator 725/0/2 and all 156 finalization acceptance tests passed; staged provider outputs were generated in isolation. The owner authorized integration on 2026-11-18: the dependency and all three implementation branches were merged in order into main at 75168ca; 194 fresh post-merge acceptance tests passed. Live synchronization and this task's own finalization remain separate follow-ups. It does not advance unrelated roadmap scope or authorize deployment. Current execution evidence lives in [task state](../tasks/todo/task-24-task-finalization/state.md).
+On 2026-11-17 the owner approved [task finalization](completed/025-task-finalization.md) as a separate development task, outside the earlier roadmap ordering. Implementation was independently validated locally on 2026-11-18 on the pinned multi-repository support dependency: full validator 725/0/2 and all 156 finalization acceptance tests passed; staged provider outputs were generated in isolation. The owner authorized integration on 2026-11-18: the dependency and all three implementation branches were merged in order into main at 75168ca; 194 fresh post-merge acceptance tests passed. Live synchronization and this task's own finalization remain separate follow-ups. It does not advance unrelated roadmap scope or authorize deployment. Current execution evidence lives in [task state](../tasks/todo/task-025-task-finalization/state.md).
 
 ## Nine token optimization workstreams
 
@@ -110,7 +110,7 @@ script names in historical context identify their earlier locations.
 | Done | [001 — scrub](completed/001-sensitive-data-scrub.md) | — | Retain completed history and approved exceptions |
 | Done | [002 — source of truth](completed/002-git-source-of-truth.md) | 001 | Retain license/tag deferrals; unchecked historical boxes do not reopen the task |
 | Done | [003 — log vocabulary](completed/003-run-log-vocabulary-validation.md) | 002 | Retain strict grammar, non-blocking writes and read-only lint; merge status belongs to task records |
-| Done | [010 — audit](010-rules-workflows-audit.md) | 002 | Pinned audit delivered and accepted (`Accepted: owner 2026-11-18`); follow-ups applied, spec 011 amended; PRs #105–#125 merged; the spec file stays at this path while an identity-ledger row pins its line 23 |
+| Done | [010 — audit](completed/010-rules-workflows-audit.md) | 002 | Pinned audit delivered and accepted (`Accepted: owner 2026-11-18`); follow-ups applied, spec 011 amended; PRs #105–#125 merged; specification archived with its identity-ledger path updated |
 | 2 | [011 — harnesses/naming](011-model-only-harnesses-and-rule-naming.md) | 002, 010 | Preserve IDs; capability-based behavior and current script paths |
 | Done | [005 — catalog](completed/005-model-catalog-cache.md) | Current-invocation capabilities; wider 011 migration remains separate | Reviewed cached catalog, conservative selection and compatible plan resolution; PRs #31–#36 merged |
 | Done | [004 — logging](completed/004-hook-based-logging.md) | 003; minimal harness/registry scaffold | Reviewed explicit correlation, owned hooks and exact timing; minimal hook scaffold only, wider harness migration remains pending |
@@ -130,7 +130,7 @@ script names in historical context identify their earlier locations.
 | 16 | [022 — installer and profiles](022-public-installer-and-profiles.md) | 002, 021, 011 | Split from 21 on 2026-11-16: installer, ownership records, neutral core and profiles |
 | 17 | [023 — public readiness](023-open-source-readiness.md) | 002, 012, 021, 022 | Accurate docs; license/release remain explicit owner actions |
 | 18 | [024 — composite branch model](024-composite-branch-model.md) | 011, 012, 003, 004, 006, 017 (014, 019 when delivered) | Split from 23 on 2026-11-16: one branch per composite, sequential children on temporary branches |
-| Delivered | [025 — task finalization](025-task-finalization.md) | Multi-repository support | Implementation integrated; task archival remains separate |
+| Delivered | [025 — task finalization](completed/025-task-finalization.md) | Multi-repository support | Implementation integrated; task archival remains separate |
 | Partial | [026 — specification-driven PR review](completed/026-spec-driven-pr-review.md) | — | Offline phase delivered; historical comparison and standalone pilot remain deferred |
 | Direction | [027 — parallel execution program](027-parallel-execution-program.md) | Reconcile peer contracts; resolve program blockers | Owner direction and staged plan; not an implementation-ready replacement for the dependent specs |
 | Delivered | [009 — state tool](completed/009-state-tool.md) | — | Scheduled by the owner on 2026-11-13 (ADR-0021); delivered 2026-11-16 on stacked pull requests #80–#98, merged into main the same day (ADR-0022); specification archived; optional and unwired, not a prerequisite of the nine tasks |
@@ -138,9 +138,11 @@ script names in historical context identify their earlier locations.
 ## Renumbering — 2026-11-25
 
 All active and completed specification files now use unique three-digit prefixes.
-The previous numbers are shown for historical lookup; task, requirement, audit and
-other identifiers are not renumbered. Historical Git paths remain valid only at their
-recorded revisions. The earlier 2026-11-16 renumbering is recorded in ADR-0023.
+The previous numbers are shown for historical lookup; requirement, audit and other
+identifiers are not renumbered. Task directories were later
+aligned with these specification numbers, except the journal-bound review task. Historical
+Git paths remain valid only at their recorded revisions. The earlier 2026-11-16 renumbering
+is recorded in ADR-0023.
 
 | Previous number | Current number | Specification |
 |---|---|---|
@@ -153,7 +155,7 @@ recorded revisions. The earlier 2026-11-16 renumbering is recorded in ADR-0023.
 | 06 | 007 | [harness-git-rails](completed/007-harness-git-rails.md) |
 | 06-1 | 008 | [test-suite-runtime](completed/008-test-suite-runtime.md) |
 | 07 | 009 | [state-tool](completed/009-state-tool.md) |
-| 08 | 010 | [rules-workflows-audit](010-rules-workflows-audit.md) |
+| 08 | 010 | [rules-workflows-audit](completed/010-rules-workflows-audit.md) |
 | 09 | 011 | [model-only-harnesses-and-rule-naming](011-model-only-harnesses-and-rule-naming.md) |
 | 10 | 012 | [golden-run-tests](012-golden-run-tests.md) |
 | 11 | 013 | [context-tiering](013-context-tiering.md) |
@@ -168,7 +170,7 @@ recorded revisions. The earlier 2026-11-16 renumbering is recorded in ADR-0023.
 | 20 | 022 | [public-installer-and-profiles](022-public-installer-and-profiles.md) |
 | 21 | 023 | [open-source-readiness](023-open-source-readiness.md) |
 | 22 | 024 | [composite-branch-model](024-composite-branch-model.md) |
-| 24 | 025 | [task-finalization](025-task-finalization.md) |
+| 24 | 025 | [task-finalization](completed/025-task-finalization.md) |
 | 25 | 026 | [spec-driven-pr-review](completed/026-spec-driven-pr-review.md) |
 | 26 | 027 | [parallel-execution-program](027-parallel-execution-program.md) |
 

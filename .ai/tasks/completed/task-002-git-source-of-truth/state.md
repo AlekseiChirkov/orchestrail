@@ -85,7 +85,7 @@ T-04 | Public identity sweep | atomic-tests: green | atomic-execution: complete 
   pr: #8 merged into main
 T-05-fix-validation-metadata | Synchronize validation metadata | atomic-tests: n-a | atomic-execution: complete | atomic-validation: complete
   last_action: pav-close DONE — all acceptance criteria passed; draft PR #9 opened; no useful improvements proposed.
-  target_files: docs/USAGE.md, .ai/memory/architecture.md, .ai/tasks/completed/task-01-git-source-of-truth/state.md
+  target_files: docs/USAGE.md, .ai/memory/architecture.md, .ai/tasks/completed/task-002-git-source-of-truth/state.md
   blocker: none
   notes: tdd: none — unit, integration, and contract tests do not apply because no executable behavior or public interface changes; smoke checks do not observe the documentation count or recorded commit list. The full validator remains the regression check.
   branch: fix/validation-metadata
@@ -117,7 +117,7 @@ Use the sequential feature stack. It keeps each independently verifiable outcome
 
 **Winner:** Sequential feature stack — it matches the repository's reviewed predecessor stack and gives each contract a focused smoke test.
 **Anti-overengineering check:** passed; this uses the existing branch and validation model without adding a new workflow abstraction.
-**Evidence:** `.ai/principles/architecture.md` P1, P4, and P7; ADR-0005; `.ai/tasks/todo/task-00-sensitive-data-scrub/plan.md`; the active stack and ready PRs recorded in `.ai/memory/state.md`.
+**Evidence:** `.ai/principles/architecture.md` P1, P4, and P7; ADR-0005; `.ai/tasks/todo/task-001-sensitive-data-scrub/plan.md`; the active stack and ready PRs recorded in `.ai/memory/state.md`.
 
 ### Scope
 
@@ -175,7 +175,7 @@ Use the sequential feature stack. It keeps each independently verifiable outcome
 - .ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:70 — preserve the historical naming decision.
 - .ai/adr/0010-task-unknown-public-hygiene-and-local-publication.md:105,107 — preserve only the publication authorization and historical pull-request links.
 - .ai/memory/progress.md:4 — preserve the append-only history heading.
-- .ai/tasks/completed/task-00-sensitive-data-scrub/state.md:357,359 — preserve only the completed task's publication authorization and merge-order links.
+- .ai/tasks/completed/task-001-sensitive-data-scrub/state.md:357,359 — preserve only the completed task's publication authorization and merge-order links.
 - docs/analysis/2026-09-16-comparative-analysis-tldr.ru.md:1,40 — preserve the historical comparison record.
 - docs/analysis/2026-09-16-comparative-analysis.ru.md:1,14,117,225,263,429,444 — preserve the historical analysis record.
 - docs/audits/2026-07-21-logic-audit-fixes.md:1,8,568 — preserve the historical audit record.
@@ -195,8 +195,8 @@ The final scan compares each `(path, line, token, count)` against this ledger. E
 | `.ai/adr/0010-task-unknown-public-hygiene-and-local-publication.md` | 107 | `agentic-workflows` × 3 |
 | `.ai/adr/0012-task-unknown-knowledge-tracking-policy.md` | 70 | `agentic-workflows` × 1 |
 | `.ai/memory/progress.md` | 4 | `agentic_workflows` × 1 |
-| `.ai/tasks/completed/task-00-sensitive-data-scrub/state.md` | 357 | `agentic-workflows` × 1 |
-| `.ai/tasks/completed/task-00-sensitive-data-scrub/state.md` | 359 | `agentic-workflows` × 3 |
+| `.ai/tasks/completed/task-001-sensitive-data-scrub/state.md` | 357 | `agentic-workflows` × 1 |
+| `.ai/tasks/completed/task-001-sensitive-data-scrub/state.md` | 359 | `agentic-workflows` × 3 |
 | `docs/analysis/2026-09-16-comparative-analysis-tldr.ru.md` | 1 | `agentic_workflows` × 1 |
 | `docs/analysis/2026-09-16-comparative-analysis-tldr.ru.md` | 40 | `agentic_workflows` × 1 |
 | `docs/analysis/2026-09-16-comparative-analysis.ru.md` | 1, 14, 117, 225, 263, 444 | `agentic_workflows` × 1 per line |
@@ -205,7 +205,7 @@ The final scan compares each `(path, line, token, count)` against this ledger. E
 | `.ai/specs/completed/006-cost-and-duration-telemetry.md` | 698 | `agentic-workflows` × 5 |
 | `.ai/specs/completed/007-harness-git-rails.md` | 25 | `agentic-workflows` × 2 |
 | `.ai/specs/011-model-only-harnesses-and-rule-naming.md` | 29 | `agentic-workflows` × 1 |
-| `.ai/specs/010-rules-workflows-audit.md` | 23 | `agentic-workflows` × 1 |
+| `.ai/specs/completed/010-rules-workflows-audit.md` | 23 | `agentic-workflows` × 1 |
 
 ### Subsequent Publication Authorization — 2026-10-28
 

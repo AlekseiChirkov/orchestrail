@@ -383,7 +383,7 @@ T-10 | Ignore rules and usage documentation | atomic-tests: green | atomic-execu
 
 T-11-fix-identity-ledger-line | Identity ledger line for the manual | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
   last_action: validated — identity check passes alone on the branch tip and fails on the base ledger; ledger diff is two lines; complete contract validator still to be re-run by the orchestrator after all fixes
-  target_files: .ai/tasks/completed/task-01-git-source-of-truth/state.md
+  target_files: .ai/tasks/completed/task-002-git-source-of-truth/state.md
   blocker: none
   notes: execution result (was last_action): ledger row and prose line changed from 254 to 255; identity check passes alone on the branch tip
          tdd: smoke — the existing identity check of the contract validator is the failing test; observed failing in the complete validator run on the stack tip 5574d9b (720 passed, 1 failed: expected line 254, found line 255, one hunk), no new test file, so one fix commit without a separate test commit
@@ -717,7 +717,7 @@ is recorded here.
 | stdout carries exactly one JSON object; diagnostics go to stderr only | PASS — every run without a kill fault, hostile lock metadata and invalid UTF-8 arguments included |
 | The tool's vocabulary constants equal the anchored lines of `rules/workflow-globals.md` | PASS — contract check passes on source and fails on a dropped value, a changed order and a value added to the rule |
 | Blocks without `state_receipts:` remain valid for every reader | PASS — the tool, `scripts/validate-task.sh` and every completed task directory accept them |
-| `scripts/validate-contracts.sh` passes on the stack tip | FAIL: 1 of 723 results fails — the public identity ledger check. The manual change inserted one line into the directory tree of `docs/USAGE.md` (new line 96), which moved the one approved former-repository-name occurrence in the clone command from line 254 to line 255, while the exact ledger in `.ai/tasks/completed/task-01-git-source-of-truth/state.md` (table row at line 204, prose reference at line 182) still records 254. No other ledger row moved and no knowledge file was removed |
+| `scripts/validate-contracts.sh` passes on the stack tip | FAIL: 1 of 723 results fails — the public identity ledger check. The manual change inserted one line into the directory tree of `docs/USAGE.md` (new line 96), which moved the one approved former-repository-name occurrence in the clone command from line 254 to line 255, while the exact ledger in `.ai/tasks/completed/task-002-git-source-of-truth/state.md` (table row at line 204, prose reference at line 182) still records 254. No other ledger row moved and no knowledge file was removed |
 
 ### Acceptance Criteria
 | Criterion | Status |
@@ -774,7 +774,7 @@ are not raised again.
    fails: the public identity ledger check). `docs/USAGE.md` gained one line in its directory
    tree (line 96), which moved the one approved former-repository-name occurrence in the clone
    command from line 254 to line 255; the exact ledger in
-   `.ai/tasks/completed/task-01-git-source-of-truth/state.md` still records 254 (table row at
+   `.ai/tasks/completed/task-002-git-source-of-truth/state.md` still records 254 (table row at
    line 204; prose reference at line 182, which the check does not read). No other ledger row
    moved, no count or digest pins that record, and no knowledge file was removed. Remedy: set
    both lines to 255 and run the complete validator again. Severity: critical.

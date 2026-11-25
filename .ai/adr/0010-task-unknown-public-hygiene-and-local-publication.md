@@ -10,7 +10,7 @@ Accepted
 
 ## Related Task
 
-- Task: [Sensitive-data scrub](../tasks/completed/task-00-sensitive-data-scrub/state.md)
+- Task: [Sensitive-data scrub](../tasks/completed/task-001-sensitive-data-scrub/state.md)
 - Related files: `validate-contracts.sh`, local hygiene configuration, `.gitignore`, source and log helpers
 
 ## Summary
@@ -126,6 +126,6 @@ The owner subsequently authorized merging all three reviewed pull requests and c
 
 ## References
 
-- Task: [Local state](../tasks/completed/task-00-sensitive-data-scrub/state.md)
+- Task: [Local state](../tasks/completed/task-001-sensitive-data-scrub/state.md)
 - Pull requests: #2, #3, and #4 ready for review; see the publication amendment
 - Related documents: ADR-0007, ADR-0009, user answers of 2026-10-19

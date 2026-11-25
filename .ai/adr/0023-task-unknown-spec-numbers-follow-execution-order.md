@@ -13,7 +13,7 @@ Accepted
 - Task: owner decision of 2026-11-16, taken when Discovery of the context-tiering
   specification stopped on its undelivered prerequisites.
 - Related files: `.ai/specs/README.md`, every file under `.ai/specs/`,
-  `.ai/tasks/completed/task-01-git-source-of-truth/state.md`, `.ai/memory/state.md`.
+  `.ai/tasks/completed/task-002-git-source-of-truth/state.md`, `.ai/memory/state.md`.
 
 ## Summary
 

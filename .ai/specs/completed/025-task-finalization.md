@@ -1,6 +1,6 @@
 ---
 status: done
-completed_task: task-24-task-finalization
+completed_task: task-025-task-finalization
 completed_at: 2026-11-18
 ---
 

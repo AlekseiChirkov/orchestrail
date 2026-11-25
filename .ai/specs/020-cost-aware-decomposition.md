@@ -913,7 +913,7 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
   `no-repair-ledger`, `sources` is `[]`, and no count in the output is `0`; given a records file
   missing one digest, `packets.bytes` is `null` with `context-record-missing`; given a summary
   naming `T-09`, exit 2 `summary-mismatch`.
-- [ ] **AC-19** (REQ-27) — Given a copy of `.ai/tasks/completed/task-06-harness-git-rails/`
+- [ ] **AC-19** (REQ-27) — Given a copy of `.ai/tasks/completed/task-007-harness-git-rails/`
   and of its specification `.ai/specs/completed/007-harness-git-rails.md` under one temporary
   root with the same relative layout (plan without the new sections), `verify` exits 1 and its
   violations include `section-missing` for `## Coverage`, `## Interfaces` and

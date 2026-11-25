@@ -392,15 +392,15 @@ allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/tasks/completed/task-01-git-source-of-truth/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-01-producer-validation-and-writes/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-02-read-only-run-linter/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-03-lint-aware-retrospective/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-04-vocabulary-docs-and-drift-gate/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-05-isolated-acceptance-harness/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state-archive.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/completed/task-002-git-source-of-truth/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-01-producer-validation-and-writes/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-02-read-only-run-linter/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-03-lint-aware-retrospective/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-04-vocabulary-docs-and-drift-gate/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-05-isolated-acceptance-harness/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state-archive.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Read-only lint
 
@@ -410,8 +410,8 @@ allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Lint-aware retrospective
 
@@ -421,8 +421,8 @@ allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Canonical contract gate
 
@@ -432,8 +432,8 @@ allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Isolated acceptance harness
 
@@ -443,8 +443,8 @@ allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Redacted command errors
 
@@ -453,10 +453,10 @@ expected_parent: 9827a9d98866ca9932e50725d9804d39c8d43363
 allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-06-fix-redact-unknown-command/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-07-fix-path-argument-progress/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-06-fix-redact-unknown-command/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-07-fix-path-argument-progress/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Bounded path arguments
 
@@ -465,8 +465,8 @@ expected_parent: 524785d1ab7d608e75de8f7d0da422ffbd564b3c
 allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Preserved flag text and workflow access
 
@@ -475,9 +475,9 @@ expected_parent: 4986aee238fd520a8db65f4eff1b245a59d1469e
 allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/T-08-fix-run-log-input-boundaries/description.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/plan.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/T-08-fix-run-log-input-boundaries/description.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/plan.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Integrated validation completion
 
@@ -491,9 +491,9 @@ recorded_paths:
 - .ai/memory/state.md
 - .ai/specs/003-run-log-vocabulary-validation.md
 - .ai/specs/README.md
-- .ai/tasks/completed/task-01-git-source-of-truth/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state-archive.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/completed/task-002-git-source-of-truth/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state-archive.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ### Pull request review readiness
 
@@ -502,7 +502,7 @@ expected_parent: 3e70ccc383dc22feb5e5a8fc150d004457f3343d
 allowed_scope: listed knowledge-base paths only
 recorded_paths:
 - .ai/memory/state.md
-- .ai/tasks/todo/task-02-run-log-vocabulary-validation/state.md
+- .ai/tasks/todo/task-003-run-log-vocabulary-validation/state.md
 
 ## Improvement Proposals (T-02)
 
