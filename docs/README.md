@@ -23,6 +23,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 
 ## Analysis (`analysis/`)
 
+- [Specification reference review](analysis/2026-11-25-specification-reference-review.md) — numbering-related reference corrections, preserved report labels and remaining parallel-program reconciliation
 - [Task and specification numbering review](analysis/2026-11-25-task-specification-numbering.md) — task-to-specification mapping, renamed directories and the journal-bound exception
 - [Parallel execution specification review](analysis/2026-11-24-parallel-specification-review.md) — historical backlog ownership and the earlier composite-only design
 - [Parallel subtask execution design](analysis/2026-11-24-parallel-phase-execution.md) — historical shared composite scheduling and candidate-side conflict recovery

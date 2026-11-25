@@ -1732,7 +1732,8 @@ Before any change: spec 002 complete and 010's report accepted (ADR-0009 D7; roa
 Accepted means: exactly one file matches `docs/audits/*-rules-workflows-audit.md`, and its
 `## Acceptance` section holds exactly one line `Accepted: owner <YYYY-MM-DD>` with a valid date
 (the line format of spec 010's report layout, its DM-8); `Accepted: pending`, no match or
-several matches stop the task. The report's `## Blockers for spec 011` (010 DM-8) must read
+several matches stop the task. The report's `## Blockers for spec 09` (010 DM-8; the
+historical report-schema name for current spec 011) must read
 `None.`, or every finding it lists must be cited by an amendment applied to this spec through
 `/spec-sync` and recorded in its Change log; otherwise stop. If the report is missing, stop; do
 not re-run the audit inside this task. Pin the source
@@ -1810,20 +1811,20 @@ only the five colliding rules, moving command renames to spec 023, per-provider 
 
 ### Follow-ups for other specs and shared files (not edited here)
 
-- 10: see Notes → Spec 021 alignment.
-- 08: reuse DM-9 instead of defining schema 2; register `loads` in the checker (DM-2/DM-3).
+- Spec 021: see Notes → Spec 021 alignment.
+- Spec 013: reuse DM-9 instead of defining schema 2; register `loads` in the checker (DM-2/DM-3).
   Its Q-07 is settled (A-35): a split target that receives frozen-checked text from a mapped
   rule is appended to that rule's `new` list in 013's own delivery (REQ-68), with the
   `docs/USAGE.md` row, the `path_changes` entries and the refreshed `name_map_sha256`.
-- 20: preserve the contracts listed in Notes → Relationship to spec 022, including leftover
+- Spec 022: preserve the contracts listed in Notes → Relationship to spec 022, including leftover
   reporting (REQ-57) in a command that remains after `deploy` is removed, and refresh its
   quotation of the former Q-05.
-- 12: wire `--parallel` into the "Parallel children" row of DM-4 (key names agree, Notes →
+- Former spec 23: wire `--parallel` into the "Parallel children" row of DM-4 (key names agree, Notes →
   Capability key names). Its REQ-25 delegates the stop and the next step it names to REQ-37, which
   defines them per failing key (Contracts → `/spec-run` preflight): a stop caused by
   `worktrees` or `concurrent-sub-agents` advises re-running without `--parallel`; spec 23
   needs no change.
-- 08: report in DM-19 counts and DM-2 kinds; propose map amendments through `/spec-sync`.
+- Spec 010: report in DM-19 counts and DM-2 kinds; propose map amendments through `/spec-sync`.
 
 ### Relationship to spec 022 (installer)
 
@@ -1922,7 +1923,7 @@ All three items are adopted by spec 021:
   REQ-50–REQ-65 (REQ-60 unused) and AC-30–AC-43 added; data model DM-1–DM-20, engine,
   reporter, checker and suites contracts, schema-2 inventory amendment and peer dispositions.
 - 2026-11-14 — reconciliation with specs 010, 011, 014–19, 21 and 23: installer ownership ruling (Notes →
-  Relationship to spec 023, A-31, Q-05 resolved); 08 acceptance line in the Guard, root
+  Relationship to spec 022, A-31, Q-05 resolved); 08 acceptance line in the Guard, root
   `README.md` in scan set R, kind definitions (A-34); REQ-67 and AC-47 for extension keys in
   `Requires` cells (spec 018); rules for files and sections created by later specs (A-32);
   capability key names (spec 23); spec 021 alignment; DM-5 harness definition and DM-3 sort
@@ -1932,7 +1933,7 @@ All three items are adopted by spec 021:
   the `/spec-run` stop message names the next step by failing key (REQ-37, AC-23, A-37; spec
   23 delegates the wording to REQ-37); the closed `requirement` set is extended only by a later spec's own delivery (REQ-69,
   AC-49, A-36; spec 023); interim properties of the engine marked and the `deployment-set`
-  leftover list confirmed (Notes → Relationship to spec 023); the rule names in Notes → Files and
+  leftover list confirmed (Notes → Relationship to spec 022); the rule names in Notes → Files and
   sections created after this spec checked against the owning specs (12–15, 17) and unchanged.
 - 2026-11-14 — independent final review: REQ-69 fixes the prefix form of added values; DM-2 defines extension-key blocks; REQ-30 names `metadata-invalid-value`; split boundary moves REQ-14–REQ-16 and REQ-37 to 09b; REQ-11 and Scope item 1 include `docs/USAGE.md → ## Removed integrations`; DM-12 assigns the preamble; DM-16 form 1 excludes ` → ` spans; Guard requires 010's blockers list to be cleared; spec 021 alignment marked adopted; line 23 untouched.
 - 2026-11-14 — owner decision recorded: D-01 keeps the 1,200-word limit on the always-on body only (without the embedded declaration and the installation record); Q-01 resolved; REQ-54, Terminology, A-03, Risks, Rejected alternatives, Peer requests and the Readiness Checklist aligned.
@@ -1944,7 +1945,7 @@ All three items are adopted by spec 021:
   AMD-08-05: DM-20 → Pre-existing reference defects includes those defects. AMD-08-06:
   DM-20 → Bootstrap size exceptions added. AMD-08-07: AC-11 restated for the exception. The
   NFR row `Bootstrap rule`, the Edge Cases row `Bootstrap over 300 words after the move` and
-  the matching Risks row restated to agree. The report's `## Blockers for spec 011` findings
+  the matching Risks row restated to agree. The report's `## Blockers for spec 09` findings
   AUD-08-001, AUD-08-004, AUD-08-005, AUD-08-007, AUD-08-033, AUD-08-035, AUD-08-036,
   AUD-08-062 (AMD-08-01, AMD-08-02, AMD-08-05) and AUD-08-063 (AMD-08-03, AMD-08-04,
   AMD-08-06, AMD-08-07) are each cited by an applied amendment. No requirement or criterion

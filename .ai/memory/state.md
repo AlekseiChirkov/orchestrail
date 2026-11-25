@@ -6,6 +6,9 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
+Specification references were reviewed against the three-digit mapping; corrections and
+the outstanding parallel-program reconciliation are recorded in [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
+
 Task-to-specification numbering was reviewed on 2026-11-25; eleven task directories now match their specifications. The phase-one review task remains journal-bound to its earlier number; see [the numbering review](../../docs/analysis/2026-11-25-task-specification-numbering.md).
 
 - [Parallel execution direction](../specs/027-parallel-execution-program.md) | status: planning | note: owner requested automatic parallel execution across the task graph in both execution entry points and parallel-aware Discovery, retaining stacked PRs; program-level specification and delivery map prepared, with Git materialization, capability enforcement and recovery contracts still blocking implementation; former spec 23 consolidated; specs 020 and 024 retain separate scope and require review. No runtime implementation started.

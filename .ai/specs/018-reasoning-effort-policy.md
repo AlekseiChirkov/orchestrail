@@ -120,7 +120,7 @@
 ## Context & Problem
 
 Verified at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`. File names in this section are the
-current (pre-spec-09) names; see Notes → Name mapping for the names the implementation edits.
+current (pre-spec 011) names; see Notes → Name mapping for the names the implementation edits.
 
 1. **An effort contract already exists, but only for leaf Implementers and only as prose.**
    `/pd-select-model` recommends a reasoning effort per leaf from demand and risk scores
@@ -165,7 +165,7 @@ current (pre-spec-09) names; see Notes → Name mapping for the names the implem
    effort (`resolution.parameters` admits only `model`, `service_tier`, `region`, `modality`,
    `scripts/usage_telemetry_contract.py:500-502`).
 5. **A cheaper default needs approved comparative evidence.** The roadmap requires an
-   explicitly approved spec-10 comparison before promoting a cheaper default
+   explicitly approved spec 012 comparison before promoting a cheaper default
    (`.ai/specs/README.md` → "Shared acceptance gates", introductory paragraph); ADR-0015 repeats it ("Cheaper-default promotion requires
    separately approved independent comparison"). Spec 012 emits an advisory per-comparison
    `verdict` (`promote`, `do-not-promote`, `insufficient-data`) in `report.json`
@@ -205,7 +205,7 @@ role, stage and recorded complexity to an exact harness-specific value; a policy
 is sent only when the harness declares the setting with evidence and the session exposes it,
 while today's session-observed Implementer recommendation keeps working until a declaration
 exists; otherwise the spawn uses the harness default visibly. No rule may lower effort below
-today's behaviour without an approved spec-10 comparison, every decision is persisted with its
+today's behaviour without an approved spec 012 comparison, every decision is persisted with its
 model, requested, resolved and actual (unknown) values, and with no policy and no escalation
 the request sent equals today's, also when the resolver itself is unusable (REQ-39).
 
@@ -215,7 +215,7 @@ the request sent equals today's, also when the resolver itself is unusable (REQ-
    011 DM-4, with anchored value, order, default and parameter lines; shipped as `unknown`
    unless evidence is collected at implementation.
 2. An optional owner policy file (DM-2) with `target` and `minimum` rules matched on role,
-   stage, quality floor, hard constraints and leaf kind, an optional spec-10 qualification
+   stage, quality floor, hard constraints and leaf kind, an optional spec 012 qualification
    reference (DM-3) and a bounded owner raise.
 3. A standard-library helper `scripts/effort-policy.py` with `resolve` and `check-policy`
    commands (C-1–C-3): pure, offline, deterministic.
@@ -246,12 +246,12 @@ the request sent equals today's, also when the resolver itself is unusable (REQ-
   leaves.
 - Any shipped policy file, shipped default level, numeric target, token budget or claimed
   saving; any cross-harness equivalence of level names.
-- Running, scheduling or approving a spec-10 experiment; paid model runs of any kind.
+- Running, scheduling or approving a spec 012 experiment; paid model runs of any kind.
 - Deciding when a failed attempt escalates (spec 019) and producing new complexity evidence
   (spec 020).
-- Writing spec-05 telemetry records or extending 006's schema, including the previous REQ-07
+- Writing spec 006 telemetry records or extending 006's schema, including the previous REQ-07
   accounting of reasoning, cache, retries and escalation and the previous AC-04 synthetic
-  report: 05 already owns that accounting; this spec only supplies the C-5 label.
+  report: spec 006 already owns that accounting; this spec only supplies the C-5 label.
 - A harness acknowledgement ("confirmation of application", previous §3): no documented
   acknowledgement mechanism exists; only an explicit spawn rejection is recorded (REQ-10).
 - A dispatch-record field in spec 015's `checkpoint_attempt` (C-6 explains why none is needed).
@@ -263,7 +263,7 @@ the request sent equals today's, also when the resolver itself is unusable (REQ-
 
 | Actor | Allowed actions | Forbidden |
 |---|---|---|
-| Owner | Writes, versions, disables or removes the policy file; adds qualification references after adopting a spec-10 `promote` verdict; sets `owner_raise`; collects capability evidence | — |
+| Owner | Writes, versions, disables or removes the policy file; adds qualification references after adopting a spec 012 `promote` verdict; sets `owner_raise`; collects capability evidence | — |
 | Dispatcher — the `/spec-run` Orchestrator, or the single-session executor (`execution-execute`, `atomic-execution`) when it spawns a leaf worker | Builds the request, runs the resolver, appends `## Effort Decisions` lines, passes the effort parameter only on `outcome: requested`, stops on `outcome: stop` | Editing or deleting decision lines; choosing a value the decision did not resolve; retrying another value after a rejection |
 | Resolver `scripts/effort-policy.py` | Reads the capability file, the policy file, the qualification files the policy names and the request; prints one decision | Writing any file; network access; starting processes; reading other paths |
 | Model-selection workflow | Writes `effort-input:` lines into `## Model Selection` during bulk selection | Running the resolver |
@@ -286,7 +286,7 @@ the request sent equals today's, also when the resolver itself is unusable (REQ-
 | Target rule / minimum rule | A policy rule that sets the requested effort when no recommendation applies / that raises a lower requested effort. | New |
 | Owner raise | `owner_raise: true` on a target rule whose value is the highest declared value: the owner's explicit acceptance that the top value is not a lowering (C-3 step 3). | Previous REQ-03 "explicit approved owner override" |
 | Provably at least / provably lower | The C-3 comparisons on a declared ascending order. | New |
-| Qualification | A DM-3 reference to a spec-10 comparison whose verdict is `promote` and whose variants differ in exactly the rule's effort. | spec 012 DM-6 Manifest, `Promotion rule (REQ-12)` |
+| Qualification | A DM-3 reference to a spec 012 comparison whose verdict is `promote` and whose variants differ in exactly the rule's effort. | spec 012 DM-6 Manifest, `Promotion rule (REQ-12)` |
 | Spawn (dispatch) | One start of a worker, including recreation after interruption or rejection. A message to a live worker is not a spawn. Not the run-log `dispatch` marker (`rules/run-log.md:383`). | `rules/orchestration.md:40-41`, `:63-67` |
 | Decision | The resolver's output DM-7 for one spawn. | New |
 | Quality floor | The ordinal 1–5 demand floor computed by `quality_floor` (`scripts/model_selection.py:106`). Used here as the complexity signal. | Spec 005 |
@@ -890,7 +890,7 @@ sent while the record is `unknown` (C-3 step 6a refuses it for `state: no`).
 
 `dimension_source` = `requested:<harness>:<resolved token>` when `outcome` is `requested`,
 otherwise `requested:<harness>:none`. It labels the requested configuration, never the actual
-one. A spec-05 producer that attributes a spawn's usage maps this string to the opaque
+one. A spec 006 producer that attributes a spawn's usage maps this string to the opaque
 `effort` dimension value through its keyed mapping (`scripts/usage_telemetry_adapter.py:20-24`;
 values must be `sha256:` identifiers, `scripts/usage_telemetry_contract.py:350-353`,
 `:2911-2915`; ADR-0016 Decision 3, last paragraph). This spec writes no telemetry record.
@@ -912,7 +912,7 @@ values must be `sha256:` identifiers, `scripts/usage_telemetry_contract.py:350-3
 ### C-7 Acceptance suite
 
 `python3 -I scripts/check-effort-policy.py` builds a temporary directory with fixture
-capability files, policy files, spec-10-shaped reports and manifests and requests; runs
+capability files, policy files, spec 012-shaped reports and manifests and requests; runs
 `scripts/effort-policy.py` as a subprocess (`python3 -I`) and, for AC-05 and AC-15, also
 in-process with `runpy.run_path` and patched standard-library functions; reads, never edits,
 the repository's workflows, rules, harness files, guide, `scripts/README.md` and ADR index for
@@ -1204,21 +1204,21 @@ Every AC names at least one REQ; AC-01–AC-18 are all covered above.
 | Both capability sections ship `unknown` | Policy- and escalation-chosen values are never sent | High until evidence is collected | Today's recommendation path stays (REQ-37); reasons are visible; Q-02 |
 | The session observation is the dispatcher's own reading of its tool schema | A wrong reading sends or withholds a value | Medium | Declared and session values must agree when declared; `values: null` is `session-unknown` |
 | Harness accepts a value but the model ignores or remaps it | Resolved ≠ actual | Unknown | `actual: unknown`; `Limitations:` paragraph; no claim of application |
-| Existing heuristic already recommends low effort for low-demand leaves | Lower effort without a spec-10 comparison continues | Existing | Out of scope to change; owners can add minimum rules |
+| Existing heuristic already recommends low effort for low-demand leaves | Lower effort without a spec 012 comparison continues | Existing | Out of scope to change; owners can add minimum rules |
 | Minimum rules and target raises are inert while `default:` is unknown | Floors over the harness default cannot be proved | High | `minimum-unverifiable` visible; `enforce: true` stops; owner raise for the top value |
 | Owner raise when the real default lies outside the declared values | Requesting the top value could still be lower | Low | Only the top declared value; the owner explicitly accepts it; recorded as `owner-raise` |
-| Spec-10 experiments run through the CLI flag, not a spawned worker | Qualification measures a proxy | Medium | Owner adoption is explicit; DM-3 pins model, role and effort correspondence |
+| Spec 012 experiments run through the CLI flag, not a spawned worker | Qualification measures a proxy | Medium | Owner adoption is explicit; DM-3 pins model, role and effort correspondence |
 | Frozen checks read edited files | A frozen check fails | Low (edits are additive) | REQ-28; stop and report rather than change a check |
 | Delivery omits a harness's `sub-agent-effort` record | Spec 011's checker rejects the REQ-24 row (`capability-behaviour-table-invalid`) | Low | REQ-24 requires both records, `unknown` allowed; Q-01 resolved by 011 REQ-67 |
 
 ## Assumptions
 
-- A-01 | Where effort support is declared | Resolved: an extension record `sub-agent-effort` in the spec-09 DM-4 form, in its own `## ` section placed before 011's `## Capability records`, plus four anchored lines modelled on `git-rails ask-capable modes:` | Source: spec 011 DM-4; `harness/claude/capabilities.md:31-46`; `scripts/validate-contracts.sh:5257-5259` | Reversible: yes
+- A-01 | Where effort support is declared | Resolved: an extension record `sub-agent-effort` in the spec 011 DM-4 form, in its own `## ` section placed before 011's `## Capability records`, plus four anchored lines modelled on `git-rails ask-capable modes:` | Source: spec 011 DM-4; `harness/claude/capabilities.md:31-46`; `scripts/validate-contracts.sh:5257-5259` | Reversible: yes
 - A-02 | Values asserted for Claude Code and Codex | Resolved: none; both ship `unknown` unless the implementing task cites evidence for the installed runtime | Source: 011 DM-4 "This spec asserts no value"; `.ai/memory/architecture.md:175-176` | Reversible: yes
 - A-03 | Policy location and ownership | Resolved: optional owner file under the XDG configuration directory; never created by workflows | Source: `workflows/pd-select-model.md:89-101` pattern; ADR-0015 Decision 1 | Reversible: yes
 - A-04 | Default when no evidence establishes one | Resolved: today's behaviour (baseline, including the session-observed recommendation) | Source: owner standing decision; G4, G7; previous REQ-06 | Reversible: yes
 - A-05 | What counts as lowering | Resolved: any target value not provably at least the baseline; unknown order or default makes values incomparable | Source: previous invariants 1, 5; `.ai/specs/README.md` → "Shared acceptance gates" | Reversible: yes
-- A-06 | Qualification evidence | Resolved: hash-pinned spec-10 report and manifest; verdict `promote`; variants equal in model and differing only in the rule's role effort from `session-default` | Source: 012 DM-6 Manifest, DM-12 Report, `Promotion rule (REQ-12)`; 10 Out of Scope | Reversible: yes
+- A-06 | Qualification evidence | Resolved: hash-pinned spec 012 report and manifest; verdict `promote`; variants equal in model and differing only in the rule's role effort from `session-default` | Source: 012 DM-6 Manifest, DM-12 Report, `Promotion rule (REQ-12)`; 10 Out of Scope | Reversible: yes
 - A-07 | Precedence between a leaf recommendation and a target rule | Resolved: recommendation wins; target rules only fill spawns without one; minimum rules apply to both | Source: ADR-0015 Decision 3; previous REQ-03 order (task override before role policy) | Reversible: yes
 - A-08 | Behaviour on unsupported value | Resolved: do not send, do not substitute another value, continue at harness default unless an enforced minimum stops | Source: `rules/workflow-reference.md:148-150` | Reversible: yes
 - A-09 | Floors stopping the run | Resolved: only when the owner sets `enforce: true` | Source: P5; previous §9 row "override conflicts with floor → owner" | Reversible: yes

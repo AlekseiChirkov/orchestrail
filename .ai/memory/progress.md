@@ -7,6 +7,11 @@ and the audit spec — dates are those recorded in the sources.
 
 ## Log
 
+- **2026-11-25 — Specification references reviewed.** Corrected stale numbered references
+  and the accepted audit heading without renumbering specifications or report schema fields.
+  Former parallel specification references still require semantic reconciliation with the
+  current program; see the [reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
+
 - **2026-11-25 — Specification references and inventory reconciled.** Remaining
   contextual references use the new numbering, while historical report-schema labels
   retain their established wire form. The owner approved the prior source-file deletion;

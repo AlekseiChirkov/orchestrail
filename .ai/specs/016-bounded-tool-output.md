@@ -1676,7 +1676,7 @@ N/A — no questions were asked (autonomous mode, owner unavailable for this run
 
 ### Prerequisites and guard for the implementing task
 
-Specs 007 (done), 09, 10, 11 and 12 must have landed (`.ai/specs/README.md` "Dependency
+Specs 007 (done), 011, 012, 013 and 014 must have landed (`.ai/specs/README.md` "Dependency
 order"). If 013's `measure-context.sh`, 011's `scripts/lint-instructions.py` or 012's
 `tests/golden-runs.py` is absent, the corresponding command of AC-33–AC-35 cannot run: record
 it as unmet and hand the decision to the owner rather than weakening it.
