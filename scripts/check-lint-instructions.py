@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -427,6 +428,15 @@ class InstructionMetadataTests(unittest.TestCase):
         self.assertEqual(locations, {
             "README.md:1", "README.md:3", "templates/.ai/example.md:1", "scripts/validate-contracts.sh:2",
         }, result.stdout)
+
+
+class InstructionSourceIsolationTests(unittest.TestCase):
+    def test_checker_and_deployment_source_only_use_offline_programs(self) -> None:
+        deployment_suite = SOURCE / "scripts/check-deploy-skills.py"
+        offline_source_findings = runpy.run_path(str(deployment_suite))["offline_source_findings"]
+        for path in (CHECKER, SOURCE / "scripts/deploy-skills.py", Path(__file__)):
+            with self.subTest(path=path.name):
+                self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
 
 
 if __name__ == "__main__":

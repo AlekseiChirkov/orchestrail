@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check harness deployment contracts with isolated homes and project fixtures."""
 
+import ast
 from contextlib import chdir
 import fcntl
 import hashlib
@@ -1870,6 +1871,500 @@ class DeploymentLeftoverTests(unittest.TestCase):
         self.assertEqual(lines[:2], ["deferred: active consumers", f"active {project} {task}"])
         self.assertCountEqual(lines[2:], [
             f"leftover {skill.parent} (not removed; review, then remove it manually)" for skill in leftovers
+        ])
+
+
+class DeploymentEntrypointTests(unittest.TestCase):
+    preflights = (
+        "check-phase-finalize.py", "check-finalization-safety.py", "check-finalization-workflow.py",
+    )
+    adapter_targets = {
+        "claude": (".claude/skills", ".claude/CLAUDE.md"),
+        "codex": (".codex/skills", ".codex/AGENTS.md"),
+        "demo": ("demo/commands", "demo/config/instructions.md"),
+    }
+    skill_sources = {
+        "phase-discovery": "workflows/phase-discovery.md",
+        "rule-tdd": "rules/tdd.md",
+        "principle-testing": "principles/testing.md",
+    }
+    installed_hook = b'{"status":"installed","events":["PreToolUse"]}'
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory(prefix="entrypoint's fixture ")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name).resolve()
+        self.home = self.root / "home"
+        self.config = self.root / "config"
+        self.state = self.root / "state"
+        self.source = self.root / "selected source"
+        self.bin = self.root / "bin"
+        self.calls = self.root / "preflight calls"
+        self.registry = self.config / "orchestrail/projects"
+        self.environment = {
+            "HOME": str(self.home),
+            "XDG_CONFIG_HOME": str(self.config),
+            "XDG_STATE_HOME": str(self.state),
+            "PATH": f"{self.bin}{os.pathsep}{os.defpath}",
+            "FIXTURE_CALLS": str(self.calls),
+            "ORCHESTRAIL_HOME": str(self.source),
+            "LC_ALL": "C",
+        }
+        for directory in (self.home, self.config, self.state, self.bin, self.source / "templates"):
+            directory.mkdir(parents=True)
+        self.calls.touch()
+        self.executable("git", b"#!/bin/bash\nexit 128\n")
+        (self.bin / "python3").symlink_to(sys.executable)
+        for script in (ENGINE, REPORTER, SOURCE / "scripts/setup-new-project.sh"):
+            self.write(self.source / "scripts" / script.name, script.read_bytes())
+        self.write(self.source / "scripts/validate-contracts.sh",
+                   b'#!/bin/bash\nprintf "%s\\n" validator >> "$FIXTURE_CALLS"\n')
+        for name in self.preflights:
+            self.write(self.source / "scripts" / name, (
+                "import os\nfrom pathlib import Path\n"
+                "with Path(os.environ['FIXTURE_CALLS']).open('a') as calls:\n"
+                f"    calls.write({name!r} + '\\n')\n"
+            ).encode())
+        self.write(self.source / "templates/.ai/README.md", b"# Project knowledge\n")
+        for path in self.skill_sources.values():
+            self.write(self.source / path, f"# Selected source: {path}\n".encode())
+
+        for name in ("claude", "codex"):
+            for filename in ("deploy.env", "always-on.md", "capabilities.md"):
+                path = Path("harness") / name / filename
+                self.write(self.source / path, (SOURCE / path).read_bytes())
+        skills, core = self.adapter_targets["demo"]
+        self.write(self.source / "harness/demo/deploy.env", (
+            f"skills_dir=$HOME/{skills}\nalways_on_path=$HOME/{core}\n"
+            "project_skills_link_dir=.demo/skill-links\n"
+        ).encode())
+        self.write(self.source / "harness/demo/always-on.md", b"# Demo instructions\n")
+        capability = (self.source / "harness/codex/capabilities.md").read_bytes()
+        self.write(self.source / "harness/demo/capabilities.md",
+                   capability.replace(b"$HOME/.codex/AGENTS.md", f"$HOME/{core}".encode()))
+        self.write(self.source / "harness/claude/hooks.json", b"{}\n")
+        self.installer(exit_status=0)
+
+    def write(self, path: Path, content: bytes) -> None:
+        PlannerFixture.write(path, content)
+
+    def executable(self, name: str, content: bytes) -> None:
+        path = self.bin / name
+        self.write(path, content)
+        path.chmod(0o755)
+
+    def installer(self, *, exit_status: int) -> None:
+        self.write(self.source / "scripts/install-hooks.sh", (
+            b"#!/bin/bash\n"
+            b'[[ "$#" -eq 3 && "$1" == install && "$2" == --from && '
+            b'"$3" == "${BASH_SOURCE[0]%/scripts/install-hooks.sh}" ]] || exit 2\n'
+            b'printf "%s\\n" installer >> "$FIXTURE_CALLS"\n'
+            b"printf '%s\\n' '" + self.installed_hook + b"'\n"
+            + f"exit {exit_status}\n".encode()
+        ))
+
+    def python_310(self) -> None:
+        (self.bin / "python3").unlink()
+        self.environment["FIXTURE_PYTHON"] = sys.executable
+        self.executable("python3", b"""#!/bin/bash
+if [[ "$1" == -I ]]; then shift; fi
+case "$1" in
+    -V|--version) printf '%s\\n' 'Python 3.10.14' ;;
+    -c)
+        shift
+        exec "$FIXTURE_PYTHON" -I -c 'from collections import namedtuple
+import sys
+sys.version_info = namedtuple("version_info", "major minor micro releaselevel serial")(3, 10, 14, "final", 0)
+code = sys.argv.pop(1)
+exec(code)
+' "$@" ;;
+    *) exec "$FIXTURE_PYTHON" -I "$@" ;;
+esac
+""")
+
+    def command(
+        self, script: str, *arguments: str, cwd: Path | None = None,
+        expected_source: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        environment = self.environment.copy()
+        if expected_source is not None:
+            environment["ORCHESTRAIL_HOME"] = str(expected_source)
+        return subprocess.run(
+            ["bash", str(SOURCE / "scripts" / script), *arguments],
+            cwd=self.root if cwd is None else cwd,
+            env=environment,
+            input="2\n" * 4,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=20,
+        )
+
+    def sync(self, *arguments: str) -> subprocess.CompletedProcess[str]:
+        return self.command(
+            "sync.sh", "--from", str(self.source), *arguments,
+            expected_source=self.root / "unused source",
+        )
+
+    @staticmethod
+    def snapshot(*roots: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        entries = {}
+        for root in roots:
+            for path in (root, *root.rglob("*")):
+                try:
+                    info = path.lstat()
+                except FileNotFoundError:
+                    continue
+                payload = None
+                if stat.S_ISLNK(info.st_mode):
+                    payload = os.readlink(path)
+                elif stat.S_ISREG(info.st_mode):
+                    payload = path.read_bytes()
+                entries[path] = (info.st_mode, info.st_mtime_ns, payload)
+        return entries
+
+    def project_legacy(self, project: Path) -> tuple[Path, Path]:
+        windsurf = project / ".windsurf"
+        devin = project / ".devin"
+        self.write(windsurf / "rules/tdd.md", b"Keep this project rule\x00.\n")
+        self.write(devin / "settings.json", b'{"keep":"original"}\n')
+        return windsurf, devin
+
+    def legacy_lines(self, result: subprocess.CompletedProcess[str], *paths: Path) -> None:
+        expected = []
+        for path in paths:
+            quoted = subprocess.run(
+                ["bash", "-c", 'printf "%q" "$1"', "bash", str(path)],
+                cwd=self.root, env=self.environment, capture_output=True, encoding="utf-8",
+                timeout=10, check=True,
+            ).stdout
+            expected.append(
+                f"legacy: {quoted} — created by an earlier Orchestrail version; "
+                f"review it, then remove it manually if unused: rm -r -- {quoted}"
+            )
+        self.assertEqual([line for line in result.stdout.splitlines() if line.startswith("legacy:")],
+                         expected)
+        self.assertFalse(any(line.startswith("legacy:") for line in result.stderr.splitlines()))
+
+    def assert_assembly(self, target: Path, name: str, hook_result: bytes) -> None:
+        adapter = self.source / "harness" / name
+        body = (adapter / "always-on.md").read_bytes()
+        capability = (adapter / "capabilities.md").read_bytes()
+        installation = hook_result if name == "claude" else NO_NATIVE_HOOK
+        contents = target.read_bytes()
+        expected = (
+            body + b"\n<!-- Logging capabilities -->\n" + capability
+            + b"\n## Current hook installation\n\ninstallation-result: " + installation + b"\n"
+        )
+        self.assertEqual(contents, expected, str(target))
+        self.assertEqual(contents.count(capability), 1, str(target))
+        self.assertEqual(contents.count(b"installation-result: "), 1, str(target))
+
+    def assert_rendered(self, destination: Path, hook_result: bytes) -> set[Path]:
+        files = set()
+        for name, (skills, core) in self.adapter_targets.items():
+            self.assertTrue((destination / core).is_file(), f"Missing {name} always-on file: {core}")
+            self.assert_assembly(destination / core, name, hook_result)
+            files.add(destination / core)
+            for skill, source in self.skill_sources.items():
+                deployed = destination / skills / skill / "SKILL.md"
+                self.assertTrue(deployed.is_file(), f"Missing {name} skill: {deployed}")
+                self.assertEqual(deployed.read_bytes(), (self.source / source).read_bytes())
+                files.add(deployed)
+        return files
+
+    def assert_setup_discovery(self, result: subprocess.CompletedProcess[str]) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        next_steps = result.stdout.partition("\nNext steps:\n")[2]
+        self.assertIn("/phase-discovery", next_steps)
+        self.assertNotRegex(next_steps, r"(?i)\b(?:Windsurf|Devin|Claude Code|Codex)\b")
+        self.assertNotRegex(next_steps, r"(?<![\w-])/discovery\b")
+
+    def test_normal_sync_uses_selected_source_and_installs_every_adapter(self) -> None:
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights, "installer"])
+        self.assertTrue((self.home / "demo/commands/phase-discovery/SKILL.md").is_file(),
+                        result.stdout + result.stderr)
+        self.assertFalse((self.home / ".codeium").exists())
+        self.assert_rendered(self.home, self.installed_hook)
+        self.legacy_lines(result)
+
+    def test_sync_reports_global_and_registered_legacy_without_changes(self) -> None:
+        workflows = self.home / ".codeium/windsurf/global_workflows"
+        rules = self.home / ".codeium/windsurf/global_rules"
+        self.write(workflows / "phase-discovery.md", b"Retained global workflow\n")
+        self.write(rules / "tdd.md", b"Retained global rule\n")
+        project = self.root / "registered 'product"
+        project_legacy = self.project_legacy(project)
+        ignored = self.project_legacy(self.source) + self.project_legacy(self.root / "unregistered")
+        registry = (f"{self.source}\n{project}\n{self.root / 'missing'}\n{project}\n").encode()
+        self.write(self.registry, registry)
+        protected = workflows, rules, *project_legacy, *ignored, self.registry
+        before = self.snapshot(*protected)
+
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.legacy_lines(result, workflows, rules, *project_legacy)
+        self.assertEqual(self.snapshot(*protected), before)
+
+    def test_setup_preserves_legacy_and_links_adapter_skills(self) -> None:
+        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        project = self.root / "selected 'project"
+        legacy = self.project_legacy(project)
+        before = self.snapshot(*legacy)
+
+        result = self.command("setup-new-project.sh", cwd=project)
+
+        self.legacy_lines(result, *legacy)
+        self.assertEqual(self.snapshot(*legacy), before)
+        self.assert_setup_discovery(result)
+        link = project / ".demo/skill-links/phase-discovery"
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.resolve(), self.home / "demo/commands/phase-discovery")
+        self.assertIn(os.fsencode(project) + b"\n", self.registry.read_bytes())
+
+    def test_umbrella_setup_reports_legacy_and_omits_it_in_fresh_services(self) -> None:
+        umbrella = self.root / "umbrella"
+        self.write(umbrella / ".ai/README.md", b"# Umbrella knowledge\n")
+        legacy = self.project_legacy(umbrella / "existing 'service")
+        fresh = umbrella / "fresh service"
+        fresh.mkdir()
+        before = self.snapshot(*legacy)
+
+        result = self.command("setup-all-repos.sh", "--include-non-git", cwd=umbrella)
+
+        self.legacy_lines(result, *legacy)
+        self.assertEqual(self.snapshot(*legacy, fresh / ".windsurf", fresh / ".devin"), before)
+        self.assert_setup_discovery(result)
+        self.assertTrue((fresh / ".ai/README.md").is_file())
+
+    def test_sync_python_310_exits_before_writes(self) -> None:
+        self.python_310()
+        marker = self.home / "kept"
+        marker.write_bytes(b"Existing home data\n")
+        before = self.snapshot(self.home, self.config, self.state)
+
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("ERROR: Python 3.11 or newer is required for deployment",
+                      (result.stdout + result.stderr).splitlines())
+        self.assertNotIn("installer", self.calls.read_text().splitlines())
+        self.assertEqual(self.snapshot(self.home, self.config, self.state), before)
+
+    def test_setup_python_310_warns_and_continues(self) -> None:
+        self.python_310()
+        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        project = self.root / "fresh project"
+        project.mkdir()
+
+        result = self.command("setup-new-project.sh", cwd=project)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("WARNING: skill links unavailable: Python 3.11 or newer is required",
+                      (result.stdout + result.stderr).splitlines())
+        self.assertTrue((project / ".ai/README.md").is_file())
+        self.assertFalse((project / ".demo/skill-links").exists())
+        self.assertFalse((project / ".windsurf").exists())
+        self.assertFalse((project / ".devin").exists())
+        self.assertEqual(self.registry.read_bytes(), os.fsencode(project) + b"\n")
+        self.assert_setup_discovery(result)
+
+    def test_sync_installer_failure_and_absence_record_exact_fallback(self) -> None:
+        installer = self.source / "scripts/install-hooks.sh"
+        self.installer(exit_status=5)
+        for reason in ("installer-failed", "installer-unavailable"):
+            with self.subTest(reason=reason):
+                self.calls.write_text("")
+                # Exercise ORCHESTRAIL_HOME without a command-line source override.
+                result = self.command("sync.sh")
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                expected = f'{{"reason":"{reason}","status":"unavailable"}}'.encode()
+                self.assert_assembly(self.home / ".claude/CLAUDE.md", "claude", expected)
+                self.assert_assembly(self.home / ".codex/AGENTS.md", "codex", expected)
+                tail = ["installer"] if installer.exists() else []
+                self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights, *tail])
+            installer.unlink(missing_ok=True)
+
+    def test_stage_renders_only_declared_adapters_without_live_writes(self) -> None:
+        stage = self.root / "empty stage"
+        stage.mkdir()
+        project = self.root / "consumer"
+        (project / ".demo/skill-links").mkdir(parents=True)
+        self.write(self.registry, os.fsencode(project) + b"\n")
+        self.write(self.home / ".claude/CLAUDE.md", b"Live instructions\n")
+        self.write(self.state / "retained", b"Live state\n")
+        protected = self.home, self.config, self.state, project
+        before = self.snapshot(*protected)
+
+        result = self.sync(f"--stage={stage}")
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights])
+        self.assertEqual(self.snapshot(*protected), before)
+        self.assertFalse((stage / ".codeium").exists(), "Staging rendered legacy provider paths")
+        fallback = b'{"reason":"installer-unavailable","status":"unavailable"}'
+        expected_files = self.assert_rendered(stage, fallback)
+        self.assertEqual({path for path in stage.rglob("*") if path.is_file()}, expected_files)
+
+    def test_stage_rejects_existing_nonempty_overlapping_and_symlink_destinations(self) -> None:
+        nonempty = self.root / "nonempty stage"
+        self.write(nonempty / "retained", b"Keep this file\n")
+        target = self.root / "empty target"
+        target.mkdir()
+        symlink = self.root / "stage alias"
+        symlink.symlink_to(target, target_is_directory=True)
+        before = self.snapshot(self.root)
+        for path in (nonempty, self.source, self.home, self.home / ".claude/new", symlink):
+            with self.subTest(stage=path):
+                result = self.sync("--stage", str(path))
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("staging needs an empty isolated directory", result.stderr)
+                self.assertEqual(self.snapshot(self.root), before)
+
+    def test_sync_requires_every_finalization_preflight_before_deployment(self) -> None:
+        stage = self.root / "absent stage"
+        protected = self.home, self.config, self.state, stage
+        before = self.snapshot(*protected)
+        for arguments in ((), ("--stage", str(stage))):
+            for index, name in enumerate(self.preflights):
+                script = self.source / "scripts" / name
+                original = script.read_bytes()
+                for missing in (True, False):
+                    with self.subTest(staged=bool(arguments), preflight=name, missing=missing):
+                        self.calls.write_text("")
+                        if missing:
+                            script.unlink()
+                        else:
+                            script.write_bytes(original + b"raise SystemExit(17)\n")
+
+                        result = self.sync(*arguments)
+
+                        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                        status = "required acceptance check missing" if missing else "acceptance check failed"
+                        self.assertIn(f"ERROR: {status}: {name}", result.stderr)
+                        completed = index if missing else index + 1
+                        self.assertEqual(self.calls.read_text().splitlines(),
+                                         ["validator", *self.preflights[:completed]])
+                        self.assertEqual(self.snapshot(*protected), before)
+                        script.write_bytes(original)
+
+    def test_sync_and_engine_have_no_literal_harness_targets(self) -> None:
+        engine = ast.parse(ENGINE.read_text(encoding="utf-8"))
+        forbidden = {"claude", "codex", ".claude", ".codex"}
+        literal_names = {node.value for node in ast.walk(engine)
+                         if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+        self.assertFalse(literal_names & forbidden)
+        shell = (SOURCE / "scripts/sync.sh").read_text(encoding="utf-8")
+        harness_path = re.compile(r"""['"]\.?(?:claude|codex)['"]|(?:/|~)\.(?:claude|codex)(?:/|\b)""")
+        lines = [line for line in shell.splitlines()
+                 if not line.lstrip().startswith("#") and harness_path.search(line)]
+        self.assertEqual(lines, [])
+
+
+def offline_source_findings(source: str) -> list[str]:
+    """Check direct subprocess launches and network imports in the standalone sources."""
+    tree = ast.parse(source)
+    network = {"socket", "ssl", "http", "urllib", "ftplib"}
+    launchers = {"call", "check_call", "check_output", "getoutput", "getstatusoutput", "Popen", "run"}
+    repository_scripts = {
+        "scripts/deploy-skills.py", "scripts/lint-instructions.py", "scripts/report-legacy-artifacts.sh",
+        "scripts/setup-all-repos.sh", "scripts/setup-new-project.sh", "scripts/sync.sh",
+    }
+    commands = {"bash", "python3", "git", *repository_scripts}
+    findings = []
+    subprocess_modules = set()
+    subprocess_functions = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.split(".")[0] in network:
+                    findings.append(f"line {node.lineno}: network import {alias.name}")
+                if alias.name == "subprocess":
+                    subprocess_modules.add(alias.asname or alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            if node.module.split(".")[0] in network:
+                findings.append(f"line {node.lineno}: network import {node.module}")
+            if node.module == "subprocess":
+                subprocess_functions.update(alias.asname or alias.name
+                                            for alias in node.names if alias.name in launchers)
+
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+
+    def program(node: ast.expr | None, call: ast.Call) -> ast.expr | None:
+        if not isinstance(node, (ast.List, ast.Tuple)) or not node.elts:
+            return None
+        first = node.elts[0]
+        if not isinstance(first, ast.Starred):
+            return first
+        if not isinstance(first.value, ast.Name):
+            return None
+        scope = parents[call]
+        while not isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
+            scope = parents[scope]
+        # Permit a literal program supplied by an earlier, unambiguous list prefix.
+        name = first.value.id
+        definitions = [item for item in ast.walk(scope) if (
+            isinstance(item, ast.Name) and item.id == name and isinstance(item.ctx, ast.Store)
+        )]
+        if len(definitions) != 1:
+            return None
+        assignment = parents[definitions[0]]
+        if (isinstance(assignment, ast.Assign) and assignment in scope.body
+                and assignment.lineno < call.lineno
+                and isinstance(assignment.value, (ast.List, ast.Tuple)) and assignment.value.elts):
+            return assignment.value.elts[0]
+        return None
+
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        function = call.func
+        if isinstance(function, ast.Name):
+            launches = function.id in subprocess_functions
+        else:
+            launches = (
+                isinstance(function, ast.Attribute) and isinstance(function.value, ast.Name)
+                and function.value.id in subprocess_modules and function.attr in launchers
+            )
+        if not launches:
+            continue
+        command = (call.args[0] if call.args else
+                   next((keyword.value for keyword in call.keywords if keyword.arg == "args"), None))
+        executable = program(command, call)
+        if (isinstance(executable, ast.Constant) and isinstance(executable.value, str)
+                and executable.value in commands):
+            continue
+        if (isinstance(executable, ast.Attribute) and isinstance(executable.value, ast.Name)
+                and executable.value.id == "sys" and executable.attr == "executable"):
+            continue
+        findings.append(f"line {call.lineno}: subprocess program is not on the offline allowlist")
+    return findings
+
+
+class DeploymentSourceIsolationTests(unittest.TestCase):
+    def test_deployment_and_checker_source_only_use_offline_programs(self) -> None:
+        for path in (ENGINE, CHECKER, Path(__file__)):
+            with self.subTest(path=path.name):
+                self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
+
+    def test_source_check_detects_network_imports_and_unknown_subprocess_programs(self) -> None:
+        findings = offline_source_findings(
+            "import urllib.request\n"
+            "from ssl import SSLContext\n"
+            "from subprocess import run as launch\n"
+            "import subprocess as child\n"
+            "launch(['curl', 'fixture'])\n"
+            "child.run(args=[program, 'fixture'])\n"
+            "launch(['bash', 'fixture.sh'])\n"
+        )
+        self.assertEqual(findings, [
+            "line 1: network import urllib.request",
+            "line 2: network import ssl",
+            "line 5: subprocess program is not on the offline allowlist",
+            "line 6: subprocess program is not on the offline allowlist",
         ])
 
 
