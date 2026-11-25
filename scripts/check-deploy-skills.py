@@ -2265,6 +2265,40 @@ esac
                  if not line.lstrip().startswith("#") and harness_path.search(line)]
         self.assertEqual(lines, [])
 
+    def test_sync_refuses_to_replace_the_held_project_registration_lock(self) -> None:
+        _, core = self.adapter_targets["demo"]
+        for filename in ("deploy.env", "capabilities.md"):
+            source = self.source / "harness/demo" / filename
+            source.write_bytes(source.read_bytes().replace(
+                f"$HOME/{core}".encode(), b"$HOME/.config/orchestrail/projects.lock",
+            ))
+        contents = b"Existing registration lock\n"
+
+        for variant in ("direct config", "aliased config"):
+            with self.subTest(variant=variant):
+                home = self.root / variant
+                config = home / ".config"
+                lock_path = config / "orchestrail/projects.lock"
+                self.write(lock_path, contents)
+                config_path = config
+                if variant == "aliased config":
+                    config_path = home / "config alias"
+                    config_path.symlink_to(config, target_is_directory=True)
+                self.environment.update(HOME=str(home), XDG_CONFIG_HOME=str(config_path))
+                before = self.snapshot(home, self.state)
+
+                with lock_path.open("r+b") as lock:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    result = self.sync()
+
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("ERROR adapter-conflict:", result.stderr)
+                    self.assertNotRegex(result.stdout, r"(?m)^(?:create|adopt|replace|remove) ")
+                    self.assertFalse((config / "orchestrail/deploy").exists())
+                    self.assertTrue(os.path.samestat(lock_path.lstat(), os.fstat(lock.fileno())))
+                    self.assertEqual(lock_path.read_bytes(), contents)
+                    self.assertEqual(self.snapshot(home, self.state), before)
+
 
 def offline_source_findings(source: str) -> list[str]:
     """Check direct subprocess launches and network imports in the standalone sources."""
