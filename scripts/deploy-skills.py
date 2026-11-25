@@ -648,17 +648,21 @@ def _source_revision(source: Path) -> str | None:
     # A caller's Git repository overrides must not redirect the selected source query.
     for name in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE", "GIT_NAMESPACE"):
         environment.pop(name, None)
+    command = ["git", "-C", str(source), "rev-parse"]
     try:
-        result = subprocess.run(
-            ["git", "-C", str(source), "rev-parse", "--verify", "HEAD"],
-            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            env=environment, timeout=5,
+        work_tree = subprocess.check_output(
+            [*command, "--is-inside-work-tree"],
+            stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=environment, timeout=5,
         )
-    except (OSError, subprocess.TimeoutExpired):
+        if work_tree.removesuffix(b"\n") != b"true":
+            return None
+        head = subprocess.check_output(
+            [*command, "--verify", "HEAD"],
+            stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=environment, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
         return None
-    if result.returncode != 0:
-        return None
-    revision = result.stdout.removesuffix(b"\n").decode("ascii", errors="replace")
+    revision = head.removesuffix(b"\n").decode("ascii", errors="replace")
     return revision if _REVISION.fullmatch(revision) else None
 
 
