@@ -7,6 +7,12 @@ and the audit spec — dates are those recorded in the sources.
 
 ## Log
 
+- **2026-11-25 — Parallel capability direction reconciled.** The owner selected the
+  automatic-parallel program direction for the harness migration. Its undelivered
+  preflight retains the sequential capability gate and defers parallel admission and
+  fallback to the program. Discovery remains blocked by newly unmapped finalization
+  sources; no implementation or completed validation is claimed.
+
 - **2026-11-25 — Specification references reviewed.** Corrected stale numbered references
   and the accepted audit heading without renumbering specifications or report schema fields.
   Former parallel specification references still require semantic reconciliation with the

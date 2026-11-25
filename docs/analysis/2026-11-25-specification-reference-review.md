@@ -28,3 +28,13 @@ historical and require reconciliation before implementation. The old requirement
 cannot be mechanically retargeted to 027: its program contracts are not a one-to-one copy.
 That semantic reconciliation remains open; this reference review does not certify the full
 behavioral consistency or implementation readiness of the specifications.
+
+## Later task relocation
+
+Commit `32a608fc1f0d40929eb04df93c166a8173607432` subsequently moved all nine files of the
+phase-one review task from `task-25-spec-driven-pr-review-p1` to
+`task-026-spec-driven-pr-review-p1` without changing their bytes. This postdates the numbering
+review's statement that the task remained at its old path. Its existing finalization journal
+still records the old task and specification paths, so the Git relocation alone does not
+establish journal recovery or authorize cleanup. The current memory pointer is updated; the
+historical review and journal are preserved.

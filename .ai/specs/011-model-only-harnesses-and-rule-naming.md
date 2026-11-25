@@ -3,7 +3,8 @@
 > **Scope reconciliation, 2026-11-25:** The former spec 23 was consolidated into
 > [the parallel execution specification](027-parallel-execution-program.md). References
 > below to its numbered requirements or data models describe a historical design preserved
-> at Git revision `42325d2` and require reconciliation before implementation.
+> at Git revision `42325d2`. This specification's sequential capability gate is reconciled;
+> the parallel program retains its own unresolved implementation blockers.
 
 
 ## Source
@@ -126,6 +127,16 @@ Verified at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
     `workflows/<name>.md` exists (`scripts/log-step.sh:370-385`); historical names are not
     enforced (`rules/run-log.md:225-229`).
 
+**Current-source reconciliation:** At `8857b631858bcde083a5a087371f72aa303d9058`, sync
+still writes legacy targets and copies harness skills (`scripts/sync.sh:109-181`), and setup
+still creates legacy project rule directories (`scripts/setup-new-project.sh:85-140`). The
+oracle now carries the approved state-tool inventory extension
+(`tests/validator-runtime-oracle.py:47-103`), and the existing inventory check permits only
+its recorded archival fallbacks (`scripts/validate-contracts.sh:4923-4948`). The later
+finalization rule and workflow are present (`rules/phase-finalize.md:1-43`,
+`workflows/phase-finalize.md:1-34`). The numbered observations above remain claims about the
+specified historical snapshot, not a claim that its line numbers describe the current tree.
+
 **Consequence:** a third harness would need code edits, deployment leaves stale or
 overwritten skills without trace, consumer projects keep receiving editor directories, the
 same base name means two different things, behaviour is chosen by harness name instead of a
@@ -169,6 +180,10 @@ migration that the frozen validator inventory accepts through an explicit amendm
    `scripts/check-lint-instructions.py` and `scripts/check-deploy-skills.py`.
 10. A migration semantics record under `docs/audits/` (DM-20).
 11. Knowledge-base updates and one ADR.
+12. Repair the existing knowledge-inventory check for the independently documented task
+    directory relocations, without changing its baseline or allowing unrelated removals.
+13. Repair read-only resolution of the independently verified phase-one review relocation
+    without changing its existing finalization journal or authorizing cleanup.
 
 ## Out of Scope
 
@@ -179,7 +194,7 @@ migration that the frozen validator inventory accepts through an explicit amendm
   `docs/reference/`: spec 021. `loads` metadata, `rules/reference/`, `ref-<name>` deployment,
   the 700/6,000-word limits and the always-on lines naming `load: always` rules: spec 013.
   The public installer, profiles and backups: spec 022. Golden runs and `tests/golden/`:
-  spec 012. Parallel children and the `--parallel` flag: spec 23. Telemetry (05), git rails
+  spec 012. Automatic parallel execution: spec 027. Telemetry (05), git rails
   (06), the state tool (07), specs 014–18.
 - Deleting or moving any legacy directory (`~/.codeium/…`, `.windsurf/`, `.devin/`) or any
   installed skill the deploy manifest does not own.
@@ -290,7 +305,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   capability-dependent behaviour with its required capability and its path when the
   capability is absent (DM-4 → Behaviour table); IF a required capability is `no`, `unknown`
   or undeclared, or the session does not expose the tool or permission, THEN THE workflow
-  SHALL take the listed single-session path or stop before any side effect, and SHALL NOT
+  SHALL take the listed fallback or stop before any side effect, and SHALL NOT
   report the unavailable mechanism as used.
 - **REQ-35.** EACH harness directory SHALL contain `deploy.env`, `always-on.md` and
   `capabilities.md`, MAY contain `hooks.json`, `permissions.json` and `reserved-names.txt`,
@@ -302,13 +317,11 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   replaces the assembly with its generated file without a second append.
 - **REQ-37.** WHEN `/spec-run` starts, THE workflow SHALL, before any write, branch, commit or
   spawn, require records `sub-agents`, `agent-messaging` and `git` with `state: yes` and the
-  matching session tools, and WHERE `--parallel N` with N > 1 is given (spec 23) also
-  `worktrees` and `concurrent-sub-agents`; otherwise it SHALL stop with the message of
-  Contracts → `/spec-run` preflight, whose next step is `/pipeline <task-directory>` for a
-  missing `sub-agents`, `agent-messaging` or `git`, and a re-run without `--parallel` for a
-  missing `worktrees` or `concurrent-sub-agents` (`/pipeline` has no parallel mode); with
-  several keys missing, the first in the key order of the preflight contract decides.
-  Single-session workflows keep their documented paths.
+  matching session tools; otherwise it SHALL stop with the message of Contracts →
+  `/spec-run` preflight and direct the user to `/pipeline <task-directory>`. With several
+  keys missing, the first in the key order of that contract decides. Single-session
+  workflows keep their documented paths. This delivery does not add parallel scheduling;
+  spec 027 owns its automatic selection and sequential fallback when available.
 - **REQ-38.** EACH capability record SHALL state `state`, and for `yes` or `no` also `runtime`,
   `verified` and at least one `evidence`; a capability without collected evidence SHALL be
   `state: unknown`; a `no` record describes the shipped implementation, not a permanent
@@ -320,8 +333,9 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
 - **REQ-17.** THE stems of `rules/*.md` and `workflows/*.md` SHALL be disjoint, and the set
   of installed names of all sources (DM-15) SHALL contain no two names equal under Unicode
   casefolding.
-- **REQ-18.** THE five bootstrap rules SHALL be `bootstrap-discovery`, `bootstrap-execution`,
-  `bootstrap-validation`, `bootstrap-atomic-execution`, `bootstrap-atomic-validation`.
+- **REQ-18.** THE bootstrap rules SHALL be `bootstrap-discovery`, `bootstrap-execution`,
+  `bootstrap-validation`, `bootstrap-atomic-execution`, `bootstrap-atomic-validation` and
+  `bootstrap-finalization`.
 - **REQ-19.** EACH bootstrap rule SHALL contain, after its front matter and one optional H1,
   exactly the two `## ` sections `## Context Bootstrap` then `## Phase Behaviors` and, unless
   DM-20 → Bootstrap size exceptions lists it, at most 300 words (DM-19); IF the moved text
@@ -519,6 +533,44 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   A value added by a later spec carries that spec's number, with its letter suffix when the
   spec file name has one, as a prefix, `spec-<NNN>[<a-z>] REQ-<MM>` (for example
   `spec-023 REQ-72`, `spec-022 REQ-04`), so it never collides with this spec's bare ids.
+- **REQ-70 Finalization compatibility.** WHEN the finalization rule and workflow are renamed,
+  THE migration SHALL preserve existing finalization journals, including the durable
+  `authorization.invocation` value `phase-finalize`, and SHALL retain exact protocol literals
+  needed to read and write those journals. Executable workflow references and their instruction
+  tests SHALL use the new names; DM-20 SHALL list each retained old-name source line with its
+  protocol or fixture reason. New run-log events use the renamed workflow while historical
+  records remain unchanged. Isolated regression checks SHALL verify existing journal recovery.
+- **REQ-71 Existing inventory extension.** WHEN the oracle adopts schema 2, THE oracle SHALL
+  retain schema-1 compatibility and preserve the already approved `added` entries, their
+  anchors and resource restrictions, without accepting additional unapproved inventory items.
+- **REQ-72 Knowledge relocation verification.** WHEN the existing knowledge-inventory check
+  encounters a baseline task path moved by an independently verified numbering relocation, THE
+  check SHALL resolve only an exact, unambiguous former-to-current task-directory mapping,
+  preserve the remaining path components and existing todo-to-completed and spec archival
+  fallbacks, and require the resolved path to exist and be tracked. First accept an existing
+  tracked original. Otherwise form the existing archival candidate and the mapped candidate,
+  including its todo-to-completed form when applicable; accept exactly one distinct existing,
+  tracked candidate and reject multiple candidates or any existing untracked candidate. Missing
+  intermediate candidates do not cause failure when exactly one permitted final candidate
+  exists and is tracked; absence of every permitted candidate causes failure. The mapping SHALL be
+  independently checked against recorded rename history, including the later phase-one review
+  relocation in commit `32a608fc1f0d40929eb04df93c166a8173607432`; its separate journal-path
+  inconsistency is not treated as repaired by the mapping. An existing tracked original path
+  SHALL continue to pass; an absent original without an approved mapping or archival fallback,
+  an ambiguous mapping, or an existing untracked candidate SHALL fail. The pinned baseline
+  and historical records SHALL remain unchanged. The existing check name and expression SHALL
+  remain unchanged, and new regression fixtures SHALL run outside the frozen validator inventory.
+  Current source: `scripts/validate-contracts.sh:4923-4948` at revision
+  `8857b631858bcde083a5a087371f72aa303d9058`.
+- **REQ-73 Finalization journal relocation.** WHEN a finalization journal's recorded current
+  task or specification path has moved after archival, THE read-only resolver SHALL recognize
+  the current location only through the explicit inspection evidence and verification in DM-21.
+  The journal's original identity,
+  authorization, snapshots, history and recorded current paths SHALL remain unchanged by
+  inspection; missing, contradictory or ambiguous relocation evidence SHALL fail closed.
+  Successful resolution SHALL NOT imply validation, authorize cleanup or initiate finalization.
+  Include the phase-one review relocation evidenced by commit
+  `32a608fc1f0d40929eb04df93c166a8173607432`; the existing journal records its earlier path.
 
 REQ-60 is not used.
 
@@ -544,7 +596,7 @@ REQ-60 is not used.
   paths matching `^(rules|workflows|templates|harness|docs)/[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*$`,
   exactly one `new`.
 - Rows sorted by `kind`, then `old` (Python string order); no `(kind, old)` pair repeated (the
-  five `phase-*` stems therefore have one `rule` row and one `workflow` row each); no `new`
+  six `phase-*` stems therefore have one `rule` row and one `workflow` row each); no `new`
   value appears in two rows; no `new` equals any `old`. Rows are exactly: one `rule` row per
   DM-10 source under `rules/` other than `rules/global-claude.md` (listing every overflow rule
   REQ-19 actually created), one `workflow` row per DM-11 rename, and three `file` rows —
@@ -602,7 +654,7 @@ step: 2.5
 ```
 
 Keys: `description`, `phase`, `step`. `phase` ∈ `discovery | execution | validation |
-atomic-execution | atomic-validation | orchestrated | entry | utility`. `step` is a plain
+atomic-execution | atomic-validation | finalization | orchestrated | entry | utility`. `step` is a plain
 value matching `^[1-9][0-9]*(\.[1-9][0-9]*|[a-z])?$` or the JSON string `"-"`. Sort order of
 steps: numeric integer part, then decimal part (absent = 0), then letter (absent first), and
 `"-"` before all numbers; this order is binding for every listing of workflows, spec 021's
@@ -654,16 +706,18 @@ Limitations: <one paragraph, or "none known">
 | Behaviour | Workflow | Requires | Without it |
 |---|---|---|---|
 | Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | `sub-agents`, `agent-messaging`, `git` | Stop before Step 0; use `/pipeline <task-directory>` |
-| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | Stop before any action; re-run without `--parallel` |
+| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | Sequential path with a reason until parallel support is established |
 | Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Inline review, `critic: inline` |
 | Model-specific worker for a leaf | `atomic-execution`, `execution-execute` | `sub-agents` | Run inline when no explicit switch is required, otherwise stop |
-| Hook-covered step logging | `discovery`, `execution`, `validation`, `pipeline`, `spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |
+| Hook-covered step logging | `discovery`, `execution`, `validation`, `finalization`, `pipeline`, `spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |
 
 The `Behaviour` texts above are exact; the checker identifies the required rows by them. The
-"Parallel children" row is a contract for spec 23, which adds `--parallel` and wires the check
-(this spec adds no flag). The six workflows that open a run log today are those containing
-`run-start` (`workflows/phase-pipeline.md`, `phase-discovery.md`, `phase-validation.md`,
-`phase-execution.md`, `retro.md`, `spec-run.md`).
+"Parallel children" row records the fallback direction of spec 027 REQ-07; this spec
+adds neither a parallel flag nor a scheduler. Spec 027 owns the full eligibility, capacity,
+isolation and integration contracts before it enables parallel scheduling. The seven workflows
+that open a run log today contain `run-start` (`workflows/phase-pipeline.md`,
+`phase-discovery.md`, `phase-validation.md`, `phase-execution.md`, `phase-finalize.md`,
+`retro.md`, `spec-run.md`); finalization dry-run emits no telemetry.
 
 The same section states: read the records from the always-on context; `no`, `unknown` or an
 absent record means unavailable; a declared `yes` still requires the session to expose the
@@ -780,9 +834,12 @@ missing, not active.
 ### DM-9 Inventory amendment schema 2 (new; owned by this spec, reused by spec 013)
 
 `tests/fixtures/validator-runtime/inventory-amendment.json` with `"schema": 2` has exactly the
-keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path_changes`,
-`contract_changes`. Schema 1 keeps its meaning and four keys. `paths`, `removed_results` and
-`resources` keep their schema-1 meaning; each `tests/` file the migration changes is added to
+keys `schema`, `paths`, `removed_results`, `resources`, `added`, `name_map_sha256`,
+`path_changes`, `contract_changes`. Schema 1 keeps its current five keys and meaning,
+including the approved state-tool `added` extension (`tests/validator-runtime-oracle.py:47-103`
+at revision `8857b631858bcde083a5a087371f72aa303d9058`); schema 2 carries and validates that
+same extension. `paths`, `removed_results`
+and `resources` keep their schema-1 meaning; each `tests/` file the migration changes is added to
 `paths` and to `APPROVED_PATHS` and its digest and observation changes are recorded in
 `resources`.
 
@@ -843,6 +900,7 @@ keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path
 | `rules/phase-validation.md` | `rules/bootstrap-validation.md` | on-demand |
 | `rules/phase-atomic-execution.md` | `rules/bootstrap-atomic-execution.md`; `rules/procedure-blocker-reconciliation.md` | on-demand; on-demand |
 | `rules/phase-atomic-validation.md` | `rules/bootstrap-atomic-validation.md` | on-demand |
+| `rules/phase-finalize.md` | `rules/bootstrap-finalization.md` | on-demand |
 | `rules/workflow-globals.md` | `rules/contract-phases.md` | always |
 | `rules/workflow-reference.md` | `rules/contract-state-files.md`; `rules/protocol-autonomous-decision.md`; `rules/protocol-subtask-classifier.md` | on-demand (all three) |
 | `rules/tdd.md` | `rules/contract-tdd.md` | always |
@@ -855,15 +913,19 @@ keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path
 | `templates/codex-global-AGENTS.md` | `harness/codex/always-on.md` | — (not a rule) |
 
 Load modes follow the current trigger (`always_on` → `always`, `model_decision` →
-`on-demand`). A rule file added after this revision is classified by 010 and amended in via
-`/spec-sync`; it is never left out.
+`on-demand`). A rule file added after the accepted audit is classified from its current
+source and applicable decisions and amended in via `/spec-sync`; it is never left out.
+The finalization rule is a bootstrap: its `## Context Bootstrap` specifies ordered inputs
+and its `## Phase Behaviors` specifies phase conduct (source: `rules/phase-finalize.md`;
+ADR-0025). This later classification does not change the accepted audit.
 
 **Overflow rules (REQ-19).** Measured with DM-19 at the parent snapshot, the text that moves
 into `bootstrap-atomic-execution` (front matter, `## Context Bootstrap`, `## Phase Behaviors`)
 has about 393 words and `bootstrap-atomic-validation` about 328, so at least these two need
 overflow. The only permitted overflow targets, all `load: on-demand`, are
 `rules/protocol-execution-conduct.md`, `rules/protocol-validation-conduct.md`,
-`rules/protocol-atomic-execution-conduct.md`, `rules/protocol-atomic-validation-conduct.md`
+`rules/protocol-atomic-execution-conduct.md`, `rules/protocol-atomic-validation-conduct.md`,
+`rules/protocol-finalization-conduct.md`
 and, for Discovery, the existing target `rules/protocol-discovery-conduct.md`. Each is created
 only when its bootstrap rule needs it; each created one is added to the source rule's
 `new` list in DM-1 and to DM-20. The bootstrap rule's `## Phase Behaviors` then holds the
@@ -900,6 +962,7 @@ obligations that fit and the line "Load the `protocol-<phase>-conduct` rule befo
 | `pav-propose` | `atomic-validation-propose` | atomic-validation | 2 |
 | `pav-close` | `atomic-validation-close` | atomic-validation | 3 |
 | `phase-composite-validation` | `composite-validation` | atomic-validation | `"-"` |
+| `phase-finalize` | `finalization` | finalization | `"-"` |
 | `phase-pipeline` | `pipeline` | orchestrated | `"-"` |
 
 Unchanged names: `spec-run` (orchestrated), `spec-draft`, `spec-sync`, `bugfix`,
@@ -921,7 +984,15 @@ Unchanged names: `spec-run` (orchestrated), `spec-draft`, `spec-sync`, `bugfix`,
   `protocol-discovery-conduct` rule.
 - `rules/phase-atomic-execution.md`: `## Context Bootstrap`, `## Phase Behaviors` →
   `bootstrap-atomic-execution`; `## Blocker Reconciliation` → `procedure-blocker-reconciliation`.
-- For `rules/phase-discovery.md` and `rules/phase-atomic-execution.md`, the text before the first
+- `rules/phase-finalize.md`: `## Context Bootstrap`, `## Phase Behaviors` →
+  `bootstrap-finalization`; move only excess phase-behavior text to
+  `protocol-finalization-conduct` under REQ-19, preserving the standalone post-merge guard.
+  Measure the delivered bytes after metadata and substitutions before applying a size exception;
+  the current pre-behaviors source is 290 words, which alone does not establish one. Rename
+  executable workflow and rule references per DM-17; preserve journal protocol literals under
+  REQ-70, with exact retained source lines recorded in DM-20.
+- For `rules/phase-discovery.md`, `rules/phase-atomic-execution.md` and
+  `rules/phase-finalize.md`, the text before the first
   `## ` heading (front matter and title) goes to the bootstrap target (010 DM-5 `(preamble)`).
 - A moved section keeps its heading text, its `###` subsections and its body; edits are limited
   to DM-1 substitutions and REQ-19 relocations recorded in DM-20.
@@ -1004,7 +1075,7 @@ each is listed in the same DM-20 table.
 - **Stale-name forms** for every DM-1 row: workflow rows — `/<old>`, `<old>.md`,
   `workflows/<old>.md`, and the bare whole token `<old>`; rule rows — `rule-<old>`,
   `rules/<old>.md`, `<old>.md`, `` `<old>` `` followed by ` rule`/` rules`, `` `<old> → ``,
-  and the bare whole token only for `workflow-globals`, `workflow-reference` and the five
+  and the bare whole token only for `workflow-globals`, `workflow-reference` and the six
   `phase-*` stems; file rows — the old path and, for `global-claude` and
   `codex-global-AGENTS`, also `<stem>.md` and the bare whole token `<stem>`. An occurrence
   that is part of a `new` path of the same row (such as `PIPELINE.md` inside
@@ -1058,6 +1129,51 @@ rows with their reason. Further sections, each a table:
 Every row of the first table carries a `Reviewed` column `<role> <YYYY-MM-DD> pass|fail`, and
 the record ends with one line `Signed: <reviewer role> <YYYY-MM-DD> <commit sha>` written by
 the independent validator.
+
+### DM-21 Read-only finalization relocation evidence
+
+This is an inspect-only compatibility path for the one observed phase-one review relocation,
+not a general journal migration. `inspect` accepts an optional
+`--relocation-evidence <file>`; all mutating subcommands reject that option before writes.
+The file is UTF-8 JSON, at most 1 MiB, a regular non-symlink file, with duplicate keys
+rejected and exactly these string fields: `schema_version` (`"1"`), `journal_id`
+(64 lowercase hex), `journal_sha256` (64 lowercase hex), `task_old`, `task_new`,
+`spec_old`, `spec_new`, `evidence_commit`. Paths are root-relative and must resolve inside
+the physical project root without traversing symlinks. The four paths must equal exactly:
+
+```text
+task_old: .ai/tasks/completed/task-25-spec-driven-pr-review-p1
+task_new: .ai/tasks/completed/task-026-spec-driven-pr-review-p1
+spec_old: .ai/specs/25-spec-driven-pr-review.md
+spec_new: .ai/specs/completed/026-spec-driven-pr-review.md
+evidence_commit: 32a608fc1f0d40929eb04df93c166a8173607432
+```
+
+The caller supplies the journal identity and SHA-256 from an independently read journal;
+the verifier never trusts those values without recomputation. It validates the existing
+journal using its original task identity and unchanged schema, requires the evidence's ID
+and digest to match the actual journal bytes, and requires the journal's recorded current
+task and specification paths to be `task_old` and `spec_old`. The evidence commit must
+exist and be an ancestor of the current repository `HEAD`. Verify with Git that the tree at
+`task_old` in its parent equals the tree at `task_new` in that commit; enumerate the latter
+tree and require the live directory to contain exactly those regular tracked files with
+matching bytes and no symlinks or extra files. Require the live `spec_new` bytes to match
+that commit's tracked blob. Verify that the unchanged `snapshot/spec.md` bytes equal the
+tracked `spec_old` blob at the parent of `42325d2dc40c0b20bb333e1b7c7fdf5e5ce14117`, and
+that this commit and `bda0f3e928c119da5a7d8d108c6daf89a4777b0f` are ancestors of the
+evidence commit and contain, respectively, the archived old specification and the renamed
+new specification. The exact commits and paths are the provenance for this exceptional
+mapping; neither basename similarity nor a caller assertion is proof.
+
+Accept either recorded old or verified new task/spec path as the inspection selector only
+when it identifies exactly one journal and the complete evidence above passes. Return the
+verified current paths and existing journal identity with `relocation: verified-read-only`;
+do not change journal, snapshots, task, spec, refs or completion status, and do not issue
+cleanup authorization. Missing evidence keeps the existing failure; invalid, stale,
+ambiguous, untracked, changed or unsafe evidence returns `relocation-evidence-invalid`
+without fallback or writes. No mutation may use the alias: a mutating command selecting an
+old or new alias is refused with `relocation-inspect-only`, even after successful inspection.
+This does not revise existing authorization, finalization completion or deployment semantics.
 
 ## Contracts & Interfaces
 
@@ -1167,13 +1283,12 @@ Added to `workflows/spec-run.md → ## Guard`: read the capability records from 
 context. For each required key whose record is absent, `no` or `unknown`, or whose tool is not
 exposed in the session: **stop**:
 `"spec-run requires capability <key> (declared: <yes|no|unknown|absent>; session tool: <available|unavailable>). <next-step>"`
-`<next-step>` is `Use /pipeline <task-directory> for the single-session path.` when `<key>` is
-`sub-agents`, `agent-messaging` or `git`, and `Re-run without --parallel.` when `<key>` is
-`worktrees` or `concurrent-sub-agents`, because `/pipeline` has no parallel mode (spec 23).
-Keys are checked in the order `sub-agents`, `agent-messaging`, `git`, `worktrees`,
-`concurrent-sub-agents` and the message names the first failing key, so a run that also lacks a
-non-parallel key is directed to `/pipeline`. The Guard holds one `**stop**` line (the template
-above) and states the two `<next-step>` texts on lines that do not contain `**stop**`.
+`<next-step>` is `Use /pipeline <task-directory> for the single-session path.`. Keys are
+checked in the order `sub-agents`, `agent-messaging`, `git`, and the message names the first
+failing key. Parallel-only capability selection belongs to spec 027; this delivery does not
+stop a sequential run because `worktrees` or `concurrent-sub-agents` is unavailable. The Guard
+holds one `**stop**` line (the template above) and states the `<next-step>` text on a line
+that does not contain `**stop**`.
 The check runs before Step 0 and before any write, branch, commit, spawn or run-log record.
 
 ### `scripts/lint-instructions.py`
@@ -1193,7 +1308,7 @@ finding concerns a whole file); `info …` lines do not affect the exit code. Ex
 `semantics-record-ambiguous`.
 
 Triggers not defined elsewhere: `bootstrap-table-invalid` — the header line of REQ-15 is
-absent from `contract-phases → ## Context Bootstrap`, the table has other than five rows, or a
+absent from `contract-phases → ## Context Bootstrap`, the table has other than six rows, or a
 `Skill` cell is not `rule-bootstrap-<phase>` of an existing rule; `resolution-rule-missing` —
 the REQ-14 anchored line is absent from `contract-phases → ## Rule references`, or occurs more
 than once in scan set R; `capability-behaviour-table-invalid` — the DM-4 header is absent, a
@@ -1318,9 +1433,9 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   their code.
 - **AC-08** (REQ-14, REQ-15) — Given the delivered repository, then the REQ-14 anchored line
   occurs exactly once in scan set R, inside `contract-phases → ## Rule references`; the
-  bootstrap table header is `| Phase | Skill | Loaded by |` with five rows naming existing
+  bootstrap table header is `| Phase | Skill | Loaded by |` with six rows naming existing
   `rule-bootstrap-*` skills; no file of scan set R contains `bare basename` or a header cell
-  starting `Rules file`; and fixtures removing the anchored line or adding a sixth table row
+  starting `Rules file`; and fixtures removing the anchored line or adding a seventh table row
   yield `resolution-rule-missing` and `bootstrap-table-invalid`.
 - **AC-09** (REQ-16) — Given the delivered `contract-phases → ## Capabilities`, then it holds
   the five behaviour rows of DM-4 with their exact `Behaviour` texts and canonical keys only;
@@ -1328,7 +1443,7 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   `` `contract-phases → ## Capabilities` ``; `workflows/spec-draft.md` still contains
   `critic: inline`; and a fixture table with the key `subagents` or a missing required row
   yields `capability-behaviour-table-invalid`.
-- **AC-10** (REQ-17, REQ-18, REQ-28) — Given the delivered repository, then the five
+- **AC-10** (REQ-17, REQ-18, REQ-28) — Given the delivered repository, then the six
   `rules/bootstrap-*.md` exist and the checker reports no collision; and given fixtures with
   `rules/discovery.md` beside `workflows/discovery.md`, and with `rules/tdd.md` beside
   `workflows/rule-tdd.md` (both install as `rule-tdd`), the checker reports `name-collision`
@@ -1387,10 +1502,9 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   still present in order.
 - **AC-23** (REQ-37, REQ-38) — Given `workflows/spec-run.md`, then its `## Guard` holds the
   preflight for `sub-agents`, `agent-messaging` and `git` with the stop message of Contracts →
-  `/spec-run` preflight, before Step 0 (the parallel clause is wired by spec 23 through the DM-4
-  row), and the Guard states both `<next-step>` texts, the `/pipeline` text for the three
-  non-parallel keys and the `Re-run without --parallel.` text for `worktrees` and
-  `concurrent-sub-agents`; and given fixture records with a `yes`
+  `/spec-run` preflight, before Step 0, and directs the user to `/pipeline` for a missing
+  required key; unavailable parallel-only capabilities do not stop the sequential path; and
+  given fixture records with a `yes`
   record lacking `evidence`, an invalid date, and a duplicated name, the checker reports
   `capability-schema` for each.
 - **AC-24** (REQ-42, REQ-44) — Given fixtures with a symbolic link at a managed `SKILL.md`, a
@@ -1527,6 +1641,31 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   the DM-16 grammar is a row of DM-20 → Pre-existing reference defects whose Fix cell names
   the applied fix, and the delivered text at that place is one span that names an existing
   heading with its marker and carries no `.md` after a rule or workflow name.
+- **AC-51** (REQ-70) — Given a valid pre-migration finalization journal whose authorization
+  invocation is `phase-finalize`, the renamed workflow and helpers accept and reconcile it
+  with its original authorization and evidence intact; a changed authorization is refused.
+  The finalization instruction tests name the new workflow and rule, new log events use the
+  new workflow name, and DM-20 lists every retained old-name protocol or fixture line.
+- **AC-52** (REQ-71) — Given the existing schema-1 amendment and an equivalent schema-2
+  amendment, the oracle preserves the same approved `added` entries and restrictions in both;
+  a changed anchor, missing approved entry or additional unapproved entry is rejected.
+- **AC-53** (REQ-72) — Given the pinned knowledge baseline, an existing tracked original path,
+  the existing archival fallbacks and the independently verified tracked task relocations,
+  including a relocation combined with todo-to-completed archival, the identity check accepts
+  those paths; given an absent original with no permitted resolution, an ambiguous mapping,
+  or an existing untracked candidate, it fails. A missing intermediate path does not fail when
+  exactly one final permitted path exists and is tracked. Isolated fixtures verify each case, the
+  original baseline remains pinned, and the frozen oracle still accepts the check inventory.
+  Fixtures cover task and specification archive-only fallback, numbered relocation combined
+  with archival, original-path preference, multiple existing candidates and untracked targets.
+- **AC-54** (REQ-73) — Given an isolated journal and archived files relocated with explicit
+  independently verified path, content and journal-identity evidence, inspection resolves the
+  exact current files without writing the journal, granting cleanup or declaring completion;
+  missing, mismatched, stale or ambiguous evidence is refused. Fixtures cover both old and new
+  selectors, forged journal identity or digest, changed task and spec bytes, an extra or
+  untracked task file, non-ancestor commit, symlink escape, missing evidence and a mutating
+  command using an alias. Include the phase-one review's recorded locations, and assert
+  unchanged journal and snapshot bytes in every case.
 
 ## Traceability
 
@@ -1587,6 +1726,10 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 | REQ-67 | AC-47 |
 | REQ-68 | AC-48 |
 | REQ-69 | AC-49 |
+| REQ-70 | AC-51 |
+| REQ-71 | AC-52 |
+| REQ-72 | AC-53 |
+| REQ-73 | AC-54 |
 
 ## Risks
 
@@ -1640,7 +1783,8 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 - A-34 | 08 acceptance line, root `README.md`, kind definitions | Resolved: Guard checks the `Accepted: owner <date>` line; `README.md` joins scan set R; kinds defined as in spec 010 A-04 | Source: spec 010 DM-8 report layout, A-06 (active class = R plus `README.md`), A-04 | Reversible: yes
 - A-35 | Split targets of mapped rules (spec 013 Q-07) | Resolved: option (a) of spec 013's Q-07, as REQ-68: the later spec appends the split target to the `new` list of the existing `rule` row in its own delivery. Grounds: DM-10 (Overflow rules) already adds created split targets to the source row's `new` list, so one mechanism covers both; the DM-9 token classes include every `new` of the row, so the move is path-only and passes the mask unchanged; the row's checks and `name_map_sha256` are the only things that change. Option (b) is rejected: a `contract_changes` entry needs an `after` that is a superseding contract, a split target supersedes none, and extending the closed set by a requirement of this spec would make a name-only move a semantic change reviewed as one (REQ-52). Limit: text asserted by checks of two different rows cannot move into one new file, because a `new` value joins one row only (DM-1); spec 013 stops there, as its own text says | Source: DM-1, DM-9 (token classes, mask), DM-10 (Overflow rules); spec 013 Q-07, A-37, A-39, REQ-22; `tests/validator-runtime-oracle.py:46-100` (current schema-1 oracle, the schema-2 oracle is delivered by this spec); ADR-0018 (inventory frozen, amendments exact) | Reversible: yes
 - A-36 | Who may extend the closed `requirement` set | Resolved: only a later spec's own delivery, with the oracle change and a DM-20 row per new entry (REQ-69) | Source: DM-9 (set hard-coded in the oracle test), DM-20 (Superseded checks); spec 022 Part A needs it | Reversible: yes
-- A-37 | Stop message for parallel-only capability keys | Resolved: the next step depends on the failing key (REQ-37) | Source: spec 23 REQ-25 (delegates the stop message and its next step to REQ-37); `/pipeline` has no parallel mode | Reversible: yes
+- A-37 | Superseded 2026-11-25 by A-38: the former opt-in parallel stop and its message belonged to the historical spec 23 design.
+- A-38 | Parallel capability fallback | Resolved: this delivery requires the three sequential orchestration capabilities; unavailable parallel-only capabilities do not stop the sequential path. Spec 027 owns automatic admission and its remaining contracts | Source: owner decision 2026-11-25; spec 027 REQ-07 and D-02 | Reversible: yes
 
 ## Decisions
 
@@ -1654,7 +1798,7 @@ Decisions carried from the previous revision are listed under Notes → Preserve
 ### Session 2026-11-14
 
 No questions were asked (auto mode, owner unavailable by standing instruction). Gaps were
-resolved as A-01–A-37; unresolved items are Q-02–Q-04 and Q-06 (Q-05 and Q-01 resolved 2026-11-14).
+resolved as A-01–A-38; unresolved items are Q-02–Q-04 and Q-06 (Q-01, Q-05 and Q-07 resolved).
 
 ### Session 2026-11-14 (owner decision)
 
@@ -1688,6 +1832,10 @@ resolved as A-01–A-37; unresolved items are Q-02–Q-04 and Q-06 (Q-05 and Q-0
   always-on file is ownership-protected (REQ-66)? Merging user text into that file is out of
   scope for spec 022 too. Impact: until decided, users keep such preferences in project files;
   an edit to the global file stops sync with a resolution message.
+- Q-07 | resolved 2026-11-25 | The later finalization rule is a bootstrap and the workflow is
+  a separately invoked finalization phase. DM-10–DM-12 map both while preserving ADR-0025;
+  the accepted historical audit remains unchanged. Source: `rules/phase-finalize.md:1-43`,
+  `workflows/phase-finalize.md:1-34`, ADR-0025; owner instruction to resolve blockers.
 
 ## Notes
 
@@ -1757,10 +1905,11 @@ reading.
 If needed: **09** keeps the retirement of legacy targets, adapters, registry pass, engine,
 metadata, capabilities, the checker infrastructure, the `docs/name-map.json` format with its
 first rows and the DM-9 machinery (REQ-05–REQ-13, REQ-29–REQ-30, REQ-35, REQ-36, REQ-38,
-REQ-42–REQ-45, REQ-50–REQ-52, REQ-54–REQ-59, REQ-62, REQ-63, REQ-65, REQ-66, REQ-68, REQ-69 and
-its part of REQ-47); **09b** takes names, content splits, the PIPELINE move, references and final records
+REQ-42–REQ-45, REQ-50–REQ-52, REQ-54–REQ-59, REQ-62, REQ-63, REQ-65, REQ-66, REQ-68,
+REQ-69, REQ-71, REQ-72 and its part of REQ-47); REQ-72 is a prerequisite for a clean full
+validator. **09b** takes names, content splits, the PIPELINE move, references and final records
 (REQ-14–REQ-26, REQ-28, REQ-31–REQ-34, REQ-37, REQ-39–REQ-41, REQ-46, REQ-49, REQ-53, REQ-61,
-REQ-64, REQ-67; REQ-14–REQ-16, REQ-37 and REQ-67 name `contract-phases`, `rule-bootstrap-<phase>` skills and
+REQ-64, REQ-67, REQ-70, REQ-73; REQ-14–REQ-16, REQ-37 and REQ-67 name `contract-phases`, `rule-bootstrap-<phase>` skills and
 `/pipeline`, which exist only after 09b's renames), adding its rows to the map. REQ-48 and the final REQ-47 check join both. Withdrawn REQ-01–REQ-04 and REQ-27 are
 not revived.
 
@@ -1819,11 +1968,9 @@ only the five colliding rules, moving command renames to spec 023, per-provider 
 - Spec 022: preserve the contracts listed in Notes → Relationship to spec 022, including leftover
   reporting (REQ-57) in a command that remains after `deploy` is removed, and refresh its
   quotation of the former Q-05.
-- Former spec 23: wire `--parallel` into the "Parallel children" row of DM-4 (key names agree, Notes →
-  Capability key names). Its REQ-25 delegates the stop and the next step it names to REQ-37, which
-  defines them per failing key (Contracts → `/spec-run` preflight): a stop caused by
-  `worktrees` or `concurrent-sub-agents` advises re-running without `--parallel`; spec 23
-  needs no change.
+- Spec 027: refine and implement automatic parallel admission and the sequential fallback,
+  including the capability evidence and session permissions; this spec supplies the record
+  names and does not implement the scheduler. Its unresolved blockers remain with spec 027.
 - Spec 010: report in DM-19 counts and DM-2 kinds; propose map amendments through `/spec-sync`.
 
 ### Relationship to spec 022 (installer)
@@ -1890,15 +2037,14 @@ old names its text uses through `docs/name-map.json`:
   `<target> → ## <heading>`.
 - Every such file and section is subject to the checker (kinds, collisions, references).
 
-### Capability key names (spec 23)
+### Capability key names and parallel execution
 
-The canonical keys of DM-4 are the only canonical names (extension record names stay
-possible under REQ-67): `sub-agents`, `concurrent-sub-agents`, `agent-messaging`,
-`worktrees`, `hooks`, `git`. Spec 23's REQ-25 uses the same names in the record form
-(`state: yes`); the `worktrees: yes` shorthand in spec 23's source text means the same. This spec asserts no value for any
-record; until the Claude records carry evidence and `state: yes`, spec 23 refuses
-`--parallel N` with N > 1, which is the intended conservative path (REQ-38). Spec 23 wires the
-flag into the "Parallel children" row.
+The canonical keys of DM-4 are `sub-agents`, `concurrent-sub-agents`, `agent-messaging`,
+`worktrees`, `hooks`, `git`; extension records remain possible under REQ-67. This spec asserts
+no value for any record. Spec 027 owns the evidence and remaining conditions for automatic
+parallel execution and requires the sequential path with a reason when they are not met.
+The former spec 23 opt-in flag and parallel-only stop are historical and are not the target
+contract. Spec 027's unresolved implementation blockers remain unresolved.
 
 ### Spec 021 alignment (this spec's side)
 
@@ -1951,24 +2097,40 @@ All three items are adopted by spec 021:
   AMD-08-06, AMD-08-07) are each cited by an applied amendment. No requirement or criterion
   withdrawn or renumbered; line 23 untouched.
 
+- 2026-11-25 — owner-authorized reconciliation of the parallel capability direction: REQ-37,
+  AC-23, DM-4, the preflight and follow-up now preserve the sequential capability gate and
+  defer automatic admission and sequential fallback to spec 027 REQ-07 and D-02. A-37 is
+  superseded by A-38. The former opt-in flag is historical. No parallel scheduler is delivered.
+- 2026-11-25 — classified and mapped the later finalization rule and workflow using their
+  current source and ADR-0025; REQ-18, DM-3 and DM-10–DM-12 include the phase, and Q-07 is
+  resolved. The accepted audit is unchanged. Full independent review remains outstanding.
+- 2026-11-25 — preserved the subsequently delivered state-tool inventory extension in schema 2
+  and added schema-1/schema-2 compatibility checks (REQ-71, AC-52).
+- 2026-11-25 — the owner requested resolution of all discovered blockers; scope now includes
+  repairing the pre-existing task relocation check without resetting its baseline (REQ-72,
+  AC-53). No historical task file or new frozen check is required.
+- 2026-11-25 — included read-only recovery of the independently verified phase-one task and
+  specification relocation while preserving the existing finalization journal (REQ-73,
+  AC-54). Inspection does not authorize cleanup or declare completion.
+
 ## Readiness Checklist
 
 | # | Check | Result |
 |---|---|---|
 | 1 | Goal is one domain-language paragraph describing the outcome | PASS — single Goal paragraph |
 | 2 | Out of Scope names concrete exclusions | PASS — owners named per exclusion (08, 11, 10, 19, 21, 23) |
-| 3 | Each REQ has a stable id and one EARS behaviour | PASS — REQ-05–REQ-69 (REQ-01–04, REQ-27 withdrawn; REQ-60 unused); bundled clauses each have a named AC case |
+| 3 | Each REQ has a stable id and one EARS behaviour | PASS — REQ-05–REQ-73 (REQ-01–04, REQ-27 withdrawn; REQ-60 unused); bundled clauses each have a named AC case |
 | 4 | Every REQ maps to ≥1 AC; every AC names ≥1 REQ | PASS — Traceability table |
 | 5 | Every AC is binary, observable and can guide a test before implementation | PASS — fixtures and expected codes named |
 | 6 | Non-functional targets measurable, standard-referenced or N/A | PASS — NFR table with verification |
-| 7 | Data model and contracts specified | PASS — DM-1–DM-20; sync, engine, reporter, setup, preflight, checker, suites |
+| 7 | Data model and contracts specified | PASS — DM-1–DM-21; sync, engine, reporter, setup, preflight, checker, suites |
 | 8 | Error, empty, boundary and concurrency cases covered | PASS — Edge Cases table (lock, journal, races, links, absent inputs) |
-| 9 | Every ambiguity recorded as resolved or open | PASS — A-01–A-37, Q-01–Q-06 (Q-01 and Q-05 resolved; D-01) |
-| 10 | No blocker question remains | PASS — all open questions non-blocking (open: Q-02–Q-04, Q-06) |
-| 11 | Every existing-code claim has a verified path:line citation | PASS — citations re-verified by the reviewer |
+| 9 | Every ambiguity recorded as resolved or open | PASS — Q-07 records the later finalization mapping; remaining questions are listed |
+| 10 | No blocker question remains | PASS — Q-07 is resolved; program 027 keeps its own blockers |
+| 11 | Every existing-code claim has a verified path:line citation | PASS — historical context uses its pinned revision; changed current-source claims cite revision 8857b631 and were independently checked |
 | 12 | Terminology matches project domain definitions | PASS — Terminology table; REQ-34 adds terms to `domain.md` |
 | 13 | Scope is feature-sized (1–8 subtasks) | PASS — seven implementation steps (Notes); REQ-48 split boundary if Discovery finds more |
-| 14 | Devil's Advocate review passed | PASS — Review: 4 rounds, score 99/100, critic: sub-agent, open: F-40 (minor; resolved after the final round) |
+| 14 | Devil's Advocate review passed | PASS — Review: 5 rounds, score 100/100, critic: sub-agent, open: none |
 
 Reconciliation pass 2026-11-14: targeted edits (REQ-67, AC-47, A-31–A-34, Q-05 resolved) checked by one independent pass on the changed passages; verdict unchanged.
 
@@ -1978,5 +2140,5 @@ Owner decision pass 2026-11-14: D-01 recorded (Q-01 resolved); changed passages 
 
 Audit amendment pass 2026-11-18: AMD-08-01–AMD-08-07 applied (D-02: DM-16, DM-20, REQ-19, REQ-32, AC-11, new AC-50; NFR, Edge Cases and Risks rows restated); checks 3, 4 and 7 rerun on the changed passages (every REQ still maps to an AC and every AC names a REQ); no open question added; no independent pass on this edit; verdict unchanged.
 
-**Verdict: READY FOR DEVELOPMENT** once its prerequisites hold (spec 002 complete, 08 report
-accepted; Notes → Prerequisites). Automated readiness is not sign-off.
+**Verdict: READY FOR DEVELOPMENT** — the reconciled contracts and journal relocation evidence
+were independently reviewed. Automated readiness is not sign-off.

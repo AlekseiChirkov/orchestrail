@@ -455,7 +455,7 @@ leaves the digest unchanged. `file` digest: SHA-256 of the file bytes.
 | Field | Type | Owner | Rule |
 |---|---|---|---|
 | `description` | string | Spec 011 REQ-12/13 | Non-empty, single line |
-| `phase` | token | Spec 011 REQ-13, DM-3 | One of DM-3's phases: `discovery`, `execution`, `validation`, `atomic-execution`, `atomic-validation`, `orchestrated`, `entry`, `utility` |
+| `phase` | token | Spec 011 REQ-13, DM-3 | One of DM-3's phases: `discovery`, `execution`, `validation`, `atomic-execution`, `atomic-validation`, `finalization`, `orchestrated`, `entry`, `utility` |
 | `step` | string | Spec 011 REQ-13, DM-3 | Plain value matching `^[1-9][0-9]*(\.[1-9][0-9]*|[a-z])?$` (for example `1`, `2.5`, `4a`) or the JSON string `"-"` |
 | `loads` | mapping | Spec 013 DM-1 | `schema_version` the generator supports: `1` |
 | `reads` | list of strings | This spec | Required; `[]` means the workflow reads no canonical file; every entry matches Location grammar; possible reads of conditional branches included |
