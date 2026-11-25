@@ -17,8 +17,8 @@ of a codebase whose language is instructional markdown plus bash.
   examples in rules use domain names (`feat/oauth-token-schema`), never `T-01`.
 
 ### Workflow file shape (`workflows/*.md`)
-1. Front matter: `description:` — one line, starts with the step name
-   ("Discovery Step 2 — …", "Atomic Validation Step 1 — …", "Utility — …").
+1. Front matter: a one-line `description:` starting with the step name, plus the
+   workflow’s `phase:` and `step:` values.
 2. `Invocation:` line with the exact argument form; `Called by:` line for children.
 3. Working-directory resolution when the workflow touches files (`working_dir:` handling,
    `WORK_DIR` / `AI_DIR`).
@@ -32,8 +32,8 @@ of a codebase whose language is instructional markdown plus bash.
    rule's body into a workflow.
 
 ### Rule file shape (`rules/*.md`)
-- Front matter `trigger: always_on` (Windsurf semantics; on Claude Code/Codex the file
-  becomes a `rule-<name>` skill).
+- Front matter includes a one-line `description:` and `load: always` or
+  `load: on-demand`. Sync installs the file as a `rule-<name>` skill.
 - Contract first, rationale second, worked examples last. Target: a rule readable in one
   screen before its first example.
 - Any vocabulary (status values, field names, enum) is defined on **one anchored line**

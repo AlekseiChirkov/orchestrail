@@ -2,7 +2,7 @@
 
 ## Status
 
-Provisional
+Accepted
 
 ## Date
 
@@ -11,14 +11,13 @@ Provisional
 ## Related Task
 
 - Task: `.ai/tasks/todo/task-011-model-only-harnesses-and-rule-naming-p1/`
-- Related pull request: not yet created
+- Related pull request: [#139](https://github.com/AlekseiChirkov/orchestrail/pull/139)
 - Related files: `scripts/validate-contracts.sh`, the knowledge-inventory baseline and relocation fixtures
 
 ## Summary
 
-The planned inventory repair retains the existing pinned baseline while resolving verified
-historical task-directory relocations through an exact, fail-closed mapping. Implementation and
-verification are pending.
+The inventory repair retains the existing pinned baseline and resolves verified historical
+task-directory relocations through an exact mapping that rejects unsupported paths.
 
 ## Context
 
@@ -64,10 +63,12 @@ remain independently protected.
 
 ## Verification
 
-Not yet verified — decision recorded before implementation completed.
+The independent leaf review verified 12 relocations against Git history and passed the exact
+positive and negative relocation fixtures. The full contract validator passed at
+`06236d4e8a6b188fc235481255ab69af7c2c73d4`. Separate finalization-journal relocation remains pending.
 
 ## References
 
 - Task: `.ai/tasks/todo/task-011-model-only-harnesses-and-rule-naming-p1/`
-- Pull request: not yet created
+- Pull request: [#139](https://github.com/AlekseiChirkov/orchestrail/pull/139)
 - Related documents: ADR-0025 and the specification's REQ-72 and AC-53.

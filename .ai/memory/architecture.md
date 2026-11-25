@@ -25,9 +25,10 @@ under `scripts/`, with automated consistency and smoke checks.
 
 ## Components
 
-### Layer 1 — `rules/` (always-on contracts, 14 files)
-Policies every workflow obeys. The deployment engine installs them as skills under
-the mandatory `rule-` prefix. Several basenames also occur in workflows. Key files:
+### Layer 1 — `rules/` (rule skills, 14 files)
+The deployment engine installs these policies as skills under the mandatory `rule-`
+prefix. The `load` field declares `always` or `on-demand`. Each harness always-on file
+summarizes essential policies. Several basenames also occur in workflows. Key files:
 
 | File | Owns |
 |---|---|
@@ -62,7 +63,8 @@ Utilities            context-pack, compress-state, retro, suggest-commit-message
 Reference            PIPELINE.md (not executable)
 ```
 
-Every executable workflow has: a front-matter `description:`, an `Invocation:` line, a
+Every executable workflow declares a front-matter `description:`, `phase:` and `step:`
+and carries an `Invocation:` line and a
 `## Guard` section (detects completed work, asks before overwriting), numbered steps,
 explicit `**stop**` points, and a report line. Children are callable standalone and must
 run the full Context Bootstrap when they are.
@@ -78,7 +80,8 @@ root), `AGENTS.md` (Codex, per project), `subtask-description.md` and `spec.md`
 `harness/codex/always-on.md` supplies `~/.codex/AGENTS.md`. Each adapter declares
 its global paths in `deploy.env` and includes ordered canonical records in
 `capabilities.md`. Hook support describes the shipped implementation, with current
-installation and checkpoint coverage verified separately.
+installation and checkpoint coverage verified separately. The sync command manages both
+deployed global instruction files. Edits to deployed files surface as ownership conflicts.
 
 ### Layer 5 — scripts
 | Script | Role |
