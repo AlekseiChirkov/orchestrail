@@ -956,11 +956,112 @@ check "TDD: testing-standards links to the executing workflow" \
 check "TDD: PIPELINE.md documents the three-step atomic cycle" \
   "$(grep -q 'pae-tests' workflows/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing pae-tests in atomic cycle / child workflow table')"
 
+deployment_rule_evidence() (
+  local fixture
+  fixture="$(mktemp -d "${TMPDIR:-/tmp}/deployment-rules.XXXXXX")" || return 1
+  trap 'rm -rf -- "$fixture"' EXIT
+  export HOME="$fixture/home" XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
+  python3 -I - "$REPO_ROOT" "$fixture" <<'PYDEPLOYMENTRULES'
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+checkout, fixture = map(Path, sys.argv[1:])
+home = Path(os.environ["HOME"])
+config = Path(os.environ["XDG_CONFIG_HOME"])
+registered = fixture / "registered project"
+new_project = fixture / "new project"
+
+
+def relative_path(value):
+    segments = value.split("/")
+    if any(part in (".", "..") or not re.fullmatch(r"[A-Za-z0-9._-]+", part) for part in segments):
+        raise SystemExit(f"Invalid adapter fixture path: {value}")
+    return Path(value)
+
+
+def global_path(value):
+    if not value.startswith("$HOME/"):
+        raise SystemExit(f"Invalid global adapter fixture path: {value}")
+    return home / relative_path(value.removeprefix("$HOME/"))
+
+
+adapters = {}
+for directory in sorted((checkout / "harness").iterdir()):
+    name = directory.name
+    declaration = directory / "deploy.env"
+    if (directory.is_symlink() or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name)
+            or not declaration.is_file()):
+        continue
+    if declaration.is_symlink():
+        raise SystemExit(f"Expected a regular adapter declaration: {declaration}")
+    values = dict(line.split("=", 1) for line in declaration.read_text(encoding="utf-8").splitlines()
+                  if line and not line.startswith("#"))
+    project_path = values.get("project_skills_link_dir")
+    adapters[name] = (global_path(values["skills_dir"]), global_path(values["always_on_path"]),
+                      relative_path(project_path) if project_path is not None else None)
+
+link_adapters = [(skills, links) for skills, _, links in adapters.values() if links is not None]
+if not link_adapters:
+    raise SystemExit("No adapter declares a project skill link directory")
+
+for _, links in link_adapters:
+    (registered / links).mkdir(parents=True, exist_ok=True)
+new_project.mkdir()
+registry = config / "orchestrail/projects"
+registry.parent.mkdir(parents=True)
+registry.write_text(f"{registered}\n", encoding="utf-8")
+
+
+def run_engine(command, option, value):
+    result = subprocess.run(
+        [sys.executable, "-I", str(checkout / "scripts/deploy-skills.py"),
+         command, "--from", str(checkout), option, value],
+        cwd=fixture, capture_output=True, text=True, timeout=20,
+    )
+    if result.returncode:
+        raise SystemExit(result.stderr or result.stdout)
+
+
+run_engine("deploy", "--hook-result", '{"reason":"fixture","status":"unavailable"}')
+rules = {f"rule-{path.stem}": path for path in (checkout / "rules").iterdir()
+         if path.suffix == ".md" and path.is_file()}
+if not rules:
+    raise SystemExit("The deployment fixture has no rule sources")
+for name, (skills, always_on, _) in adapters.items():
+    if not always_on.is_file():
+        raise SystemExit(f"{name} did not produce its declared always-on file: {always_on}")
+    for skill, rule in sorted(rules.items()):
+        target = skills / skill / "SKILL.md"
+        if not target.is_file() or target.read_bytes() != rule.read_bytes():
+            raise SystemExit(f"{name} did not deploy {rule.name} as {target}")
+
+run_engine("link-project", "--project", str(new_project))
+for outcome, project in (("refresh", registered), ("setup", new_project)):
+    for skills, links in link_adapters:
+        for skill in rules:
+            target = project / links / skill
+            if not target.is_symlink() or target.resolve() != skills / skill:
+                raise SystemExit(f"Missing {outcome} link for {skill}: {target}")
+
+for name in adapters:
+    print(f"adapter:{name}")
+for skill in sorted(rules):
+    print(f"installed:{skill}")
+    print(f"refresh:{skill}")
+    print(f"setup:{skill}")
+PYDEPLOYMENTRULES
+)
+
+RULE_SKILL_EVIDENCE="$(deployment_rule_evidence)" || RULE_SKILL_EVIDENCE=""
+
 check "TDD: scripts/sync.sh deploys tdd.md to projects" \
-  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f rules/tdd.md ] && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'installed:rule-tdd' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')"
 
 check "TDD: scripts/setup-new-project.sh deploys tdd.md" \
-  "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -q '^project_skills_link_dir=' harness/*/deploy.env && [ -f rules/tdd.md ] && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')"
+  "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qxF 'setup:rule-tdd' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')"
 
 check "TDD: pv-create-fixes requires Test Plan for fix-tasks" \
   "$(grep -q '## Test Plan' workflows/pv-create-fixes.md 2>/dev/null && echo pass || echo 'pv-create-fixes.md missing Test Plan requirement for fix-tasks')"
@@ -1180,7 +1281,7 @@ check "ORCH: pd-select-model no longer claims it writes no files" \
 # Deployment
 for f in scripts/sync.sh scripts/setup-new-project.sh; do
   check "ORCH: $f deploys git-flow.md and orchestration.md" \
-    "$(grep -qE '(deploy|link-project) --from ' "$f" && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f rules/git-flow.md ] && [ -f rules/orchestration.md ] && echo pass || echo "$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available")"
+    "$(grep -qE '(deploy|link-project) --from ' "$f" && grep -qxF 'installed:rule-git-flow' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'installed:rule-orchestration' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'setup:rule-git-flow' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'setup:rule-orchestration' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available")"
 done
 
 check "ORCH: setup-new-project seeds .ai/ into .gitignore" \
@@ -1314,23 +1415,23 @@ for rule in rules/*.md 'global-claude.md'; do
     "$([ ! -f "workflows/rule-$base.md" ] && echo pass || echo "workflows/rule-$base.md exists, so the rule skill rule-$base and that workflow skill would deploy to the same path")"
   [ "$name" = "global-claude.md" ] && continue   # deployed as ~/.claude/CLAUDE.md, not as a project rule
   check "DEPLOY: scripts/setup-new-project.sh copies $name" \
-    "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -q '^project_skills_link_dir=' harness/*/deploy.env && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f "$rule" ] && echo pass || echo "setup must link the deployed rule skill for $rule via the declared project adapter")"
+    "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qxF "setup:rule-$base" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "setup must link the deployed rule skill for $rule via the declared project adapter")"
   check "DEPLOY: scripts/sync.sh refreshes $name in existing projects" \
-    "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '        _refresh_projects(' scripts/deploy-skills.py && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f "$rule" ] && echo pass || echo "sync must refresh registered project links to the deployed rule skill for $rule")"
+    "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF "refresh:rule-$base" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "sync must refresh registered project links to the deployed rule skill for $rule")"
 done
 
 # Both skill roots must receive *every* rule, not a hand-maintained subset: the deployment loop
 # has to iterate "$RULES"/*.md. Before this, "load the `tdd` rule" pointed at a file that existed
 # in neither Claude Code nor Codex.
 check "DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill" \
-  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' harness/claude/deploy.env && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/claude/deploy.env')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'adapter:claude' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/claude/deploy.env')"
 
 check "DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill" \
-  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' harness/codex/deploy.env && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/codex/deploy.env')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'adapter:codex' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/codex/deploy.env')"
 
 for root in claude codex; do
   check "DEPLOY: the $root rule deployment uses the rule- prefix" \
-    "$(grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' "harness/$root/deploy.env" && echo pass || echo "rule skills must be distinct from workflow skills at the target declared by harness/$root/deploy.env")"
+    "$(grep -qxF "adapter:$root" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "rule skills must be distinct from workflow skills at the target declared by harness/$root/deploy.env")"
 done
 
 check "DEPLOY: workflow-globals tells the reader how to resolve a rule reference per agent" \

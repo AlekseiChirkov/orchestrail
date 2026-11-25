@@ -11,15 +11,15 @@ The deployment entry point changes below await an independent verdict. The [inve
 
 | Key | Before | After | Requirement | Verdict |
 | --- | --- | --- | --- | --- |
-| `TDD: scripts/sync.sh deploys tdd.md to projects` | Named rule in the sync shell script | TDD rule source and shared rule-skill deployment | REQ-05 | Pending independent validation. |
-| `TDD: scripts/setup-new-project.sh deploys tdd.md` | Named rule in the setup shell script | TDD rule source and declared project skill link | REQ-06 | Pending independent validation. |
-| `ORCH: $f deploys git-flow.md and orchestration.md` | Named orchestration rules in both shell scripts | Both orchestration rule sources and shared engine delegation | REQ-05 | Pending independent validation. |
+| `TDD: scripts/sync.sh deploys tdd.md to projects` | Named rule in the sync shell script | Installed TDD rule prefix and source bytes across declared targets | REQ-05 | Pending independent validation. |
+| `TDD: scripts/setup-new-project.sh deploys tdd.md` | Named rule in the setup shell script | Actual links to the installed TDD rule from a fresh project | REQ-06 | Pending independent validation. |
+| `ORCH: $f deploys git-flow.md and orchestration.md` | Named orchestration rules in both shell scripts | Installed orchestration rule bytes and links from a fresh project | REQ-05 | Pending independent validation. |
 | `test_sync_preserves_repository_knowledge_policy` | Extracted shell ignore policy | Two actual registered-project passes using isolated Git repositories | REQ-09 | Pending independent validation. |
-| `DEPLOY: scripts/setup-new-project.sh copies $name` | Named rule copy in setup | Declared link and current source of each rule skill | REQ-06 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh refreshes $name in existing projects` | Named rule copy in the sync shell loop | Registered-project refresh and current source of each rule skill | REQ-09 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill` | Hard-coded Claude Code copy loop | Shared deployment and declared Claude skill target | REQ-05 | Pending independent validation. |
-| `DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill` | Hard-coded Codex copy loop | Shared deployment and declared Codex skill target | REQ-05 | Pending independent validation. |
-| `DEPLOY: the $root rule deployment uses the rule- prefix` | Hard-coded provider-specific rule prefix | Common rule prefix and the harness adapter target | REQ-05 | Pending independent validation. |
+| `DEPLOY: scripts/setup-new-project.sh copies $name` | Named rule copy in setup | Actual new-project link to each installed rule skill | REQ-06 | Pending independent validation. |
+| `DEPLOY: scripts/sync.sh refreshes $name in existing projects` | Named rule copy in the sync shell loop | Actual registered-project refresh link to each installed rule skill | REQ-09 | Pending independent validation. |
+| `DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill` | Hard-coded Claude Code copy loop | Actual Claude skill target with every prefixed rule and exact bytes | REQ-05 | Pending independent validation. |
+| `DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill` | Hard-coded Codex copy loop | Actual Codex skill target with every prefixed rule and exact bytes | REQ-05 | Pending independent validation. |
+| `DEPLOY: the $root rule deployment uses the rule- prefix` | Hard-coded provider-specific rule prefix | Actual rule prefix and source bytes in each named adapter target | REQ-05 | Pending independent validation. |
 | `test_shell_paths_relocated_checkout_preserves_overrides` | Relocated source with legacy helper dependencies | Relocated sources with declared adapters, engine and reporter | REQ-05 | Pending independent validation. |
 
 ## Retained old names
