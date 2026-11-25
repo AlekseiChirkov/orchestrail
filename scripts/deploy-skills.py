@@ -846,20 +846,12 @@ def _validate_pending_temporaries(targets: list[Path]) -> None:
             raise _DeploymentError("unsafe-target", f"{path} must be absent or a regular temporary file")
 
 
-def _apply_plan(plan: _Plan, state: _DeploymentPaths) -> None:
+def _apply_plan(
+    plan: _Plan, state: _DeploymentPaths, *, always_on_targets: dict[Path, Path], write_journal: bool,
+) -> None:
     manifest_dir = state.manifest_dir
     journal_path = manifest_dir / _JOURNAL_NAME
     journal_digest = plan.journal.sha256
-    write_journal = bool(plan.actions or (plan.manifests and journal_digest is None))
-    always_on_targets = {adapter.always_on_path: adapter.always_on_resolved for adapter in plan.adapters}
-    replacements = [
-        always_on_targets.get(action.path, action.path) for action in plan.actions
-        if action.new_contents is not None
-    ]
-    replacements.extend(plan.manifests)
-    if write_journal:
-        replacements.append(journal_path)
-    _validate_pending_temporaries(replacements)
     _clean_deployment_temporaries(plan.adapters, state)
     if write_journal:
         journal_bytes = _journal_payload(plan)
@@ -1156,6 +1148,17 @@ def _deploy(source: Path, hook_result: str, *, force: bool) -> int:
             raise _DeploymentError("unsafe-target", f"deployment configuration moved: {config}")
         projects = _read_project_registry(locked_state.registry)
         plan = _build_plan(source, hook_result, home, locked_state, recover=True)
+        always_on_targets = {adapter.always_on_path: adapter.always_on_resolved for adapter in plan.adapters}
+        write_journal = bool(plan.actions or (plan.manifests and plan.journal.sha256 is None))
+        replacements = [
+            always_on_targets.get(action.path, action.path) for action in plan.actions
+            if action.new_contents is not None
+        ]
+        replacements.extend(plan.manifests)
+        if write_journal:
+            replacements.append(locked_state.manifest_dir / _JOURNAL_NAME)
+        _validate_pending_temporaries(replacements)
+
         active: dict[Path, Path] = {}
         for project in projects or ():
             task = _active_project_task(project)
@@ -1167,7 +1170,7 @@ def _deploy(source: Path, hook_result: str, *, force: bool) -> int:
                 print(f"active {project} {task}")
             return 3
 
-        _apply_plan(plan, locked_state)
+        _apply_plan(plan, locked_state, always_on_targets=always_on_targets, write_journal=write_journal)
         _refresh_projects(
             source, projects, plan.adapters, locked_state, skip_active=set() if force else set(active),
         )
