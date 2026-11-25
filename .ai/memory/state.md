@@ -6,6 +6,8 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
+- [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | phase: discovery | status: complete | note: 17 implementation leaves and two composites planned; model recommendations are preliminary and execution requires a separate eligibility check.
+
 Specification references were reviewed against the three-digit mapping; corrections and
 the outstanding parallel-program reconciliation are recorded in [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
 
@@ -56,6 +58,7 @@ Runtime work was closed by owner decision; remaining roadmap scope is not automa
 
 ## Deferred
 
+- Phase 2 — Harness and workflow names, finalization compatibility and integrated verification. Prerequisites: phase-one validation and owner integration.
 - Phase 2 — Deferred standalone review service. Prerequisites: historical offline comparison and owner decision.
 
 ## Known conditions (read before starting any task)

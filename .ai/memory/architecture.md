@@ -374,3 +374,11 @@ Bootstrap`). Acceptance: `python3 scripts/check-repo-set.py` (38 tests).
 ## Post-merge task closure mechanics
 
 The finalization coordinator (`scripts/phase-finalize.py`) returns explicit Git action plans and coordinates evidence, locked revision-checked journals and no-overwrite archival. `finalization_support.py` owns strict paths, atomic writes and protected-state normalization; `finalization_evidence.py` owns read-only Git/PR checks; `finalization_archive.py` owns manifests, original snapshots, location resolution and separately recorded Markdown link relocation. Scoped hook authorization now checks the journal, exact action, mutable refs/protection/worktrees, immutable recovery pack and configured/effective remote transport. The single public phase owns sequence and semantic reconciliation; shared readers preserve the existing development endpoints and treat its additive marker independently. `finalization_attempts.py` records immutable failed/recovered command evidence offline, without issuing new deletion receipts. Per-operation checkpoints distinguish execution attempts from verified postconditions. `finalization_knowledge.py` captures typed current-record inventory before edits and accepts exact independently attested changes without staging or relaxing unrelated dirty-tree checks. `finalization_outputs.py` preserves large exact UTF-8 command output in immutable digest-bound artifacts; every authoritative journal write is bounded before replacement to remain readable by helpers and hooks. The standalone acceptance suites are mandatory sync preflight, outside the frozen validator inventory. Semantic knowledge, test and deployment verification remain externally attested with source provenance; these receipts are not fresh suite execution by the helper. See ADR-0025.
+
+## Planned harness infrastructure
+
+The first migration phase plans a standard-library deployment entry point with separate
+functions for planning, project links and transactions, plus a standalone instruction
+checker. The planned knowledge inventory repair keeps its pinned baseline and verifies
+specific tracked relocations. The later phase owns the naming migration and read-only
+finalization journal relocation.

@@ -448,6 +448,9 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
 - **REQ-48 Split.** IF Discovery yields more than eight full subtasks, THEN THE task SHALL be
   split at the boundary of Notes → Split boundary and the split recorded in
   `.ai/specs/README.md` before execution; identifiers are not lost or counted as done by moving.
+  This condition applies to the original task; once that two-part boundary is recorded, a
+  part may contain more than eight healthy leaves and is not recursively split at the same
+  boundary. The eight-subtask target remains soft within each part.
 
 ### Added in this revision
 
@@ -1538,10 +1541,12 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   subprocess argument list whose program is other than the literal `bash`, `python3`, `git`,
   `sys.executable` or a repository script under test (any other non-literal program fails); and the DM-20 main table has a `pass` row for every source
   `## ` line.
-- **AC-28** (REQ-48) — Given a Discovery plan with more than eight subtasks, then the split is
+- **AC-28** (REQ-48) — Given the original task's Discovery plan with more than eight subtasks, then the split is
   recorded in `.ai/specs/README.md` before execution and every active REQ belongs to exactly one
   part or to the shared final check; the first part's interim setup names an existing command
-  and the second part changes that instruction in the same change as the rename.
+  and the second part changes that instruction in the same change as the rename. Given a
+  part with more than eight healthy leaves after that split, the same boundary is not
+  recursively applied and the decomposition records the merge/split comparison.
 - **AC-29** (REQ-49) — Given a fixture skill directory `orchestrail-pipeline` and a workflow
   referencing `/pipeline` while the map says `orchestrail-pipeline`, then the checker reports
   `reference-missing`; documentation, checks and deployment use the map name.
