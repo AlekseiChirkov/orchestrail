@@ -108,6 +108,16 @@ class AmendmentContract(unittest.TestCase):
         self.assertEqual(self.validator.count(entry["before"]), 1)
         return self.validator.replace(entry["before"], entry["after"], 1)
 
+    def test_synthetic_validator_restores_reviewed_replacements(self) -> None:
+        delivered = json.loads((ROOT / AMENDMENT).read_bytes())
+        replacements = delivered["path_changes"] + delivered["contract_changes"]
+        self.assertTrue(replacements, "Expected reviewed replacements in the delivered amendment")
+        unrestored = [
+            entry["key"] for entry in replacements
+            if self.validator.count(entry["before"]) != 1 or entry["after"] in self.validator
+        ]
+        self.assertEqual(unrestored, [], "Synthetic validator must start with the reviewed before values")
+
     def test_schema_upgrade_preserves_existing_inventory(self) -> None:
         self.accepts(self.legacy, self.validator)
         self.accepts(self.amendment, self.validator)
