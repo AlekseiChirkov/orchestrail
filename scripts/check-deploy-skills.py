@@ -1219,6 +1219,74 @@ fi
                     self.assertTrue(result.stderr.startswith(b"ERROR registry-invalid: "), result.stderr)
                     self.assertEqual(fixture.snapshot(), before)
 
+    def test_refuses_global_targets_that_would_replace_the_registry(self) -> None:
+        fixture = self.fixture
+        config = fixture.home / ".config"
+        fixture.environment["XDG_CONFIG_HOME"] = str(config)
+        registry = config / "orchestrail/projects"
+        registry_bytes = os.fsencode(fixture.source) + b"\n"
+        fixture.write(registry, registry_bytes)
+        previous = b"$HOME/.alpha/AGENTS.md"
+        conflicting = b"$HOME/.config/orchestrail/projects"
+        for path in (fixture.adapter(), fixture.adapter().parent / "capabilities.md"):
+            path.write_bytes(path.read_bytes().replace(previous, conflicting))
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(registry.read_bytes(), registry_bytes)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, b"")
+        self.assertTrue(result.stderr.startswith(b"ERROR adapter-conflict: "), result.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_skips_only_the_ignore_file_that_backs_the_registry(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        self.make_tracking_stub()
+        protected = self.project("project with the registry")
+        other = self.project("other project")
+        for project in (protected, other):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+        backing_file = protected / ".gitignore"
+        registry_bytes = f"{protected}\n{other}\n".encode()
+        backing_file.write_bytes(registry_bytes)
+        self.registry.parent.mkdir()
+        self.registry.symlink_to(backing_file)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(os.readlink(self.registry), str(backing_file))
+        self.assertEqual(backing_file.read_bytes(), registry_bytes)
+        self.assertEqual((other / ".gitignore").read_bytes(), b".ai/\n")
+        for project in (protected, other):
+            self.assert_link(project / ".providers/skills/current", fixture.skills_dir() / "current")
+
+    def test_deployment_preserves_registered_projects_under_the_retired_home_tree(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        self.make_tracking_stub()
+        retired = fixture.home / ".codeium"
+        protected = retired / "project"
+        other = self.project("supported project")
+        for project in (protected, other):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+        (protected / ".providers/skills/stale").symlink_to(fixture.skills_dir() / "retired")
+        fixture.write(protected / ".gitignore", b"*.cache\n")
+        fixture.write(retired / "windsurf/global_rules/legacy.md", b"Retired rule\n")
+        fixture.write(self.registry, f"{protected}\n{other}\n".encode())
+        before = self.project_entries(retired)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(self.project_entries(retired), before)
+        self.assert_link(other / ".providers/skills/current", fixture.skills_dir() / "current")
+        self.assertEqual((other / ".gitignore").read_bytes(), b".ai/\n")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
