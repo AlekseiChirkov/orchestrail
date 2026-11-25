@@ -90,6 +90,11 @@ class KnowledgeInventoryTests(unittest.TestCase):
             env=self.env, capture_output=True, text=True, timeout=15,
         )
 
+    def test_source_checkout_matches_public_identity_ledger(self) -> None:
+        result = self.check(ROOT)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_accepts_exact_recorded_relocations_and_existing_fallbacks(self) -> None:
         moves = {
             task_path("todo" if old == "24" else "completed", old, slug):
