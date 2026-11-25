@@ -12,8 +12,8 @@ usage() {
 
 report() {
     local path="$1"
-    # Test links before existence so dangling links are reported without probing their targets.
-    if [[ -L "$path" || -e "$path" ]]; then
+    # Use a single observation of the object, including dangling links.
+    if stat -c '%f' -- "$path" >/dev/null 2>&1; then
         printf 'legacy: %q — created by an earlier Orchestrail version; review it, then remove it manually if unused: rm -r -- %q\n' \
             "$path" "$path"
     fi
