@@ -359,7 +359,7 @@ order`):
   budget; adopting a promoted variant is a separate owner decision and spec.
 - Building `docs/examples/flat-task/` (owned by spec 21 REQ-11); this spec only makes the
   `flat` case and its runs available as the source.
-- Parallel composite execution and its integration errors (spec 23 extends the `composite`
+- Parallel composite execution and its integration errors (spec 26 extends the `composite`
   case later).
 - A third harness, a trained router (strategy D is hypothetical unless recorded results are
   supplied), Codex execution (only through recorded results).
@@ -1743,15 +1743,15 @@ A-01–A-30 and Q-01–Q-06.
   the DM-1 `entry` value `phase-pipeline` is `pipeline`, SA-11's step `pe-execute` is
   `execution-execute`, and `case.json` prompts use the renamed commands; spec 09's reference
   scan includes `tests/golden/cases/*/case.json`.
-- **Specs 22 and 23:** before spec 22 is delivered, `/spec-run` writes no `branch_model:`, so
+- **Specs 22 and 26:** before spec 22 is delivered, `/spec-run` writes no `branch_model:`, so
   the `composite`/`spec-run` pair exercises the `per-leaf` rules of SA-10 and SA-11. After spec
   22's composite branch model is delivered, new `/spec-run` tasks record `per-composite` (spec
   22 REQ-16), so the same pair exercises the `per-composite` rules at N = 1; its reference and
   expected projection must be rebuilt in the change that delivers spec 22, and a `composite`
-  workflow entry with `entry: "spec-run"` and `parallel: 2` must be added for spec 23 REQ-15 in
-  the change that delivers spec 23's parallel children. Spec 22's C-5 row lists
+  workflow entry with `entry: "spec-run"` and `parallel: 2` must be added for spec 26 REQ-115 in
+  the change that delivers spec 26's parallel children. Spec 22's C-5 row lists
   `tests/golden/cases/composite/reference/spec-run/` with
-  `tests/expected/composite/spec-run/projection.json`, and spec 23's C-5 row lists
+  `tests/expected/composite/spec-run/projection.json`, and spec 26 C-10 lists
   `tests/golden/cases/composite/case.json` (entry `spec-run`, `parallel: 2`); the paths and the
   `entry` and `parallel` fields match DM-1 (the case-workflow key may differ from `entry`, as
   DM-1 allows). Spec 22's Notes also describe the first child's `base_commit` as the

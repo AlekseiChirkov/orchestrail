@@ -173,7 +173,7 @@ migration that the frozen validator inventory accepts through an explicit amendm
   `docs/reference/`: spec 19. `loads` metadata, `rules/reference/`, `ref-<name>` deployment,
   the 700/6,000-word limits and the always-on lines naming `load: always` rules: spec 11.
   The public installer, profiles and backups: spec 20. Golden runs and `tests/golden/`:
-  spec 10. Parallel children and the `--parallel` flag: spec 23. Telemetry (05), git rails
+  spec 10. Parallel children and the `--parallel` flag: spec 26. Telemetry (05), git rails
   (06), the state tool (07), specs 12–18.
 - Deleting or moving any legacy directory (`~/.codeium/…`, `.windsurf/`, `.devin/`) or any
   installed skill the deploy manifest does not own.
@@ -296,7 +296,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   replaces the assembly with its generated file without a second append.
 - **REQ-37.** WHEN `/spec-run` starts, THE workflow SHALL, before any write, branch, commit or
   spawn, require records `sub-agents`, `agent-messaging` and `git` with `state: yes` and the
-  matching session tools, and WHERE `--parallel N` with N > 1 is given (spec 23) also
+  matching session tools, and WHERE `--parallel N` with N > 1 is given (spec 26) also
   `worktrees` and `concurrent-sub-agents`; otherwise it SHALL stop with the message of
   Contracts → `/spec-run` preflight, whose next step is `/pipeline <task-directory>` for a
   missing `sub-agents`, `agent-messaging` or `git`, and a re-run without `--parallel` for a
@@ -648,13 +648,13 @@ Limitations: <one paragraph, or "none known">
 | Behaviour | Workflow | Requires | Without it |
 |---|---|---|---|
 | Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | `sub-agents`, `agent-messaging`, `git` | Stop before Step 0; use `/pipeline <task-directory>` |
-| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | Stop before any action; re-run without `--parallel` |
+| Parallel children | `spec-run` and full-tier `phase-execution` | `worktrees`, `concurrent-sub-agents` | Stop before any action; re-run without `--parallel` |
 | Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Inline review, `critic: inline` |
 | Model-specific worker for a leaf | `atomic-execution`, `execution-execute` | `sub-agents` | Run inline when no explicit switch is required, otherwise stop |
 | Hook-covered step logging | `discovery`, `execution`, `validation`, `pipeline`, `spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |
 
 The `Behaviour` texts above are exact; the checker identifies the required rows by them. The
-"Parallel children" row is a contract for spec 23, which adds `--parallel` and wires the check
+"Parallel children" row is a contract for spec 26, which adds `--parallel` and wires the check
 (this spec adds no flag). The six workflows that open a run log today are those containing
 `run-start` (`workflows/phase-pipeline.md`, `phase-discovery.md`, `phase-validation.md`,
 `phase-execution.md`, `retro.md`, `spec-run.md`).
@@ -1163,7 +1163,7 @@ exposed in the session: **stop**:
 `"spec-run requires capability <key> (declared: <yes|no|unknown|absent>; session tool: <available|unavailable>). <next-step>"`
 `<next-step>` is `Use /pipeline <task-directory> for the single-session path.` when `<key>` is
 `sub-agents`, `agent-messaging` or `git`, and `Re-run without --parallel.` when `<key>` is
-`worktrees` or `concurrent-sub-agents`, because `/pipeline` has no parallel mode (spec 23).
+`worktrees` or `concurrent-sub-agents`, because `/pipeline` has no parallel mode (spec 26).
 Keys are checked in the order `sub-agents`, `agent-messaging`, `git`, `worktrees`,
 `concurrent-sub-agents` and the message names the first failing key, so a run that also lacks a
 non-parallel key is directed to `/pipeline`. The Guard holds one `**stop**` line (the template
@@ -1381,7 +1381,7 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
   still present in order.
 - **AC-23** (REQ-37, REQ-38) — Given `workflows/spec-run.md`, then its `## Guard` holds the
   preflight for `sub-agents`, `agent-messaging` and `git` with the stop message of Contracts →
-  `/spec-run` preflight, before Step 0 (the parallel clause is wired by spec 23 through the DM-4
+  `/spec-run` preflight, before Step 0 (the parallel clause is wired by spec 26 through the DM-4
   row), and the Guard states both `<next-step>` texts, the `/pipeline` text for the three
   non-parallel keys and the `Re-run without --parallel.` text for `worktrees` and
   `concurrent-sub-agents`; and given fixture records with a `yes`
@@ -1634,7 +1634,7 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 - A-34 | 08 acceptance line, root `README.md`, kind definitions | Resolved: Guard checks the `Accepted: owner <date>` line; `README.md` joins scan set R; kinds defined as in spec 08 A-04 | Source: spec 08 DM-8 report layout, A-06 (active class = R plus `README.md`), A-04 | Reversible: yes
 - A-35 | Split targets of mapped rules (spec 11 Q-07) | Resolved: option (a) of spec 11's Q-07, as REQ-68: the later spec appends the split target to the `new` list of the existing `rule` row in its own delivery. Grounds: DM-10 (Overflow rules) already adds created split targets to the source row's `new` list, so one mechanism covers both; the DM-9 token classes include every `new` of the row, so the move is path-only and passes the mask unchanged; the row's checks and `name_map_sha256` are the only things that change. Option (b) is rejected: a `contract_changes` entry needs an `after` that is a superseding contract, a split target supersedes none, and extending the closed set by a requirement of this spec would make a name-only move a semantic change reviewed as one (REQ-52). Limit: text asserted by checks of two different rows cannot move into one new file, because a `new` value joins one row only (DM-1); spec 11 stops there, as its own text says | Source: DM-1, DM-9 (token classes, mask), DM-10 (Overflow rules); spec 11 Q-07, A-37, A-39, REQ-22; `tests/validator-runtime-oracle.py:46-100` (current schema-1 oracle, the schema-2 oracle is delivered by this spec); ADR-0018 (inventory frozen, amendments exact) | Reversible: yes
 - A-36 | Who may extend the closed `requirement` set | Resolved: only a later spec's own delivery, with the oracle change and a DM-20 row per new entry (REQ-69) | Source: DM-9 (set hard-coded in the oracle test), DM-20 (Superseded checks); spec 20 Part A needs it | Reversible: yes
-- A-37 | Stop message for parallel-only capability keys | Resolved: the next step depends on the failing key (REQ-37) | Source: spec 23 REQ-25 (delegates the stop message and its next step to REQ-37); `/pipeline` has no parallel mode | Reversible: yes
+- A-37 | Stop message for parallel-only capability keys | Resolved: the next step depends on the failing key (REQ-37) | Source: spec 26 REQ-125 (delegates the stop message and its next step to REQ-37); `/pipeline` has no parallel mode | Reversible: yes
 
 ## Decisions
 
@@ -1815,7 +1815,7 @@ only the five colliding rules, moving command renames to spec 21, per-provider w
 - 12: wire `--parallel` into the "Parallel children" row of DM-4 (key names agree, Notes →
   Capability key names). Its REQ-25 delegates the stop and the next step it names to REQ-37, which
   defines them per failing key (Contracts → `/spec-run` preflight): a stop caused by
-  `worktrees` or `concurrent-sub-agents` advises re-running without `--parallel`; spec 23
+  `worktrees` or `concurrent-sub-agents` advises re-running without `--parallel`; spec 26
   needs no change.
 - 08: report in DM-19 counts and DM-2 kinds; propose map amendments through `/spec-sync`.
 
@@ -1883,15 +1883,14 @@ old names its text uses through `docs/name-map.json`:
   `<target> → ## <heading>`.
 - Every such file and section is subject to the checker (kinds, collisions, references).
 
-### Capability key names (spec 23)
+### Capability key names (spec 26)
 
 The canonical keys of DM-4 are the only canonical names (extension record names stay
 possible under REQ-67): `sub-agents`, `concurrent-sub-agents`, `agent-messaging`,
-`worktrees`, `hooks`, `git`. Spec 23's REQ-25 uses the same names in the record form
-(`state: yes`); the `worktrees: yes` shorthand in spec 23's source text means the same. This spec asserts no value for any
-record; until the Claude records carry evidence and `state: yes`, spec 23 refuses
-`--parallel N` with N > 1, which is the intended conservative path (REQ-38). Spec 23 wires the
-flag into the "Parallel children" row.
+`worktrees`, `hooks`, `git`. Spec 26's REQ-125 uses the same names in the record form
+(`state: yes`); the `worktrees: yes` shorthand in historical spec 23 means the same. This spec asserts no value for any
+record; until the invoking harness records carry evidence and `state: yes`, spec 26 refuses
+`--parallel N` with N > 1, which is the intended conservative path (spec 26 REQ-125). Spec 26 wires the flag and current-invocation checks into both entry points.
 
 ### Spec 19 alignment (this spec's side)
 

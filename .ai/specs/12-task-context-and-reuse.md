@@ -357,7 +357,7 @@ Facts verified on 2026-11-14 at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
    script must remain optional (ADR-0001, `.ai/adr/0001-task-unknown-markdown-only-no-runtime.md:64-65`).
    `scripts/run-log-timing.sh:17-22` is a Bash launcher that checks Python ≥ 3.11 and runs
    the adjacent engine. Run-owned git-side data already lives under the git common
-   directory (`hooks/git_rails.py:2402`, `orchestrail-restack`; spec 23 DM-4,
+   directory (`hooks/git_rails.py:2402`, `orchestrail-restack`; spec 26 DM-4,
    `orchestrail-worktrees`). Untracked files do not fail the `/spec-run` preflight
    (`rules/git-flow.md:22-23`).
 
@@ -419,7 +419,7 @@ disabled or cannot prove freshness.
   evidence belongs to specs 13 and 15.
 - Automatic removal of old packets; vector databases, search servers, provider cache
   control parameters, changes to the billing model.
-- Parallel scheduling and worktree management (spec 23), checkpoint messages (spec 13),
+- Parallel scheduling and worktree management (spec 26), checkpoint messages (spec 13),
   verification sufficiency (spec 15), tool-output bounding (spec 14).
 - Any change to status vocabularies, protected sections, test-first order, stops, git rails
   or the single-writer rule; the state tool of spec 07 is not used.
@@ -1172,7 +1172,7 @@ Spec 11: every workflow or rule that cites a section of `contract-context` decla
 | Consumer | Contract |
 |---|---|
 | 05 | DM-8 result records (`digest`, `parts.*.bytes`, `bytes`, `source_bytes`, `sources`) and DM-11 receipts. A 05 adapter may emit `context.loaded_bytes` with `quality: measured` only for a role whose receipt says `packet … fresh`, using the packet's `bytes`; `context_hash` must be derived by 05's keyed mapping from the packet digest, never copied (ADR-0016 Decision 3). 12 emits no 05 object |
-| 23 | `packet --work <child worktree> --ai-dir <root knowledge root>`; the store is shared by all worktrees; packets are immutable read-only snapshots; `--base-commit` is the child's recorded base; concurrent builds are safe (C-5) |
+| 26 | `packet --work <child worktree> --ai-dir <root knowledge root>`; the store is shared by all worktrees; packets are immutable read-only snapshots; `--base-commit` is the child's recorded base; concurrent builds are safe (C-5) |
 | 13 | `packet_digest` = the packet's `sha256:<hex>` digest; `task_contract_hash` = `sha256:` + `parts.contract.sha256`; both readable from the manifest and the DM-11 entries; 13's checkpoint message carries them |
 | 15 | The validator packet: Task Contract, `base_commit`, reviewed revision, changed paths; 15 decides sufficiency and may add sources by expansion |
 | 17 | The same role packets; a repair attempt receives a fresh `implementer` packet with `--predecessor` |
@@ -1543,7 +1543,7 @@ Every AC-01–AC-33 names at least one REQ above.
 | Packets accumulate in the git common directory | Disk use | Medium over long use | Documented safe removal (DM-10, runbook) |
 | `/compress-state` summarizes away the design-basis line or notes entries | Status `unrecorded`; lost receipts | Low | Conservative reading; entries are evidence, not state |
 | 09 or 11 land with different names or loads mechanics | Edits target wrong names | Medium | Requirements preamble: 09's map governs; C-6 defers to 11's `loads:` |
-| Spec 23 later needs packets of the coordinator role | Missing role | Medium | `role` vocabulary is additive under a new schema version |
+| Spec 26 later needs packets of the coordinator role | Missing role | Medium | `role` vocabulary is additive under a new schema version |
 | A source change between `verify` and the worker's read | Worker reads newer bytes than verified | Low | Packet content is immutable; only expansions read live sources, recorded as such |
 
 ## Assumptions
@@ -1554,7 +1554,7 @@ Every AC-01–AC-33 names at least one REQ above.
 - A-04 | `memory/state.md` in the stable pack | Resolved: removed from the stable set; read directly or via the Execution View | Source: original REQ-01 and §3 (stable excludes progress); `rules/orchestration.md:113` (state deltas per leaf) | Reversible: yes
 - A-05 | Stable sources | Resolved: the six DM-2 sources, runbook limited to `## Commands` | Source: `workflows/context-pack.md:25-33`; `rules/phase-atomic-execution.md:24-34` | Reversible: yes
 - A-06 | Freshness granularity | Resolved: freshness is decided by part digests over rendered bytes (REQ-11); whole-file source digests are recorded per (part, file) and drive only reason reporting and the design basis | Source: original §5 ("hashes over the actual bytes"), original §6.2 step 3 (rebuild only dependent fragments); best practice | Reversible: yes
-- A-07 | Where role packets live | Resolved: content-addressed files under `<git-common-dir>/orchestrail-context/packets/` | Source: `hooks/git_rails.py:2402` and spec 23 DM-4 precedent; spec 23 needs one store visible to all worktrees; `/spec-run` requires git (`rules/git-flow.md:21`) | Reversible: yes
+- A-07 | Where role packets live | Resolved: content-addressed files under `<git-common-dir>/orchestrail-context/packets/` | Source: `hooks/git_rails.py:2402` and spec 26 DM-4 precedent; spec 26 needs one store visible to all worktrees; `/spec-run` requires git (`rules/git-flow.md:21`) | Reversible: yes
 - A-08 | Who receives packets | Resolved: only `/spec-run` Implementers and Validators | Source: ADR-0014 Decision 1 (single-session reuse already covers other workflows); `rules/orchestration.md:69-71`, `:85-88` | Reversible: yes
 - A-09 | Expansion protocol | Resolved: the worker reads the canonical source itself and records it; no Orchestrator round trip | Source: original §2 ("full context is always available"); `rules/orchestration.md:69-71` (workers load context themselves); original §6.3 step 4 narrowed to avoid a stop per request | Reversible: yes
 - A-10 | Contract change during a leaf | Resolved: no new stop; successor packet at continuation, Validator judges against the current contract; a design-basis contradiction uses the existing non-status blocker route ("an invariant conflict", `rules/phase-atomic-execution.md:65`; `rules/orchestration.md:187`), not a new stop | Source: original §6.3 step 5 ("impact check …, not automatic rejection or acceptance"); P5 (no undeclared stop) | Reversible: yes
@@ -1564,7 +1564,7 @@ Every AC-01–AC-33 names at least one REQ above.
 - A-14 | Telemetry hand-off | Resolved: DM-8 records and receipts only; 05 adapters own `diagnostic_measurement` mapping | Source: `scripts/usage_telemetry_contract.py:304-306`, `:350-353`; ADR-0016 Decision 3 | Reversible: yes
 - A-15 | Size limits | Resolved: none imposed | Source: skill rule against invented numeric targets; `.ai/` sources are small text files | Reversible: yes
 - A-16 | Disable switch | Resolved: `ORCHESTRAIL_CONTEXT_PACKETS`; only unset, empty or `on` enable | Source: `ORCHESTRAIL_USAGE_MODE=off` precedent (`docs/USAGE-TELEMETRY.md`, "Disable, resume and recover"); G7 | Reversible: yes
-- A-17 | Umbrella resolution | Resolved: from the knowledge root, not `--work` | Source: `rules/phase-atomic-execution.md:20`; spec 23 worktrees (DM-4) where `<worktree>/../.ai` is wrong | Reversible: yes
+- A-17 | Umbrella resolution | Resolved: from the knowledge root, not `--work` | Source: `rules/phase-atomic-execution.md:20`; spec 26 worktrees (DM-4) where `<worktree>/../.ai` is wrong | Reversible: yes
 - A-18 | Unknown manifest fields | Resolved: rejected (`invalid`); a new field requires a new schema version | Source: original §8 ("unknown schema version is not interpreted as the latest"); P3 satisfied by rebuild of a derived cache | Reversible: yes
 - A-19 | Shared gates | Resolved: G1–G8 of `.ai/specs/README.md` (the index defines eight) | Source: `.ai/specs/README.md` "Shared acceptance gates"; original §4 REQ-10 | Reversible: no
 - A-20 | Acceptance suite location | Resolved: `scripts/check-context-pack.py`, not registered in the validator | Source: ADR-0019 Decision 3; `tests/fixtures/validator-runtime/oracle.py:250` | Reversible: yes
@@ -1587,7 +1587,7 @@ N/A — no questions were asked (autonomous mode, owner unavailable for this run
 
 ## Open Questions
 
-- Q-01 | non-blocker | Should the Arbiter or a future spec 23 coordinator receive role packets? Impact: they keep full loading until a later spec adds a role under a new schema version.
+- Q-01 | non-blocker | Should the Arbiter or a future spec 26 coordinator receive role packets? Impact: they keep full loading until a later spec adds a role under a new schema version.
 - Q-02 | non-blocker | Should old packets be garbage-collected automatically (for example at `/spec-run` completion)? Impact: disk use only; manual removal is documented.
 
 ## Notes

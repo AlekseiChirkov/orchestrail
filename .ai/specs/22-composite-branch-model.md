@@ -6,12 +6,11 @@
   `e3ba41a000c927ac157fd2207df413107ed54cb5` (2026-11-16). That revision failed readiness
   check 13 (56 requirements exceed one feature) and recorded two delivery stages (its Notes →
   Delivery stages): 23A, the composite branch model at N = 1, became this specification; 23B,
-  parallel children of one composite, stays in spec 23 and starts after this spec is
-  delivered (merged). Identifiers keep their numbers; an identifier is defined in exactly one of the two
-  files.
+  parallel children of one composite, was consolidated into spec 26 and starts after this spec is
+  delivered (merged). This file retains its original identifiers. Spec 26 has a separate identifier namespace.
 - **Original request text:** the Russian sections 1–16 (translated) and English section 17 of
   the original specification, its 2026-11-06 Implementation review and the Change Log up to
-  the split are preserved in spec 23 → Source and → Notes → Change Log; this file cites that
+  the split are preserved in spec 23 → Source and its pinned historical revision; this file cites that
   text as "original §N" and does not repeat it.
 - **Governing decisions:** ADR-0009 Decision 4 (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:143-174`):
   "one branch and one PR per composite", "in sequential and parallel mode alike".
@@ -79,12 +78,12 @@ orchestrator-only `.ai/` writes in parallel mode, an independence record written
 one composite" (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:143-174`). The 2026-11-06
 owner clarification (Source, section 17) widens parallelism to atomic leaves across composite
 boundaries and directly under the task, which conflicts with that decision; the owner resolved
-that conflict on 2026-11-14 in favour of the decision (spec 23 D-04, spec 23 Q-01).
+that conflict on 2026-11-14 in favour of the decision (the owner decision preserved in spec 23).
 
 **Consequence.** A composite's children are reviewed as separate stacked pull requests although
 their integration criteria apply only to their union; every independent child waits for its
 predecessor; and the git rails still ask the owner to delete any temporary branch the pipeline
-creates. Parallel children (spec 23) need this branch model first: without one composite
+creates. Parallel children (spec 26) need this branch model first: without one composite
 branch there is nothing to merge concurrent children into.
 
 ## Goal
@@ -95,7 +94,7 @@ branch, passes its own atomic cycle, and is merged into the composite branch wit
 merge commit that keeps its test-first commits, after which the run deletes the temporary
 branch only when the git-rails hook can verify the deletion; a composite journal lets an
 interrupted run resume without duplicate merges or lost work. Running children concurrently
-is spec 23.
+is spec 26.
 
 ## Scope
 
@@ -108,7 +107,7 @@ is spec 23.
 4. Cleanup of temporary branches, and a git-rails `DELETION_VERIFIER` that
    allows exactly one verified deletion form.
 Items 5–8 of the combined specification (flag, Parallel Safety record, admission and
-reservations, agents and handoffs) and the scheduling subcommands of item 9 are spec 23; the
+reservations, agents and handoffs) and the scheduling subcommands of item 9 are spec 26; the
 numbering of the remaining items is kept.
 
 9. The optional helper `scripts/composite_run.py` with the subcommands `--version`,
@@ -121,21 +120,19 @@ numbering of the remaining items is kept.
 checked at Discovery: spec 09 delivered (its DM-9 `contract_changes` mechanism and REQ-69,
 which C-5 uses) and spec 10 delivered (the `composite` golden case files C-5 rebuilds); specs
 02, 03 and 05 are completed. Specs 12, 15 and 17 are optional: A-18 states the behaviour
-before each is delivered. Spec 23 starts after this spec is delivered (merged).
+before each is delivered. Spec 26 starts after this spec is delivered (merged).
 
 ## Out of Scope
 
 - Any run with an effective limit above 1: the `--parallel [N]` flag, worktrees, admission,
-  write reservations, leaf coordinators, workflow agents and handoffs (spec 23). This spec adds
+  write reservations, leaf coordinators, workflow agents and handoffs (spec 26). This spec adds
   no flag to `/spec-run` (`workflows/spec-run.md:5`).
 - Parallel execution across composite boundaries (children of different composites running
   together) and of leaves directly under the task (top-level leaves), and any change to the
-  top-level stack order. The owner deferred it on 2026-11-14 (spec 23 D-04); parallelism exists only
-  between the children of one composite. A possible successor specification is named in
-  spec 23 → Notes → Successor path.
+  top-level stack order. The owner deferred it on 2026-11-14 (the owner decision preserved in spec 23); parallelism exists only
+  between the children of one composite. The historical discussion remains in spec 23.
 - Concurrent independent tasks or specifications, parallel Discovery, multi-repository runs,
-  and parallel execution outside `/spec-run` (`/phase-execution`, `/phase-pipeline`,
-  `/pe-execute` stay sequential).
+  and changes to other execution entry points. Spec 26 owns its separate extension to full-tier phase execution.
 - A separate integration branch, wave branches, or a task-level branch.
 - Pushing or opening pull requests for temporary child branches.
 - Merging any pull request, locally or through `gh` (unchanged rail, `rules/git-flow.md:180`).
@@ -170,14 +167,14 @@ before each is delivered. Spec 23 starts after this spec is delivered (merged).
 | **Branch model** | Task-level `branch_model:` value: `per-leaf` (every leaf, composite children included, gets a stacked branch; the shipped behaviour) or `per-composite` (this spec). | New; REQ-16 |
 | **Composite branch** | The one stacked branch of a composite subtask in a `per-composite` task, cut like any stack branch and named `<type>/<feature-slug>` from the composite's Goal. | ADR-0009 D4; REQ-06 |
 | **Child** | A leaf listed in a composite block's `children:`. | `rules/workflow-globals.md:210-219` |
-| **Attempt** | One execution of a child on one temporary branch. Under this spec every child has exactly one attempt; a second attempt arises only from spec 23's serialization (spec 23 REQ-14, REQ-49). Not a repair attempt of spec 17. | New |
-| **Child branch** | The temporary, run-owned, never-pushed branch of one attempt: `<composite-branch>--<child-slug>` for attempt 1 (spec 23 adds `-attempt-<k>` for attempt k ≥ 2). `<child-slug>` follows the branch slug rules of `rules/git-flow.md:60-71` (collisions between children are refined from their Goals); the `--` separator is exempt from repeat-collapsing. | Original §8.1; REQ-30 |
+| **Attempt** | One execution of a child on one temporary branch. Under this spec every child has exactly one attempt; a second attempt arises only from spec 26's serialization (spec 26 Contract precedence and REQ-149). Not a repair attempt of spec 17. | New |
+| **Child branch** | The temporary, run-owned, never-pushed branch of one attempt: `<composite-branch>--<child-slug>` for attempt 1 (spec 26 adds `-attempt-<k>` for attempt k ≥ 2). `<child-slug>` follows the branch slug rules of `rules/git-flow.md:60-71` (collisions between children are refined from their Goals); the `--` separator is exempt from repeat-collapsing. | Original §8.1; REQ-30 |
 | **Integration** | The verified `--no-ff` merge of a child attempt's exact tip into the composite branch, accepted only after post-merge checks pass and state is recorded. Synonym "inclusion" in the original. | Original §4; REQ-03 |
 | **Post-merge check** | Running, on the merged composite tree, the recorded test command of every child accepted so far plus the merged child. A child-branch result, including a spec 15 receipt, never stands for it (A-28). | REQ-03 |
 | **Composite journal** | The JSON recovery record `<git-common-dir>/orchestrail-composite/<sha256(task_path)>.json` owned by the root. | REQ-13 |
 | **Stage** | A journal-only lifecycle value of an attempt (DM-3). Not a task status. | Original §11 |
 | **Root** | The Orchestrator of `/spec-run`. | `.ai/principles/domain.md:32` |
-| **Episode key** | Spec 17's `episode_id` (17 DM-2). This spec defines no key of its own: DM-3 `repair_episode` holds that value. | REQ-54; 17 C-10 row 23, A-34 |
+| **Episode key** | Spec 17's `episode_id` (17 DM-2). This spec defines no key of its own: DM-3 `repair_episode` holds that value. | REQ-54; 17 C-10 row 26, A-34 |
 
 Rejected synonyms: "integration branch", "wave branch", "task branch" (no such branches exist);
 "sub-PR" (children get no PR); "lock" for a reservation (no file lock is used); "retry" or
@@ -189,21 +186,14 @@ Component tags name the actor that implements the behaviour. Unless stated, a re
 applies only to `/spec-run` tasks with `branch_model: per-composite`. Original identifiers keep
 their subject; their original text is under spec 23 → Source. "Effective limit" is 1 in
 every run this spec covers. Stage names are those of DM-3. Identifiers are unique across
-this file and spec 23: a new identifier takes the next number unused in either file.
+this file. Parallel requirements have their own identifiers in spec 26.
 
-### Identifiers defined in spec 23
+### Parallel extension ownership
 
-REQ-01, REQ-02, REQ-04, REQ-05, REQ-09–REQ-11, REQ-14, REQ-15, REQ-17–REQ-29, REQ-38, REQ-48,
-REQ-49, REQ-52, REQ-55–REQ-63, REQ-68–REQ-72; AC-01, AC-03, AC-06, AC-07, AC-10, AC-13–AC-18, AC-20–AC-22,
-AC-31, AC-33, AC-35, AC-38–AC-46, AC-51–AC-57; DM-4–DM-7, C-6 and C-7–C-10; A-01, A-02, A-06, A-10, A-15–A-17, A-22,
-A-23, A-26, A-27, A-29, A-35–A-38; E-01–E-04, E-06–E-10, E-12–E-16, E-20, E-20a, E-21, E-24, E-32–E-34,
-E-36–E-38, E-40–E-42, E-44, E-45, E-47, E-53, E-55–E-57; R-1, R-7, R-9; NFR-04, NFR-08; D-01, D-03–D-05; Q-01 and Q-03. A citation of one of them in this file names spec 23.
-
-**Clause split.** REQ-30, REQ-31, REQ-35, REQ-36, REQ-47, REQ-50 and REQ-54 and AC-02, AC-12,
-AC-28, AC-32 and AC-37 carried clauses that apply only with an effective limit above 1. Those
-clauses are spec 23's REQ-57–REQ-63 and AC-39–AC-46 (each marked "split from 22 …"); this
-file keeps the N = 1 behaviour under the original identifier and contains no clause for an
-effective limit above 1.
+[Spec 26](26-shared-parallel-execution.md) owns N > 1 execution, its helper extensions,
+worktrees and worker protocols. The sequential branch model below remains independently
+deliverable. The migration record in [spec 23](23-composite-branch-model-and-parallel-children.md)
+maps legacy requirement IDs to spec 26. Its historical numbered cases are not delivery criteria.
 
 ### Shared state and accounting
 
@@ -212,7 +202,7 @@ effective limit above 1.
   agent's packet per 12 C-8 with `--work` set to the root worktree, `--ai-dir` set to the root worktree's `.ai/`,
   `--base-commit` set to the attempt's `base_commit`, and `--role implementer` for execution
   workflows or `--role validator` for validation workflows, and pass that packet as the
-  agent's context in addition to the dispatch items `/spec-run` already passes (spec 23 REQ-28 lists
+  agent's context in addition to the dispatch items `/spec-run` already passes (spec 26 REQ-128 lists
   them for parallel mode); when `packet` exits non-zero (including
   12's `working-dir-mismatch`, 12 REQ-50), it dispatches without a packet as 12 REQ-40/REQ-41
   provide.
@@ -249,7 +239,7 @@ effective limit above 1.
 - **REQ-30 Child branch.** WHEN the root starts a child attempt, THE SYSTEM [root] SHALL create
   the attempt's child branch (Terminology) at the composite branch's current tip SHA and record
   that SHA as the attempt's `base_commit` in the journal and in the child block, using the C-2
-  form for the root worktree (spec 23 REQ-57 adds the worktree used when the effective limit is
+  form for the root worktree (spec 26 REQ-03 adds the worktree used when the effective limit is
   above 1).
 - **REQ-07 Merge form.** WHEN a child attempt is ready to integrate, THE SYSTEM [root] SHALL
   merge it from the root worktree with the composite branch checked out, using exactly
@@ -263,7 +253,7 @@ effective limit above 1.
 - **REQ-35 Post-merge failure.** IF a post-merge check fails, THEN THE SYSTEM [root] SHALL keep
   the merge commit, set the attempt stage `check-failed` with the failing command, set the
   composite block `blocker:` to that command and child, integrate no further child of that
-  composite, and stop the run (spec 23 REQ-59 adds the wait for active siblings when the
+  composite, and stop the run (spec 26 REQ-09 adds the wait for active siblings when the
   effective limit is above 1).
 - **REQ-45 Post-merge recovery.** WHEN a run resumes a composite whose block `blocker:` the
   owner has set back to `none` and whose child is `check-failed` (`reconcile` returning `none`
@@ -273,8 +263,7 @@ effective limit above 1.
 - **REQ-36 Merge conflict.** IF `git merge` reports a conflict, THEN THE SYSTEM [root] SHALL run
   `git merge --abort`, record the conflicting paths and stage `conflict` in the journal, keep
   the child branch, set the composite block `blocker:` to `conflict: <child id>: <first
-  conflicting path>`, and stop the run (A-30; spec 23 REQ-60 replaces the stop with
-  serialization when the effective limit is above 1).
+  conflicting path>`, and stop the run (A-30; spec 26 REQ-06 defines a separate source-side resolution route for compatible overlap).
 - **REQ-64 Owner-cleared conflict.** WHEN a run resumes a child whose latest attempt is
   `conflict` and whose composite block `blocker:` the owner has set to `none`, THE SYSTEM [root]
   SHALL, if `reconcile` returns `none` for it (after any `record-tip` or
@@ -321,10 +310,10 @@ effective limit above 1.
   whose ref, expected SHA and repository pass every check of `## Contracts & Interfaces →
   ### C-4`, and otherwise keep the shipped `ask` decision.
 - **REQ-47 Journal retention.** WHEN the task's Execution phase is complete and every attempt
-  is `cleaned` (or `superseded`, which only spec 23 writes), THE SYSTEM [root] SHALL first make a record write that empties
+  is `cleaned` (or `superseded`, which only spec 26 writes), THE SYSTEM [root] SHALL first make a record write that empties
   every `pending_commits` list into `commits:`, then delete the task's composite journal
-  after the Step 8 report (spec 23 REQ-70 also keeps it while a superseded attempt still has a
-  worktree) (spec 23 REQ-61 adds its handoff directory); otherwise it keeps it.
+  after the Step 8 report (spec 26 REQ-170 also keeps it while a superseded attempt still has a
+  worktree) (spec 26 REQ-161 adds its handoff directory); otherwise it keeps it.
 
 ### Composite validation
 
@@ -351,7 +340,7 @@ effective limit above 1.
   row order, `workflows/spec-run.md:162-163`), and IF a child's atomic validation returns NEEDS
   WORK, its `/pae-tests` reports `atomic-tests: failed`, or the child is blocked, THEN stop
   the run as today (`workflows/spec-run.md:297-299`), setting the attempt `failed` (`needs-work` or `tests-failed`) or `blocked` (`blocker`)
-  and writing `blocker: <blocked_reason>: <one-line detail>` in the child block (spec 23 REQ-24
+  and writing `blocker: <blocked_reason>: <one-line detail>` in the child block (spec 26 REQ-05
   reuses this format).
 - **REQ-54 Repair policy.** WHERE spec 17's repair policy is active for the run (17
   REQ-01 not applying), IF a child's atomic validation returns NEEDS WORK, THEN THE SYSTEM [root]
@@ -361,7 +350,7 @@ effective limit above 1.
   and the composite-validation fix siblings of E-31,
   `workflows/phase-composite-validation.md:89-143`); merged siblings are not touched; an
   accepted repair sets the attempt `validated` and then follows REQ-07 and REQ-36 unchanged; and
-  a repair loop that ends without acceptance applies the REQ-51 stop. Spec 23 REQ-63 adds the
+  a repair loop that ends without acceptance applies the REQ-51 stop. Spec 26 REQ-163 adds the
   rules for an effective limit above 1. Without the active policy, REQ-51 applies exactly as
   written.
 - **REQ-50 Owner-cleared resume.** WHEN a run resumes a child whose latest attempt is `failed`
@@ -369,7 +358,7 @@ effective limit above 1.
   if `reconcile` returns `none` for it (after any `record-tip` or `record-composite-tip`), switch
   the root worktree to the child branch (C-2), set the attempt back to `dispatched` and restart it with
   fresh agents in the root worktree at the stage the DM-3 resume table gives for its
-  `blocked_reason` (spec 23 REQ-62 covers an attempt with a worktree); while `blocker:` is not `none` the attempt stays as
+  `blocked_reason` (spec 26 REQ-162 covers an attempt with a worktree); while `blocker:` is not `none` the attempt stays as
   it is.
 
 ### Recovery, migration, measurement
@@ -423,7 +412,7 @@ Formats`.
 | Composite | `base_commit:` | 40/64-hex SHA | root | Written once, never recomputed |
 | Composite | `commits:` | `<sha> merge: <child domain name>` (a label of this field only, not a git-flow commit type; the commit's subject is the REQ-07 message) and `<sha> chore: update task records`, comma-separated | root (REQ-39, REQ-43) | Appended per commit the root makes on the composite branch, at the next record write |
 | Composite | `pr:` | `#N draft \| #N ready \| none` | root (REQ-08) | — |
-| Child | `branch:` | child branch of the attempt | root (REQ-30) | Written when the attempt starts (spec 23 updates it for a later attempt) |
+| Child | `branch:` | child branch of the attempt | root (REQ-30) | Written when the attempt starts (spec 26 updates it for a later attempt) |
 | Child | `base_branch:` | composite branch | root | — |
 | Child | `base_commit:` | SHA | root | The latest attempt's base |
 | Child | `commits:` | existing format | root | Commits of the attempt: the `test:` and implementation SHAs are appended on the child branch as `/spec-run` Step 4.2 does today (`workflows/spec-run.md:263`, `:271-272`) and are committed by the point (a) record commit; the point (a) record commit's own SHA is appended after the merge commit exists (E-43); the last listed commit is the attempt `tip`, which spec 10 SA-10 compares with the merge's second parent |
@@ -495,11 +484,9 @@ full lowercase 40- or 64-hex object name; every timestamp is `YYYY-MM-DDTHH:MM:S
 | journal | `repository_common_dir`, `task_path` | absolute canonical path | yes | root | — |
 | journal | `branch_model` | `per-composite` | yes | root | — |
 | journal | `composites` | list | yes | root | One object per started composite |
-| journal | `requested_parallel` | positive integer | no | spec 23 | Absent; reads as 1 |
 | composite | `id`, `branch`, `base_branch`, `base_commit`, `tip` | text / SHA | yes | root (REQ-06, REQ-39, REQ-43) | `tip` = the composite branch SHA after the root's last commit or merge on it |
 | composite | `children` | list | yes | root | — |
 | composite | `pending_commits` | list of `<sha> <subject>` | yes | root (REQ-43, `record-composite-tip`) | Commits on the composite branch not yet copied to the composite block's `commits:`; written before `tip` moves past them and emptied by the next record write |
-| composite | `serialized` | object or null | no | spec 23 | Absent; reads as null |
 | child | `id`, `attempts` | text / list | yes | root | Exactly one attempt |
 | attempt | `attempt` | integer ≥ 1 | yes | root | `1` |
 | attempt | `branch`, `base_commit` | text / SHA | yes | root (REQ-30) | — |
@@ -512,14 +499,12 @@ full lowercase 40- or 64-hex object name; every timestamp is `YYYY-MM-DDTHH:MM:S
 | attempt | `dispatched_at`, `ended_at` | timestamp or null | yes | root | `ended_at` set when the attempt first reaches `accepted`, `failed`, `blocked`, `check-failed` or `conflict`, cleared on REQ-50/REQ-64 restart |
 | attempt | `merge` | object or null | yes | root (REQ-07, REQ-35, REQ-36, REQ-39) | `{"expected_target": <composite tip before merge>, "commit": <sha\|null>, "tree": <sha\|null>, "conflict_paths": [...], "checks": "pass\|fail\|null", "failed_command": <text\|null>, "check_failures": <int>}`; `check_failures` counts failed REQ-03/REQ-45 runs |
 | attempt | `cleanup` | object or null | yes | root (REQ-31) | `{"worktree_removed": false, "branch_deleted": bool, "failure": <text\|null>}` |
-| attempt | `blocked_reason` | null or reason | yes | root | `needs-work`, `tests-failed`, `blocker` or `uncommitted-work`; spec 23 adds `handoff-stale`, `liveness-unknown`, `worktree-not-writable`, `record-failed` |
+| attempt | `blocked_reason` | null or reason | yes | root | `needs-work`, `tests-failed`, `blocker` or `uncommitted-work` |
 | attempt | `repair_episode` | null or spec 17 `episode_id` | no | root (REQ-54) | Written only while 17's repair policy is active; absence reads as null |
-| attempt | `worktree`, `agents`, `handoffs`, `actual_write_set`, `unexpected_messages` | — | no | spec 23 | Absent; `worktree` reads as null |
 
-`validate` rejects a missing required field, a wrong type, an unknown `stage` or
-`blocked_reason` value, and a field that neither this table nor spec 23's DM-7 journal extension names;
-it accepts every optional field spec 23 writes. Stage `superseded` and the spec 23
-`blocked_reason` values are valid but are written only by spec 23.
+The revision 1 reader rejects missing or incorrectly typed fields, unknown stages and
+reasons, unrecognized fields and unsupported schema revisions. Spec 26 defines revision 2
+and migration for parallel execution.
 
 **Stages (journal vocabulary, one anchored line in the workflow):** `branched` | `dispatched` |
 `validated` | `merge-intent` | `merged` | `accepted` | `cleaned` | `check-failed` | `conflict` |
@@ -531,7 +516,7 @@ it accepts every optional field spec 23 writes. Stage `superseded` and the spec 
 | `branched` | `dispatched` | First agent spawned |
 | `dispatched` | `validated` | Atomic validation `complete` applied to state |
 | `dispatched` | `failed` | NEEDS WORK (`needs-work`) or `atomic-tests: failed` (`tests-failed`) |
-| `dispatched` | `blocked` | Worker blocker (`blocker`) or the `inspect-worker` root action (`uncommitted-work`); spec 23 adds its reasons |
+| `dispatched` | `blocked` | Worker blocker (`blocker`) or the `inspect-worker` root action (`uncommitted-work`); spec 26 adds its reasons |
 | `failed` / `blocked` | `dispatched` | REQ-50 owner-cleared resume |
 | `validated` | `merge-intent` | `merge.expected_target` recorded before `git merge` |
 | `merge-intent` | `merged` | Merge commit created; `merge.commit` and `merge.tree` recorded |
@@ -541,19 +526,17 @@ it accepts every optional field spec 23 writes. Stage `superseded` and the spec 
 | `merged` | `check-failed` | REQ-35 |
 | `check-failed` | `accepted` | REQ-45 rerun passes |
 | `accepted` | `cleaned` | REQ-31 deletion done |
-| `branched`, `dispatched`, `validated`, `conflict`, `failed`, `blocked` | `superseded` | Written only by spec 23 (its REQ-14, REQ-49) |
+| `branched`, `dispatched`, `validated`, `conflict`, `failed`, `blocked` | `superseded` | Written only by spec 26 (its Contract precedence and REQ-149) |
 
 Terminal: `cleaned` and `superseded`. `accepted` with a cleanup failure stays `accepted`.
 
-Resume stage after an owner-cleared `blocker:` (REQ-50; rows marked spec 23 apply only there):
+Resume stage after an owner-cleared `blocker:` (REQ-50):
 
 | `blocked_reason` | Restart at |
 |---|---|
-| `needs-work`; `record-failed` (spec 23) | Atomic validation, fresh agents, on the current child tip (owner fixes, if any, are commits on the child branch) |
+| `needs-work` | Atomic validation, fresh agents, on the current child tip (owner fixes, if any, are commits on the child branch) |
 | `tests-failed` | `/pae-tests` |
-| `handoff-stale` (spec 23) | Rebuild the handoff from the last root checkpoint commit, then the workflow it blocked |
-| `uncommitted-work`, `blocker`; `liveness-unknown` (spec 23) | The first workflow after the last root checkpoint commit (`/pae-tests` when there is none) |
-| `worktree-not-writable` (spec 23) | Not resumable; serialization supersedes it |
+| `uncommitted-work`, `blocker` | The first workflow after the last root checkpoint commit (`/pae-tests` when there is none) |
 
 ### Migration impact
 
@@ -565,7 +548,7 @@ The journal lives only in the git common directory and is never committed.
 ### C-1 `/spec-run` invocation (changed)
 
 `/spec-run <path-to-spec> [--allow-pr] [--dry-run]` — the invocation is unchanged; this spec
-adds no flag (spec 23 adds `--parallel`). Step changes:
+adds no flag (spec 26 adds `--parallel`). Step changes:
 
 | Step | Change |
 |---|---|
@@ -590,7 +573,7 @@ adds no flag (spec 23 adds `--parallel`). Step changes:
 | Abort conflict | `git merge --abort` |
 | Delete child branch | `git update-ref -d refs/heads/<child-branch> <attempt tip sha>` |
 
-Spec 23 adds the worktree forms. Forbidden in this flow: `git branch -D`, `git worktree remove --force`, `git reset --hard`,
+Spec 26 adds the worktree forms. Forbidden in this flow: `git branch -D`, `git worktree remove --force`, `git reset --hard`,
 `git clean`, `git stash`, `git rebase`, any push of a child branch. Policy: each git write is its
 own Bash call; the hook's same-command state mark denies some, not all, later reads in the same
 command (`harness/claude/capabilities.md` X15), so the policy does not rely on it.
@@ -600,7 +583,7 @@ command (`harness/claude/capabilities.md` X15), so the policy does not rely on i
 Invoked as `python3 "$ORCHESTRAIL_HOME/scripts/composite_run.py"`, like the logging helper
 (`workflows/spec-run.md:31`); it is run from the source root, not deployed by `scripts/sync.sh`.
 Optional: when the helper is unavailable (missing, or `python3` older than 3.11), the root
-applies the `reconcile` table and the `post-merge-commands` list itself (A-12). Spec 23 adds
+applies the `reconcile` table and the `post-merge-commands` list itself (A-12). Spec 26 adds
 subcommands and makes the helper required when N > 1. Python ≥ 3.11, standard library only, one file. It never writes a file, never runs a git command
 that writes, and never spawns a model. Read-only git it may run: `diff`, `status`,
 `rev-parse`, `merge-base --is-ancestor`, `worktree list --porcelain`, `cat-file`. Output: one
@@ -630,7 +613,7 @@ evaluated in table position):
 | `merge-intent`/`merged` | `MERGE_HEAD` present in the root worktree | `stop-merge-in-progress` |
 | `merged` | composite tip contains `merge.commit` | `run-post-merge-checks` |
 | `accepted` | `cleanup.failure` is set | `none` |
-| `accepted` | branch still present (spec 23 adds its worktree) | `cleanup-pending` |
+| `accepted` | branch still present (spec 26 adds its worktree) | `cleanup-pending` |
 | any | composite branch tip ≠ journal composite `tip` but descends from it | `record-composite-tip` |
 | any | composite branch does not contain an accepted attempt's `merge.commit`, or a recorded ref is at a commit no row above explains | `stop-mismatch` |
 | otherwise | — | `none` |
@@ -682,7 +665,7 @@ replaced by one asserting the new default, and `no_exception_verifier` stays imp
 
 ### C-5 Contract-file changes (canonical first, then readers)
 
-This table is canonical for the composite branch model; spec 23's C-5 lists only the rows it
+This table is canonical for the composite branch model; spec 26 C-10 lists only the rows it
 adds or changes.
 
 | File | Change |
@@ -696,14 +679,14 @@ adds or changes.
 | `workflows/pav-close.md`, `workflows/phase-composite-validation.md` | REQ-40; REQ-12 surface; REQ-67; `/spec-run` becomes the per-composite invoker |
 | `workflows/pae-tests.md` | REQ-46 command line in the report and notes |
 | `workflows/restack.md` | REQ-34 |
-| `scripts/validate-contracts.sh` | No new check. Changed expressions, each a spec 09 DM-9 `contract_changes` entry with a `requirement` value `spec-22 REQ-NN` added under 09 REQ-69 and a DM-20 verdict row: `:5456` (Enforcement vocabulary line, REQ-32), `:5614` (deletion-row wording, REQ-31, REQ-32). Expressions that stay true with the new text: `:1454` (`workflows/pav-close.md` keeps its `call ./phase-composite-validation` line for `per-leaf` tasks and `workflows/spec-run.md` names the workflow without that call form), `:712`, `:977` (`^  base_commit:` in the canonical leaf block), `:1386` (the deletion row still contains "forbidden" and "only inside"), `:5617` (no reader keeps the old ban phrases). `:1056` and `:1513` are spec 23's |
+| `scripts/validate-contracts.sh` | No new check. Changed expressions, each a spec 09 DM-9 `contract_changes` entry with a `requirement` value `spec-22 REQ-NN` added under 09 REQ-69 and a DM-20 verdict row: `:5456` (Enforcement vocabulary line, REQ-32), `:5614` (deletion-row wording, REQ-31, REQ-32). Expressions that stay true with the new text: `:1454` (`workflows/pav-close.md` keeps its `call ./phase-composite-validation` line for `per-leaf` tasks and `workflows/spec-run.md` names the workflow without that call form), `:712`, `:977` (`^  base_commit:` in the canonical leaf block), `:1386` (the deletion row still contains "forbidden" and "only inside"), `:5617` (no reader keeps the old ban phrases). `:1056` and `:1513` are spec 26's |
 | `tests/validator-runtime-oracle.py` | Extend the closed `requirement` set with those `spec-22 REQ-NN` values (09 REQ-69), update `AMENDMENT_SHA256` and re-pin the source guard |
 | `tests/git-rails.sh` | Replace the default-verifier test (C-4); re-pin the source guard per `tests/fixtures/validator-runtime/README.md` |
 | `scripts/README.md` | List `composite_run.py`, `check-composite-branch-model.sh` and `check-composite-run.py` |
 | `.ai/principles/domain.md` | Terms of `## Terminology`; Composite, Stack and Orchestrator rows |
 | `tests/golden/cases/composite/reference/spec-run/` and `tests/expected/composite/spec-run/projection.json` (spec 10 DM-1) | Rebuilt by the change that delivers this spec, because new `/spec-run` tasks then record `per-composite` (REQ-16) and the pair exercises 10's `per-composite` SA-10/SA-11 rules at N = 1 (10 REQ-51) |
 | `docs/USAGE.md`, `docs/SPEC-RUN-QUICKSTART.md`, `workflows/PIPELINE.md` | Composite branch model |
-| `.ai/adr/NNNN-…` | One new ADR recording ADR-0005 Decision 1's amendment (one branch and one pull request per composite) as implemented, ADR-0004 Decision 1's fifth role (the composite validation agent), the optional helper (ADR-0001 implication) and the verified deletion exception to the git rails (ADR-0017). Spec 23's ADR covers ADR-0004 Decisions 1 and 3 for parallel mode |
+| `.ai/adr/NNNN-…` | One new ADR recording ADR-0005 Decision 1's amendment (one branch and one pull request per composite) as implemented, ADR-0004 Decision 1's fifth role (the composite validation agent), the optional helper (ADR-0001 implication) and the verified deletion exception to the git rails (ADR-0017). Spec 26's ADR covers ADR-0004 Decisions 1 and 3 for parallel mode |
 
 File and command names are the current ones. If spec 09's migration lands first, each change
 applies to the file spec 09 gives that section: rule files become `<kind>-<subject>`
@@ -723,7 +706,7 @@ commands are renamed (ADR-0009 Decision 3, `.ai/adr/0009-task-unknown-roadmap-de
 | NFR-03 | Non-blocking telemetry | Logging failures never block (P9, `.ai/principles/architecture.md`) | Contract check that the workflow keeps the existing logging clause |
 | NFR-05 | Compatibility | `per-leaf` tasks behave exactly as today (P3; README gate G4) | Contract check plus helper/hook fixtures with legacy blocks |
 | NFR-06 | Portability | Helper requires Python ≥ 3.11 and git; Linux is the verified platform; no other platform claim | [H] fixture: the helper's version check, called with a patched `sys.version_info` of 3.10 (`unittest.mock`), exits 2 with `composite-run: usage: python 3.11 or newer required`; [C] `workflows/spec-run.md` states the root's fallback when the helper is unavailable |
-| NFR-07 | Performance | N/A — no speedup, token or cost target (README gate G8; ADR-0009 Decision 5); measurement is spec 23's | — |
+| NFR-07 | Performance | N/A — no speedup, token or cost target (README gate G8; ADR-0009 Decision 5); measurement is spec 26's | — |
 
 ## Edge Cases & Failure Modes
 
@@ -775,7 +758,7 @@ the check fails on the unchanged files.
   merge commit, sets the attempt `check-failed`, writes the failing command and child to the
   composite `blocker:` and stops the run." and "On resume with `blocker: none`, rerun the
   post-merge commands on the composite tip; when every command exits 0, record the integration
-  and set `accepted`; otherwise stop again." (Spec 23 AC-39 covers `admit` and `measure`.)
+  and set `accepted`; otherwise stop again." (Spec 26 AC-39 covers `admit` and `measure`.)
 - [ ] **AC-04** (REQ-06, REQ-07, REQ-30, REQ-39) [H][C] Given a disposable repository driven
   through the C-2 command forms for one composite with two sequential children, then the
   composite branch starts at the previous tip, each child branch starts at the composite tip
@@ -826,7 +809,7 @@ the check fails on the unchanged files.
 - [ ] **AC-12** (REQ-41) [C] Given the changed `workflows/spec-run.md`, then it contains "On a
   child branch, commit `test:` before the implementation commit for `red` and `pinned`, make one
   implementation commit for `n-a`, and keep the `pre-TDD task, TDD step skipped` note for a
-  legacy in-progress block." (Spec 23 AC-43 covers the worktree path.)
+  legacy in-progress block." (Spec 26 AC-43 covers the worktree path.)
 - [ ] **AC-19** (REQ-12) [C] Given the changed workflows, then `workflows/spec-run.md` contains
   "Composite validation runs once per composite tip." and "A composite reaches `reviewed` only
   when every child's latest attempt is `accepted` or `cleaned` and composite validation passed on
@@ -869,8 +852,7 @@ the check fails on the unchanged files.
   "Commit them on the composite branch after applying the composite validation deltas." and
   "The switch that cuts the next stack branch makes no record commit."
 - [ ] **AC-28** (REQ-44) [C] Given the changed `workflows/spec-run.md`, then it contains
-  the REQ-44 stop message verbatim before any branch creation step (spec 23 AC-42 covers the
-  spec 23 REQ-48 message).
+  the REQ-44 stop message verbatim before any branch creation step .
 - [ ] **AC-29** (REQ-46) [C] Given the changed files, then `workflows/pae-tests.md` contains
   "Report the exact command that observed the `red` or `pinned` result." and
   `workflows/spec-run.md` contains `tdd: command — <command>`.
@@ -896,7 +878,7 @@ the check fails on the unchanged files.
 - [ ] **AC-37** (REQ-54) [C] Given the changed `workflows/spec-run.md`, then it contains "Only
   when the repair policy is active, run the repair loop on a child's NEEDS WORK; never repair a
   `merged`, `accepted` or `cleaned` attempt; an accepted repair sets the attempt `validated`."
-  and "Without the repair policy, NEEDS WORK stops the run." (Spec 23 AC-41 covers the
+  and "Without the repair policy, NEEDS WORK stops the run." (Spec 26 AC-41 covers the
   parallel-run clauses.)
 - [ ] **AC-47** (REQ-64) [H][C] Given a journal whose attempt is `conflict`, a composite block
   `blocker: none` committed by the owner on the composite branch, and a child branch with one
@@ -986,8 +968,8 @@ the check fails on the unchanged files.
 - A-12 | Deterministic decisions and their tests | Resolved: an optional stdlib helper `$ORCHESTRAIL_HOME/scripts/composite_run.py`, located like the logging helper; required only for N > 1; at N = 1 the root applies the `reconcile` table itself when the helper is unavailable, so the sequential path needs no helper | Source: README gates G4/G5/G6 (`.ai/specs/README.md` → "Shared acceptance gates"); ADR-0001 implications (a run-time script needs its own ADR) | Reversible: yes
 - A-13 | Where new tests live | Resolved: standalone `scripts/check-composite-branch-model.sh` and `scripts/check-composite-run.py`; no new test program under `tests/` (the spec 10 golden reference and case entry listed in this spec's C-5 are fixtures, re-pinned per `tests/fixtures/validator-runtime/README.md` → "Maintaining the nested source guard" (steps 1–5) when they hold `.py`/`.sh` files); one existing test in `tests/git-rails.sh` replaced | Source: ADR-0019 Decision 3 (`.ai/adr/0019-task-unknown-spec-draft-devils-advocate-review.md:68-80`); source-guard README | Reversible: yes
 - A-14 | `/restack` and merge commits | Resolved: keep the verified replay form; merge commits are linearized and reported | Source: `workflows/restack.md:91-98` exact form; disposable-repository observation on 2026-11-13 (git 2.53.0): `git rebase --onto` of a branch with two `--no-ff` merges replayed `test: a`, `feat: a`, `test: b`, `feat: b` in order and dropped the merges | Reversible: yes
-- A-18 | Dependence on specs 12, 13, 15, 17 not yet delivered | Resolved: before each is delivered, workers bootstrap context themselves (existing rule), deltas use the existing report route, checks are those of REQ-03, and no repair attempt is made (NEEDS WORK stops per REQ-51). Once delivered: 12 → the root builds packets per REQ-53 (12 C-8); 15 → receipts per A-28; 17 → repair per REQ-54 when its policy is passed (spec 23 adds the parallel-mode uses of 13 and 15) | Source: README prerequisites row for 23 (`.ai/specs/README.md` → "Dependency order"); G4 conservative path; peer contracts named | Reversible: yes
-- A-19 | Telemetry | Resolved: no new run-log fields and no measurement in this spec (spec 23 adds `measure`) | Source: spec 02/05 own the run-log contract; P9 (durations never model-written) | Reversible: yes
+- A-18 | Dependence on specs 12, 13, 15, 17 not yet delivered | Resolved: before each is delivered, workers bootstrap context themselves (existing rule), deltas use the existing report route, checks are those of REQ-03, and no repair attempt is made (NEEDS WORK stops per REQ-51). Once delivered: 12 → the root builds packets per REQ-53 (12 C-8); 15 → receipts per A-28; 17 → repair per REQ-54 when its policy is passed (spec 26 adds the parallel-mode uses of 13 and 15) | Source: README prerequisites row for 26 (`.ai/specs/README.md` → "Dependency order"); G4 conservative path; peer contracts named | Reversible: yes
+- A-19 | Telemetry | Resolved: no new run-log fields and no measurement in this spec (spec 26 adds `measure`) | Source: spec 02/05 own the run-log contract; P9 (durations never model-written) | Reversible: yes
 - A-21 | `/restack` classification of a composite branch | Resolved: unchanged; `git cherry` lists no merge commits, so the own range classifies by its child commits | Source: disposable-repository observation on 2026-11-13 (git 2.53.0): after squash-merging a composite branch with one `--no-ff` merge, `git cherry -v main <tip> <base>` printed only `- … test: a` | Reversible: yes
 - A-24 | Commits of tracked task records | Resolved: as `chore: update task records` at the three REQ-43 triggers, at every N; otherwise with the root's next commit (existing rule) | Source: `rules/git-flow.md:156-165`; `workflows/spec-run.md:66-69` (dirty tracked bookkeeping stops a resume) | Reversible: yes
 - A-25 | Remedy after `check-failed`, NEEDS WORK or a block | Resolved: the run stops; the owner fixes the cause and clears `blocker:`; the resumed run reruns the checks (REQ-45) or continues the attempt (REQ-50) | Source: `workflows/spec-run.md:297-299` (NEEDS WORK stops the run; branch and commits stay) | Reversible: yes
@@ -1066,7 +1048,7 @@ the check fails on the unchanged files.
      `.ai/` (the consumer default, ADR-0012); where it does, it is the REQ-43 point (b) record
      commit whose only parent is that `merge_commit`. Spec 10 SA-10 states only the first form
      (`.ai/specs/10-golden-run-tests.md:772`); adding the tracked-`.ai/` form there is a pending
-     follow-up change to spec 10, not made here. Spec 23 states the N > 1 rule.
+     follow-up change to spec 10, not made here. Spec 26 states the N > 1 rule.
   3. *Merges.* Each accepted child has `merge_commit` with first parent = the composite tip
      before the merge and second parent = the child attempt's tip; every `merge_commit` is an
      ancestor of the composite branch tip; merge subjects are `Merge branch '<child-branch>'
@@ -1076,7 +1058,7 @@ the check fails on the unchanged files.
      stack entries fact 1 applies.
   Child blocks record `pr: none` and child branches are normally deleted after acceptance, so a
   child's `branch:` may name a branch that no longer exists.
-- Spec 17: none — its spec-23 row in 17 C-10 is wired by REQ-54.
+- Spec 17: none — its spec-26 row in 17 C-10 is wired by REQ-54.
 - Spec 12: none — wired by REQ-53.
 - Spec 09: REQ-69's `requirement` grammar accepts the value `spec-22 REQ-NN` for the
   `contract_changes` entries of C-5.
@@ -1089,7 +1071,7 @@ the check fails on the unchanged files.
   at `e3ba41a`: the requirements, criteria, Data Model (DM-1–DM-3, migration impact), Contracts
   (C-1–C-5, C-3 limited to `--version`, `validate`, `reconcile`, `post-merge-commands`), edge
   cases, risks, assumptions, D-02 and Q-02 of that stage moved without renumbering. The
-  history of these texts before the split is the Change Log of spec 23.
+  history of these texts before the split is the historical revision cited by spec 23.
 - Same day, `/spec-draft --auto-mode` review loop with an independent critic (5 rounds: 53, 73,
   80, 88, 99/100): N > 1 residue removed and the clause split completed; new REQ-64 (owner-cleared
   conflict), REQ-65 (attempt tip), REQ-66 (missing journal), REQ-67 (fix sibling); REQ-43

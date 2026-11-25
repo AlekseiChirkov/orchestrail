@@ -11,6 +11,8 @@ task does not authorize merging, tagging, or publication.
 
 ## Current implementation status
 
+[Shared parallel execution](26-shared-parallel-execution.md) is the consolidated contract for parallel subtask delivery. Spec 23 is retained as a historical migration record.
+
 The [delivery review](../../docs/audits/2026-11-06-specification-delivery-review.md)
 covers all **23 specifications** at main revision `23bded3`: seven historically
 completed foundations (00-06), one partially delivered runtime specification whose
@@ -107,7 +109,7 @@ script names in historical context identify their earlier locations.
 | Done | [03 — logging](completed/03-hook-based-logging.md) | 02; minimal harness/registry scaffold | Reviewed explicit correlation, owned hooks and exact timing; minimal hook scaffold only, wider harness migration remains pending |
 | Done | [05 — telemetry](completed/05-cost-and-duration-telemetry.md) | 02, 03 | Reviewed offline telemetry and recovery; PRs #37–#63 merged; 619 required checks passed |
 | Done | [06 — git rails](completed/06-harness-git-rails.md) | 05 (09 not required, ADR-0017) | Integrated before 08/09: #64 marked merged, #65–#75 closed after local stack integration; historical 717 required checks passed; residual risks X1–X20 retained |
-| Closed; partial | [06-1 — validator runtime](06-1-test-suite-runtime.md) | — | Owner closed the task after #77–#79 merged. Warning-prefix, per-file scan and bounded guard delivered; scheduling, timing and comparative targets remain unmet. No automatic resumption or passing AC claim |
+| Closed; partial | [06-1 — validator runtime](completed/06-1-test-suite-runtime.md) | — | Owner closed the task after #77–#79 merged. Warning-prefix, per-file scan and bounded guard delivered; scheduling, timing and comparative targets remain unmet. No automatic resumption or passing AC claim |
 | 6 | [10 — regression/evaluation](10-golden-run-tests.md) | 01, 09, 05, 06 | Offline checks, paid goldens, independent quality comparisons |
 | 7 | [11 — instructions/output](11-context-tiering.md) | 09, 10 | Expanded workstream 3 |
 | 8 | [12 — context](12-task-context-and-reuse.md) | 05, 11, 10 | New workstream 2 |
@@ -121,7 +123,7 @@ script names in historical context identify their earlier locations.
 | 16 | [20 — installer and profiles](20-public-installer-and-profiles.md) | 01, 19, 09 | Split from 21 on 2026-11-16: installer, ownership records, neutral core and profiles |
 | 17 | [21 — public readiness](21-open-source-readiness.md) | 01, 10, 19, 20 | Accurate docs; license/release remain explicit owner actions |
 | 18 | [22 — composite branch model](22-composite-branch-model.md) | 09, 10, 02, 03, 05, 15 (12, 17 when delivered) | Split from 23 on 2026-11-16: one branch per composite, sequential children on temporary branches |
-| 19 | [23 — composite children](23-composite-branch-model-and-parallel-children.md) | 22, 09, 10, 02, 03, 05, 12, 13, 15, 17, 18 | Parallel children of one composite; integrate isolation, context, review and attribution before parallel rollout |
+| 19 | [26 — shared parallel execution](26-shared-parallel-execution.md) | 22, 09, 10, 02, 03, 05, 12, 13, 15, 17, 18 | Common execution engine, isolated children, compatible overlap and guarded integration |
 | Delivered | [07 — state tool](completed/07-state-tool.md) | — | Scheduled by the owner on 2026-11-13 (ADR-0021); delivered 2026-11-16 on stacked pull requests #80–#98, merged into main the same day (ADR-0022); specification archived; optional and unwired, not a prerequisite of the nine tasks |
 
 ## Renumbering — 2026-11-16

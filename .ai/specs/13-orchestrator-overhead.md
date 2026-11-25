@@ -210,7 +210,7 @@ stay as they are; without the helper the existing manual procedure continues unc
 
 - A general state-changing tool or arbitrary field writes (spec 07, ADR-0021). The helper
   neither imports nor invokes `scripts/state-tool.py`.
-- Parallel execution, worktrees, leaf coordinators and the DM-6 handoff object (spec 23);
+- Parallel execution, worktrees, leaf coordinators and the DM-6 handoff object (spec 26);
   this spec only carries handoff digests (REQ-41).
 - Project and task context packets, their freshness and content (spec 12); reviewer packets
   and review scope (spec 15); bounded tool-output capture (spec 14); reasoning effort (spec
@@ -260,7 +260,7 @@ stay as they are; without the helper the existing manual procedure continues unc
 | Dirty path | A path that `git status --porcelain=v1 --untracked-files=all` reports as modified, added, deleted or untracked (ignored files excluded) | This spec |
 | Canonical completion | A boundary whose effects the canonical state already shows (DM-9 predicates), with or without a journal record | This spec |
 
-Rejected synonyms: "envelope" (spec 23 uses it for the checkpoint message; this spec says
+Rejected synonyms: "envelope" (spec 26 uses it for the checkpoint message; this spec says
 checkpoint message), "transaction" or "commit" for a receipt, "status" for a receipt result,
 "close" as a checkpoint kind (folded into `review`, A-09).
 
@@ -439,7 +439,7 @@ and the remainder of each previous requirement is split into later identifiers.
 - **REQ-40 Audit proposals.** THE delivery SHALL implement, or list as declined with a reason
   in the ADR of REQ-38, every proposal that the spec 08 audit assigns to owner 13
   (08 REQ-02, which names 13 as one of the owners of fixes).
-- **REQ-41 Handoff digests.** WHERE a dispatch carries a spec-23 DM-6 handoff, THE attempt
+- **REQ-41 Handoff digests.** WHERE a dispatch carries a spec-26 DM-6 handoff, THE attempt
   record SHALL carry its digest in `input_handoff_digest` and the receipt SHALL carry the digest
   of the handoff the root builds after that checkpoint in `output_handoff_digest`; no journal
   record SHALL contain a DM-6 object.
@@ -533,7 +533,7 @@ cleanup is defined. Migration: none; a task without a journal is a manual-route 
 | `supersedes` | `attempt_id` or `null` | The previous attempt of this leaf and role |
 | `dispatched` | object | `repository_id`, `worktree_id`, `branch` (string or `null` when detached), `head_revision` (full object name), `state_sha256`, `plan_sha256`, `description_sha256` at the time `attempt` ran |
 | `packet_digest`, `task_contract_hash` | digest or `null` | Spec 12 packet in effect at dispatch (REQ-51) |
-| `input_handoff_digest` | 64 hex or `null` | Spec 23 DM-6 digest passed with `--input-handoff-digest` |
+| `input_handoff_digest` | 64 hex or `null` | Spec 26 DM-6 digest passed with `--input-handoff-digest` |
 | `telemetry_ref` | string or `null` | The run-log adapter `checkpoint_id` issued for this spawn (`workflows/spec-run.md:208-230`), passed with `--telemetry-ref`; opaque, never read to decide |
 
 ### DM-3 Checkpoint message (`checkpoint_message`)
@@ -977,7 +977,7 @@ remains the authority for boundaries handled manually.
 | 05 | Consumed: none required. Exposed: `event_id`, `attempt_id` as plain identifiers; a 05 producer maps them to opaque `sha256:` identifiers with its keyed mapping (`scripts/usage_telemetry_adapter.py:20-24`). No 05 record is written here |
 | 11 | Consumed: report forms, `delta` fences and rejection rule, DM-7 path bases, `loads:`. Exposed: the checkpoint message is the "full structured result" on the helper route only (11 Terminology row "Full structured result"); under `/spec-run` the four workflows of REQ-36 return `delta` blocks whose lines are DM-4, 11's rejection rule applies first (helper route: `delta-truncated`; manual route: by the Orchestrator before it applies each block by hand under DM-5); outside `/spec-run` there is no consumer. No evidence format is registered: journal files satisfy `text@1` and are referenced as `task:checkpoints/…` with scope `file` |
 | 10 | Consumed: offline suite (REQ-39). Exposed: the journal inside the captured task directory records per-leaf order (`seq`, commits) for `/spec-run` runs; `/phase-pipeline` emissions are unchanged |
-| 23 | Exposed: DM-2 `input_handoff_digest` and DM-7 `output_handoff_digest` (REQ-41), the derived-proposal rule (REQ-18) for deltas returned against an older state (23 E-32), `attempt` numbering per leaf and role. A repair of a composite child under 22 REQ-54 and 23 REQ-63 (23 DM-6 stage `repair`) is outside this spec: repair boundaries have no receipt, so no `output_handoff_digest` is recorded for a `repair` handoff (it exists only in 23's handoff file), and a repair Implementer spawned on the helper route is an ordinary further attempt of the leaf. The DM-6 object is not carried: it is built by the root after the checkpoint commit, i.e. after the message it would be inside, and storing it twice would create a second definition |
+| 26 | Exposed: DM-2 `input_handoff_digest` and DM-7 `output_handoff_digest` (REQ-41), the derived-proposal rule (REQ-18) for deltas returned against an older state (spec 26 Recovery and safety), `attempt` numbering per leaf and role. A repair of a composite child under 22 REQ-54 and 26 REQ-163 (26 DM-6 stage `repair`) is outside this spec: repair boundaries have no receipt, so no `output_handoff_digest` is recorded for a `repair` handoff (it exists only in 23's handoff file), and a repair Implementer spawned on the helper route is an ordinary further attempt of the leaf. The DM-6 object is not carried: it is built by the root after the checkpoint commit, i.e. after the message it would be inside, and storing it twice would create a second definition |
 | 12 | Consumed (spec 12 C-8 row 13 and DM-11): `packet_digest` from the Orchestrator's `context-packet:` notes entry and `task_contract_hash` = `sha256:` + `parts.contract.sha256` of that packet's manifest in `<git-common-dir>/orchestrail-context/packets/` (12 DM-10); `context_receipt` from the worker's `context-receipt:` entry. Adopted as requested by 14: DM-2 holds the packet at dispatch, DM-3 the packet in effect at compose, so a successor packet sent at the RED continuation (12 REQ-42) appears in the `green` message. Packets exist only for Implementers and Validators under `/spec-run`; without one both fields are `null` |
 | 15 | Not consumed by 15 (15 C-6, row for 13; 15 A-14): accepted `green` messages and `red`/`pinned` receipts are not offered as fact sources, because REQ-30 forbids passing any Implementer report, checkpoint message, proposal, receipt or journal path to a Validator; the reviewer re-derives test paths, digests and commits from git and its own leaf block. Validator inputs stay `workflows/spec-run.md:284-292` plus 15's reviewer inputs. 13 needs no amendment |
 | 14 | Consumed: none; matches 14 C-7 row 13 (OUTPUT lines copied verbatim inside report `Evidence`, no envelope field, no registered 11 evidence format). Report `Evidence:` items referencing 14 artifacts are copied verbatim |
@@ -1175,7 +1175,7 @@ Each is written first and observed failing before implementation (G6).
   or declined with a reason; `.ai/principles/domain.md` defines the six REQ-48 terms.
 - **AC-15** (REQ-41) — Given `attempt --input-handoff-digest H1` and `receipt
   --output-handoff-digest H2`, the attempt record, message and receipt carry `H1`/`H1`/`H2`, and
-  no journal file contains a key of spec 23's DM-6 object other than these digests.
+  no journal file contains a key of spec 26's DM-6 object other than these digests.
 - **AC-16** (REQ-43, REQ-45) — Given a 1,048,577-byte report, `compose` exits 2 with
   `input-too-large`; given `PATH` without `git`, `version` exits 3 with `git-unavailable`; given
   the 11 field lines removed from the temporary checkout, `compose` exits 3 with
@@ -1288,10 +1288,10 @@ REQ-35, REQ-39; G7 — REQ-33, REQ-46, C-8; G8 — REQ-47, NFR-05.
 - A-09 | Checkpoint kinds | Resolved: `red`, `pinned`, `green`, `review`; `close` folded into `review` | Source: `workflows/spec-run.md:291-292` (one Validator return covers check to close) | Reversible: yes
 - A-10 | Delta operation set | Resolved: five operations; architecture, D8, children, Fix-Tasks and memory entries stay free text | Source: `rules/orchestration.md:110-117`; smallest reversible set | Reversible: yes
 - A-11 | Application tool | Resolved: `git apply --check` then `git apply` from the top level | Source: previous revision §6 step 6 (existing tool with expected-source check); local experiment with git 2.53.0 confirmed application to ignored untracked files | Reversible: yes
-- A-12 | Staleness | Resolved: operation-level preconditions decide; file-digest change alone yields a derived proposal | Source: previous revision §6; spec 23 E-32 (derived proposal when a delta was composed against an older state) | Reversible: yes
+- A-12 | Staleness | Resolved: operation-level preconditions decide; file-digest change alone yields a derived proposal | Source: previous revision §6; spec 26 Recovery and safety (derived proposal when a delta was composed against an older state) | Reversible: yes
 - A-13 | New stop | Resolved: one declared stop class (C-6) added to the orchestration stop list | Source: P5 (`.ai/principles/architecture.md:39-44`); previous revision §6 steps 2–3 | Reversible: yes
 - A-14 | Telemetry | Resolved: no run-log change, no 05 producer, counts from the journal only | Source: `rules/run-log.md:584-585`; `scripts/usage_telemetry_adapter.py:208-214`; P9 | Reversible: yes
-- A-15 | Spec 23 handoffs | Resolved: digests only | Source: spec 23 DM-6 Handoff, REQ-22 | Reversible: yes
+- A-15 | Spec 26 handoffs | Resolved: digests only | Source: spec 26 DM-6 Handoff, REQ-122 | Reversible: yes
 - A-16 | Evidence format | Resolved: none registered; `text@1` suffices | Source: 11 DM-7 (neither 13 nor 14 registers a format) | Reversible: yes
 - A-17 | Input bound | Resolved: 1,048,576 bytes | Source: `rules/run-log.md:455` | Reversible: yes
 - A-18 | Timeouts | Resolved: none of its own; harness command timeout applies; the helper is safe to rerun | Source: ADR-0020 (timeouts are watchdogs, not budgets) | Reversible: yes
@@ -1327,7 +1327,7 @@ REQ-35, REQ-39; G7 — REQ-33, REQ-46, C-8; G8 — REQ-47, NFR-05.
 - A-48 | Manual-route boundaries in the journal | Resolved: no extra record; `reconcile` reads canonical completion predicates | Source: P2 (state on disk is authoritative, `.ai/principles/architecture.md:18-22`) | Reversible: yes
 - A-49 | `inspect` failure | Resolved: facts fallback to direct reads, no stop | Source: previous revision §5 ("absence leads to manual execution of the same checks") | Reversible: yes
 - A-50 | Version test seam | Resolved: `require_python(version_info)` called in-process after loading the module by path | Source: spec 12 C-9 precedent | Reversible: yes
-- A-51 | Peer reconciliation 2026-11-14 | Resolved: C-10 states what each final peer spec consumes; repair resume stays 17's `status` and the helper is unchanged for ordinary leaves; no repair receipt and no `output_handoff_digest` for a 23 `repair` handoff | Source: 17 C-10 row 13, A-18; 22 REQ-54, 23 REQ-63, 23 DM-6; 16 C-6, A-13; 15 C-6, A-14; 14 C-7; 18 DM-9 | Reversible: yes
+- A-51 | Peer reconciliation 2026-11-14 | Resolved: C-10 states what each final peer spec consumes; repair resume stays 17's `status` and the helper is unchanged for ordinary leaves; no repair receipt and no `output_handoff_digest` for a 23 `repair` handoff | Source: 17 C-10 row 13, A-18; 22 REQ-54, 26 REQ-163, 26 DM-6; 16 C-6, A-13; 15 C-6, A-14; 14 C-7; 18 DM-9 | Reversible: yes
 
 ## Decisions
 
@@ -1395,7 +1395,7 @@ successor after 09's renames (09's old-prefix translation: `pae-` → `atomic-ex
 
 ### Follow-ups outside this spec (not edited here)
 
-- Spec 23: done by its 2026-11-14 reconciliation (DM-6 note cites REQ-41; E-32 cites REQ-18).
+- Spec 26: done by its 2026-11-14 reconciliation (DM-6 note cites REQ-41; E-32 cites REQ-18).
 - Spec 11: done by its 2026-11-14 reconciliation (Terminology row "Full structured result" cites
   DM-3 and DM-4; DM-8 delta paragraph cites REQ-36, REQ-50, REQ-08 and DM-5).
 - Specs 15, 14, 16, 17, 18: none; their contract rows agree with this spec's C-10 rows as
@@ -1419,7 +1419,7 @@ successor after 09's renames (09's old-prefix translation: `pae-` → `atomic-ex
   appended; Context item 7, the Name mapping row and paragraph, and REQ-49's citation of 11
   REQ-01 added. No requirement id, acceptance criterion or id changed; REQ-36 gained one
   sentence and REQ-49 an explicit citation of 11 REQ-01.
-- 2026-11-14 — independent final review: disable switch follows the spec 12 REQ-32 rule; A-03 states the no-launcher consequence; Note entries keep a red digest whole; `target_files` split rule aligned with 15; citations by id (10 Q-05, 23 E-32, 12 C-8/DM-11/REQ-42, 09 Notes).
+- 2026-11-14 — independent final review: disable switch follows the spec 12 REQ-32 rule; A-03 states the no-launcher consequence; Note entries keep a red digest whole; `target_files` split rule aligned with 15; citations by id (10 Q-05, spec 26 Recovery and safety, 12 C-8/DM-11/REQ-42, 09 Notes).
 
 ## Readiness Checklist
 

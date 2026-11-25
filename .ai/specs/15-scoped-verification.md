@@ -324,7 +324,7 @@ with the single change that defined checks are classified the same way on both p
    orchestration rule (C-5).
 8. The standalone acceptance suite `scripts/check-scoped-verification.py` (C-7), an ignore rule,
    documentation, knowledge-base updates and an ADR.
-9. The contracts exposed to specs 05, 10, 23, 13, 14, 16, 17 and 18 (C-6).
+9. The contracts exposed to specs 05, 10, 26, 13, 14, 16, 17 and 18 (C-6).
 
 ## Out of Scope
 
@@ -337,7 +337,7 @@ with the single change that defined checks are classified the same way on both p
 - Context packets, their freshness and expansion recording (spec 12); checkpoint messages and
   journals (spec 13); output capture, bounded previews, range retrieval and artifact integrity of
   command output (spec 14, used through this spec's DM-4a); usage
-  telemetry objects (spec 05); parallel children, worktrees and merges (spec 23).
+  telemetry objects (spec 05); parallel children, worktrees and merges (spec 26).
 - Reusing receipts produced outside review workflows, receipts across different worktree roots,
   and any per-check dependency model narrower than the whole non-ignored repository tree.
 - Running `build:` commands, timeouts on checks, cleanup of stores, and locks against two
@@ -598,23 +598,11 @@ workflow or rule binds that file.
 - **REQ-61 Spec 14 suite alignment.** THE delivered change SHALL update the text cases of spec
   14's acceptance suite `scripts/check-capture-output.py` that assert its C-5 rows 3a and 5 so that
   they assert the C-5 resulting sentences of this spec instead, and that suite SHALL pass.
-- **REQ-62 Record in parallel mode.** WHERE spec 23's REQ-55 applies (it names the exact cases:
-  while N > 1, the child `/pav-check` agent, the Validator of a serialized composite's child and
-  the composite validation agent of 22 REQ-12; 23 REQ-01 makes the root orchestrator the only
-  writer under `.ai/`), THE reviewing agent SHALL run `prepare` and `run` but never `record`, and
-  SHALL return its review draft to the root; THE root orchestrator SHALL save that draft under
-  `<task>/verification/drafts/` (DM-1) of the root worktree and run `record --draft` on it with
-  the options the agent passed to `prepare`, so that the record is written under the root
-  worktree's `<task>/verification/reviews/<scope key>/`. IF the returned draft is unusable
-  (missing or not JSON, which `record` reports as `draft-invalid`; 23 REQ-56 also counts a draft naming a different `--work`, `--task` or `--ai-dir` as unusable) or `record` refuses it (exit 1,
-  including `check-incomplete`), THEN the root SHALL write no record and apply the `Record:` rule
-  of C-4: one correction by a fresh reviewing agent given the refusal reasons, and after a second
-  unusable or refused draft, or `record` exiting 2, 3 or 4, a full review without the helper
-  (A-33); what the root does when that review also fails (the `record-failed` block) is owned by
-  spec 23 (23 REQ-56). WHEN the reviewing agent runs `record` itself (N = 1, the Validator
-  running `record` as C-4 states), this requirement does not apply. Dispatch, the verdict and
-  notes deltas, the DM-8 entry and the correction reply in parallel mode are owned by spec 23
-  (23 REQ-55, REQ-56, C-6 rows 11 and 12).
+- **REQ-62 Record in parallel mode.** WHERE spec 26 REQ-155 applies, THE verification helper
+  SHALL support the root orchestrator as the invoking writer for a draft returned by the
+  review agent. Validate the draft, workspace and task options under C-1 and C-4.
+  Spec 26 REQ-155 and REQ-156 own dispatch, retry, draft transport and state updates.
+  The ordinary sequential `record` route remains governed by C-4.
 
 ### Delivery
 
@@ -663,7 +651,7 @@ reuse and forces full scope. Migration: none; a task without records is reviewed
 **Excluded prefix.** When the task directory lies inside a work tree whose git common directory
 equals that of `--work`, the excluded prefix is the task directory's path relative to *its own*
 work tree top-level; the prefix is then excluded from `--work`'s tree in DM-3, DM-4 and DM-5 (so a
-spec-23 child worktree excludes its copy of the root task directory). Otherwise nothing is
+spec-26 child worktree excludes its copy of the root task directory). Otherwise nothing is
 excluded.
 
 ### DM-2 Coverage plan (part of the `prepare` result)
@@ -1019,7 +1007,7 @@ Front matter: `description: Scoped verification — coverage, checks, reuse, rec
 
 ```text
 Availability: use the scoped-verification helper only when ORCHESTRAIL_HOME is set, the helper is readable and its version subcommand exits 0, and only when every file of the review lies in the git work tree of --work; otherwise, or when any subcommand exits 2, 3 or 4, review the full scope without it, run the defined checks directly, and append the verification none entry with its reason.
-Order: run every defined check with run --reuse, then prepare, then review, then record, then write the verdict to state, and append the verification entry last; never run build. In the cases of REQ-62 the reviewer stops after review and returns the draft; record and the state writes belong to the root (23 REQ-55).
+Order: run every defined check with run --reuse, then prepare, then review, then record, then write the verdict to state, and append the verification entry last; never run build. In the cases of REQ-62 the reviewer stops after review and returns the draft; record and the state writes belong to the root (26 REQ-155).
 Obligations: every obligation prepare lists ends verified, carried, unverified or failed; only verified or carried counts as met.
 Checks: with or without the helper, a defined test, lint or typecheck check that exits non-zero is a finding of at least important severity naming that check; a defined check that cannot start, is ended by a signal or loses its captured output is a blocker: set blocker:, write no verdict, append the none entry with reason blocked, and stop.
 Mutation: when run reports inputs-changed-during-run, run that check once more; if it reports it again, finish without the helper.
@@ -1083,7 +1071,7 @@ line in which a write verb precedes `plan.md`, `architecture.md`, `.ai/memory/st
 |---|---|
 | 05 | Exposed: review records (DM-7) as facts — scope, expansion reasons, check actions, receipt ids. No 05 object is emitted; any 05 mapping is 05's adapter |
 | 10 | Exposed: records inside captured task directories; the switch `ORCHESTRAIL_SCOPED_VERIFICATION=off` gives the full-review arm for strategy comparison. Consumed: the offline suite (REQ-50). Every claim of equal quality or saving belongs to 10 |
-| 23 | Exposed: receipts bound to content and worktree, never to branch names or commits. 22 REQ-03 post-merge commands always run and never consult a receipt; this spec does not govern them. A receipt made in a child worktree never stands for the merged tree, because `worktree_id` is an input (A-05, DM-4); only the checks of the 22 REQ-12 composite review, run in the root worktree, may reuse a receipt, and only when REQ-05's conditions hold. That review is always `full-integration` (REQ-15); its DM-1 records are written under `<task>/verification/reviews/<scope key>/` as resolved in the root worktree, where 22 REQ-12 runs that review (the record location is owned here, not by spec 23). Receipt reuse matches 23 A-28. In spec 23's parallel mode (N > 1) the root is the only writer under `.ai/` (23 REQ-01), so the root runs `record` on the draft the reviewing agent returns (the cases are those of 23 REQ-55, stated by REQ-62), which resolves 23 Q-03 (owner decision D-02, REQ-62, A-36); the root's handling is 23 REQ-55 and REQ-56, with the report in 23 C-6 row 11 and the correction reply in 23 C-6 row 12; an unusable or refused draft follows the `Record:` rule (one correction, then a full review without the helper), so no new error code is needed |
+| 26 | Exposed: receipts bound to content and worktree, never to branch names or commits. Spec 22 REQ-03 commands also run on the exact proposal in spec 26. Spec 26 records its own Git-object-bound acceptance evidence for those commands. This spec’s content-scoped receipts do not substitute for it. A receipt made in a child worktree never stands for the merged tree, because `worktree_id` is an input (A-05, DM-4); only the checks of the 22 REQ-12 composite review, run in the root worktree, may reuse a receipt, and only when REQ-05's conditions hold. That review is always `full-integration` (REQ-15); its DM-1 records are written under `<task>/verification/reviews/<scope key>/` as resolved in the root worktree, where 22 REQ-12 runs that review (the record location is owned here, not by spec 23). Receipt reuse matches 23 A-28. In spec 23's parallel mode (N > 1) the root is the only writer under `.ai/` (26 REQ-04), so the root runs `record` on the draft the reviewing agent returns (the cases are those of 26 REQ-155, stated by REQ-62), which resolves historical spec 23 Q-03 (owner decision D-02, REQ-62, A-36); the root's handling is 26 REQ-155 and REQ-56, with the report in 23 C-6 row 11 and the correction reply in 23 C-6 row 12; an unusable or refused draft follows the `Record:` rule (one correction, then a full review without the helper), so no new error code is needed |
 | 12 | Consumed: the validator packet as the reviewer's context; `task_contract_hash` and `packet_digest` passed to `prepare` and recorded. Exposed: sufficiency — the reviewer additionally reads the diff content, untracked files, the runbook, evidence paths, tdd notes and the prior record (C-4 `## Reviewer inputs`). Receipts are not bound to packet digests: a check result depends on repository content, not on rendered context |
 | 13 | Consumed: the note-entry parsing rule, canonical JSON and `worktree_id` definitions. Not consumed: the `green` messages and `red`/`pinned` receipts 13 C-10 offers — passing any Implementer report, checkpoint message, proposal, receipt or journal path to a Validator would contradict 13 REQ-30, and the reviewer re-derives the same facts (test paths and digests, commits) from git and its own leaf block, which is the more independent source. Validator inputs therefore stay those of `workflows/spec-run.md:284-292` plus C-4 `## Reviewer inputs`; 13 needs no amendment |
 | 14 | Consumed: the capture helper `run` and `verify`, the DM-2 manifest keys `capture_status`, `command_status`, `purpose`, `argv_sha256`, `cwd`, `worktree`, `head`, `started_at`, `ended_at`, the DM-6 OUTPUT reference, the C-1 `run`/`verify` command lines, the C-2 refusal form, the DM-1 `manifest.json` location and the DM-4.1 first and last preview lines (DM-4a); 14's C-7 row 15 offers the manifest keys and `verify`, and the rest is cited from those sections. 15 owns the inputs digest, reuse and records; 14 owns capture, previews, retrieval and integrity. 15's C-5 replaced sentences supersede 14's C-5 rows 3a and 5 (REQ-60); 14's row 3b (the `green` TDD check) is unaffected. Settles 14 Q-05 and this spec's former Q-04 |
@@ -1237,7 +1225,7 @@ records outside shared files; the ignore rule; the disable switch; the 08 propos
 | Nested untracked repository | `unknown-input:nested-repository`; not reusable | REQ-18 |
 | Spec 14's helper refuses (git or gh word in the runbook value, `store-unavailable`, `store-unsafe`, `disabled`, …) | Command not started by it; run directly with own capture, `fallback: <code>`; review unaffected | REQ-58 |
 | Spec 14's helper started the command but published nothing complete or verifiable | Not run again; evidence `unusable`; `check-incomplete`; REQ-55 blocker | REQ-59 |
-| Root-run record (cases of REQ-62): the returned draft is unusable or `record` refuses it | No record; one correction by a fresh reviewing agent given the refusal reasons, then a full review without the helper (`none — helper-error`); no new error code; the `record-failed` block if that review also fails is spec 23's | REQ-62, A-33, 23 REQ-56 |
+| Root-run record (cases of REQ-62): the returned draft is unusable or `record` refuses it | No record; one correction by a fresh reviewing agent given the refusal reasons, then a full review without the helper (`none — helper-error`); no new error code; the `record-failed` block if that review also fails is spec 23's | REQ-62, A-33, 26 REQ-156 |
 | Spec 14 artifact deleted after a receipt referenced it | Not reused (`receipt-damaged`); executed again | REQ-20, DM-6 |
 | Implementer report reachable by the Validator | Not supplied (unchanged `/spec-run` 4.3); rule forbids reading it | REQ-44 |
 
@@ -1599,21 +1587,21 @@ no cost or time cap introduced).
 - A-33 | Retry bound | Resolved: one re-run after mutation, one re-record after refusal, then full review without the helper | Source: P5 (every stop declared); best practice | Reversible: yes
 - A-34 | Task directory exclusion across worktrees | Resolved: excluded prefix relative to the task directory's own work tree | Source: DM-1 excluded-prefix rule; spec 22 REQ-12 and A-28 (the composite review runs in the root worktree) | Reversible: yes
 - A-35 | Time limit of a delegated check | Resolved: `run` passes no `--timeout-seconds`; the outer call's limit applies and a killed call leaves no receipt, which the reviewer treats as lost output and does not rerun in that review (DM-4a); no limit source and no number | Source: spec 14 C-7 row 15 and follow-up for 15; A-20; ADR-0020 | Reversible: yes
-- A-36 | Who runs `record` in parallel mode | Resolved: the root orchestrator runs `record` on the draft the reviewing agent returns, in the cases of 23 REQ-55 as REQ-62 states them (not only N > 1 children's `/pav-check`: also the Validator of a serialized composite's child at N > 1 and the composite validation agent of 22 REQ-12); at N = 1 the Validator runs `record`; an unusable or refused draft follows the `Record:` rule (REQ-62, A-33; orchestration in 23 REQ-56) | Source: owner decision D-02; 23 D-05, 23 REQ-55, 23 REQ-01 (the root is the only writer under `.ai/`); 23 Q-03 | Reversible: yes
+- A-36 | Who runs `record` in parallel mode | Resolved: the root orchestrator runs `record` on the draft the reviewing agent returns, in the cases of 26 REQ-155 as REQ-62 states them (not only N > 1 children's `/pav-check`: also the Validator of a serialized composite's child at N > 1 and the composite validation agent of 22 REQ-12); at N = 1 the Validator runs `record`; an unusable or refused draft follows the `Record:` rule (REQ-62, A-33; orchestration in 26 REQ-156) | Source: owner decision D-02; 23 D-05, 26 REQ-155, 26 REQ-04 (the root is the only writer under `.ai/`); historical spec 23 Q-03 | Reversible: yes
 
 ## Decisions
 
 Auto-mode resolutions are recorded under Assumptions. Owner decisions of 2026-11-14:
 
 - D-01 | Accept the strict classification of REQ-55: a defined `test`, `lint` or `typecheck` check exiting non-zero is a finding of at least `important` severity, and a check that cannot start, is killed or loses its captured output is a blocker; no exemption for failures that predate the change; the same rule with and without the helper | Overrides: today's `/pav-check` and composite-validation wording that treats a missing or failing check as an evidence gap | Rationale: an evidence gap lets a validator pass broken code, which undermines gate G3 (independent quality); one rule on both paths keeps the disabled-helper comparison arm comparable | Follow-up: none beyond the delivery already specified (C-5 replaced sentences, AC-28, AC-35); the only tolerance route stays the `owner-accepted` outcome of a finding (DM-7a)
-- D-02 | The root orchestrator runs `record` in parallel mode, on the review draft the reviewing agent returns | Overrides: none (resolves 23 Q-03) | Rationale: 23 REQ-01 makes the root the only writer in parallel mode, so records are written by the root from a returned draft, which needs no new mechanism | Follow-up: spec 23 records the same rule and its dispatch; this spec states REQ-62, A-36 and C-6 row 23
+- D-02 | The root orchestrator runs `record` in parallel mode, on the review draft the reviewing agent returns | Overrides: none (resolves historical spec 23 Q-03) | Rationale: 26 REQ-04 makes the root the only writer in parallel mode, so records are written by the root from a returned draft, which needs no new mechanism | Follow-up: spec 23 records the same rule and its dispatch; this spec states REQ-62, A-36 and C-6 row 23
 
 ## Clarifications
 
 ### Session 2026-11-14 (owner decisions)
 
 - Q: Should a defined check that exits non-zero be a finding of at least `important` severity (not an evidence gap), with no exemption for earlier failures, with and without the helper? → A: Yes, accepted (D-01).
-- Q: In spec 23's parallel mode (cases per REQ-62), who runs `record` (23 Q-03)? → A: The root orchestrator, on the draft the reviewing agent returns (D-02).
+- Q: In spec 23's parallel mode (cases per REQ-62), who runs `record` (historical spec 23 Q-03)? → A: The root orchestrator, on the draft the reviewing agent returns (D-02).
 
 ### Session 2026-11-14 (auto mode)
 
@@ -1629,7 +1617,7 @@ Auto-mode resolutions are recorded under Assumptions. Owner decisions of 2026-11
 ## Open Questions
 
 - Q-01 | non-blocker | Should location-independent checks be reusable across worktrees? Impact:
-  reuse in spec 23's parallel mode. Recommended: no until spec 10 shows misses do not rise.
+  reuse in spec 26's parallel mode. Recommended: no until spec 10 shows misses do not rise.
 - Q-02 | non-blocker | Should this repository track review records as knowledge (ADR-0012) instead
   of ignoring them (REQ-48)? Recommended: ignore, matching spec 13 Q-01.
 - Q-03 | resolved | Former question on exempting checks that also fail on the base revision —
@@ -1681,7 +1669,7 @@ Auto-mode resolutions are recorded under Assumptions. Owner decisions of 2026-11
   11's grammar and the frozen-check note for the replaced sentences; Notes record that no text moves
   out of a mapped rule (09 REQ-68). Confirmed unchanged: C-6 rows 16, 17, 18, A-19 and A-24 against
   specs 16, 17, 18 and 10 REQ-52. No requirement, acceptance criterion or verdict changed.
-- 2026-11-14 — independent final review: C-5 replaces both step 5 sentences of `/pav-check` (`test:`, `lint:`, `typecheck:`), REQ-60 and AC-41 follow; C-6 row 23 states the record location and points to 23 Q-03 (since resolved, see the next entry); disable switch follows spec 12 REQ-32; A-02/A-21 clarified; own ids qualified; Finding source corrected; neutral provenance wording; citations by id.
+- 2026-11-14 — independent final review: C-5 replaces both step 5 sentences of `/pav-check` (`test:`, `lint:`, `typecheck:`), REQ-60 and AC-41 follow; C-6 row 23 states the record location and points to historical spec 23 Q-03 (since resolved, see the next entry); disable switch follows spec 12 REQ-32; A-02/A-21 clarified; own ids qualified; Finding source corrected; neutral provenance wording; citations by id.
 - 2026-11-14 — owner decisions recorded: D-01 (the REQ-55 classification of failing checks is approved; A-09, A-29, Risks, Scope text and Q-03 now say so) and D-02 (the root orchestrator runs `record` in parallel mode: REQ-62, AC-43, A-36, an Edge Cases row, C-6 row 23 no longer open). Counts updated; verdict unchanged.
 - 2026-11-14 — aligned with spec 23 record handling: REQ-62 names the cases by citing 23 REQ-55 (child `/pav-check` agent at N > 1, the Validator of a serialized composite's child at N > 1, the composite validation agent of 23 REQ-12) and cites 23 C-6 rows 11 and 12 and 23 REQ-56 instead of one row; the C-4 `Record:` line, Actors & Roles, C-6 row 23, the Edge Cases row and A-36 state the exception; no id added or renumbered, verdict unchanged.
 

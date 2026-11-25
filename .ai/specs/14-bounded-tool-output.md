@@ -418,7 +418,7 @@ missing, disabled or refuses.
   directly, where the git-rails hook sees them; this spec only adds text guidance on narrowing
   them (REQ-05). Orchestrator inspections and delta rendering (spec 13).
 - Evidence reuse and review sufficiency (spec 15), repair policy (spec 17), the checkpoint
-  envelope (spec 13), parallel scheduling (spec 23), context packets (spec 12), report forms
+  envelope (spec 13), parallel scheduling (spec 26), context packets (spec 12), report forms
   and the `EVIDENCE` reference (spec 11), names and capability records (spec 09).
 - Mapping manifests into spec 05 `diagnostic_measurement` objects and any token, cache or cost
   measurement (spec 05); any claim of savings and any paid run (spec 10).
@@ -1144,7 +1144,7 @@ unseen as without the helper (X1).
 |---|---|
 | 05 | DM-2 `streams.*.observed_bytes` (sum → `tool_output.full_bytes`), `preview.txt` size (→ `tool_output.shown_bytes`), DM-7 `bytes` (sum → `tool_output.additional_read_bytes`); `capture_status` tells whether full bytes are complete. A 05 adapter emits the objects and derives opaque ids from artifact ids with its keyed mapping (ADR-0016 Decision 3); 14 emits no 05 object |
 | 11 | No evidence format is registered, and no requirement of this spec needs an OUTPUT line to be an accepted evidence reference: 11 Q-06 answers this spec's Q-03 "No". The `command:` line, failing test names and error lines are copied verbatim, which meets 11 REQ-07; OUTPUT lines may be listed as `Evidence` items but are not 11 DM-7 references, and `evidence verify` does not check them (`verify` of this spec does) |
-| 23 | One store for all child worktrees (REQ-07), safe under concurrent use (REQ-11, REQ-12). Spec 23's DM-6 handoff takes `observed.exit_code` from DM-3 `exit_code` only when the outcome `kind` is `exit` and records `null` otherwise, with `observed.label` set from DM-3 `label` (kinds `signal`, `interrupted`, `timeout`, `launch-error`) |
+| 26 | One store for all child worktrees (REQ-07), safe under concurrent use (REQ-11, REQ-12). Spec 26's DM-6 handoff takes `observed.exit_code` from DM-3 `exit_code` only when the outcome `kind` is `exit` and records `null` otherwise, with `observed.label` set from DM-3 `label` (kinds `signal`, `interrupted`, `timeout`, `launch-error`) |
 | 13 | OUTPUT lines are copied verbatim inside report `Evidence`; no envelope field. Spec 13 C-10 row 14 agrees: it needs nothing from this spec, copies report `Evidence:` items that reference these artifacts verbatim, and its A-16 registers no 11 evidence format |
 | 15 | Spec 15 DM-4a and REQ-57–REQ-61 consume: C-1 `run` (invoked as `run --purpose <test\|lint> -- bash -c '<runbook value>'`, typecheck as `lint`, no `--timeout-seconds` or `--limit-bytes`) and `verify`; the C-2 refusal form (exit 125, empty stdout, `capture-output: <code>: started=no: `), and Bash's exit 126/127 without a `capture-output:` line when the helper cannot be opened; the DM-1 manifest path `<git-common-dir>/orchestrail-output/<id>/manifest.json`; the DM-4.1 first line `capture: v1 <id>` and last line; the DM-6 grammar; and copies of the DM-2 keys `capture_status`, `command_status`, `purpose`, `argv_sha256`, `cwd`, `worktree`, `head`, `started_at` and `ended_at`, each a top-level DM-2 key under exactly that name. A run whose preview carries a published artifact is 15's case B whatever the exit status (a command not found inside `bash -c` exits 127 with an artifact, kind `exit`); a published artifact whose capture status is not `complete` is case B with evidence unusable (15 REQ-59); a started run with no published artifact, or a failing `verify`, is case C; neither is rerun; a refusal is case A, and 16 runs the check directly. 15's helper invokes this helper as a program, so the Capture line's `--timeout-seconds` rule, which governs a worker's own shell call, does not bind it: the time limit stays with the worker's outer call that runs spec 15's helper (a follow-up for 15 below). 15 keeps the inputs digest, the reuse decision and the review record; this spec states only that incomplete capture or a failing `verify` is never evidence of a pass. Spec 15's delivery replaces C-5 rows 3a and 5 (15 REQ-60, REQ-61); row 3b stays |
 | 17 | DM-9 `tdd: red output` / `tdd: green output` lines, copied verbatim as `Evidence` items (not 11 DM-7 references, 11 Q-06); DM-3 kinds separate infrastructure outcomes (`launch-error`, `timeout`, `interrupted`, `signal`) from failing tests (`exit` with records), and a run without a known outcome (`Not started:` "unknown") is an evidence gap, as spec 17 REQ-45 states; DM-5 records and `next` for locating a failure. A capture-mode spec 15 receipt carries no stream digests, only the OUTPUT reference, `artifact_id` and `manifest_sha256` (15 DM-4a); integrity of such evidence is checked with `verify`, not with stream digests |
@@ -1252,7 +1252,7 @@ registration, the disable switch and the not-a-permission-boundary limitation.
 | Not a git repository | Refusal `not-a-git-repository` | REQ-13 |
 | Store is a symlink or owned by another user | Refusal `store-unsafe` | REQ-07, REQ-13 |
 | Common directory not writable (sandbox) | Refusal `store-unavailable`; direct run | REQ-13 |
-| Linked worktree (spec 23 child) | Same store; artifact readable from the root worktree | REQ-12 |
+| Linked worktree (spec 26 child) | Same store; artifact readable from the root worktree | REQ-12 |
 | Concurrent runs | Distinct ids; no shared file except none | REQ-12 |
 | Artifact edited, deleted or manifest truncated | `artifact-changed` / `artifact-missing` / `artifact-corrupt` (exit 1) | REQ-35 |
 | Range beyond the stream, length 0, negative | `range-invalid` / `usage` (exit 2) | REQ-35 |
@@ -1590,7 +1590,7 @@ Every AC above names at least one REQ, and every REQ has at least one AC.
 ## Assumptions
 
 - A-01 | Mechanism | Resolved: optional Bash launcher plus Python 3.11+ standard-library engine; without it commands run directly | Source: ADR-0001 (`.ai/adr/0001-task-unknown-markdown-only-no-runtime.md:64-65`); ADR-0009 Decision 6 (`:243-244`); `scripts/run-log-timing.sh:17-22`; spec 12 C-1; G4, G5 | Reversible: yes
-- A-02 | Artifact location | Resolved: `<git-common-dir>/orchestrail-output/` | Source: `hooks/git_rails.py:2402` precedent; spec 23 DM-4 and spec 12 DM-10 (shared by worktrees, invisible to `git status`); original REQ-07 ("outside product commits") | Reversible: yes
+- A-02 | Artifact location | Resolved: `<git-common-dir>/orchestrail-output/` | Source: `hooks/git_rails.py:2402` precedent; spec 26 DM-4 and spec 12 DM-10 (shared by worktrees, invisible to `git status`); original REQ-07 ("outside product commits") | Reversible: yes
 - A-03 | Runs outside a git repository | Resolved: refusal `not-a-git-repository`, direct run | Source: G4 conservative path; smallest choice (no second store family) | Reversible: yes
 - A-04 | Default limit | Resolved: 8192 bytes, an initial policy, not a measured optimum | Source: original invariant 2 and §10 | Reversible: yes
 - A-05 | Insufficient limit | Resolved: minimum derived from the worst-case skeleton (DM-4.5), exposed by `limits` | Source: original §5 "Before the run" step 3 | Reversible: yes
@@ -1623,7 +1623,7 @@ Every AC above names at least one REQ, and every REQ has at least one AC.
 - A-32 | Telemetry hand-off | Resolved: manifests, previews and read logs only; 05 adapters map | Source: `scripts/usage_telemetry_contract.py:304-313`; ADR-0016 Decision 3 (`:75`) | Reversible: yes
 - A-33 | Tree identity | Resolved: `head`, `worktree`, `cwd`; no tree digest | Source: spec 12 A-13; spec 15 owns evidence reuse | Reversible: yes
 - A-34 | Read accounting | Resolved: `read` appends to `reads.jsonl` | Source: original REQ-08 ("retrieved additions") | Reversible: yes
-- A-35 | Concurrency | Resolved: random ids, exclusive staging, rename publication; no lock | Source: spec 12 C-5; spec 23 parallel children | Reversible: yes
+- A-35 | Concurrency | Resolved: random ids, exclusive staging, rename publication; no lock | Source: spec 12 C-5; spec 26 parallel children | Reversible: yes
 - A-36 | Platform | Resolved: POSIX only; refusal elsewhere | Source: `.ai/context/environment.md:58` (Linux host) | Reversible: yes
 - A-37 | Permission rules | Resolved: not enforced by the helper; S1 and the Capture line limit use | Source: G5; `harness/claude/capabilities.md:49-52` | Reversible: yes (Q-01)
 - A-38 | Shared gates | Resolved: G1–G8 of `.ai/specs/README.md` bind this spec (NFR) | Source: `.ai/specs/README.md` "Shared acceptance gates"; original REQ-08 | Reversible: no
@@ -1696,7 +1696,7 @@ remain verifiable. Resume by unsetting the variable.
 - 08: done — Q-06 answers Q-03 "No", and DM-7 states that neither 13 nor 14 registers a
   format (A-23).
 - 05: an adapter mapping C-7's byte counts to `tool_output.*` diagnostics.
-- 12: done — its DM-6 mapping paragraph reads DM-3 `label` for non-`exit` outcomes (C-7 row 23).
+- 12: done — its DM-6 mapping paragraph reads DM-3 `label` for non-`exit` outcomes (C-7 row 26).
 - 16: done — DM-4a and REQ-57–REQ-61 settle Q-05. Open point: when the worker's call that runs
   15's helper has a time limit, 15 may pass `--timeout-seconds` below it, so that a long check
   ends with a preview (`timeout:<S>s`, case B) instead of being killed with the outer call.
