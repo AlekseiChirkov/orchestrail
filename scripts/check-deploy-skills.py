@@ -1846,6 +1846,32 @@ class DeploymentLeftoverTests(unittest.TestCase):
                 self.assertIn(str(self.name_map), result.stderr)
                 self.assertEqual(fixture.snapshot(), before)
 
+    def test_deferred_deploy_reports_leftovers_without_writes(self) -> None:
+        fixture = self.fixture
+        self.assert_leftovers(self.deploy())
+        self.write_map(("workflow", "retired-command", ["replacement-command"]))
+        leftovers = [fixture.skill("retired-command", harness) for harness in ("alpha", "omega")]
+        for skill in leftovers:
+            fixture.write(skill, b"Personal skill bytes\n")
+            fixture.write(skill.with_name(".SKILL.md.orchestrail-tmp"), b"Personal temporary file\n")
+        project = fixture.root / "active consumer"
+        task = project / ".ai/tasks/todo/active task"
+        fixture.write(task / "state.md", b"## Phases\n- execution: in-progress\n")
+        fixture.write(fixture.config / "orchestrail/projects", os.fsencode(project) + b"\n")
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Pending changes\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(fixture.snapshot(), before)
+        lines = result.stdout.splitlines()
+        self.assertEqual(lines[:2], ["deferred: active consumers", f"active {project} {task}"])
+        self.assertCountEqual(lines[2:], [
+            f"leftover {skill.parent} (not removed; review, then remove it manually)" for skill in leftovers
+        ])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
