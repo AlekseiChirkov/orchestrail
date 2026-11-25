@@ -1288,5 +1288,256 @@ fi
         self.assertEqual((other / ".gitignore").read_bytes(), b".ai/\n")
 
 
+class ActiveConsumerFreezeTests(unittest.TestCase):
+    race_note = (
+        b"note: task starts during deployment are not detected; "
+        b"run sync when no pipeline run is starting"
+    )
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.registry = self.fixture.config / "orchestrail/projects"
+        adapter = self.fixture.adapter()
+        adapter.write_bytes(adapter.read_bytes() + b"project_skills_link_dir=.claude/skills\n")
+
+    def deploy(
+        self, *arguments: str, unreadable: Path | None = None,
+    ) -> subprocess.CompletedProcess[bytes]:
+        launcher = []
+        if unreadable is not None and os.geteuid() == 0:
+            # Root can read a mode-000 file. Inject the same open error for that file.
+            launcher = ["-c", """
+import os
+import runpy
+import sys
+
+unreadable = sys.argv[1]
+sys.argv = sys.argv[2:]
+
+def deny_state_read(event, arguments):
+    if event == 'open' and arguments[0] in (unreadable, os.fsencode(unreadable)):
+        raise PermissionError(13, 'Permission denied', unreadable)
+
+sys.addaudithook(deny_state_read)
+runpy.run_path(sys.argv[0], run_name='__main__')
+""", str(unreadable)]
+        return subprocess.run(
+            [sys.executable, "-I", *launcher, str(ENGINE), "deploy", "--from",
+             str(self.fixture.source), "--hook-result", HOOK_RESULT, *arguments],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            timeout=15,
+        )
+
+    def initialize_deployment(self) -> None:
+        result = self.deploy()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def project(self, name: str) -> Path:
+        project = self.fixture.root / name
+        (project / ".claude/skills").mkdir(parents=True)
+        (project / ".git").mkdir()
+        self.fixture.write(project / ".gitignore", b"*.cache\n")
+        return project
+
+    def task(self, project: Path, name: str, contents: bytes) -> Path:
+        directory = project / ".ai/tasks/todo" / name
+        self.fixture.write(directory / "state.md", contents)
+        return directory
+
+    def register(self, *roots: Path) -> None:
+        self.fixture.write(self.registry, b"".join(os.fsencode(root) + b"\n" for root in roots))
+
+    def assert_deferred(
+        self, result: subprocess.CompletedProcess[bytes], *active: tuple[Path, Path],
+    ) -> None:
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            b"deferred: active consumers",
+            *(b"active " + os.fsencode(root) + b" " + os.fsencode(task) for root, task in active),
+        ])
+
+    def test_unchanged_globals_refresh_only_projects_without_active_phase_lines(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        discovering = self.project("discovering consumer")
+        executing = self.project("executing consumer")
+        validating = self.project("validating consumer")
+        complete = self.project("completed consumer")
+        unrelated = self.project("unrelated phase text")
+        missing = fixture.root / "missing consumer"
+        regular_file = fixture.root / "non-directory consumer"
+        fixture.write(regular_file, b"Not a directory\n")
+        self.task(discovering, "discovery", b"## Phases\n### Details\n- discovery: in-progress\t \n")
+        self.task(executing, "execution", b"## Phases\n- execution: in-progress")
+        self.task(validating, "validation", b"## Phases\n- validation: in-progress\n## Other\n")
+        self.task(complete, "published", b"## Phases\n- discovery: complete\n- execution: complete\n"
+                  b"- validation: complete\n")
+        self.task(unrelated, "unrelated", b"- execution: in-progress\n## Phases\n"
+                  b" - validation: in-progress\n- validation: in-progress now\n"
+                  b"- finalization: in-progress\n- discovery: in-progress\xc2\xa0\n"
+                  b"## Notes\n- validation: in-progress\n")
+        self.task(unrelated, "wrong heading", b"## Phases elsewhere\n- discovery: in-progress\n")
+        (unrelated / ".ai/tasks/todo/directory/state.md").mkdir(parents=True)
+        fixture.write(unrelated / ".ai/tasks/completed/archived/state.md", b"## Phases\n- execution: in-progress\n")
+        self.register(complete, missing, discovering, complete, unrelated, regular_file,
+                      executing, validating, validating)
+        mutable_projects = tuple(project.relative_to(fixture.root) for project in (complete, unrelated))
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            f"project updated {complete} (linked 1, unlinked 0)".encode(),
+            f"project missing {missing}".encode(),
+            f"project skipped (active task) {discovering}".encode(),
+            f"project updated {unrelated} (linked 1, unlinked 0)".encode(),
+            f"project missing {regular_file}".encode(),
+            f"project skipped (active task) {executing}".encode(),
+            f"project skipped (active task) {validating}".encode(),
+            self.race_note,
+        ])
+        after = fixture.snapshot()
+        self.assertEqual(
+            {path: entry for path, entry in after.items()
+             if not any(path.is_relative_to(project) for project in mutable_projects)},
+            {path: entry for path, entry in before.items()
+             if not any(path.is_relative_to(project) for project in mutable_projects)},
+        )
+        for project in (complete, unrelated):
+            link = project / ".claude/skills/current"
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(link.resolve(strict=True), fixture.skills_dir() / "current")
+            self.assertEqual((project / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+
+    def test_changed_globals_defer_for_active_consumer_with_global_links(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        active = self.project("already linked consumer")
+        ready = self.project("ready consumer")
+        linked = active / ".claude/skills/current"
+        linked.symlink_to(fixture.skills_dir() / "current")
+        task = self.task(active, "running pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(ready, active, active, fixture.source)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Changed workflow\n")
+        fixture.write(fixture.adapter().parent / "always-on.md", b"# Changed instructions\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_deferred(result, (active, task))
+        self.assertEqual(fixture.snapshot(), before)
+        self.assertEqual((linked / "SKILL.md").read_bytes(), SKILL_BYTES)
+
+    def test_changed_globals_defer_for_active_registered_source(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        ready = self.project("ready consumer")
+        self.task(ready, "finished pipeline", b"## Phases\n- execution: complete\n")
+        source_task = self.task(fixture.source, "source pipeline", b"## Phases\n- validation: in-progress\n")
+        self.register(ready, fixture.source)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Changed workflow\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_deferred(result, (fixture.source, source_task))
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_unreadable_and_non_utf8_states_defer_a_pending_global_update(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        malformed = self.project("invalid UTF-8 consumer")
+        unreadable = self.project("unreadable consumer")
+        malformed_task = self.task(malformed, "invalid encoding", b"## Phases\n- execution: complete\n\xff\n")
+        unreadable_task = self.task(unreadable, "unreadable task", b"## Phases\n- execution: complete\n")
+        unreadable_state = unreadable_task / "state.md"
+        self.register(malformed, unreadable)
+        desired = SKILL_BYTES + b"Updated workflow\n"
+        fixture.write(fixture.source / "workflows/current.md", desired)
+        fixture.write(fixture.manifest_path("journal"), fixture.manifest_bytes({
+            "schema_version": 1,
+            "entries": [{
+                "path": str(fixture.skill("current")),
+                "old_sha256": hashlib.sha256(SKILL_BYTES).hexdigest(),
+                "new_sha256": hashlib.sha256(desired).hexdigest(),
+            }],
+        }))
+        before = fixture.snapshot()
+        mode = stat.S_IMODE(unreadable_state.stat().st_mode)
+        unreadable_state.chmod(0)
+        try:
+            result = self.deploy(unreadable=unreadable_state)
+        finally:
+            unreadable_state.chmod(mode)
+
+        self.assert_deferred(result, (malformed, malformed_task), (unreadable, unreadable_task))
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_force_refreshes_active_projects_and_preserves_preflight_refusals(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        active = self.project("forced consumer")
+        self.task(active, "active pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(active, active)
+        registry_bytes = self.registry.read_bytes()
+        target = fixture.skill("current")
+        source = fixture.source / "workflows/current.md"
+        desired = SKILL_BYTES + b"New workflow\n"
+        source.write_bytes(desired)
+
+        self.registry.write_bytes(registry_bytes + b"not-an-absolute-root\n")
+        before = fixture.snapshot()
+        invalid = self.deploy("--force")
+        self.assertEqual(invalid.returncode, 1, invalid.stdout + invalid.stderr)
+        self.assertEqual(invalid.stdout, b"")
+        self.assertTrue(invalid.stderr.startswith(b"ERROR registry-invalid: "), invalid.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+        self.registry.write_bytes(registry_bytes)
+
+        target.write_bytes(b"Consumer's own edit\n")
+        before = fixture.snapshot()
+        conflict = self.deploy("--force")
+        self.assertEqual(conflict.returncode, 1, conflict.stdout + conflict.stderr)
+        self.assertEqual(conflict.stdout, b"")
+        self.assertEqual(conflict.stderr, f"ERROR ownership-conflict {target}: {OWNERSHIP_RESOLUTION}\n".encode())
+        self.assertEqual(fixture.snapshot(), before)
+        target.write_bytes(SKILL_BYTES)
+
+        before = fixture.snapshot()
+        with (fixture.config / "orchestrail/deploy.lock").open("rb") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            locked = self.deploy("--force")
+        self.assertEqual(locked.returncode, 1, locked.stdout + locked.stderr)
+        self.assertEqual(locked.stdout, b"")
+        self.assertTrue(locked.stderr.startswith(b"ERROR deploy-locked: "), locked.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+
+        result = self.deploy("--force")
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            f"replace {target}".encode(),
+            f"replace {fixture.skill('current', 'omega')}".encode(),
+            f"project updated {active} (linked 1, unlinked 0)".encode(),
+            f"forced {active}".encode(),
+            self.race_note,
+        ])
+        link = active / ".claude/skills/current"
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.resolve(strict=True), fixture.skills_dir() / "current")
+        self.assertEqual((link / "SKILL.md").read_bytes(), desired)
+        self.assertEqual((active / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+        self.assertEqual(self.registry.read_bytes(), registry_bytes)
+        self.assertFalse(fixture.manifest_path("journal").exists())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
