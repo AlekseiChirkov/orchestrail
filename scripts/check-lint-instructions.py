@@ -655,6 +655,56 @@ class InstructionMetadataTests(unittest.TestCase):
                         self.assertEqual((result.returncode, result.stdout, result.stderr), (0, expected + "\n", ""))
 
 
+class GlobalInstructionGuidanceTests(unittest.TestCase):
+    guidance_paths = ("rules/language.md", "docs/USAGE.md")
+    global_paths = ("~/.claude/CLAUDE.md", "~/.codex/AGENTS.md")
+
+    def test_chat_language_guidance_points_to_project_local_instructions(self) -> None:
+        self.assertTrue((SOURCE / "CLAUDE.md").is_file())
+        self.assertTrue((SOURCE / "templates/AGENTS.md").is_file())
+
+        for relative in self.guidance_paths:
+            with self.subTest(document=relative):
+                contents = (SOURCE / relative).read_text(encoding="utf-8")
+                prose = contents.replace("`", "").lower()
+                for global_path in self.global_paths:
+                    self.assertFalse(
+                        any(
+                            advice + global_path.lower() in prose
+                            for advice in ("set this in your personal ", "belongs in the user's personal ")
+                        ),
+                        f"{relative} still directs chat language preferences to {global_path}",
+                    )
+                paragraphs = [" ".join(part.split()) for part in contents.split("\n\n")]
+                self.assertTrue(
+                    any(
+                        "chat language" in paragraph.lower()
+                        and "project-local" in paragraph
+                        and "`CLAUDE.md`" in paragraph
+                        and "`AGENTS.md`" in paragraph
+                        for paragraph in paragraphs
+                    ),
+                    f"{relative} must direct chat language preferences to both project-local instruction files",
+                )
+
+    def test_global_instruction_guidance_explains_sync_ownership_conflicts(self) -> None:
+        for relative in self.guidance_paths:
+            with self.subTest(document=relative):
+                contents = (SOURCE / relative).read_text(encoding="utf-8")
+                paragraphs = [" ".join(part.split()) for part in contents.split("\n\n")]
+                self.assertTrue(
+                    any(
+                        all(f"`{path}`" in paragraph for path in self.global_paths)
+                        and "`scripts/sync.sh` manages" in paragraph
+                        and "edit" in paragraph.partition("next sync")[0].lower()
+                        and "stop" in paragraph.partition("next sync")[2]
+                        and "`ownership-conflict`" in paragraph.partition("next sync")[2]
+                        for paragraph in paragraphs
+                    ),
+                    f"{relative} must describe sync ownership and the result of editing either global file",
+                )
+
+
 class InstructionSourceIsolationTests(unittest.TestCase):
     def test_checker_and_deployment_source_only_use_offline_programs(self) -> None:
         deployment_suite = SOURCE / "scripts/check-deploy-skills.py"
