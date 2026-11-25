@@ -321,8 +321,14 @@ Workflows (e.g. `pae-implement`) look up these by key in
 `.ai/context/runbook.md → ## Commands` — not in `CLAUDE.md`. Missing keys are
 tolerated, but lint/test automation will be skipped for whatever is missing.
 
-**`CLAUDE.md → ## Standards`** — project-specific overrides only.
-Global standards live in `~/.claude/CLAUDE.md`. Add overrides such as:
+`scripts/sync.sh` manages the global always-on files `~/.claude/CLAUDE.md` and
+`~/.codex/AGENTS.md`. An edit to either deployed file makes the next sync stop
+with `ownership-conflict`.
+
+Set project-specific preferences such as chat language in the project-local `CLAUDE.md`
+for Claude Code or `AGENTS.md` for Codex.
+
+**`CLAUDE.md → ## Standards`** — project-specific overrides. Add overrides such as:
 
 ```markdown
 ## Standards
@@ -772,7 +778,7 @@ files are clean. Logs and local machine settings stay ignored in this repository
 |----------------------------|-----------------------------------------------------------------------------------|
 | `workflow-globals.md`      | `load: always`. Phase contract, never-auto-advance, canonical status formats, flow tiers, fix-task format. Decomposition limits and the reference tables live in `workflow-reference.md`. |
 | `workflow-reference.md`    | `load: on-demand`. Extended file-role reference, state-file marker list, status lifecycle. |
-| `language.md`              | `load: always`. Every project file in English. Chat language is deliberately NOT set here — it belongs in the user's personal `~/.claude/CLAUDE.md`. |
+| `language.md`              | `load: always`. Every project file in English. Set chat language preferences in the project-local `CLAUDE.md` or `AGENTS.md`. |
 | `git-flow.md`              | `load: always`. Branch stack, commit granularity, the no-attribution commit rule, PR policy (draft → ready), preflight, and every git safety rail with its Enforcement (what the Claude Code git-rails hook denies, asks the owner about, or allows only with the restack journal), the owner-approval protocol, and the rule never to rephrase a denied command. |
 | `orchestration.md`         | `load: always`. Roles (Orchestrator / Arbiter / Implementer / Validator), context boundaries, shared-file discipline, class A/B escalation, the Discovery batch gate. |
 | `tdd.md`                   | `load: always`. TDD contract: RED→GREEN cycle, test-level gate (unit/integration/contract/smoke/none), what counts as RED, frozen-test-set rule during GREEN, characterization mode (`pinned`) for behaviour-preserving work, `atomic-tests:` status vocabulary. |

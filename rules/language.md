@@ -18,5 +18,9 @@ mirror the other language.
 
 This rule applies ONLY to generated code and project files.
 
-# Chat language preference is user-specific.
-# Set this in your personal ~/.claude/CLAUDE.md, not here.
+Chat language is user-specific. Set the preference in the project-local `CLAUDE.md`
+for Claude Code or `AGENTS.md` for Codex.
+
+`scripts/sync.sh` manages the global always-on files `~/.claude/CLAUDE.md` and
+`~/.codex/AGENTS.md`. An edit to either deployed file makes the next sync stop
+with `ownership-conflict`.
