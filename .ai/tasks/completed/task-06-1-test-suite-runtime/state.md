@@ -1,4 +1,4 @@
-spec_path: .ai/specs/06-1-test-suite-runtime.md
+spec_path: .ai/specs/completed/008-test-suite-runtime.md
 contract_version: 0.9.0
 flow: full
 status: completed
@@ -21,7 +21,7 @@ status: completed
 ### Assumptions
 - Testing budget: the owner requires testing to take at most 15 minutes and excludes long, heavy or large tests. Bound the total test execution and cleanup to 900 seconds; if full verification exceeds the limit, diagnose and fix the cause before claiming success. Replace the prior repeated baseline and median comparison gate where it conflicts with this limit; retain earlier contaminated runs as diagnostic evidence only. Do not claim those comparisons passed. Preserve applicable behavioral requirements, and disclose any unverified coverage or timing target.
 - Execution amendment: begin independent runtime optimization work in private candidates without waiting for additional full baseline runs. Keep shared integration serial and retain separate review; the earlier characterization evidence remains available.
-- Naming: retain `.ai/specs/06-1-test-suite-runtime.md` and its derived task basename;
+- Naming: retain `.ai/specs/completed/008-test-suite-runtime.md` and its derived task basename;
   the owner explicitly directed continuation under 06 after the prefix collision was
   explained. This is a task-specific exception, not a change to the global guard.
 - Delivery base: freeze an isolated current integrated checkout when execution starts;

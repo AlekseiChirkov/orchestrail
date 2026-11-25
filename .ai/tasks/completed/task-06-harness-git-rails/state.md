@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/06-harness-git-rails.md
+spec_path: .ai/specs/completed/007-harness-git-rails.md
 contract_version: 0.9.0
 flow: full
 
@@ -24,7 +24,7 @@ flow: full
 ### Assumptions
 - Spec 09 not done; implement against the current `harness/claude/` layout → proceed on the current layout; 08/09 follow afterwards (source: user, owner answer of 2026-11-03 to spec §2.3, recorded in the previous session's notes and ADR-0017 Q&A; shown for confirmation at the batch gate)
 - Rule path in diagnostics (`rules/git-flow.md → ## Safety rails`) → one constant in `hooks/git_rails.py`; tests read that constant so spec 09's rename touches one place (source: user, same 2026-11-03 answer)
-- Capability record shape → the `git-rails` section uses spec 09 §7.2 fields (name, state yes|no|unknown, verified runtime version, date, evidence URL, limitations) plus spec 06 §10.4 items (source: user, same 2026-11-03 answer; `.ai/specs/09-model-only-harnesses-and-rule-naming.md → 7.2`)
+- Capability record shape → the `git-rails` section uses spec 09 §7.2 fields (name, state yes|no|unknown, verified runtime version, date, evidence URL, limitations) plus spec 06 §10.4 items (source: user, same 2026-11-03 answer; `.ai/specs/011-model-only-harnesses-and-rule-naming.md → 7.2`)
 - Roadmap order change (06 before 08/09) → recorded in provisional ADR-0017; the `.ai/specs/README.md` order note and the ADR-0009 status change are written only when ADR-0017 is accepted at validation, so the README never contradicts an Accepted ADR-0009 (source: arbiter audit; ADR-0009 → Verification; `workflows/adr-new.md` Step 2); spec 09's REQ-35 adapter list gains `permissions.json` only when 09 is rewritten, not in this task (source: user, same 2026-11-03 answer)
 - Ask-capable permission modes → allowlist only modes the docs show prompting a human: `default` and `auto`; `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, missing and unknown → `deny owner-approval-unavailable` unless T-01 finds explicit documentation (source: spec §6.3 step 1 listing criterion; docs read 2026-11-03)
 - Handler failure mode → the PreToolUse handler declares `"onFailure": "block"`; X6 is narrowed to harness behaviour outside that option, not removed (source: spec §10.1 "If the pinned harness offers a blocking failure mode, the handler uses it"; hooks docs)
@@ -902,7 +902,7 @@ Created: T-11-fix-push-and-pull-resolution-gaps, T-12-fix-installer-and-contract
 sync: complete
 synced_at: 2026-11-05T10:06:57+06:00
 deltas: 19 (implemented-differently: 12, not-implemented: 0, implemented-beyond: 7)
-spec: .ai/specs/completed/06-harness-git-rails.md
+spec: .ai/specs/completed/007-harness-git-rails.md
 note: 2 spec-was-right (no edit); §0 metadata updated; OQ1–OQ5 written to the spec; authority: calling /pv-finalize with verified prerequisites; final evidence: full suite 717/0/2 at stack tip 4c2d873 (independent fix-group validator), every fix group validated on its changed surface
 adr: .ai/adr/0017-task-06-enforced-git-rails-hook.md (promoted to Accepted 2026-11-05); ADR-0009 marked amended (Decisions 5, 7)
 

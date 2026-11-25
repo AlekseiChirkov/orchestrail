@@ -4,7 +4,7 @@ completed_task: task-06-harness-git-rails
 completed_at: 2026-11-05
 ---
 
-# 06. Enforced git rails for agent shell commands
+# 007. Enforced git rails for agent shell commands
 
 ## Implementation review — 2026-11-06
 
@@ -646,7 +646,7 @@ defense in depth; the hook stays authoritative.
 | Remote HEAD unknown | `deny default-branch-unknown`. |
 | Restack journal missing, stale or ambiguous | `ask` with the failed check named. |
 | Concurrent settings edit during install | The installer keeps the user's version and reports status `unavailable` with reason `settings-changed-during-transaction` and exits 0, as every installer refusal does, so installation failure does not block other deployment targets (§10.2). Nothing is partially written. |
-| Output capture truncates the diagnostic | The decision is unchanged. Spec 14 MUST keep the reason line and the exit status. |
+| Output capture truncates the diagnostic | The decision is unchanged. Spec 016 MUST keep the reason line and the exit status. |
 | A retry after `deny` | Evaluated from scratch. A previous decision is never reused. |
 
 ## 12. Acceptance criteria

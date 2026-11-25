@@ -12,7 +12,7 @@ Accepted. Decision 5 (git-rails bullet: tracked `.ai/` detection) and Decision 7
 ## Related Task
 
 - Task: none — decisions taken by the owner in three question rounds over the roadmap
-  specs 01–07, 09–11, 19, 21 and 23 (2026-09-16 … 2026-09-17)
+  specs 002–07, 09–11, 19, 21 and 23 (2026-09-16 … 2026-09-17)
 - Related files: `.ai/specs/*.md`, `.ai/adr/0003`, `0004`, `0005`, `0007`, `0008`
 
 ## Summary
@@ -39,18 +39,18 @@ match this record.
 **Amended 2026-09-17 (owner):** sensitive data is scrubbed **before** `git init`, not at
 the public release. Client and employer project names, internal source-file references
 taken from client code, pull-request and workflow-run identifiers, the machine host name,
-and `$HOME`-absolute paths are removed in `.ai/specs/completed/00-sensitive-data-scrub.md`, which
+and `$HOME`-absolute paths are removed in `.ai/specs/completed/001-sensitive-data-scrub.md`, which
 also adds a forbidden-token check group to `validate-contracts.sh`. Rationale: git
 history cannot be edited after publication; a later scrub would require a rewrite that
-invalidates every published hash. Spec 21 only re-verifies the check.
+invalidates every published hash. Spec 023 only re-verifies the check.
 
 **What was decided:**
-- Public name **Orchestrail**. Rename in spec 01: repository directory `orchestrail/`,
+- Public name **Orchestrail**. Rename in spec 002: repository directory `orchestrail/`,
   environment `ORCHESTRAIL_HOME`, config `~/.config/orchestrail/`, log root
   `ORCHESTRAIL_LOG_ROOT`; every hard-coded literal updated in the same commit.
 - Public GitHub repository under the owner's personal account, published after a minimal
-  public slice inside spec 01: `LICENSE` (Apache-2.0, holder = the owner), a short
-  `README.md`, `.gitignore`, the name. Everything else stays in spec 21.
+  public slice inside spec 002: `LICENSE` (Apache-2.0, holder = the owner), a short
+  `README.md`, `.gitignore`, the name. Everything else stays in spec 023.
 - SemVer; first tag `v0.9.0` on the single import commit; `1.0.0` = first stable public
   contract. Versions below 1.0.0 are unstable.
 - `VERSION` file at the repository root holds the contract version; `/pd-analyze` writes
@@ -66,18 +66,18 @@ invalidates every published hash. Spec 21 only re-verifies the check.
 
 **Why:** early feedback on a pre-1.0 contract; one rename sweep instead of two.
 
-**Alternatives:** publish only at spec 21 (rejected: delays feedback); keep
+**Alternatives:** publish only at spec 023 (rejected: delays feedback); keep
 `agentic_workflows` (rejected: generic and already used).
 
-**Consequences:** spec 01 grows the rename and the minimal public slice; spec 21 keeps
+**Consequences:** spec 002 grows the rename and the minimal public slice; spec 023 keeps
 installer, profiles, examples, scrubbing.
 
-**Related files:** `.ai/specs/01`, `21`
+**Related files:** `.ai/specs/002`, `21`
 
 ### Decision 2: Harness abstraction — Claude Code and Codex now, others later
 
 **What was decided:**
-- Windsurf / Devin Desktop are dropped (spec 09). Old directories under `~/.codeium` and
+- Windsurf / Devin Desktop are dropped (spec 011). Old directories under `~/.codeium` and
   consumer `.windsurf/` / `.devin/` are never deleted by scripts; the removal command is
   printed for the owner.
 - A `harness/<name>/` directory per supported harness, starting with `claude/` and
@@ -98,7 +98,7 @@ installer, profiles, examples, scrubbing.
   `state.md → ## Phases` has a phase `in-progress` is skipped by `sync.sh` with a report
   line; `--force` overrides.
 - Rule front matter: `description:` + `load: always | on-demand`, no `trigger:`.
-  Workflow front matter: `description:`, `phase:`, `step:`, and (spec 11) `loads:`.
+  Workflow front matter: `description:`, `phase:`, `step:`, and (spec 013) `loads:`.
 
 **Why:** the owner's instruction "workflows work with models, not IDEs"; a third
 provider must be a directory, not a rewrite.
@@ -106,10 +106,10 @@ provider must be a directory, not a rewrite.
 **Alternatives:** two hard-coded branches in `sync.sh` (rejected); per-skill harness
 templating (rejected: fragile, duplicates every skill).
 
-**Consequences:** spec 09 gains the `harness/` layout and capability contract; ADR-0003's
-deploy-target decision is superseded when spec 09 lands.
+**Consequences:** spec 011 gains the `harness/` layout and capability contract; ADR-0003's
+deploy-target decision is superseded when spec 011 lands.
 
-**Related files:** `.ai/specs/09`, `08`
+**Related files:** `.ai/specs/011`, `08`
 
 ### Decision 3: Naming scheme for rules and workflows
 
@@ -120,7 +120,7 @@ deploy-target decision is superseded when spec 09 lands.
 - `workflow-reference` is split now into `contract-state-files`,
   `protocol-autonomous-decision`, `protocol-subtask-classifier`; `##` headings are frozen.
 - The always-on files leave `rules/` for `harness/<name>/always-on.md`.
-- Slash commands are renamed inside spec 09 as its final subtask: orchestrators
+- Slash commands are renamed inside spec 011 as its final subtask: orchestrators
   `discovery`, `execution`, `validation`, `pipeline`, `atomic-execution`,
   `atomic-validation`, `composite-validation`; children keep the step suffix
   (`discovery-analyze`, `execution-finalize`, `validation-issues`,
@@ -128,17 +128,17 @@ deploy-target decision is superseded when spec 09 lands.
   unchanged (`spec-run`, `spec-draft`, `spec-sync`, `bugfix`, `adr-new`, `context-pack`,
   `retro`, `restack`, `compress-state`, `onboard-legacy-project`, `suggest-*`).
 - The audit of all rule and workflow files is its own spec, **08**, executed before 09;
-  spec 09 is amended via `/spec-sync` from its findings.
+  spec 011 is amended via `/spec-sync` from its findings.
 
 **Why:** a name must state the file's kind; one rename sweep.
 
 **Alternatives:** prefix only the five colliding names (rejected: four naming styles
-remain); rename commands at spec 21 (rejected: second full-tree sweep).
+remain); rename commands at spec 023 (rejected: second full-tree sweep).
 
 **Consequences:** every citation in `workflows/`, `rules/`, `docs/`, `templates/`,
 `.ai/`, and scripts changes once, under `validate-contracts.sh` checks.
 
-**Related files:** `.ai/specs/09`, `08`
+**Related files:** `.ai/specs/011`, `08`
 
 ### Decision 4: Composite tasks — one branch, one PR; parallelism only inside a composite
 
@@ -176,7 +176,7 @@ Spec 23 is rewritten to this scope.
 ### Decision 5: Telemetry instead of budgets; state tool deferred
 
 **What was decided:**
-- No wall-clock or cost limits on subtasks or runs. Spec 05 becomes telemetry-only:
+- No wall-clock or cost limits on subtasks or runs. Spec 006 becomes telemetry-only:
   `tokens_in`, `tokens_out`, `cost_usd`, `duration_s` per step and per run; cost metrics
   in `/retro`; Codex `cost_usd` omitted until reliable.
 - Anomalous-duration warning, written to the subtask's `notes:` and the final report:
@@ -187,7 +187,7 @@ Spec 23 is rewritten to this scope.
   `PASS`→`pass`, `NEEDS WORK — …`→`needs-work`, `escalated`→`fail`), original kept in
   `note`; any other value is rejected; unknown `--step` names warn (list derived from
   `workflows/*.md`); historical runs are left as-is and reported as rejected.
-- Hooks (specs 03, 06) are installed at **user level** and activate only inside a
+- Hooks (specs 004, 06) are installed at **user level** and activate only inside a
   registered project. Step logging moves to `SubagentStop` and `Stop` hooks;
   `run-start`/`run-end` stay prompt-driven; Codex durations stay prompt-driven and are
   labelled approximate.
@@ -195,7 +195,7 @@ Spec 23 is rewritten to this scope.
   message contains `Co-Authored-By`, `T-XX`, or `ADR-`; detects tracked `.ai/` via
   `git ls-files .ai` cached per session; writes incidents to stderr only. RED-set
   protection is a separate future spec.
-- The state tool (spec 07) is **not** built now; agents keep editing state files
+- The state tool (spec 009) is **not** built now; agents keep editing state files
   directly. It stays in the backlog as: Python 3, single file, stdlib only, invoked from
   `ORCHESTRAIL_HOME/bin/`, owning `## Subtask Progress` only, per-task lock with 10-minute
   stale override. Interim guard: `validate-task.sh` runs warn-only from every finalize /
@@ -207,10 +207,10 @@ its value is measured.
 **Alternatives:** hard budgets (rejected by owner); mandatory state tool (rejected for
 now).
 
-**Consequences:** spec 05 rewritten; spec 07 moved to backlog; spec 23 designed without a
+**Consequences:** spec 006 rewritten; spec 009 moved to backlog; spec 23 designed without a
 lock (orchestrator-only writes).
 
-**Related files:** `.ai/specs/02`, `03`, `05`, `06`, `07`
+**Related files:** `.ai/specs/003`, `03`, `05`, `06`, `07`
 
 ### Decision 6: Models, profiles, documentation, tests
 
@@ -227,13 +227,13 @@ lock (orchestrator-only writes).
   **project-local** `CLAUDE.md` / `AGENTS.md`; global always-on files stay core-only;
   profiles are never global skills; the selection is recorded in `.ai/profile` (name +
   source version).
-- Context tiering (spec 11) after spec 09: ≤ 700 words per always-on rule, ≤ 6 000 words
+- Context tiering (spec 013) after spec 011: ≤ 700 words per always-on rule, ≤ 6 000 words
   total; worked examples and incident narratives in `rules/reference/` deployed as
   `ref-*` skills.
-- Generated docs (spec 19): separate files under `docs/reference/`, linked from
+- Generated docs (spec 021): separate files under `docs/reference/`, linked from
   `USAGE.md`; always-on files generated from a core body plus per-harness header
   template; generator in Python.
-- Golden-run tests (spec 10): run only before a release; pinned Sonnet 5; fixture a
+- Golden-run tests (spec 012): run only before a release; pinned Sonnet 5; fixture a
   ~5-file pure-Python + pytest project; offline; CI secret allowed for manual dispatch
   only. `docs/examples/` is built from the golden fixture, never from a client project.
 - Before publication: client and internal project names scrubbed; `settings.local.json`
@@ -248,18 +248,18 @@ lock (orchestrator-only writes).
 
 **Alternatives:** recorded per item in the specs' `## Notes`.
 
-**Consequences:** specs 04, 11, 10, 19, 21 amended.
+**Consequences:** specs 005, 11, 10, 19, 21 amended.
 
-**Related files:** `.ai/specs/04`, `11`, `10`, `19`, `21`
+**Related files:** `.ai/specs/005`, `11`, `10`, `19`, `21`
 
 ### Decision 7: Execution order
 
 **What was decided:**
-spec 00 (scrub) → 01 → 08 → 09; then 04 independently; then 02 → 03 → 05 → 06 (log
+spec 001 (scrub) → 01 → 08 → 09; then 04 independently; then 02 → 03 → 05 → 06 (log
 contract, then automatic recording, then telemetry, then protection hooks); then 10, 11,
-19, 21, 23. Spec 07 is backlog.
+19, 21, 23. Spec 009 is backlog.
 
-**Why:** nothing may be committed before the scrub; spec 09 touches every file, so doing
+**Why:** nothing may be committed before the scrub; spec 011 touches every file, so doing
 others first means editing rules twice.
 
 **Related files:** `.ai/specs/README.md`
@@ -276,7 +276,7 @@ Listed per decision above.
 
 ## Implications for Future Work
 
-- When spec 09 lands: ADR-0003 status → superseded (deploy targets); write the harness
+- When spec 011 lands: ADR-0003 status → superseded (deploy targets); write the harness
   capability contract into `.ai/principles/domain.md`.
 - When spec 23 lands: amend ADR-0004 (Decision 3) and ADR-0005 (Decision 1) formally with
   a superseding ADR.

@@ -1,251 +1,17 @@
-# 18. Economical decomposition with complete acceptance coverage
+# 020. Economical decomposition with complete acceptance coverage
+
 
 ## Source
 
-- **Origin:** workstream 9 ("economical decomposition") of the owner's token-optimization
-  request of 2026-10-21. Roadmap row 9 of `.ai/specs/README.md` → "Nine token optimization workstreams" — "Coherent leaves, measured
-  setup/review overhead, architectural boundaries, integration and AC coverage" — and
-  dependency row of `.ai/specs/README.md` → "Dependency order" (order 14, prerequisites 04, 05, 10, 12, 13, 15,
-  disposition "New workstream 9"). The shared acceptance gates G1–G8
-  (`.ai/specs/README.md` → "Shared acceptance gates") are part of this specification's acceptance contract.
-- **Previous revision:** 2026-10-28 (reconciled 2026-11-06), written in Russian. The full
-  Russian text is retrievable from the git history of this file at
-  `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`. Every requirement and acceptance identifier is
-  kept below; `## Notes → Identifier history` records each change of wording or scope.
-- **Faithful English translation of the previous revision** (translated from Russian; every
-  section is kept, tables are rendered as lists; historical and non-normative where it
-  conflicts with the requirements below):
-  - *Implementation review — 2026-11-06* (originally English, quoted): "Disposition: Planned;
-    structural decomposition delivered. Verified source scope: main at
-    `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state
-    reconciliation on 2026-11-06. Delivered evidence: The decomposition workflow already
-    distinguishes leaves/composites/vertical re-slices, records Decomposition Decisions, and
-    preserves acceptance/dependency boundaries. Outstanding scope and limits: Measured
-    leaf/setup/review economics, calibrated split/merge advice, hash-bound shared context, and
-    comparable accepted-result evaluation are not delivered. Structural scoring is not an
-    economic measurement. Sources: `workflows/pd-decompose.md`, `rules/workflow-reference.md`,
-    `workflows/phase-discovery.md`. Existing requirement and acceptance identifiers remain
-    binding. Source inspection and historical validation records do not constitute a fresh
-    full-suite or deployed-environment certification."
-  - *§1 Status and basis:* "Future capability of workstream 9 of the request of 2026-10-21.
-    This revision is aligned with source snapshot `8c2fa08c18115ffcf38a1798742c41e53a2c7461`
-    of 2026-10-28. The current `workflows/spec-run.md` passes leaf tasks sequentially to an
-    implementer and a separate reviewer. The source materials describe the existing
-    classifier, dependency order, target files, agreed leaf boundaries and re-splitting of
-    tasks that are too large while preserving work already done. At implementation, verify the
-    actual decomposition workflow and its name after migration 09. A separate audit report
-    named by the sources is absent from the snapshot and does not prove an economic advisor
-    exists. A calibrated cost model and comparison of economic variants are not yet considered
-    implemented. A small number of leaves is not a goal in itself: leaves that are too small
-    repeat preparation and review; leaves that are too large widen the area of uncertainty and
-    the cost of repair."
-  - *§2 Goal and boundaries:* "Choose coherent, verifiable subtask boundaries by architecture,
-    constraints, risk and available measurements, while preserving all acceptance criteria,
-    interfaces, dependencies and integration checks. In scope: split/merge signals, a shared
-    architectural contract, an obligation map, a dependency graph, comparison of candidates,
-    decision rationale and offline scenarios. Out of scope: automatic merging of running or
-    accepted tasks, changing the specification for convenience, minimizing the number of leaves
-    at any cost, a new branch model, top-level parallelism, and uncalibrated router training.
-    Ownership: 18 — task boundaries, coverage, dependencies and the rationale of economic
-    advice; 12 — shared architectural package, provenance and freshness; 04 and 16 — suitable
-    available models and supported effort; 05 — measurements, cost and missing data; 10 —
-    comparable independent evaluation of strategies; 13 and 15 — checkpoints, acceptance and
-    integration evidence; 23 — the future composite branch model and separate parallelism
-    conditions. 23 and 16 do not become new prerequisites of 20: until they are delivered
-    separately, the existing sequential branches and model/effort selection apply. 18's
-    contracts give them the signals they need in advance but do not declare the future
-    capability enabled."
-  - *§3 Terms and invariants:* "A **leaf** is a terminal task with one coherent verifiable
-    result, sufficient context and a manageable area of impact. A **composite task** groups
-    children and verifies their interaction but does not remove each child's own testing
-    obligations. A leaf's **overhead** includes context preparation, handoff, bookkeeping and
-    mandatory review, even when little code changes. Invariants: (1) every AC, invariant,
-    interface obligation and off-limits area is represented in the plan; savings do not
-    justify an omission. (2) A shared architectural question is decided once with a source,
-    not again by each executor; a contradiction or staleness of the decision must be resolved
-    before dependent execution. (3) Incompatible risks, required approvals and independent
-    checkpoints do not disappear when merging. (4) The dependency graph is acyclic; matching
-    target files and shared interfaces have an explicit owner and order. (5) Work already
-    started is not silently redistributed; history, AC and evidence are not lost in an
-    authorized replan. (6) Cost, time, number of calls and quality are separate quantities;
-    unknown is not replaced by zero, and a speed-up is not called a monetary saving. (7) Fewer
-    leaves, shared analysis and the absence of matching file names do not prove that parallel
-    execution is safe."
-  - *§4 Requirements:* "REQ-01: link every AC, invariant and interface obligation to one or
-    more leaves and an explicit integration check; keep ownership, test level, off-limits area
-    and dependency readiness; an uncovered obligation makes the plan unfit for execution.
-    REQ-02: store shared architectural/interface decisions once in 12's fresh contract with
-    source and version and reference them from the related leaves; an unresolved shared
-    decision blocks dependent execution. REQ-03: consider merging tightly related changes that
-    are verified together, with compatible files/context and no need for independent
-    boundaries; reject merging incompatible risks/quality bars, unrelated results, required
-    approvals and excessive context. REQ-04: consider splitting along architectural
-    boundaries, independent acceptance results, file/interface conflicts, context sufficiency,
-    uncertainty, criticality and expected rework; do not create small leaves only for a cheap
-    model or to claim parallelism. REQ-05: with usable 05/10 calibration, compare the full cost
-    of planning, of each leaf's context/handoff/execution/review, of integration and of
-    expected repair/escalation, and time separately; state the sample, task class, uncertainty
-    and quality bars. Without calibration use conservative structural signs without invented
-    probabilities or monetary savings. REQ-06: record the chosen and reasonable rejected
-    boundaries in `Decomposition Decisions`, exact dependencies, context/quality signals for
-    04/16 and the integration owner; distinguish estimated calls/cost from observations.
-    REQ-07: keep the canonical atomic/composite kinds and the sequential top-level stack;
-    23's future parallelism requires its own independence evidence; a partially executed task
-    is not regrouped on resume without an explicit, provided-for decision. REQ-08: evaluate
-    variants on comparable tasks per 10, counting re-planning/context/review and late
-    integration defects in 05; apply G1–G8; describe the conservative fallback, replan
-    authorization and disabling of advice without losing the canonical plan."
-  - *§5 Inputs and output contract:* "Before choosing boundaries the following are needed: the
-    source specification and its hash, exact AC, architecture/decisions, test level,
-    forbidden files, interfaces, the existing plan and its state, available roles/models,
-    working roots and, when present, calibration. Unknown inputs are listed explicitly. A
-    discrepancy between sources is not resolved by arbitrarily choosing the convenient
-    variant. The output is the existing canonical task files with additive decision evidence,
-    not a new mandatory database: identity (`schema_version`, `plan_revision`,
-    `source_spec_hash`, `task_contract_hash`, `architecture_contract_hash`); coverage (AC /
-    invariant / interface → leaf or leaves → check → integration owner); leaf (identifier,
-    goal, type, criteria, target and forbidden paths, working directory, test level, risks,
-    context); graph (node identifiers and exact directed dependencies with reason/readiness
-    condition); ownership (file/interface → responsible leaf, agreed order for joint work);
-    candidates (possible groupings, proven constraints, reason for choice/rejection);
-    economics (`structural_only` or a reference to calibration, cost/time components,
-    uncertainty, unknown fields); execution boundary (what is frozen, what is already started
-    or accepted, the next permitted stage). Not every obligation needs a separate leaf or an
-    additional test: one scenario may cover several AC; one existing integration stage may
-    cover several leaves. But for every obligation it must be visible where and by whom it is
-    verified, so that saving rows does not hide a missing check. When an AC spans several
-    components, several leaves may be assigned, but responsibility for final acceptance stays
-    unambiguous; 'each checks its own part' without an integration owner is insufficient."
-  - *§6 Decomposition algorithm:* "(1) Check source completeness: extract all AC and
-    constraints without a retelling that changes their meaning; compare with any existing
-    plan; keep started/accepted rows. (2) Extract shared decisions: identify interfaces and
-    invariants several changes depend on; write or load a fresh 12 contract; pass unresolved
-    questions to the current arbiter/owner before dependent execution. (3) Build a structural
-    candidate starting from coherent verifiable results, not a given number of leaves or model
-    prices; re-split a large task classified by the existing rules as needing it, by those same
-    rules. (4) Check coverage and graph: find uncovered AC, missing owners, cycles, unknown
-    dependencies, conflicting target areas and violated approval boundaries. (5) Consider close
-    alternatives: for adjacent related changes, check a reasonable merge; for a wide/risky leaf,
-    a split along an architectural seam; do not enumerate all combinations artificially.
-    (6) Discard inadmissible variants: any omitted criterion, violated prohibition, quality,
-    approval or context sufficiency excludes a variant before cost is computed. (7) Compare
-    admissible variants: with usable calibration use §8; without it apply structural
-    rationale and mark the absence of economic certainty. (8) Record the decision: chosen
-    boundaries, reasonable rejected variants, reasons, source versions and integration owner;
-    state the next permitted stage. (9) Freeze according to the existing process: execution
-    uses the agreed plan; a new assumption during work triggers the provided amendment, not a
-    hidden rebuild of the graph."
-  - *§7 Merge, split and ownership rules:* "A merge is admissible when all of the following
-    hold: the changes serve one coherent result and have a joint understandable acceptance;
-    target files/interfaces have a compatible owner and order; the context fits a sufficient
-    working area with expansion available per 12, without hiding part of the specification;
-    there is no required intermediate approval or independently verifiable readiness that the
-    merge would destroy; risks and minimum quality bars are compatible, and a critical part is
-    not masked among mechanical changes. A split must be considered when: there are
-    independent acceptance results or architectural boundaries allowing meaningful
-    verification; one leaf needs incompatible roles, approvals or materially different
-    execution conditions; the context is too wide, the impact is hard to establish or expected
-    rework would touch an excessively large area; several changes compete for a shared schema,
-    interface or file and need explicitly ordered stages. Matching target files do not always
-    forbid sequential leaves: they require an explicit dependency and integration owner, but
-    they do not allow such leaves to be declared independent for 23's parallelism. A shared
-    schema/contract can link leaves even with disjoint paths. Children of a composite are not
-    merged automatically just because 23 will later give them one shared branch. Each keeps
-    its applicable test cycle. A legitimate `none/n-a`, `pinned` capture of preserved
-    behaviour and compatibility of started historical blocks apply through existing grounds,
-    not economic advice. Regrouping does not create a retroactive RED and does not erase
-    collected evidence."
-  - *§8 Economics: full cost and uncertainty:* "For a candidate count: C = planning + shared
-    reusable context + Σ over leaves (preparation + handoff + execution + mandatory review) +
-    integration verification + expected repairs and escalation + other confirmed costs. Shared
-    context is counted once only when the data prove such use. Repeated actual loading/cache
-    writes do not disappear from the calculation because of an identical hash. Composite totals
-    are not added to child units already included. Identity and monetary valuation rules belong
-    entirely to 05. Time is estimated separately: in the current sequential mode sequential
-    intervals and overhead are counted; hypothetical speed-up through parallelism is marked as
-    a scenario not yet available unless 23 is implemented and allowed. The sum of worker
-    durations is not declared the parent run's time. Calibration is usable only when a
-    comparable task class, source versions, models/environments, acceptance criteria, full
-    accounting of attempts and independent quality evaluation are known. An outdated version, a
-    small unrepresentative sample or unknown coverage mean limited applicability. Uncertainty
-    is given by data or an honest range; statistical precision is not invented. If the
-    intervals of comparable estimates overlap substantially or quality is incomparable, no
-    economic winner is declared; the understandable conservative variant is preferred and the
-    reason for uncertainty is kept. A low estimated cost does not compensate a violated quality
-    bar. Synthetic arithmetic check (conditional units, not measured prices or a project
-    promise): one excessively wide leaf — planning 2, preparation and mandatory review 4,
-    execution 12, integration 2, expected rework 18, total 38; two coherent leaves — 2, 8, 12,
-    2, 2, total 26; six leaves that are too small — 2, 24, 12, 2, 1, total 41. The table shows
-    why both the minimum and the maximum number of leaves can lose; it does not establish 'two'
-    as optimal; other inputs give another result. Without rework data the corresponding cell
-    stays unknown, not zero."
-  - *§9 Dependency readiness and replanning:* "An edge `A → B` means a concrete readiness
-    condition of A before B, for example independent acceptance of the needed interface/tree.
-    Completion of A's execution alone does not replace its verification. A changed shared
-    contract invalidates packets based on it that have not started and requires checking its
-    impact on work already done. On resume, the specification, plan, states and evidence are
-    compared first. An accepted leaf is not renamed or dissolved into a new large leaf to
-    improve a report. In an authorized replan the following are kept: previous identifiers and
-    states as historical evidence; the mapping of old AC/leaves to new ones with reasons; the
-    commits, tests and independent verdicts used; the list of evidence that stays valid and
-    that is invalidated; a new plan version and the explicit decision that authorized the
-    change. Disabling the economic advisor does not rewrite the plan. The next new
-    decomposition uses the previous structural rules; active work continues the agreed plan or
-    an owner-provided replan."
-  - *§10 Failure scenarios:* "One small coherent result — do not create extra leaves for
-    formal multi-stage structure. Many similar mechanical changes — consider joint acceptance,
-    keeping the scope and verification of each obligation. Shared critical interface — first
-    the architectural decision and integration owner; do not hide it in a cheap group. Not
-    enough context — split along a semantic boundary or expand per 12; do not exclude AC. No
-    calibration — structural advice with unknown cost. Dependency cycle — reject the plan;
-    remove the cycle / extract the shared decision before execution. Joint ownership without
-    order — establish a single responsible party and a dependency, or change the boundaries.
-    AC changed after agreement — provided amendment/replan with a new version, not silent
-    editing. Partially executed composite task — keep progress and evidence; regroup only by an
-    explicitly authorized path. Different files but a shared schema — do not declare parallel
-    safety; apply 23's separate check."
-  - *§11 Acceptance criteria:* "AC-01 (REQ-01, REQ-02): the map covers 100% of source AC,
-    invariants and interface obligations; each has a check and an integration owner; related
-    leaves use one fresh architectural contract; an unresolved shared decision blocks
-    dependent execution. AC-02 (REQ-03, REQ-04): scenarios of related small changes and of an
-    architectural seam justify a coherent merge/split; a conflict of approvals, quality, risk
-    or context sufficiency excludes an inadmissible variant before economic comparison. AC-03
-    (REQ-05): manual synthetic sums confirm that fragmentation and excessive size can both
-    raise cost; without calibration there are no invented probabilities/monetary savings;
-    shared and child costs are not counted twice. AC-04 (REQ-06, REQ-07): the plan contains
-    chosen/rejected boundaries, reasons, an acyclic graph and explicit ownership; existing
-    types/stack are kept; resuming does not silently change started tasks and does not declare
-    parallelism from one grouping. AC-05 (REQ-08): offline scenarios detect a coverage gap and
-    an integration defect; comparable reporting includes planning/context/review/rework;
-    disabling advice and authorized replanning without loss of history are verified; fewer
-    leaves is not presented as proven savings or equal quality. Traceability: REQ-01–02 →
-    AC-01; REQ-03–04 → AC-02; REQ-05 → AC-03; REQ-06–07 → AC-04; REQ-08 → AC-05."
-  - *§12 Implementation and readiness:* "(1) Verify the current classifier and plan freeze
-    after migration 09; keep the single canonical place of the rules. (2) Add the
-    coverage/ownership schema and failing scenarios for cycles, omitted AC and conflicting
-    boundaries. (3) Implement structural proposals without monetary valuation, then an optional
-    comparison by usable calibration. (4) Link the shared contract with 12, checkpoints with
-    13, integration verification with 15 and metrics with 05. (5) Verify preservation of
-    started tasks, disabling and authorized replanning; evaluate live strategies separately per
-    10. Dependencies: 04, 05, 10, 12, 13, 15. G1–G8 are mandatory. Deterministic implementation
-    needs no invented calibration. The value of strong shared planning, cheap execution or
-    another chain is established by independent data, not by a number of leaves chosen in
-    advance."
-  - *Change Log, 2026-11-06* (originally English, quoted): "Owner-authorized source review at
-    `23bded3d96d9c562d16eb7e90285414f4412ac79`: record delivered scope, remaining obligations,
-    and verification limits in the Implementation review above. Preserve
-    requirement/acceptance identifiers and historical decisions; repair current local
-    references where needed."
-- **Refinement authority:** the repository owner authorized in-place replacement of this file
-  and auto-mode resolution (2026-11-14). Names below are today's names
-  (`workflows/pd-decompose.md`, `rules/workflow-reference.md`, …); after spec 09 is delivered
-  they follow spec 09's rename maps (`.ai/specs/09-model-only-harnesses-and-rule-naming.md`:
-  DM-1 name map, DM-10 rule map, DM-12 section map, and Notes "Files and sections created
-  after this spec"; see C-5 "Rule-file names after spec 09").
+- Owner's decomposition and efficiency request of 2026-10-21; the complete earlier
+  translation and identifier history are available in Git history.
+- Scope updated 2026-11-25: scheduling-specific evidence and requirements belong
+  exclusively to the execution specification. Coverage, interface, boundary,
+  ordering, resume and overhead requirements remain in this specification.
 
 ## Context & Problem
 
-Repository citations are verified at `060ce6d`; citations of specs 08–10, 12–17 and 23 are verified
+Repository citations are verified at `060ce6d`; citations of specs 010–10, 12–17 and 23 are verified
 against their working-tree revisions in this worktree on 2026-11-14 (uncommitted at that time).
 
 1. **Decomposition is structural and judgment-based.** `/pd-decompose` drafts "logical
@@ -274,22 +40,16 @@ against their working-tree revisions in this worktree on 2026-11-14 (uncommitted
    independence evidence.
 5. **Shared design is written once but not linked.** `/pd-design` writes `### Invariants` and
    `### Decision` (`workflows/pd-design.md:32-60`) after decomposition
-   (`workflows/phase-discovery.md:158-164`). Spec 12 delivers these items to every worker as the
-   shared architectural contract (spec 12 C-8 row 18, DM-5 items 4–5), but no plan field says which interface agreement an item records.
+   (`workflows/phase-discovery.md:158-164`). Spec 014 delivers these items to every worker as the
+   shared architectural contract (spec 014 C-8 row 020, DM-5 items 4–5), but no plan field says which interface agreement an item records.
 6. **Per-leaf overhead is real but unmeasured.** Under `/spec-run` every leaf gets its own
    branch, Implementer with two checkpoints and a separate Validator
    (`workflows/spec-run.md:188-199`, `:208`, `:284`), so each extra leaf repeats setup and review.
-   Specs 12, 13 and 15 expose per-leaf evidence (packet bytes, attempt counts, review records)
-   that nothing combines. Spec 05 values whole runs and ranks fully priced leaves by opaque
+   Specs 014, 015 and 017 expose per-leaf evidence (packet bytes, attempt counts, review records)
+   that nothing combines. Spec 006 values whole runs and ranks fully priced leaves by opaque
    owner identifiers (`scripts/usage_telemetry_report.py:697-714`,
    `scripts/usage_telemetry_adapter.py:20-24`). The roadmap states that no saving has been
    measured (`.ai/specs/README.md` → "Nine token optimization workstreams": "No percentage or dollar saving is established here").
-7. **Parallelism evidence is owed to spec 23.** ADR-0009 Decision 4 requires `/pd-decompose` to
-   record independence evidence (disjoint target files, no shared contract/schema, no
-   dependency edge) for composite children (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:143-162`).
-   Spec 23 defines the `### Parallel Safety` table (DM-5) and, since its 2026-11-14
-   reconciliation, renders it from this spec's DM-8 in `/pd-decompose` (REQ-09) and re-renders it
-   in `/pd-design` (REQ-52); this spec supplies the evidence only.
 8. **The validator inventory is frozen.** New checks are standalone programs
    (ADR-0019 Decision 3, `.ai/adr/0019-task-unknown-spec-draft-devils-advocate-review.md:68-80`);
    frozen checks already read `workflows/pd-decompose.md`, `workflows/pd-finalize.md` and
@@ -308,10 +68,9 @@ each shared interface is verified by named subtasks with one integration owner, 
 ordering constraint, shared file and shared interface has an explicit dependency, and that
 every chosen merge or split satisfies named conditions — verified deterministically before
 Discovery finishes — while keeping today's structural decomposition as the only basis for
-boundaries until a spec 10 comparison qualifies another policy, producing the independence
-evidence spec 23 needs for composite children, and reporting measured per-leaf setup, review
-and repair overhead from the evidence specs 12, 13, 15 and 17 expose, for the owner and for
-spec 10 experiments.
+boundaries until a spec 012 comparison qualifies another policy, and reporting measured per-leaf setup, review
+and repair overhead from the evidence specs 014, 015, 017 and 019 expose, for the owner and for
+spec 012 experiments.
 
 ## Scope
 
@@ -325,8 +84,6 @@ spec 10 experiments.
    verifier after the batch gate); `templates/subtask-description.md`.
 3. An optional standard-library helper `scripts/decomposition.py` (entry) with engine
    `scripts/decomposition_engine.py`, subcommands `verify` and `overhead`, read-only, offline.
-4. Parallel evidence for composite children (DM-8), the input spec 23 renders into its
-   `### Parallel Safety` table.
 5. A standalone acceptance suite `scripts/check-decomposition.py`.
 6. Vocabulary entries in `.ai/principles/domain.md`, an ADR, `.ai/memory/architecture.md`
    contract-surface update and `docs/USAGE.md` mention.
@@ -338,15 +95,13 @@ spec 10 experiments.
 - Any cost, token, probability or duration estimate inside plans or descriptions; any
   calibrated or economic split/merge advice; any owner policy file for decomposition; any
   automatic change of granularity.
-- Running, scheduling or approving a spec 10 experiment; any paid model run.
-- Per-leaf money or token cost in the overhead report (spec 05 owns valuation; its owner
+- Running, scheduling or approving a spec 012 experiment; any paid model run.
+- Per-leaf money or token cost in the overhead report (spec 006 owns valuation; its owner
   identifiers are opaque, `scripts/usage_telemetry_adapter.py:20-24`); tool-output bytes
-  (spec 14, reachable only through a spec 05 adapter, spec 14 C-7 row 05).
-- Writing the `### Parallel Safety` table, the `Parallel-safe` value, the independence
-  predicate, admission or any parallel scheduling (spec 23 REQ-09, REQ-05).
-- Parallelism across composite boundaries or among top-level leaves (spec 23 Q-01).
+  (spec 016, reachable only through a spec 006 adapter, spec 016 C-7 row 006).
+
 - A new subtask kind, branch model, status value or change of the sequential stack.
-- A per-leaf complexity classification (spec 16 DM-4 and `/pd-select-model` own it).
+- A per-leaf complexity classification (spec 018 DM-4 and `/pd-select-model` own it).
 - Changes to `scripts/validate-contracts.sh`, `scripts/validate-task.sh`, `scripts/sync.sh` or
   any file under `tests/`.
 - Quick-flow tasks (`flow: quick`), their gate and their inline contract.
@@ -356,7 +111,7 @@ spec 10 experiments.
 
 | Actor | Allowed actions | Forbidden |
 |---|---|---|
-| Owner | Approves spec 10 experiments; decides any later decomposition policy through a separate spec | — |
+| Owner | Approves spec 012 experiments; decides any later decomposition policy through a separate spec | — |
 | `/pd-analyze` | Labels derived criteria `DC-<n>` in `### Assumptions` | Writing plan sections |
 | `/pd-decompose` | Writes `## Coverage`, `## Interfaces`, `### Boundary Alternatives`, the `economics:` line, covers tags, exclusive-resources lines and `Depends On` edges | Writing cost/probability/time estimates; changing rows of started subtasks |
 | `/pd-design` | Records interface shapes as `### Invariants` items; fills `Contract` cells; reconciles the new sections when it reruns decomposition | Leaving a contract `pending-design` at its end |
@@ -364,7 +119,6 @@ spec 10 experiments.
 | Orchestrator (`/spec-run`) | After the batch gate, turns answered `pending:Q<n>` contracts into Invariants items and `INV-<n>` cells; reruns `verify`; stops before the first branch on failure | Starting a branch while `verify` fails |
 | `scripts/decomposition.py` | Reads the task directory, the specification and the optional evidence files; prints one JSON line | Writing any file; network; spawning processes or models |
 | `scripts/check-decomposition.py` | Builds fixtures in a temporary directory; runs the helper | Being called by `scripts/validate-contracts.sh` or `scripts/sync.sh` |
-| Spec 23 `/pd-decompose` extension (future) | Renders DM-8 into `### Parallel Safety` | — |
 
 ## Terminology
 
@@ -374,21 +128,20 @@ spec 10 experiments.
 | **Coverage** | The `plan.md → ## Coverage` table mapping each spec criterion to the subtasks whose criteria verify it and to one integration owner | Previous §5 "obligation map" |
 | **Covers tag** | The text `(covers: <ref>, …)` inside a description's acceptance criterion, naming the spec criteria or interfaces that criterion verifies | DM-4 |
 | **Interface** | A named contract one subtask produces and other subtasks consume (signature, file format, schema, command) | Previous §3 invariant 4 |
-| **Interface contract** | The single `### Invariants` item of `## Solution Design` that records an interface's agreed shape, referenced as `INV-<n>` | Previous REQ-02; spec 15 DM-2 numbering |
+| **Interface contract** | The single `### Invariants` item of `## Solution Design` that records an interface's agreed shape, referenced as `INV-<n>` | Previous REQ-02; spec 017 DM-2 numbering |
 | **Integration owner** | The subtask (or `task`) that verifies the combined result of several subtasks for one criterion or interface | Previous §5 |
 | **Dependency path** | A chain of one or more `Depends On` edges from subtask X to subtask Y in `## Subtasks` ("X depends on Y") | `workflows/pd-decompose.md:123-126` |
 | **Boundary alternative** | One considered merge or split of candidate units, recorded with outcome and codes | Previous REQ-06 |
 | **Merge conditions** | The five codes that must all hold for a chosen merge (DM-6) | Previous §7 |
 | **Split triggers** | The codes of which at least one must hold for a chosen split (DM-6) | Previous §7 |
 | **Economic basis** | The value of the `economics:` line; this version knows only `structural-only` | Previous §5 "economics" |
-| **Write set** | Spec 23's term; here the explicit target-file entries of a leaf | Spec 23 Terminology, "Write set" |
-| **Exclusive resource** | A resource a leaf's tests or implementation must use alone (fixed port, shared database, external service, host-exclusive benchmark) | Spec 23 DM-5 |
-| **Parallel evidence** | The DM-8 object per composite child | ADR-0009 Decision 4 |
+| **Write set** | The explicit target-file entries of a leaf | DM-7 |
+| **Exclusive resource** | A resource a leaf must use alone | DM-5 |
 | **Overhead report** | The DM-9 output of `overhead`: per-leaf counts and bytes of setup, review and repair work | Previous §3 "overhead" |
 
 Rejected synonyms: "obligation map" (use Coverage), "economic advisor" or "advice" (not
-delivered; see Notes), "parallel-safe" (spec 23's value, never produced here), "complexity"
-for anything other than spec 16's input.
+delivered; see Notes), "complexity"
+for anything other than spec 018's input.
 
 ## Requirements
 
@@ -472,17 +225,16 @@ to `flow: full` tasks only (REQ-28).
   THE workflow SHALL write exactly one line `economics: structural-only` as DM-6 places it.
 - **REQ-33 No estimates.** THE Discovery workflows SHALL write no cost, token, probability or
   duration estimate into `plan.md` or any description.
-- **REQ-31 Canonical rule text.** THE `rules/workflow-reference.md` file (or its successor files, C-5 "Rule-file names after spec 09") SHALL hold the only
+- **REQ-31 Canonical rule text.** THE `rules/workflow-reference.md` file (or its successor files, C-5 "Rule-file names after spec 011") SHALL hold the only
   definitions of DM-1–DM-6 (sections of C-5), and every workflow SHALL cite them by
   `file → ## Section` instead of restating them.
 
 ### Stack, resume and evaluation
 
 - **REQ-07 Kinds and stack.** THE SYSTEM SHALL keep leaf, composite (Type 2) and Type 3
-  re-slice as the only subtask kinds and SHALL keep the sequential top-level stack.
-- **REQ-34 No parallel claim from grouping.** THE SYSTEM SHALL derive no parallel-safety value
-  from a grouping decision or from boundary evidence; independence of composite children is
-  decided only by spec 23's own predicate (spec 23 REQ-05).
+  re-slice as the only subtask kinds and SHALL preserve existing branch and task history on resume.
+- **REQ-34.** Withdrawn; scheduling safety belongs to the execution specification.
+
 - **REQ-24 Resume preservation.** WHEN `/pd-decompose` or `/pd-design` reruns on a plan with a
   started subtask, THE workflow SHALL leave unchanged every `## Coverage` and `## Interfaces` row
   that names a started subtask in any cell, and the covers tags of every started subtask, and
@@ -490,7 +242,7 @@ to `flow: full` tasks only (REQ-28).
   when its `## Subtasks` `Status` is not `not-started` or any status field of its block in
   `## Subtask Progress` is not `not-started`.
 - **REQ-08 Evaluation boundary.** WHERE a decomposition policy other than the current rules is
-  to be evaluated, THE evaluation SHALL be a spec 10 comparison, and neither
+  to be evaluated, THE evaluation SHALL be a spec 012 comparison, and neither
   `scripts/decomposition.py`, `scripts/check-decomposition.py`, Discovery, validation nor sync
   SHALL start a model run.
 - **REQ-28 Quick flow untouched.** WHILE a task has `flow: quick`, THE `verify` subcommand SHALL
@@ -498,13 +250,13 @@ to `flow: full` tasks only (REQ-28).
   the sections of DM-2, DM-3 or DM-6 (quick flow writes no `plan.md`,
   `workflows/phase-discovery.md:166-167`).
 - **REQ-29 No second complexity classification.** THE SYSTEM SHALL produce no per-leaf
-  complexity value; the per-leaf complexity input of spec 16 remains its DM-4 `effort-input:`
+  complexity value; the per-leaf complexity input of spec 018 remains its DM-4 `effort-input:`
   line written by `/pd-select-model`.
 
 ### Helper and finalization
 
-- **REQ-21 Parallel evidence.** WHEN `verify` runs on a plan containing a composite, THE helper
-  SHALL include one DM-8 object per child of every composite in DM-7 `parallel_evidence`.
+- **REQ-21.** Withdrawn; scheduling evidence belongs to the execution specification.
+
 - **REQ-22 Verify interface.** WHEN `verify` is invoked, THE helper SHALL follow C-1 and C-2 and
   print exactly one DM-7 line on exit 0 or 1.
 - **REQ-23 Finalization gate.** WHEN `/pd-finalize` runs for full flow and the helper is available
@@ -543,7 +295,7 @@ to `flow: full` tasks only (REQ-28).
 
 ## Data Model
 
-All structures are new unless marked existing. Parsing follows spec 15 C-3
+All structures are new unless marked existing. Parsing follows spec 017 C-3
 (Parsing rules): ATX headings outside fenced code, a section
 runs to the next heading of the same or higher level, top-level list items as defined there.
 Tables: the first line of the section starting with `|` is the header, the next line the
@@ -567,7 +319,7 @@ present, and other columns are ignored.
    an ATX heading outside fences matching `^#{2,3} Phase ([0-9]+)\b`.
 3. **Sections.** Every heading in scope whose text, after removing an optional leading
    `<digits>. `, equals `Acceptance Criteria` compared case-insensitively.
-4. **Items.** The top-level list items of those sections in document order (spec 15 C-3). A
+4. **Items.** The top-level list items of those sections in document order (spec 017 C-3). A
    section with non-blank content and no list item contributes one item (its whole body), and
    `criteria.notes` contains `unstructured`; such items always get ordinal ids.
 5. **Identifiers.** For each item, strip the list marker, an optional `[ ] `/`[x] ` checkbox and
@@ -635,7 +387,7 @@ present, and other columns are ignored.
 - `Producer`: one subtask id. `Consumers`: one or more ids, none equal to the producer
   (`interface-party-invalid`).
 - `Contract` (any other value is `cell-invalid`): `INV-<n>` (the n-th item of `## Solution Design → ### Invariants`, numbered as spec
-  15 DM-2, obligation `INV-<n>` counted from 1 in source order), `pending-design` (written by
+  017 DM-2, obligation `INV-<n>` counted from 1 in source order), `pending-design` (written by
   `/pd-decompose`), or `pending:Q<n>` (an open batch question under `/spec-run`).
 - `Integration owner`: rules O-2–O-4 of DM-2.
 
@@ -701,8 +453,7 @@ economics: structural-only
   ordered stages; `uncertainty` — uncertainty, criticality or expected rework confined to part
   of the unit; `leaf-health` — the result would violate S2 = 1 and S5 = 1;
   `no-independent-verification` — a part would have no verifiable done-state;
-  `below-minimum-steps` — a part would have fewer than 3 steps. A cheaper model and parallelism
-  are not codes, so neither can justify a chosen split.
+  `below-minimum-steps` — a part would have fewer than 3 steps. A cheaper model is not a split code.
 - `economics:` line: exactly one line in `## Decomposition Decisions` starting `economics:`; it
   must be `economics: structural-only` in the position above. This version defines no other
   value.
@@ -721,7 +472,6 @@ followed by `\n`.
 | `subtasks` | `{leaves: int, composites: int}` or `null` | From `## Subtasks` and composite blocks; `null` when `not-applicable` |
 | `violations` | list of `{code, subject, detail}` | C-4 codes and subjects; `detail` is one human-readable line that tests do not compare; sorted by `code`, then `subject`; `[]` on pass and when `not-applicable` |
 | `write_sets` | list of `{subtask, repository, complete, entries}` | One per leaf in plan order; `entries` as written (renames `old -> new`) or `null` when `complete` is false; `[]` when `not-applicable` |
-| `parallel_evidence` | list of DM-8 | Plan order; `[]` without composites and when `not-applicable` |
 
 Write-set completeness: the first line of the description's `## Scope` matching
 `^\s*-?\s*(\*\*)?Target files:(\*\*)?\s*(.*)$` holds comma-separated entries (backticks
@@ -731,19 +481,9 @@ is not `—`, `-` or `none`, and is not an existing directory under the reposito
 `repository` is the description's `working_dir:` resolved from its directory, else the project
 root (parent of `.ai`), as an absolute normalized path.
 
-### DM-8 Parallel evidence (one per composite child)
+### DM-8
 
-| Field | Type | Meaning | Spec 23 DM-5 column |
-|---|---|---|---|
-| `child`, `composite` | ids | — | `Child`, `Composite` |
-| `write_set` | list of entries or `null` | DM-7 entries; `null` when incomplete | `Write set` |
-| `write_set_complete` | bool | DM-7 rule | evidence |
-| `produces`, `consumes` | sorted lists of interface names | From DM-3 | `Interfaces` |
-| `exclusive_resources` | sorted list or `null` | DM-5; `null` when the line is absent or invalid | evidence |
-| `depends_on` | sorted list of sibling ids | Siblings reachable by a dependency path from the child | evidence |
-| `disqualifiers` | sorted subset of `write-set-incomplete`, `resources-unknown`, `exclusive-resource`, `interface-unresolved` | `interface-unresolved`: an interface of `produces`/`consumes` whose `Contract` is not a resolving `INV-<n>` | `Parallel-safe` is `no` when non-empty (spec 23 REQ-09) |
-
-DM-8 carries no yes/no parallel-safety value (REQ-07).
+Withdrawn; scheduling evidence belongs to the execution specification.
 
 ### DM-9 Overhead report (stdout of `overhead`, canonical JSON line)
 
@@ -765,23 +505,23 @@ DM-8 carries no yes/no parallel-safety value (REQ-07).
 | Field | Source | Rule |
 |---|---|---|
 | `atomic_validation` | Leaf block in `## Subtask Progress` | Raw status value; `null` when no block |
-| `attempts` | `--controller-summary` (spec 13 DM-10 `checkpoint_summary`): `leaves[<id>].attempts` | `null` with reason `controller-summary-absent` without the option, `not-in-summary` when the leaf is missing |
-| `reviews` | `<task>/verification/reviews/<id>/<n>.json` (spec 15 DM-1 Locations, DM-7 review record, C-6 row 18); `<id>` is the leaf id or, for a composite, the composite id (the record's `scope_key`) | `records` = count of record names (`^[1-9][0-9]*\.json$`, spec 15 DM-1; other names, including `.tmp-` names, are ignored) of all steps; `scopes` = count per `scope` value as written, a spec 15 value (`finding-led`, `full-leaf`, `full-task`, `full-integration`; leaf directories hold the first two, composite directories `full-integration`; none is renamed, merged or ranked); `checks_executed`/`checks_reused` = count of `checks[].action` values `executed` and `reused`; `null` with `no-records` when the directory is absent or has no record name, `review-record-invalid:<n>.json` when a record is not a JSON object with `kind: review_record` |
-| `packets.count` | `context-packet: <role> sha256:<hex>` and `… successor sha256:<hex> …` entries in the leaf's `notes:` (spec 12 DM-11 notes entries) | `packets: null` with `no-packet-entries` when none |
-| `packets.bytes` | `--context-records` (JSON lines of spec 12 DM-8 result records) matched by `digest` | Sum per part of `parts.<part>.bytes`; `null` with `context-records-absent` or `context-record-missing` when any packet digest has no record or a part is `null` |
-| `repairs` | `state.md → ## Repair Episodes` (spec 17 DM-3 ledger, DM-2 identifiers; C-10 row 18) | `episodes` = lines matching `^- <id>\.E[0-9]+ \| opened \| `; `attempts.local`/`attempts.escalated` = lines matching `^- <id>\.E[0-9]+\.A[0-9]+ \| reserved \| slot (local\|escalated) \| ` (reservations, including ones later cancelled; spec 17's `slots.<slot>.used`, DM-8 and DM-11, counts only non-cancelled attempts); `closed` = lines matching `^- <id>\.E[0-9]+ \| closed \| `. With the section present, a leaf without lines has zeros, meaning "no ledger line for this leaf"; zeros do not prove the repair policy was active for that leaf. Spec 17 creates the section on its first line (DM-1 Locations), so without the section every leaf is `null` with `no-repair-ledger`, even when the policy was active and nothing was repaired. Ledger validity stays spec 17's (`ledger-invalid`); this count does not validate. Read-only use, as spec 17 C-10 row 18 requires: the helper never writes, reorders or reinterprets a line, never changes a slot or a limit, and counts nothing but the three line forms named above |
+| `attempts` | `--controller-summary` (spec 015 DM-10 `checkpoint_summary`): `leaves[<id>].attempts` | `null` with reason `controller-summary-absent` without the option, `not-in-summary` when the leaf is missing |
+| `reviews` | `<task>/verification/reviews/<id>/<n>.json` (spec 017 DM-1 Locations, DM-7 review record, C-6 row 020); `<id>` is the leaf id or, for a composite, the composite id (the record's `scope_key`) | `records` = count of record names (`^[1-9][0-9]*\.json$`, spec 017 DM-1; other names, including `.tmp-` names, are ignored) of all steps; `scopes` = count per `scope` value as written, a spec 017 value (`finding-led`, `full-leaf`, `full-task`, `full-integration`; leaf directories hold the first two, composite directories `full-integration`; none is renamed, merged or ranked); `checks_executed`/`checks_reused` = count of `checks[].action` values `executed` and `reused`; `null` with `no-records` when the directory is absent or has no record name, `review-record-invalid:<n>.json` when a record is not a JSON object with `kind: review_record` |
+| `packets.count` | `context-packet: <role> sha256:<hex>` and `… successor sha256:<hex> …` entries in the leaf's `notes:` (spec 014 DM-11 notes entries) | `packets: null` with `no-packet-entries` when none |
+| `packets.bytes` | `--context-records` (JSON lines of spec 014 DM-8 result records) matched by `digest` | Sum per part of `parts.<part>.bytes`; `null` with `context-records-absent` or `context-record-missing` when any packet digest has no record or a part is `null` |
+| `repairs` | `state.md → ## Repair Episodes` (spec 019 DM-3 ledger, DM-2 identifiers; C-10 row 020) | `episodes` = lines matching `^- <id>\.E[0-9]+ \| opened \| `; `attempts.local`/`attempts.escalated` = lines matching `^- <id>\.E[0-9]+\.A[0-9]+ \| reserved \| slot (local\|escalated) \| ` (reservations, including ones later cancelled; spec 019's `slots.<slot>.used`, DM-8 and DM-11, counts only non-cancelled attempts); `closed` = lines matching `^- <id>\.E[0-9]+ \| closed \| `. With the section present, a leaf without lines has zeros, meaning "no ledger line for this leaf"; zeros do not prove the repair policy was active for that leaf. Spec 019 creates the section on its first line (DM-1 Locations), so without the section every leaf is `null` with `no-repair-ledger`, even when the policy was active and nothing was repaired. Ledger validity stays spec 019's (`ledger-invalid`); this count does not validate. Read-only use, as spec 019 C-10 row 020 requires: the helper never writes, reorders or reinterprets a line, never changes a slot or a limit, and counts nothing but the three line forms named above |
 | `sources` | Every option file read | SHA-256 of its exact bytes, sorted by `input`; `[]` without options |
 | `not_reported` | Constant | Always the three names shown |
 | Orders | — | `leaves` and `composites` in `## Subtasks` row order; `unavailable` sorted by that order of `subject`, then `field`; `scopes` keys sorted |
 | `unavailable.field` | — | One of `attempts`, `reviews`, `packets`, `packets.bytes`, `repairs` |
 
-Composites carry only `reviews`, read from their own records exactly as for a leaf (spec 15 C-6 row 18 exposes per-leaf and per-composite records; REQ-15 there gives them `full-integration`). Fix-task rows are leaves. No ratio, total, cost or saving is
+Composites carry only `reviews`, read from their own records exactly as for a leaf (spec 017 C-6 row 020 exposes per-leaf and per-composite records; REQ-15 there gives them `full-integration`). Fix-task rows are leaves. No ratio, total, cost or saving is
 computed (G8; 05 owns valuation). Producers of the option files: `--controller-summary` is the
-stdout of spec 13's `summary` subcommand (spec 13 C-2 command line, DM-10) saved by
-whoever runs `overhead`; `--context-records` is the stdout lines of spec 12's
+stdout of spec 015's `summary` subcommand (spec 015 C-2 command line, DM-10) saved by
+whoever runs `overhead`; `--context-records` is the stdout lines of spec 014's
 `bash scripts/context-pack.sh verify --packet <store>/<hex>.md` run once per packet digest named
-in the leaves' notes (spec 12 C-1 command line), which prints a DM-8 record
-with `digest` and `parts`. `overhead` is run by the owner or by a spec 10 experiment on a
+in the leaves' notes (spec 014 C-1 command line), which prints a DM-8 record
+with `digest` and `parts`. `overhead` is run by the owner or by a spec 012 experiment on a
 captured task directory; no workflow runs it.
 
 **Migration impact:** none. Existing plans are not rewritten; readers ignore the new sections;
@@ -867,7 +607,7 @@ Rule text is additive; existing sentences stay unless named here.
   the owner rules and the C-4 code table with its responsible steps, with the sentence "Discovery writes no cost, token, probability or
   duration estimate into a plan or description; the economic basis is `economics:
   structural-only`." `## Decomposition Rules` gains `### Merge and split` (merge conditions,
-  split triggers, "A cheaper model or a parallelism claim never justifies a split; one coherent
+  split triggers, "A cheaper model alone never justifies a split; one coherent
   result is one leaf.") and `### Boundary Alternatives` (DM-6), and the bullets "Every ordering
   constraint between two subtasks is a `Depends On` edge, including shared target files and
   interface producer before consumer." and "Composite children integrate in listed order; that
@@ -876,26 +616,26 @@ Rule text is additive; existing sentences stay unless named here.
   (`rules/workflow-reference.md:346-350`; at this revision it follows `## Multi-Phase Spec Rules`
   and a `---` rather than lying inside the `## Protected Sections Contract` heading) gains `## Coverage`, `## Interfaces` and
   `## Decomposition Decisions → ### Boundary Alternatives` with the `economics:` line.
-- **Rule-file names after spec 09.** This spec names no target other than spec 09's defaults
-  (spec 09 DM-12 and Notes "Files and sections created after this spec"). Once spec 09 lands,
+- **Rule-file names after spec 011.** This spec names no target other than spec 011's defaults
+  (spec 011 DM-12 and Notes "Files and sections created after this spec"). Once spec 011 lands,
   `## Coverage and Interfaces` and the `` **`plan.md`:** `` list entries (C-5) are in
   `rules/contract-state-files.md`, and `### Merge and split`, `### Boundary Alternatives` and the
   two `## Decomposition Rules` bullets are in `rules/protocol-subtask-classifier.md`; every
   citation `workflow-reference → ## Coverage and Interfaces` becomes
   `contract-state-files → ## Coverage and Interfaces`, and `## Decomposition Rules` citations
-  become `protocol-subtask-classifier → ## Decomposition Rules`. Before spec 09 lands all of
+  become `protocol-subtask-classifier → ## Decomposition Rules`. Before spec 011 lands all of
   them are in `rules/workflow-reference.md`. Every delivery step and every check of this spec
   that names `rules/workflow-reference.md` (REQ-31, AC-03, AC-04, AC-05, AC-16, AC-23, C-7, and
   every other mention in this spec) resolves each heading separately through whichever file
   holds it, so different clauses may resolve to different files, and fails only when none holds
   it; the heading text is identical in both layouts. A clause that says a string occurs "in no
   other file" (AC-23, `no-intermediate-gate`) is read as "in no file outside the resolved rule
-  files". Under spec 11, each of the edited
+  files". Under spec 013, each of the edited
   workflows that cites `## Coverage and Interfaces` as a load (`pd-decompose`, `pd-finalize`)
-  lists the resolved file in its `loads:` declaration in spec 11's grammar (DM-1: `mandatory`
+  lists the resolved file in its `loads:` declaration in spec 013's grammar (DM-1: `mandatory`
   entry with `path: rules/<stem>.md` and `sections: ["## Coverage and Interfaces"]`), and the
-  successor file stays within spec 11 REQ-01's 700-word limit (an overflow stops the
-  implementer, spec 11 A-38); this spec adds no other requirement for spec 11.
+  successor file stays within spec 013 REQ-01's 700-word limit (an overflow stops the
+  implementer, spec 013 A-38); this spec adds no other requirement for spec 013.
 - **`workflows/pd-analyze.md`** step 3 (autonomous): "Label each derived acceptance criterion
   `DC-<n>` in its assumption line."
 - **`workflows/pd-decompose.md`**: step 1 also loads `workflow-reference → ## Coverage and
@@ -920,11 +660,7 @@ Rule text is additive; existing sentences stay unless named here.
   rewrites tags under REQ-24 and makes model selection rerun", and "leave unchanged every
   `## Coverage` and `## Interfaces` row that names a started subtask in any cell; report a
   reconciliation blocker if a change to them is required" — so tag changes always precede
-  reselection (`workflows/pd-design.md:64-76`). Spec 23 REQ-52 separately has `/pd-design`
-  re-render the `### Parallel Safety` rows from the current DM-8 after design; that edit is
-  spec 23's, touches no `## Coverage` or `## Interfaces` row, and leaves rows of started
-  children unchanged under this spec's REQ-24 definition, so the two edits to the same step
-  do not conflict.
+  reselection (`workflows/pd-design.md:64-76`).
 - **`workflows/pd-finalize.md`** step 3 adds, after the task-validator block:
 
   ```bash
@@ -968,16 +704,15 @@ Rule text is additive; existing sentences stay unless named here.
 
 | Spec | Relationship |
 |---|---|
-| 05 (completed) | Consumed: none at run time. Per-leaf money stays in 05's `analyze` report (`scripts/usage-telemetry.py:441-444` `analyze` command; `top_leaves`/`partial_leaves` built in `scripts/usage_telemetry_report.py:712-714`); cost per accepted result stays 05's (completed spec 05 REQ-13 and its section on the cost of an independently accepted result). Exposed: none; DM-9 is not a 05 object |
-| 10 | Consumed: comparison manifests, `report.json` verdicts and the hypothetical calculator (spec 10 DM-12 Report, DM-13 Calculator input and output, `Promotion rule (REQ-12)`). A decomposition-policy comparison is a 10 manifest whose variants differ only in decomposition instructions, recorded in `strategy_details` (DM-6 variants); this spec defines no `switches` entry (A-14; 10 `Variant switches`, REQ-52). Another decomposition policy is adopted only after a `promote` verdict and then by a separate owner decision and spec (10 Out of Scope: adopting a promoted variant is a separate owner decision and spec; 10 `Promotion rule (REQ-12)`: the verdict is advisory and changes no default). Exposed: DM-9 may be attached to an attempt's evidence as a diagnostic |
-| 23 | Exposed: DM-8 per composite child, mapped field by field onto spec 23 DM-5 (`child`, `composite` → `Child`, `Composite`; `write_set` → `Write set`; `produces`, `consumes` → `Interfaces`; `write_set_complete`, `exclusive_resources`, `depends_on`, `disqualifiers` → `Independence evidence`, with `disqualifiers` non-empty forcing `Parallel-safe: no`); DM-3 interface names; the REQ-13 and REQ-35 rule that all ordering is in `Depends On`; REQ-24's definition of a started subtask, which spec 23 REQ-52 reuses when `/pd-design` re-renders `### Parallel Safety` rows and leaves rows of started children unchanged (this spec edits no such row). 23 owns rendering `### Parallel Safety`, `Parallel-safe` and the REQ-05 predicate. REQ-07 keeps its meaning (sequential top-level stack), as spec 23 A-01 cites |
-| 09 | Consumed: rename maps; DM-9 amendment mechanism is not needed because no frozen check changes (REQ-30) |
-| 12 | Consumed (spec 12 C-8 row 18): the stable block plus Solution Design items and design-basis status are the shared architectural contract; REQ-02 places interface agreements there as `INV-<n>`, so every packet's Task Contract (DM-5 items 1 and 5) already carries the leaf's covers tags and the referenced invariant; a `design-basis-status: changed` is handled by 12's worker rule (12 C-6, `## Design basis` text). Spec 12 DM-8 `parts.<part>.bytes` (DM-4 `parts`) feed DM-9 `packets.bytes`. No change to 12 |
-| 13 | Consumed (spec 13 C-10 row 18): `summary` DM-10 per-leaf attempt counts → DM-9 `attempts`. Event counts are not used |
-| 15 | Consumed (spec 15 C-6 row 18): per-leaf and per-composite DM-7 records at `reviews/<id>/<n>.json` (DM-1 record names) → DM-9 `reviews` for leaves and composites alike, with `scope` values `finding-led`, `full-leaf`, `full-task`, `full-integration` and `checks[].action` values `executed`, `reused`; C-3 parsing rules and DM-2 `INV-<n>` numbering. Nothing is written to 15's records or locations |
-| 14 | Consumed: none; output bytes reach evidence only through a 05 adapter (spec 14 C-7 row 05); `tool_output_bytes` is listed in `not_reported` |
-| 16 | Exposed: nothing new. The complexity input `{quality_floor, hard_constraints}` stays produced by `/pd-select-model` DM-4 (spec 16 DM-4 `effort-input:` line, C-6 row 18; 16's C-6 row 18 records the same: 18 REQ-29 produces no complexity value); boundary codes are not complexity |
-| 17 | Consumed (spec 17 C-10 row 18): per-leaf `## Repair Episodes` ledger lines → DM-9 `repairs` counts, read-only; 18 never changes slots or validates the ledger |
+| 006 (completed) | Consumed: none at run time. Per-leaf money stays in 006's `analyze` report (`scripts/usage-telemetry.py:441-444` `analyze` command; `top_leaves`/`partial_leaves` built in `scripts/usage_telemetry_report.py:712-714`); cost per accepted result stays 006's (completed spec 006 REQ-13 and its section on the cost of an independently accepted result). Exposed: none; DM-9 is not a 006 object |
+| 012 | Consumed: comparison manifests, `report.json` verdicts and the hypothetical calculator (spec 012 DM-12 Report, DM-13 Calculator input and output, `Promotion rule (REQ-12)`). A decomposition-policy comparison is a 012 manifest whose variants differ only in decomposition instructions, recorded in `strategy_details` (DM-6 variants); this spec defines no `switches` entry (A-14; 10 `Variant switches`, REQ-52). Another decomposition policy is adopted only after a `promote` verdict and then by a separate owner decision and spec (10 Out of Scope: adopting a promoted variant is a separate owner decision and spec; 10 `Promotion rule (REQ-12)`: the verdict is advisory and changes no default). Exposed: DM-9 may be attached to an attempt's evidence as a diagnostic |
+| 011 | Consumed: rename maps; DM-9 amendment mechanism is not needed because no frozen check changes (REQ-30) |
+| 014 | Consumed (spec 014 C-8 row 020): the stable block plus Solution Design items and design-basis status are the shared architectural contract; REQ-02 places interface agreements there as `INV-<n>`, so every packet's Task Contract (DM-5 items 1 and 5) already carries the leaf's covers tags and the referenced invariant; a `design-basis-status: changed` is handled by 014's worker rule (014 C-6, `## Design basis` text). Spec 014 DM-8 `parts.<part>.bytes` (DM-4 `parts`) feed DM-9 `packets.bytes`. No change to 12 |
+| 015 | Consumed (spec 015 C-10 row 020): `summary` DM-10 per-leaf attempt counts → DM-9 `attempts`. Event counts are not used |
+| 017 | Consumed (spec 017 C-6 row 020): per-leaf and per-composite DM-7 records at `reviews/<id>/<n>.json` (DM-1 record names) → DM-9 `reviews` for leaves and composites alike, with `scope` values `finding-led`, `full-leaf`, `full-task`, `full-integration` and `checks[].action` values `executed`, `reused`; C-3 parsing rules and DM-2 `INV-<n>` numbering. Nothing is written to 017's records or locations |
+| 016 | Consumed: none; output bytes reach evidence only through a 006 adapter (spec 016 C-7 row 006); `tool_output_bytes` is listed in `not_reported` |
+| 018 | Exposed: nothing new. The complexity input `{quality_floor, hard_constraints}` stays produced by `/pd-select-model` DM-4 (spec 018 DM-4 `effort-input:` line, C-6 row 020; 018's C-6 row 020 records the same: 020 REQ-29 produces no complexity value); boundary codes are not complexity |
+| 019 | Consumed (spec 019 C-10 row 020): per-leaf `## Repair Episodes` ledger lines → DM-9 `repairs` counts, read-only; 020 never changes slots or validates the ledger |
 
 ### C-7 Acceptance suite
 
@@ -985,7 +720,7 @@ Rule text is additive; existing sentences stay unless named here.
 program holding every fixture case of `## Acceptance Criteria`. It builds fixture task
 directories under `tempfile.TemporaryDirectory()`, runs the helper as a subprocess with
 `python3 -I`, compares stdout JSON and exit codes, checks repository text contracts by reading
-files of the source checkout (resolving rule headings as C-5 "Rule-file names after spec 09"
+files of the source checkout (resolving rule headings as C-5 "Rule-file names after spec 011"
 states), and exits 0 only when every case passes. It is never called by
 `scripts/validate-contracts.sh`, `scripts/sync.sh` or CI defaults. Fixture **F0**: a spec with
 items `AC-01`–`AC-03`; `state.md` with `spec_path:`, `flow: full`, `## Phases`,
@@ -1038,7 +773,7 @@ Created: `scripts/decomposition.py` (entry), `scripts/decomposition_engine.py`,
 | E-10 | Interface consumer earlier than producer in the graph | `interface-order-missing` | REQ-11 |
 | E-11 | Two leaves share `docs/USAGE.md` with no dependency path | `shared-file-unordered` | REQ-12 |
 | E-12 | Two leaves share a path but in different repositories (Type 3 `working_dir`) | No violation | REQ-12 |
-| E-13 | Target files contain a directory or glob | Write set incomplete; no overlap check for that leaf; DM-8 `write-set-incomplete` | REQ-12, REQ-21 |
+| E-13 | Target files contain a directory or glob | Write set incomplete; no overlap check for that leaf | REQ-12 |
 | E-14 | Cycle T-02 → T-03 → T-02 | `graph-cycle` naming both | REQ-14 |
 | E-15 | `Depends On` cell "T-01 (schema)" | `depends-on-malformed` | REQ-14 |
 | E-16 | Description directory missing or two match | `description-unresolved` | REQ-17 |
@@ -1085,22 +820,16 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
   table, then each yields violation `economics-line-invalid`; and `rules/workflow-reference.md → ## Coverage and Interfaces`
   contains the sentence "Discovery writes no cost, token, probability or duration estimate into
   a plan or description; the economic basis is `economics: structural-only`."
-- [ ] **AC-04** (REQ-07, REQ-13, REQ-34, REQ-35) — Given F0, then no key named `parallel_safe` or
-  `Parallel-safe` occurs anywhere in the DM-7 output; `rules/workflow-reference.md →
-  ## Autonomous Subtask Classifier` is byte-identical to the base revision (`<base>` as in AC-20;
-  this clause is checked at Validation, not by the suite); `workflows/spec-run.md` still contains
-  "Never start N+1 before N is `reviewed`" and `workflows/pd-decompose.md` still contains "Do not
-  claim unsupported parallel execution"; `workflows/pd-decompose.md` no longer contains "Describe
-  any shared-file constraints." and contains the C-5 replacement sentence;
-  `rules/workflow-reference.md → ## Decomposition Rules` contains the C-5 `Depends On` bullet and
-  the sentence "Composite children integrate in listed order; that order is not a readiness
-  constraint, and a child that needs another child's output has a `Depends On` edge."
+- [ ] **AC-04** (REQ-07, REQ-13, REQ-35) — Given F0, classifier kinds remain unchanged;
+  ordering between shared files and interfaces is recorded as `Depends On` edges; listed
+  composite integration order alone does not create a dependency.
+
 - [ ] **AC-05** (REQ-08) — Given the delivered tree, then neither `scripts/decomposition.py` nor
   `scripts/decomposition_engine.py` imports (by `ast` scan of `import` and `from` statements) a
   module outside `sys.stdlib_module_names` or any of `subprocess`, `socket`, `urllib`, `http`,
   `ssl`, `multiprocessing`; neither `scripts/validate-contracts.sh` nor `scripts/sync.sh` contains the string
   `decomposition.py`; and `rules/workflow-reference.md → ## Decomposition Rules → ### Merge and
-  split` contains "A cheaper model or a parallelism claim never justifies a split; one coherent
+  split` contains "A cheaper model alone never justifies a split; one coherent
   result is one leaf."
 - [ ] **AC-06** (REQ-18) — Given F0 variants: AC-02 owner `—`; AC-02 owner `T-01`; AC-02 owner
   `task` with T-03's `AC-02` tag removed; AC-03 listing T-02 and T-01 with owner T-02 (T-01's criteria also tagged `AC-03`);
@@ -1151,14 +880,8 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
 - [ ] **AC-13** (REQ-20) — Given F0 with T-02's resources line removed, duplicated, or
   `- Exclusive resources: none, port 8080`, then `resources-line-invalid` (`T-02`) each time; with
   `- Exclusive resources: port 8080`, pass.
-- [ ] **AC-14** (REQ-21) — Given F0 with T-03b's resources `port 8080` and T-03a's target files
-  containing `src/`, then `parallel_evidence` has two objects in plan order: T-03a with
-  `write_set: null`, `write_set_complete: false`, `produces: []`, `consumes: ["token-schema"]`,
-  `depends_on: []`, `disqualifiers: ["write-set-incomplete"]`; T-03b with `depends_on: []`,
-  `exclusive_resources: ["port 8080"]`, `disqualifiers: ["exclusive-resource"]`; with T-03b
-  depending on T-03a, T-03b's `depends_on` is `["T-03a"]`; with T-03b's resources line removed,
-  its `exclusive_resources` is `null` and its disqualifiers contain `resources-unknown`; with
-  contract `pending-design`, T-03a's disqualifiers also contain `interface-unresolved`.
+- [ ] **AC-14** — Withdrawn with REQ-21.
+
 - [ ] **AC-15** (REQ-22, NFR-02–NFR-04) — Given F0, two `verify` runs print identical bytes and
   leave every fixture file's bytes, mode and mtime unchanged; an unknown option, a repeated
   `--task`, a missing `plan.md` and a non-UTF-8 `plan.md` each exit 2 with empty stdout and one
@@ -1191,7 +914,7 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
   missing one digest, `packets.bytes` is `null` with `context-record-missing`; given a summary
   naming `T-09`, exit 2 `summary-mismatch`.
 - [ ] **AC-19** (REQ-27) — Given a copy of `.ai/tasks/completed/task-06-harness-git-rails/`
-  and of its specification `.ai/specs/completed/06-harness-git-rails.md` under one temporary
+  and of its specification `.ai/specs/completed/007-harness-git-rails.md` under one temporary
   root with the same relative layout (plan without the new sections), `verify` exits 1 and its
   violations include `section-missing` for `## Coverage`, `## Interfaces` and
   `### Boundary Alternatives` and `economics-line-invalid`, and include no
@@ -1271,7 +994,7 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
 | REQ-18 | AC-06, AC-26 |
 | REQ-19 | AC-11 |
 | REQ-20 | AC-13, AC-23 |
-| REQ-21 | AC-14 |
+| REQ-21 | Withdrawn |
 | REQ-22 | AC-01, AC-15 |
 | REQ-23 | AC-16 |
 | REQ-24 | AC-24 |
@@ -1284,7 +1007,7 @@ with a DM-7 `violations` entry whose `code` is X and whose `subject` is as state
 | REQ-31 | AC-23 |
 | REQ-32 | AC-25 |
 | REQ-33 | AC-03 |
-| REQ-34 | AC-04 |
+| REQ-34 | Withdrawn |
 | REQ-35 | AC-04 |
 | REQ-36 | AC-22 |
 | REQ-37 | AC-25 |
@@ -1299,46 +1022,43 @@ Every AC names at least one REQ above; AC-01–AC-26 all appear.
 
 | Risk | Impact | Likelihood | Mitigation |
 |---|---|---|---|
-| New tables add Discovery output and packet bytes, against the token-saving goal | Medium | Medium | Compact tables; descriptions grow only by tags and one line; spec 12 bytes and DM-9 make the cost visible; no saving is claimed |
-| `Depends On` edges added for shared files reduce future parallelism | Low | Medium | Correct by design (ADR-0009 Decision 4); sequential mode is unaffected |
-| Spec 15 C-3 parsing rules implemented twice (15's helper and this one) drift | Medium | Low | One definition (15 C-3), cited; suite fixtures mirror 15's cases for headings and items |
+| New tables add Discovery output and packet bytes, against the token-saving goal | Medium | Medium | Compact tables; descriptions grow only by tags and one line; spec 014 bytes and DM-9 make the cost visible; no saving is claimed |
+| Spec 017 C-3 parsing rules implemented twice (017's helper and this one) drift | Medium | Low | One definition (017 C-3), cited; suite fixtures mirror 017's cases for headings and items |
 | Ordinal ids `SPEC-<n>` shift when a spec without ids is amended | Low | Low | Specs are immutable after Discovery; amendments are recorded and decomposition reruns |
-| Spec 09/11 move or rename the sections cited here | Low | Medium | Names follow 09's maps; citations are checked by `tests/workflow-instructions.py` |
+| Spec 011/11 move or rename the sections cited here | Low | Medium | Names follow 011's maps; citations are checked by `tests/workflow-instructions.py` |
 | Forcing reselection: description edits change the `/pd-select-model` digests (`workflows/pd-select-model.md:241`) | Medium | Low | Tags and DM-5 lines are written only by `/pd-decompose`, before selection; `/pd-design` writes only `Contract` cells, Invariants and criteria; a design-driven rerun of `/pd-decompose` reruns selection as today |
 
 ## Assumptions
 
 - A-01 | What "cost-aware" decides without measurement | Resolved: boundaries stay structural (`economics: structural-only`); no run-time economic advice, policy file or estimate | Source: `.ai/specs/README.md` → "Nine token optimization workstreams" (no saving measured), G8; P9 (`.ai/principles/architecture.md:70`); brief default "today's behaviour" | Reversible: yes
-- A-02 | Adoption of another decomposition policy | Resolved: only after a spec 10 `promote` verdict and a separate owner decision and spec | Source: spec 10 Out of Scope, `Promotion rule (REQ-12)`, `Variant switches` | Reversible: yes
-- A-03 | Coverage obligations | Resolved: specification criteria (DM-1) and interfaces; Solution Design invariants are judged by every leaf review (spec 15 DM-2 includes `### Invariants` for each leaf) and by `/pv-contract` | Source: spec 15 DM-2; `workflows/pv-contract.md:30` | Reversible: yes
+- A-02 | Adoption of another decomposition policy | Resolved: only after a spec 012 `promote` verdict and a separate owner decision and spec | Source: spec 012 Out of Scope, `Promotion rule (REQ-12)`, `Variant switches` | Reversible: yes
+- A-03 | Coverage obligations | Resolved: specification criteria (DM-1) and interfaces; Solution Design invariants are judged by every leaf review (spec 017 DM-2 includes `### Invariants` for each leaf) and by `/pv-contract` | Source: spec 017 DM-2; `workflows/pv-contract.md:30` | Reversible: yes
 - A-04 | When coverage is written | Resolved: `/pd-decompose`, before `/pd-select-model`, so tags do not stale model selection; `/pd-design` writes only `Contract` cells, Invariants items and carried criterion ids in its own Solution Design, never tags | Source: `workflows/phase-discovery.md:158-164`; `workflows/pd-select-model.md:241` | Reversible: yes
 - A-05 | Where `/pd-decompose` gets the criteria | Resolved: targeted read of the in-scope Acceptance Criteria sections only | Source: `workflows/pd-decompose.md:23-26` (no full reread) | Reversible: yes
 - A-06 | Specs without criteria | Resolved: derived criteria labelled `DC-<n>` by `/pd-analyze` | Source: `workflows/pd-analyze.md:35-37`; `workflows/phase-discovery.md:63-64` | Reversible: yes
-- A-07 | Obligation id numbering for invariants | Resolved: spec 15 DM-2 `INV-<n>` | Source: spec 15 DM-2 | Reversible: yes
-- A-08 | Interface agreements location | Resolved: one `### Invariants` item each, delivered by spec 12's Task Contract | Source: spec 12 DM-5, C-8 row 18 | Reversible: yes
-- A-09 | Ordering expression | Resolved: only `Depends On` edges; prose ordering removed for shared files | Source: ADR-0009 Decision 4 (`:157-160`); spec 23 DM-5 treats prose ordering constraints as `no` | Reversible: yes
+- A-07 | Obligation id numbering for invariants | Resolved: spec 017 DM-2 `INV-<n>` | Source: spec 017 DM-2 | Reversible: yes
+- A-08 | Interface agreements location | Resolved: one `### Invariants` item each, delivered by spec 014's Task Contract | Source: spec 014 DM-5, C-8 row 020 | Reversible: yes
+- A-09 | Ordering expression | Resolved: only `Depends On` edges; prose ordering removed for shared files | Source: ordering and interface obligations in this specification | Reversible: yes
 - A-10 | Owner of a jointly satisfied criterion | Resolved: rules O-1–O-4; `task` only under O-4 (A-29) | Source: previous §5 ("integration owner"); `workflows/pv-contract.md:30` | Reversible: yes
-- A-11 | Tool form | Resolved: standalone `scripts/decomposition.py` + `scripts/check-decomposition.py`, not in the validator | Source: ADR-0019 Decision 3 (`:68-80`); spec 12 A-20, spec 13 C-11 pattern | Reversible: yes
+- A-11 | Tool form | Resolved: standalone `scripts/decomposition.py` + `scripts/check-decomposition.py`, not in the validator | Source: ADR-0019 Decision 3 (`:68-80`); spec 014 A-20, spec 015 C-11 pattern | Reversible: yes
 - A-12 | Finalization integration | Resolved: optional helper, manual fallback like `validate-task.sh` | Source: `workflows/pd-finalize.md:64-74` | Reversible: yes
 - A-13 | Legacy plans | Resolved: no reader outside Discovery requires the sections; `/pd-finalize` stops with recovery | Source: P3 (`.ai/principles/architecture.md:24`); G4 | Reversible: yes
 - A-14 | Rollback switch | Resolved: none; rollback is reverting the delivery (Notes → Rollback) because no advice exists to disable | Source: G7; A-01 | Reversible: yes
-- A-15 | Complexity classification | Resolved: none here; spec 16 DM-4 via `/pd-select-model` | Source: spec 16 DM-4, C-6 row 18 | Reversible: yes
+- A-15 | Complexity classification | Resolved: none here; spec 018 DM-4 via `/pd-select-model` | Source: spec 018 DM-4, C-6 row 020 | Reversible: yes
 - A-16 | Per-leaf money in the overhead report | Resolved: not reported; 05 owner ids are opaque and need the owner's key | Source: `scripts/usage_telemetry_adapter.py:20-24`; `scripts/usage_telemetry_report.py:697-714` | Reversible: yes
-- A-17 | Review evidence access | Resolved: read spec 15 records from the task directory | Source: spec 15 DM-1, C-6 row 18 | Reversible: yes
-- A-18 | Attempt evidence access | Resolved: caller passes spec 13 `summary` output as a file | Source: spec 13 DM-10, C-10 row 18 | Reversible: yes
-- A-19 | Context bytes access | Resolved: caller passes spec 12 DM-8 records; counts from notes entries | Source: spec 12 DM-8, DM-11 | Reversible: yes
-- A-20 | Parallel evidence scope | Resolved: composite children only | Source: ADR-0009 Decision 4 (`:154-156`); spec 23 A-01 | Reversible: yes
-- A-21 | Who renders `### Parallel Safety` | Resolved: spec 23 REQ-09; this spec supplies DM-8 | Source: spec 23 REQ-09, REQ-52, DM-5 | Reversible: yes
+- A-17 | Review evidence access | Resolved: read spec 017 records from the task directory | Source: spec 017 DM-1, C-6 row 020 | Reversible: yes
+- A-18 | Attempt evidence access | Resolved: caller passes spec 015 `summary` output as a file | Source: spec 015 DM-10, C-10 row 020 | Reversible: yes
+- A-19 | Context bytes access | Resolved: caller passes spec 014 DM-8 records; counts from notes entries | Source: spec 014 DM-8, DM-11 | Reversible: yes
 - A-22 | Frozen checks | Resolved: no change to any checked file; preserve anchors | Source: ADR-0019 Decision 3; `scripts/validate-contracts.sh:604-822` | Reversible: yes
-- A-23 | Composite children source | Resolved: `children:` of the composite block in `state.md` | Source: `rules/workflow-globals.md:213`; spec 15 C-3 leaf blocks | Reversible: yes
+- A-23 | Composite children source | Resolved: `children:` of the composite block in `state.md` | Source: `rules/workflow-globals.md:213`; spec 017 C-3 leaf blocks | Reversible: yes
 - A-24 | Boundary vocabulary | Resolved: closed code sets derived from previous §7 conditions | Source: previous §7; best practice (closed vocabularies are checkable, `.ai/principles/coding.md:39-41`) | Reversible: yes
-- A-25 | Synthetic cost arithmetic (previous AC-03) | Resolved: hypothetical comparisons use spec 10's calculator; this spec ships no formula | Source: spec 10 DM-13 | Reversible: yes
-- A-26 | Python requirement | Resolved: 3.11+, `-I`, exit 3 below, through an entry module parseable by older interpreters and a path-loaded engine | Source: spec 10, 12, 16 helpers; spec 12's launcher precedent (spec 12 Scope, optional helper); `python3 -I` drops the script directory from `sys.path` (Python documentation of `-I`) | Reversible: yes
-- A-27 | Delivery order against undelivered specs 10, 12, 13, 15, 17 | Resolved: follow the roadmap order (`.ai/specs/README.md` → "Dependency order"); `verify` depends on none of them; `overhead` reads their specified formats, its fixtures synthesize those inputs, and each input is optional with `null` when absent | Source: roadmap; REQ-26 | Reversible: yes
+- A-25 | Synthetic cost arithmetic (previous AC-03) | Resolved: hypothetical comparisons use spec 012's calculator; this spec ships no formula | Source: spec 012 DM-13 | Reversible: yes
+- A-26 | Python requirement | Resolved: 3.11+, `-I`, exit 3 below, through an entry module parseable by older interpreters and a path-loaded engine | Source: spec 012, 12, 16 helpers; spec 014's launcher precedent (spec 014 Scope, optional helper); `python3 -I` drops the script directory from `sys.path` (Python documentation of `-I`) | Reversible: yes
+- A-27 | Delivery order against undelivered specs 012, 014, 015, 017, 019 | Resolved: follow the roadmap order (`.ai/specs/README.md` → "Dependency order"); `verify` depends on none of them; `overhead` reads their specified formats, its fixtures synthesize those inputs, and each input is optional with `null` when absent | Source: roadmap; REQ-26 | Reversible: yes
 - A-28 | Recovery after a verifier stop | Resolved: the existing consistency-failure route of `/pd-finalize` (stop, return to the responsible step, rerun selection when descriptions change); no in-place repair | Source: `workflows/pd-finalize.md:62-63`; `workflows/phase-discovery.md:163`; `workflows/pd-decompose.md:16-19` | Reversible: yes
 - A-29 | Meaning of a `task` owner | Resolved: allowed only when task Validation judges it (criterion carried into Solution Design criteria, or interface contract as an invariant) | Source: `workflows/pv-contract.md:30` | Reversible: yes
-- A-30 | Zero repair counts | Resolved: zeros only when `## Repair Episodes` exists, and they mean "no ledger line", not "policy active and nothing repaired"; a missing section is `null` because its absence cannot distinguish an inactive policy from no repair | Source: spec 17 lazy creation and reader tolerance (spec 17 DM-1 Locations, DM-3 reader tolerance); P9 | Reversible: yes
-- A-31 | Listed order of composite children | Resolved: integration order, not a readiness constraint; readiness is `Depends On` | Source: spec 23 DM-5 replacement sentence for the Execution Strategy | Reversible: yes
+- A-30 | Zero repair counts | Resolved: zeros only when `## Repair Episodes` exists, and they mean "no ledger line", not "policy active and nothing repaired"; a missing section is `null` because its absence cannot distinguish an inactive policy from no repair | Source: spec 019 lazy creation and reader tolerance (spec 019 DM-1 Locations, DM-3 reader tolerance); P9 | Reversible: yes
+- A-31 | Listed order of composite children | Resolved: integration order, not a readiness constraint; readiness is `Depends On` | Source: the dependency and integration-order rules in this specification | Reversible: yes
 
 ## Decisions
 
@@ -1355,21 +1075,16 @@ C-5.
 
 ## Open Questions
 
-- Q-01 | withdrawn | Spec 17's per-leaf repair record was unknown while its file was being
-  rewritten; its current text exposes `## Repair Episodes` ledger lines to spec 18
-  (spec 17 C-10 row 18), consumed by DM-9 `repairs`.
-- Q-02 | non-blocker | Spec 23 holds its own blocker Q-01 on parallelism across composite
-  boundaries (spec 23 Open Questions, A-01). Impact: DM-8 covers
-  composite children only; if the owner widens parallelism, DM-8 must also cover top-level
-  leaves. Recommended: keep within-composite scope (ADR-0009 Decision 4); nothing here depends
-  on the wider reading.
+- Q-01 | withdrawn | Spec 019's per-leaf repair record was unknown while its file was being
+  rewritten; its current text exposes `## Repair Episodes` ledger lines to spec 020
+  (spec 019 C-10 row 020), consumed by DM-9 `repairs`.
 
 ## Notes
 
 ### Implementation hints (nonbinding)
 
 Plausible subtasks: (1) helper parsing, criteria (DM-1) and coverage/tag/owner checks;
-(2) graph, interfaces, files, resources, boundary and economics checks with DM-8; (3) the
+(2) graph, interfaces, files, resources, boundary and economics checks; (3) the
 `overhead` subcommand; (4) rule text, template and domain vocabulary; (5) workflow edits for
 pd-analyze, pd-decompose, pd-design, pd-finalize and spec-run; (6) ADR, architecture and docs.
 Each starts with failing cases in `scripts/check-decomposition.py` (smoke level for text
@@ -1384,11 +1099,11 @@ unchanged because no execution reader uses the new sections.
 
 ### Rejected alternatives
 
-- An owner decomposition policy file with granularity preferences (like spec 16 DM-2): no
-  qualified evidence exists to fill it; adoption belongs to a later spec after 10 (A-02).
+- An owner decomposition policy file with granularity preferences (like spec 018 DM-2): no
+  qualified evidence exists to fill it; adoption belongs to a later spec after 012 (A-02).
 - Coverage keyed by Solution Design criteria, written by `/pd-design`: tags in descriptions
   would change the selection digests after model selection and force reselection (A-04).
-- Including invariants in coverage: duplicated by spec 15's per-leaf review of all invariants
+- Including invariants in coverage: duplicated by spec 017's per-leaf review of all invariants
   (A-03).
 - Adding the checks to `scripts/validate-contracts.sh` or `scripts/validate-task.sh`: frozen
   inventory (A-11, A-22).
@@ -1400,29 +1115,27 @@ unchanged because no execution reader uses the new sections.
 - REQ-01: was "link every AC, invariant and interface obligation to leaves and an integration
   check"; now the Coverage table for spec criteria; invariants are covered per A-03; interfaces
   by DM-3 (REQ-02, REQ-11).
-- REQ-02: was "shared decisions stored once in 12's contract"; now the interface contract as
-  one Invariants item, delivered by 12 C-8; the blocking clause moved to REQ-09 and REQ-10.
+- REQ-02: was "shared decisions stored once in 014's contract"; now the interface contract as
+  one Invariants item, delivered by 014 C-8; the blocking clause moved to REQ-09 and REQ-10.
 - REQ-03, REQ-04: merge and split rules kept; now checkable code sets (DM-6).
 - REQ-05: was "calibrated comparison when available, else structural"; calibrated comparison
-  moved to spec 10 (REQ-08, A-02); this spec records `structural-only`.
+  moved to spec 012 (REQ-08, A-02); this spec records `structural-only`.
 - REQ-06: decision record kept; the "signals for 04/16" clause is satisfied by
   `/pd-select-model` (REQ-29); integration owner moved into DM-2/DM-3.
-- REQ-07: meaning kept (canonical kinds, sequential top-level stack); its "no parallelism from
-  grouping" clause is REQ-34 and its resume clause REQ-24. Spec 23 A-01 cites REQ-07 for the sequential
-  top-level stack, which is unchanged.
-- REQ-08: evaluation kept under spec 10; the "disable advice" clause is moot (A-14).
+- REQ-07 preserves the canonical task kinds and resume history.
+
+- REQ-08: evaluation kept under spec 012; the "disable advice" clause is moot (A-14).
 - AC-01–AC-05 keep their subjects with fixture-level wording; the synthetic sums of previous
-  AC-03 moved to spec 10's calculator (A-25). REQ-09–REQ-41 and AC-06–AC-26 are new. Split out
+  AC-03 moved to spec 012's calculator (A-25). REQ-09–REQ-41 and AC-06–AC-26 are new. Split out
   of compound statements in this refinement: REQ-33 from REQ-05, REQ-34 from REQ-07, REQ-35
   from REQ-13, REQ-36 from REQ-30, REQ-37 and REQ-38 from REQ-32.
 
 ### Follow-ups for other specs and shared files (not edited here)
 
-- Spec 23: satisfied on 2026-11-14 (DM-5 renders from DM-8, REQ-52 re-renders in
-  `/pd-design`, A-01 cites REQ-07); no further change.
-- Spec 16: no change; spec 18 cites DM-4 and C-6 row 18.
-- Spec 17: no change; DM-9 consumes its C-10 row 18 ledger exposure read-only.
-- Spec 09: satisfied by its Notes "Files and sections created after this spec", which already
+
+- Spec 018: no change; spec 020 cites DM-4 and C-6 row 020.
+- Spec 019: no change; DM-9 consumes its C-10 row 020 ledger exposure read-only.
+- Spec 011: satisfied by its Notes "Files and sections created after this spec", which already
   names this spec's three sections and targets; no change.
 - `.ai/specs/README.md`: no change required.
 
@@ -1430,41 +1143,19 @@ unchanged because no execution reader uses the new sections.
 
 - 2026-11-06 — implementation/state reconciliation (see Source).
 - 2026-11-14 — auto-mode refinement into English: requirements made checkable, coverage and
-  interface tables, boundary vocabulary, parallel evidence for spec 23, overhead report,
+  interface tables, boundary vocabulary, overhead report,
   standalone helper and suite.
-- 2026-11-14 — reconciliation with refined peer specs. Spec 15: DM-9 example, AC-17 and the
+- 2026-11-14 — reconciliation with refined peer specs. Spec 017: DM-9 example, AC-17 and the
   `reviews` mapping use the real scope values (`finding-led`, `full-leaf`, `full-task`,
   `full-integration`), cover per-composite records, and cite DM-1, DM-2, DM-7, C-3 and C-6 by id.
-  Spec 17: `repairs` cites DM-1 to DM-3 and C-10 and states the read-only use. Spec 23: C-6
-  row maps DM-8 onto DM-5 columns and notes REQ-52 reuses REQ-24's definition of a started
-  subtask. Spec 09: C-5 "Rule-file names after spec 09" records the successor files and
-  resolving checks. Spec 10: C-6 row restates that no switch exists and the `promote` precondition.
-  Spec 11: one-line `loads:` statement in C-5. All peer-spec line-number citations replaced by
+  Spec 019: `repairs` cites DM-1 to DM-3 and C-10 and states the read-only use. Spec 011: C-5 "Rule-file names after spec 011" records the successor files and
+  resolving checks. Spec 012: C-6 row restates that no switch exists and the `promote` precondition.
+  Spec 013: one-line `loads:` statement in C-5. All peer-spec line-number citations replaced by
   section, requirement, data-model or contract ids. No requirement, acceptance criterion or
   assumption id was added, renumbered or removed; no verdict changed.
-- 2026-11-14 — independent final review: README and completed-spec 05 citations by heading or id; C-5 and AC-23 name the protected list labelled `**plan.md:**`; DM-9 `repairs` attempt counts include cancelled reservations; repository citations corrected.
+- 2026-11-14 — independent final review: README and completed-spec 006 citations by heading or id; C-5 and AC-23 name the protected list labelled `**plan.md:**`; DM-9 `repairs` attempt counts include cancelled reservations; repository citations corrected.
 
 ## Readiness Checklist
 
-| # | Check | Result |
-|---|---|---|
-| 1 | Goal is one domain-language paragraph | PASS — one paragraph: checkable coverage, order and boundary evidence, structural basis, parallel evidence, measured overhead |
-| 2 | Out of Scope names concrete exclusions | PASS — classifier rules, estimates and economic advice, paid runs, per-leaf money, Parallel Safety rendering, cross-composite parallelism, new kinds, complexity, frozen files, quick flow, completed plans |
-| 3 | Each REQ has a stable id and one EARS behaviour | PASS — REQ-01–REQ-41; previous REQ-01–REQ-08 kept, compound statements split (Identifier history) |
-| 4 | Every REQ maps to an AC and back | PASS — Traceability covers 41 REQs and 26 ACs |
-| 5 | Every AC is binary and can guide a test first | PASS — fixture cases in `scripts/check-decomposition.py` (C-7); `<base>` diffs marked for Validation |
-| 6 | Non-functional targets measurable or N/A | PASS — NFR-01–NFR-04 and NFR-06 verified by ACs; NFR-05 N/A with reason (ADR-0020) |
-| 7 | Data model and contracts specified | PASS — DM-1–DM-9, C-1–C-8 |
-| 8 | Error, empty, boundary, concurrency cases | PASS — E-01–E-38; concurrency excluded by the single sequential Discovery writer (P4, E-28) |
-| 9 | Every ambiguity resolved or open | PASS — A-01–A-31; Q-01 withdrawn, Q-02 non-blocker |
-| 10 | No blocker question | PASS |
-| 11 | Existing-code claims cited and verified | PASS — repository at `060ce6d`; specs 08–10, 12–17 and 23 in the working tree on 2026-11-14; verified by author and critic |
-| 12 | Terminology matches the domain | PASS — domain terms reused; new terms added to `domain.md` by REQ-32 |
-| 13 | Feature-sized (1–8 subtasks) | PASS — about six subtasks (Notes → Implementation hints) |
-| 14 | Devil's Advocate review | PASS — Review: 3 rounds, score 100/100, critic: sub-agent, open: none |
-
-Verdict: **READY FOR DEVELOPMENT**. Automated readiness is not sign-off; review before
-implementation.
-
-Reconciliation note (2026-11-14): peer specs 11, 10, 23, 09, 12, 13, 15, 14, 16 and 17 were re-read and
-the changed passages align with them; the checks above and the verdict are unchanged.
+The previous readiness review predates the scope update. Re-review the remaining contracts,
+traceability and compatibility before implementation. Verdict: **NOT READY FOR DEVELOPMENT**.

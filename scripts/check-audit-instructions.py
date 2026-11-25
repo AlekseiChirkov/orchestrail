@@ -2018,8 +2018,8 @@ DISCOVERY_CONDUCT = "rules/protocol-discovery-conduct.md"
 AUTONOMOUS_DECISION = "rules/protocol-autonomous-decision.md"
 DISCOVERY_OVERFLOW = "rules/reference/discovery-examples.md"
 KIND_PREFIXED_RULE_RE = re.compile(r"rules/(bootstrap|contract|protocol|procedure)-[^/]+\.md")
-SPEC09_PATH = ".ai/specs/09-synthetic-migration.md"
-SPEC09_ANY = ".ai/specs/09-*.md:0"
+SPEC09_PATH = ".ai/specs/011-synthetic-migration.md"
+SPEC09_ANY = ".ai/specs/011-*.md:0"
 SPEC09_CURRENT = "The conduct rule covers every statement unit."
 SPEC09_TEXT = (
     "# 09. Synthetic naming migration\n\n## Requirements\n\n"
@@ -3931,7 +3931,7 @@ class VerifyMigrationSpecificationTests(VerifyAssertions):
         cases: tuple[tuple[str, Callable[[FixtureRoot], object]], ...] = (
             ("no matching file", lambda fixture: (fixture.root / SPEC09_PATH).unlink()),
             ("two matching files",
-             lambda fixture: fixture.write(".ai/specs/09-second-copy.md", SPEC09_TEXT)),
+             lambda fixture: fixture.write(".ai/specs/011-second-copy.md", SPEC09_TEXT)),
             ("no specification directory", lambda fixture: shutil.rmtree(fixture.root / ".ai")),
             ("specification directory is a file", lambda fixture: (
                 shutil.rmtree(fixture.root / ".ai/specs"), fixture.write(".ai/specs", "x\n"))),

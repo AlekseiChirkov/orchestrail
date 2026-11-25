@@ -4,13 +4,13 @@ completed_task: task-07-state-tool
 completed_at: 2026-11-16
 ---
 
-# 07. State tool for safe subtask-progress edits
+# 009. State tool for safe subtask-progress edits
 
 ## Source
 
-- **Request:** `/spec-draft .ai/specs/completed/07-state-tool.md` (interactive refinement, 2026-11-13).
+- **Request:** `/spec-draft .ai/specs/completed/009-state-tool.md` (interactive refinement, 2026-11-13).
 - **Input:** the existing Russian-language specification at commit
-  `3ee594a`, file `.ai/specs/completed/07-state-tool.md`. Its full original text stays in git history.
+  `3ee594a`, file `.ai/specs/completed/009-state-tool.md`. Its full original text stays in git history.
   The English translation below is faithful in substance. Links to the old public repository
   location are replaced with repository-relative paths at the pinned commit
   `8c2fa08c18115ffcf38a1798742c41e53a2c7461` (decision D-08).
@@ -88,7 +88,7 @@ them. None of the nine optimization streams depends on 07.
 
 **4. Sources of truth and compatibility.** (1) Block format, vocabulary, required and
 protected fields come from the canonical state contract at a pinned revision; after the
-renames of spec 09 the single new path is used, never a second copy of the grammar.
+renames of spec 011 the single new path is used, never a second copy of the grammar.
 (2) Transitions and required evidence are defined by the execution and validation processes;
 a value being in the vocabulary does not make it reachable from every state. (3) A legacy leaf
 block without `atomic-tests:` reads as `not-started` by field name, not position; this does not
@@ -245,7 +245,7 @@ tool on 2026-11-13 (D-09); it stays optional and unwired.
   tracked (`scripts/sync.sh:267-276`); an existing consumer project gets the ignore entries
   by rerunning `scripts/setup-new-project.sh` or by hand (A-28).
 - Removing the grammar duplication between `rules/workflow-globals.md` and
-  `rules/workflow-reference.md` (spec 08/09 territory).
+  `rules/workflow-reference.md` (spec 010/09 territory).
 
 ## Actors & Roles
 
@@ -1183,9 +1183,9 @@ None. Q-01 (ignore rules for the lock and temporary files) was resolved by D-10 
   validator exits 0 on all eight completed tasks, so none exist in this repository.
 - C-3: the manual procedure and every existing mandatory stop stay in force; a validator
   failure that stops finalization stays a stop.
-- C-4: rule file names in this spec are the current ones. If spec 09 has landed at
+- C-4: rule file names in this spec are the current ones. If spec 011 has landed at
   scheduling, the targets are its renamed canonical files
-  (`.ai/specs/09-model-only-harnesses-and-rule-naming.md:141-143`):
+  (`.ai/specs/011-model-only-harnesses-and-rule-naming.md:141-143`):
   `rules/workflow-globals.md` → `rules/contract-phases.md`, `rules/workflow-reference.md` →
   `rules/contract-state-files.md`, `rules/tdd.md` → `rules/contract-tdd.md`; the anchored line,
   protected entry, drift check and citations follow the file that then holds each definition.

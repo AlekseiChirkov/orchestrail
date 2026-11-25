@@ -4,7 +4,7 @@ completed_task: task-02-run-log-vocabulary-validation
 completed_at: 2026-10-21
 ---
 
-# Enforce Run-Log Field Vocabulary and Validation in `log-step.sh`
+# 003. Enforce Run-Log Field Vocabulary and Validation in `log-step.sh`
 
 ## Implementation review — 2026-11-06
 
@@ -274,8 +274,8 @@ lint must use the same authoritative runtime definitions.
 
 - Rewriting, migrating, or "fixing" historical log files. The ten
   historical runs described by the original spec must remain unchanged.
-- Token/cost accounting (spec 05), hook-driven logging (spec 03),
-  or adjustments to the already-planned spec 06.
+- Token/cost accounting (spec 006), hook-driven logging (spec 004),
+  or adjustments to the already-planned spec 007.
 - Schema validation for unrelated free-text fields, privacy scanning of
   existing notes, historical workflow-name enforcement, or a new log
   storage format.
@@ -289,7 +289,7 @@ lint must use the same authoritative runtime definitions.
   `scripts/log-step.sh`; consumer: `workflows/retro.md`.
 - ADR-0009 Decision 5: normalize known drift, warn on unknown step
   names, leave historical files unchanged. Decision 7: complete spec
-  02 before specs 03, 05, and 06.
+  02 before specs 004, 05, and 06.
 - Preserve the existing shell-only producer and optional-`jq` write
   fallback. Lint is allowed to require `jq` because `/retro` already
   uses it; missing tooling must be reported, never disguised as a

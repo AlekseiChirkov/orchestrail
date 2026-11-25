@@ -33,7 +33,7 @@ fragility without increasing compliance.
 ### Decision 1: Enforcement before elaboration
 
 **What was decided:**
-No new always-on rule is added until `specs/01`–`specs/06` are done, except to fix a
+No new always-on rule is added until `specs/002`–`specs/007` are done, except to fix a
 defect found by audit or retro. New behaviour is expressed first as a check, a hook, a
 script, or a schema; prose explains it.
 

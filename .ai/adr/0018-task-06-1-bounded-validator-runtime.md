@@ -231,7 +231,7 @@ run in this Discovery invocation. Future evidence must identify the actual teste
 - Task: [State](../tasks/todo/task-06-1-test-suite-runtime/state.md) and
   [plan](../tasks/todo/task-06-1-test-suite-runtime/plan.md).
 - Pull request: not created.
-- Related documents: [Specification](../specs/06-1-test-suite-runtime.md),
+- Related documents: [Specification](../specs/completed/008-test-suite-runtime.md),
   [ADR-0001](0001-task-unknown-markdown-only-no-runtime.md),
   [ADR-0010](0010-task-unknown-public-hygiene-and-local-publication.md),
   [ADR-0012](0012-task-unknown-knowledge-tracking-policy.md).

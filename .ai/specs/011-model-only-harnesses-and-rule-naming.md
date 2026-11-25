@@ -1,4 +1,10 @@
-# 09. Two model harnesses, declared capabilities and one naming scheme
+# 011. Two model harnesses, declared capabilities and one naming scheme
+
+> **Scope reconciliation, 2026-11-25:** The former spec 23 was consolidated into
+> [the parallel execution specification](027-parallel-execution-program.md). References
+> below to its numbered requirements or data models describe a historical design preserved
+> at Git revision `42325d2` and require reconciliation before implementation.
+
 
 ## Source
 
@@ -7,7 +13,7 @@
   in ADR-0009 Decisions 2, 3 and 7 (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:77-141`,
   `:255-265`; Decision 7 amended by ADR-0017).
 - **Previous revision:** 2026-10-28, written in Russian, with the amendments of 2026-10-21 and
-  2026-10-28 folded in. Its purpose, translated from Russian (spec 09, revision 2026-10-28,
+  2026-10-28 folded in. Its purpose, translated from Russian (spec 011, revision 2026-10-28,
   §1): "The goal is to make the purpose of every rule and every workflow clear from its name
   and metadata, remove collisions, keep support for two model harnesses, and select
   behaviour by verified capabilities. The target harnesses are `Claude Code` and `Codex`; the
@@ -25,7 +31,7 @@
   disposition "Preserve IDs; capability-based behavior and current script paths".
 - **This revision:** 2026-11-14, refined in place under `/spec-draft --auto-mode` with the
   owner's authorization to replace the file. No human questions were asked; every resolved
-  gap is recorded under Assumptions with its source. Specs 11, 10 and 19 (refined
+  gap is recorded under Assumptions with its source. Specs 013, 012 and 021 (refined
   2026-11-13) build on this spec; their requests are disposed of under Notes → Peer requests.
 
 ### Implementation review — 2026-11-06 (preserved)
@@ -147,7 +153,7 @@ migration that the frozen validator inventory accepts through an explicit amendm
 3. A standard-library Python 3.11+ deployment engine `scripts/deploy-skills.py`, driven by
    `scripts/sync.sh`: deploy manifest, journal, lock, recovery, registry-based project pass,
    active-consumer freeze and `--force`. Its global write path is the state between this
-   delivery and spec 20's; spec 20 then supersedes it (Notes → Relationship to spec 20).
+   delivery and spec 022's; spec 022 then supersedes it (Notes → Relationship to spec 022).
 4. Rule metadata (`description`, `load`) and workflow metadata (`description`, `phase`,
    `step`); one rule-reference resolution rule; the three-column bootstrap table.
 5. The capability contract in `rules/contract-phases.md → ## Capabilities` and the
@@ -167,14 +173,14 @@ migration that the frozen validator inventory accepts through an explicit amendm
 ## Out of Scope
 
 - The audit itself (inventory, link graph, duplicate clusters, mixed-kind detection,
-  measurements): owned by spec 08 (old REQ-01–REQ-04 moved there). 08's accepted report is
+  measurements): owned by spec 010 (old REQ-01–REQ-04 moved there). 010's accepted report is
   an input; see Notes → Ownership between 09 and 08.
 - The generator, generated always-on files, `reads`/`writes`/`called_by` metadata and
-  `docs/reference/`: spec 19. `loads` metadata, `rules/reference/`, `ref-<name>` deployment,
-  the 700/6,000-word limits and the always-on lines naming `load: always` rules: spec 11.
-  The public installer, profiles and backups: spec 20. Golden runs and `tests/golden/`:
-  spec 10. Parallel children and the `--parallel` flag: spec 23. Telemetry (05), git rails
-  (06), the state tool (07), specs 12–18.
+  `docs/reference/`: spec 021. `loads` metadata, `rules/reference/`, `ref-<name>` deployment,
+  the 700/6,000-word limits and the always-on lines naming `load: always` rules: spec 013.
+  The public installer, profiles and backups: spec 022. Golden runs and `tests/golden/`:
+  spec 012. Parallel children and the `--parallel` flag: spec 23. Telemetry (05), git rails
+  (06), the state tool (07), specs 014–18.
 - Deleting or moving any legacy directory (`~/.codeium/…`, `.windsurf/`, `.devin/`) or any
   installed skill the deploy manifest does not own.
 - A third harness; `CODEX_HOME` or any other environment-based path detection.
@@ -195,8 +201,8 @@ migration that the frozen validator inventory accepts through an explicit amendm
 | Owner | Accepts changes of agreed behaviour; runs `scripts/sync.sh` (with `--force` only by decision); removes legacy directories and leftover skills by hand |
 | Implementer | Moves and edits sources, tests and checks under the TDD contract; never runs sync against the real home |
 | Independent validator | Reviews the migration semantics record and the inventory amendment entries |
-| `scripts/sync.sh` | Validates, installs hooks, runs the legacy reporter and the engine; the only deploy entry point until spec 20's installer replaces its global-write step (Notes → Relationship to spec 20) |
-| `scripts/deploy-skills.py` | Reads adapters, sources, registry, manifests; writes only owned global targets, its manifests, journal and lock, and owned project links and the `.ai/` ignore line; after spec 20 its `deploy` command is removed and it writes only project links and the ignore line |
+| `scripts/sync.sh` | Validates, installs hooks, runs the legacy reporter and the engine; the only deploy entry point until spec 022's installer replaces its global-write step (Notes → Relationship to spec 022) |
+| `scripts/deploy-skills.py` | Reads adapters, sources, registry, manifests; writes only owned global targets, its manifests, journal and lock, and owned project links and the `.ai/` ignore line; after spec 022 its `deploy` command is removed and it writes only project links and the ignore line |
 | `scripts/setup-new-project.sh` | Sole writer of the registry; creates project files; links skills through the engine |
 | `scripts/report-legacy-artifacts.sh` | Reads only; prints legacy objects |
 | `scripts/lint-instructions.py` | Reads the repository; prints findings |
@@ -214,11 +220,11 @@ migration that the frozen validator inventory accepts through an explicit amendm
 | Workflow | An invocable `workflows/<stem>.md` with front matter and one `Invocation:` line | `.ai/principles/coding.md:19-33` |
 | Load mode | `always` or `on-demand`: a loading requirement, not proof that the text is in the current context | Previous revision §4 |
 | Capability | An operation a harness offers to shipped workflows, declared by a capability record with state, runtime, date and evidence; the session's actual tool permission is checked separately | DM-4 |
-| Capability record | A `name:`-started block in `capabilities.md` (DM-4) | `harness/claude/capabilities.md:31-37`; spec 19 A-32 |
+| Capability record | A `name:`-started block in `capabilities.md` (DM-4) | `harness/claude/capabilities.md:31-37`; spec 021 A-32 |
 | Registry | `${XDG_CONFIG_HOME:-$HOME/.config}/orchestrail/projects` | Context fact 4 |
 | Active project | A registered root with at least one task phase `in-progress` or an unreadable task state (DM-8) | REQ-59 |
 | Active consumer | An active project, counted when a global change is planned; the source checkout counts when it is registered and active, because it uses the same global skills | REQ-43 |
-| Deploy manifest | Per-harness ownership record `orchestrail/deploy/<harness>.json` (DM-6). Not spec 19's generator manifest and not spec 20's installer manifest | This spec |
+| Deploy manifest | Per-harness ownership record `orchestrail/deploy/<harness>.json` (DM-6). Not spec 021's generator manifest and not spec 022's installer manifest | This spec |
 | Owned object | An installed path whose current bytes equal a digest the deploy manifest or journal records | REQ-10, REQ-42 |
 | Plan | The complete list of create/replace/remove actions computed before the first write | REQ-45 |
 | Legacy object | One of the paths of DM-13 | REQ-07 |
@@ -227,7 +233,7 @@ migration that the frozen validator inventory accepts through an explicit amendm
 | Installed name | The skill directory name a source file deploys to (DM-15) | REQ-41, REQ-49 |
 | Executable reference | A form of DM-16 in an instruction file | REQ-22, REQ-31 |
 | Active reference | Any occurrence of a name in the scan set of DM-17 | REQ-25 |
-| Word | A maximal non-empty run of non-whitespace characters (DM-19) | Previous revision §9; spec 11 A-09; spec 19 Terminology |
+| Word | A maximal non-empty run of non-whitespace characters (DM-19) | Previous revision §9; spec 013 A-09; spec 021 Terminology |
 | Always-on body | The text of `harness/<name>/always-on.md` without an embedded copy of the capability declaration and without the installation record: provenance line, header and core (REQ-54, D-01) | This spec |
 | Inventory amendment | `tests/fixtures/validator-runtime/inventory-amendment.json` (DM-9) | Context fact 11 |
 
@@ -292,7 +298,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   editing any existing line.
 - **REQ-36.** WHEN sync deploys an always-on file, THE deployed bytes SHALL equal the assembly
   of DM-14, so the declaration appears exactly once; workflows read capabilities from the
-  always-on context, never from per-skill templating or environment variables. Spec 19 later
+  always-on context, never from per-skill templating or environment variables. Spec 021 later
   replaces the assembly with its generated file without a second append.
 - **REQ-37.** WHEN `/spec-run` starts, THE workflow SHALL, before any write, branch, commit or
   spawn, require records `sub-agents`, `agent-messaging` and `git` with `state: yes` and the
@@ -331,7 +337,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   non-status blocker, ambiguity rule), and both consumers (`/atomic-execution` Step 0 and
   `/atomic-execution-implement`) SHALL cite that rule.
 - **REQ-21.** THE Discovery decision mode and code-reading rules SHALL live only in
-  `rules/protocol-discovery-conduct.md`; WHERE 08's accepted report proves that
+  `rules/protocol-discovery-conduct.md`; WHERE 010's accepted report proves that
   `protocol-autonomous-decision` already covers them completely, they MAY be merged there
   instead, with the proof cited in the semantics record (DM-20).
 - **REQ-22.** EXECUTABLE references (DM-16) SHALL name rules and workflows without `.md`;
@@ -348,7 +354,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   expressions, `docs/`, `templates/` and any existing `tests/golden/cases/*/case.json` — so
   that the checker reports zero `stale-name`, `reference-missing` and `heading-missing`.
 - **REQ-26.** THE namespaces `rule-<name>` and `principle-<name>` SHALL be kept and documented
-  in `contract-phases → ## Rule references`; `ref-<name>` SHALL be reserved for spec 11's
+  in `contract-phases → ## Rule references`; `ref-<name>` SHALL be reserved for spec 013's
   `rules/reference/` files, which are not top-level rules.
 - **REQ-39.** THE command renames of DM-11 SHALL be the last naming stage; entry points and
   utilities keep their names; after it only checks and records follow, not another rename wave.
@@ -377,7 +383,7 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   reference, an unknown name and a missing heading; repository paths are checked for
   existence only; examples in fenced code and history are not rewritten globally.
 - **REQ-32.** THE checker SHALL reject a bootstrap rule over 300 words or with any `## `
-  section other than the two of REQ-19, counting words by DM-19 (same rule as specs 11 and 19),
+  section other than the two of REQ-19, counting words by DM-19 (same rule as specs 013 and 021),
   except that a bootstrap rule listed in DM-20 → Bootstrap size exceptions is not rejected for
   its word count while its count equals the listed `Words` value.
 - **REQ-33.** THE delivery SHALL add one accepted ADR that records the migration, supersedes
@@ -451,10 +457,10 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
 - **REQ-54 Always-on body size.** EACH always-on body SHALL have at most 1,200 words (DM-19).
   The body is the text of `harness/<name>/always-on.md`; when that file contains the exact
   text of the same harness's `capabilities.md` with trailing `\n` characters removed (as spec
-  19's generated file will), the first such occurrence is removed before counting. The
+  021's generated file will), the first such occurrence is removed before counting. The
   installation record is never part of the file. The counted text is therefore the provenance
   line, the header and the core only (owner decision D-01); the embedded declaration is
-  excluded and its size is bounded by spec 11's always-on-set budget, not by this limit.
+  excluded and its size is bounded by spec 013's always-on-set budget, not by this limit.
 - **REQ-55 Always-on move.** THE delivery SHALL move `rules/global-claude.md` to
   `harness/claude/always-on.md` and `templates/codex-global-AGENTS.md` to
   `harness/codex/always-on.md` with `git mv`, changing only lines that hold a stale name, a
@@ -511,8 +517,8 @@ records and prose); "receipt" for the deploy manifest (reserved for the hook ins
   together with the change of the oracle test that hard-codes the set and, for each entry that
   names a new value, a verdict row in DM-20 → Superseded checks; no other change extends it.
   A value added by a later spec carries that spec's number, with its letter suffix when the
-  spec file name has one, as a prefix, `spec-<NN>[<a-z>] REQ-<MM>` (for example
-  `spec-21 REQ-72`, `spec-20 REQ-04`), so it never collides with this spec's bare ids.
+  spec file name has one, as a prefix, `spec-<NNN>[<a-z>] REQ-<MM>` (for example
+  `spec-023 REQ-72`, `spec-022 REQ-04`), so it never collides with this spec's bare ids.
 
 REQ-60 is not used.
 
@@ -562,21 +568,21 @@ load: on-demand
 ---
 ```
 
-Grammar (shared with DM-3; compatible with spec 19's line grammar): the file starts with a
+Grammar (shared with DM-3; compatible with spec 021's line grammar): the file starts with a
 line `---`; the block ends at the next line `---`. Every non-empty line inside is
 `<key>: <value>` at column 0 with `<key>` matching `[a-z_]+`; a value starting with `"` is a
 JSON string (`json.loads`, the whole rest of the line); otherwise the value is the rest of the
 line with trailing spaces removed, non-empty, not starting with `'`, `[`, `{`, `|`, `>`, `&`,
 `*`, `!`, `%`, `@` or `` ` ``. Tabs, comments, repeated keys and continuation lines are errors.
 Rule keys: `description` (one non-empty line) and `load` (`always` | `on-demand`).
-Registered extension keys: `loads` (owner spec 11; its block grammar and validator are 11's).
+Registered extension keys: `loads` (owner spec 013; its block grammar and validator are 013's).
 Until the owning spec registers its validator in the checker, an extension key is
 `metadata-unknown-field`. A column-0 line of a registered extension key whose value is empty
 or `[]` opens that key's block, which ends before the next line at column 0 or the closing
-`---` (11 DM-1 Extent); the value, comment and continuation-line rules above do not apply inside it,
-and the checker passes the block to the owning spec's validator (11 DM-1 for `loads`; spec 19
+`---` (013 DM-1 Extent); the value, comment and continuation-line rules above do not apply inside it,
+and the checker passes the block to the owning spec's validator (013 DM-1 for `loads`; spec 021
 Data Model → Workflow metadata for `reads`, `writes`, `called_by`). The kind is the stem prefix before the first `-`: `bootstrap`,
-`contract`, `protocol`, `procedure`. Their operational meanings are those of spec 08
+`contract`, `protocol`, `procedure`. Their operational meanings are those of spec 010
 (Terminology → Kinds, its A-04): a `bootstrap` rule lists the ordered context sources one
 phase loads before acting and that phase's behaviours; a `contract` states formats,
 vocabularies, invariants or obligations that hold across workflows regardless of the current
@@ -599,11 +605,11 @@ Keys: `description`, `phase`, `step`. `phase` ∈ `discovery | execution | valid
 atomic-execution | atomic-validation | orchestrated | entry | utility`. `step` is a plain
 value matching `^[1-9][0-9]*(\.[1-9][0-9]*|[a-z])?$` or the JSON string `"-"`. Sort order of
 steps: numeric integer part, then decimal part (absent = 0), then letter (absent first), and
-`"-"` before all numbers; this order is binding for every listing of workflows, spec 19's
-command reference included (adopted by spec 19, A-44; Notes → Spec 19 alignment). Registered extension keys: `loads` (spec 11), `reads`, `writes`,
-`called_by` (spec 19). The values of every workflow are in DM-11.
+`"-"` before all numbers; this order is binding for every listing of workflows, spec 021's
+command reference included (adopted by spec 021, A-44; Notes → Spec 021 alignment). Registered extension keys: `loads` (spec 013), `reads`, `writes`,
+`called_by` (spec 021). The values of every workflow are in DM-11.
 
-### DM-4 Capability declaration (extended; record form adopted from spec 19 A-32)
+### DM-4 Capability declaration (extended; record form adopted from spec 021 A-32)
 
 Each `harness/<name>/capabilities.md` keeps all existing lines and gains, at the end of the
 file, this section:
@@ -673,8 +679,8 @@ matches that pattern and that holds `capabilities.md` but no `deploy.env` is als
 `adapter-incomplete`, so on a valid tree "has `deploy.env`" and "has `capabilities.md`" select
 the same directories; hidden directories and a directory holding only an orphaned
 `always-on.md` are ignored. Retiring a harness deletes its `deploy.env` and
-`capabilities.md` (and, after spec 19, its header). This is the only harness definition;
-spec 19 must align to it (Notes → Spec 19 alignment). Harnesses are processed in
+`capabilities.md` (and, after spec 021, its header). This is the only harness definition;
+spec 021 must align to it (Notes → Spec 021 alignment). Harnesses are processed in
 name order. `deploy.env` is UTF-8 with LF endings; each line is empty, a comment starting
 `#`, or `<key>=<value>` with no spaces around `=`:
 
@@ -771,7 +777,7 @@ a line matching `^- (discovery|execution|validation): in-progress[ \t]*$`, or wh
 cannot be read or decoded as UTF-8. A root that does not exist or is not a directory is
 missing, not active.
 
-### DM-9 Inventory amendment schema 2 (new; owned by this spec, reused by spec 11)
+### DM-9 Inventory amendment schema 2 (new; owned by this spec, reused by spec 013)
 
 `tests/fixtures/validator-runtime/inventory-amendment.json` with `"schema": 2` has exactly the
 keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path_changes`,
@@ -806,7 +812,7 @@ keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path
   every remaining match of `(?:rules|workflows|principles|harness|templates|docs)/[A-Za-z0-9_./-]+`
   with `<PATH>`, then (3) every whole-token occurrence of a name token of class *k* with
   `<N k>`; within each step, alternatives longest first. An entry is valid when
-  `before != after` and `mask(before) == mask(after)`. Spec 11's path-only changes between
+  `before != after` and `mask(before) == mask(after)`. Spec 013's path-only changes between
   paths that are not class tokens satisfy this mask. A change that moves a token or a mapped
   path to another class, or a mapped path between `rules/` and `workflows/` within one class
   (for example `rules/phase-discovery.md` → `workflows/discovery.md`), is rejected; a re-aim between two unmapped paths is accepted and is
@@ -828,7 +834,7 @@ keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path
 - Check descriptions never change (they are `key`s); a description that names an old name
   stays as a frozen label.
 
-### DM-10 Rule map (binding unless amended from 08's accepted report via `/spec-sync`)
+### DM-10 Rule map (binding unless amended from 010's accepted report via `/spec-sync`)
 
 | Source | Target(s) | `load` |
 |---|---|---|
@@ -849,7 +855,7 @@ keys `schema`, `paths`, `removed_results`, `resources`, `name_map_sha256`, `path
 | `templates/codex-global-AGENTS.md` | `harness/codex/always-on.md` | — (not a rule) |
 
 Load modes follow the current trigger (`always_on` → `always`, `model_decision` →
-`on-demand`). A rule file added after this revision is classified by 08 and amended in via
+`on-demand`). A rule file added after this revision is classified by 010 and amended in via
 `/spec-sync`; it is never left out.
 
 **Overflow rules (REQ-19).** Measured with DM-19 at the parent snapshot, the text that moves
@@ -863,7 +869,7 @@ only when its bootstrap rule needs it; each created one is added to the source r
 `new` list in DM-1 and to DM-20. The bootstrap rule's `## Phase Behaviors` then holds the
 obligations that fit and the line "Load the `protocol-<phase>-conduct` rule before acting."
 
-### DM-11 Workflow map, phase and step (binding unless amended from 08)
+### DM-11 Workflow map, phase and step (binding unless amended from 010)
 
 | Old | New | `phase` | `step` |
 |---|---|---|---|
@@ -902,7 +908,7 @@ Unchanged names: `spec-run` (orchestrated), `spec-draft`, `spec-sync`, `bugfix`,
 (utility); each has `step: "-"`. Descriptions keep their text except stale names; the
 `workflows/pd-archive.md` description becomes one line.
 
-### DM-12 Section map for split rules (binding unless amended from 08)
+### DM-12 Section map for split rules (binding unless amended from 010)
 
 - `rules/workflow-reference.md`: `## Autonomous Decision Protocol` (`:417-480`) →
   `protocol-autonomous-decision`; `## Autonomous Subtask Classifier` (`:481-553`, with its
@@ -916,7 +922,7 @@ Unchanged names: `spec-run` (orchestrated), `spec-draft`, `spec-sync`, `bugfix`,
 - `rules/phase-atomic-execution.md`: `## Context Bootstrap`, `## Phase Behaviors` →
   `bootstrap-atomic-execution`; `## Blocker Reconciliation` → `procedure-blocker-reconciliation`.
 - For `rules/phase-discovery.md` and `rules/phase-atomic-execution.md`, the text before the first
-  `## ` heading (front matter and title) goes to the bootstrap target (08 DM-5 `(preamble)`).
+  `## ` heading (front matter and title) goes to the bootstrap target (010 DM-5 `(preamble)`).
 - A moved section keeps its heading text, its `###` subsections and its body; edits are limited
   to DM-1 substitutions and REQ-19 relocations recorded in DM-20.
 - The section-level map is recorded in the semantics record (DM-20), one row per source
@@ -928,7 +934,7 @@ Global: `$HOME/.codeium/windsurf/global_workflows`, `$HOME/.codeium/windsurf/glo
 Per project root `P`: `P/.windsurf`, `P/.devin`. An object exists when `os.lstat` succeeds
 (a symbolic link is reported and not followed).
 
-### DM-14 Always-on assembly (until spec 19 replaces it)
+### DM-14 Always-on assembly (until spec 021 replaces it)
 
 Deployed bytes = bytes of `harness/<name>/always-on.md` + `"\n<!-- Logging capabilities -->\n"`
 + bytes of `harness/<name>/capabilities.md` + `"\n## Current hook installation\n\ninstallation-result: "`
@@ -937,7 +943,7 @@ Deployed bytes = bytes of `harness/<name>/always-on.md` + `"\n<!-- Logging capab
 ### DM-15 Installed names
 
 Per harness: `workflows/<stem>.md` → `<stem>`; `rules/<stem>.md` → `rule-<stem>`;
-`principles/<stem>.md` → `principle-<stem>` (spec 11 later adds `ref-<stem>`). Each installed
+`principles/<stem>.md` → `principle-<stem>` (spec 013 later adds `ref-<stem>`). Each installed
 name `n` is the directory `<skills_dir>/<n>/` with one managed file `SKILL.md` equal to the
 source bytes. `docs/PIPELINE.md` is not a source.
 
@@ -964,7 +970,7 @@ blocks, a single-backtick span is an executable reference when its content match
 
 A finding this grammar produces on the parent tree is a pre-existing defect: the delivery
 fixes it and lists it in DM-20 → Pre-existing reference defects. The same holds for every
-reference defect that 08's accepted report records with owner 09 outside this grammar, in scan
+reference defect that 010's accepted report records with owner 09 outside this grammar, in scan
 set E or R: a section reference without its heading marker gains the marker of the existing
 heading; a reference to a paragraph label that is no heading names the heading whose extent
 holds the label; a reference broken across lines is joined into one span; a rule or workflow
@@ -1024,7 +1030,7 @@ available; the checker prints `info reserved-names-absent <harness>` and finds n
 
 Decode as strict UTF-8 (failure: `input-encoding`); a file containing U+001C–U+001F is
 `input-encoding`; words = `len(text.split())` over the whole text including front matter,
-headings and code (spec 11 A-09; spec 19 Terminology).
+headings and code (spec 013 A-09; spec 021 Terminology).
 
 ### DM-20 Migration semantics record (new)
 
@@ -1045,7 +1051,7 @@ rows with their reason. Further sections, each a table:
   `## Phase Behaviors` heading and the citing line alone exceed 300 words; no other rule is
   listed.
 - `## Pre-existing reference defects` — `| Path:line | Reference | Fix |`: dangling references
-  and missing headings the checker finds on the parent tree, and the reference defects 08's
+  and missing headings the checker finds on the parent tree, and the reference defects 010's
   accepted report records with owner 09 outside the DM-16 grammar, in scan set E or R, fixed by
   this delivery.
 
@@ -1091,7 +1097,7 @@ python3 -I scripts/deploy-skills.py link-project --from <root> --project <dir>
   bytes: nothing (recorded as owned if not yet); different bytes and owned: `replace`;
   different bytes while the harness has **no** manifest file, path not a symbolic link:
   `adopt` (replace and record; this keeps today's overwrite of Orchestrail-managed paths on
-  the first run only, P1; interim behaviour, see Notes → Relationship to spec 20); different bytes while a manifest exists and the path is either
+  the first run only, P1; interim behaviour, see Notes → Relationship to spec 022); different bytes while a manifest exists and the path is either
   unrecorded or recorded with another digest: `ownership-conflict`, printed as
   `ERROR ownership-conflict <path>: changed since the last deployment; save your changes elsewhere, then delete the file or restore its deployed bytes, and rerun`.
   Each manifest entry no longer planned: current bytes equal the
@@ -1136,7 +1142,7 @@ harness `skills_dir` or `skills_dir_resolved` followed by `/` (owned links); add
 as `link-project` does; then apply the current `.ai/` ignore step unchanged
 (`scripts/sync.sh:267-276`); print `project updated <root> (linked <n>, unlinked <n>)`. Nested
 roots are processed independently. No other project file is written; in particular the
-pass never creates, refreshes or removes profile files (spec 20 owns profiles).
+pass never creates, refreshes or removes profile files (spec 022 owns profiles).
 
 ### Legacy reporter `scripts/report-legacy-artifacts.sh`
 
@@ -1193,7 +1199,7 @@ the REQ-14 anchored line is absent from `contract-phases → ## Rule references`
 than once in scan set R; `capability-behaviour-table-invalid` — the DM-4 header is absent, a
 required `Behaviour` text is missing, a `Requires` cell names a key that is neither canonical
 nor the `name:` of a capability record present in every harness's `capabilities.md` (an
-extension key such as spec 16's `sub-agent-effort`, REQ-67), or a
+extension key such as spec 018's `sub-agent-effort`, REQ-67), or a
 `Workflow` cell names a workflow that does not exist; `usage-map-mismatch` — the DM-1 table is
 absent from `docs/USAGE.md` or differs from the map; `name-map-invalid` — any DM-1 rule is
 broken; `kind-prefix-invalid` — a top-level rule stem's prefix before the first `-` is not a
@@ -1215,7 +1221,7 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 |---|---|---|
 | Always-on body | ≤ 1,200 words per harness (REQ-54) | Checker `always-on-size`; AC-34 |
 | Bootstrap rule | ≤ 300 words, exactly two sections (REQ-19); a rule listed in DM-20 → Bootstrap size exceptions may exceed 300 words only at exactly its listed word count, and only because its front matter, moved `## Context Bootstrap` section, `## Phase Behaviors` heading and citing line alone exceed 300 words (REQ-19, REQ-32) | Checker; AC-11 |
-| Spec 11 follow-up | ≤ 700 words per top-level rule and ≤ 6,000 words per always-on set are spec 11's acceptance, not a precondition of this spec; they do not replace 300/1,200 | Spec 11 |
+| Spec 013 follow-up | ≤ 700 words per top-level rule and ≤ 6,000 words per always-on set are spec 013's acceptance, not a precondition of this spec; they do not replace 300/1,200 | Spec 013 |
 | Word counting | DM-19 | Suite cases |
 | Checker runtime | Target ≤ 30 s on the repository; the measured time, machine and tool versions are recorded in the ADR's verification; an overrun is reported, not hidden | Timed run at delivery |
 | Repeat deployment | A second `deploy` on the same inputs writes no byte, link or manifest | AC-04, AC-05 |
@@ -1235,8 +1241,8 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 | Task `state.md` unreadable | Root is active | REQ-59 |
 | Plan empty, active project exists | Project pass runs; the active project is skipped and reported | REQ-09, REQ-43 |
 | Plan non-empty, active consumer, no `--force` | Exit 3, nothing written, consumers listed | REQ-43 |
-| Same with `--force` | Proceeds; each forced consumer printed as `forced <root>` (interim output, Notes → Relationship to spec 20) | REQ-43 |
-| No manifest (first run) | Existing managed paths adopted (interim, Notes → Relationship to spec 20); nothing removed; leftovers reported | REQ-10, REQ-57 |
+| Same with `--force` | Proceeds; each forced consumer printed as `forced <root>` (interim output, Notes → Relationship to spec 022) | REQ-43 |
+| No manifest (first run) | Existing managed paths adopted (interim, Notes → Relationship to spec 022); nothing removed; leftovers reported | REQ-10, REQ-57 |
 | Manifest exists and a new source skill's path already holds other bytes | `ownership-conflict`, nothing written | REQ-42 |
 | Owned skill edited by the user | `ownership-conflict` when still planned; `release-modified` when obsolete; never overwritten or removed | REQ-42 |
 | User edited the deployed always-on file (as `rules/language.md:20-21` advises today) | `ownership-conflict` with the resolution text; the delivery rewrites both advisories so they no longer direct edits to the managed file (Q-06) | REQ-42 |
@@ -1588,26 +1594,26 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 |---|---|---|---|
 | Changing many frozen expressions breaks the oracle and source guard (at least 225 of the 465 column-0 check expressions name a migrated path, name, trigger or legacy token at the parent snapshot, plus helper bodies and non-standard lines) | Validator red until re-amended; the amendment is a large share of the work | High | DM-9 entries written with each rename; guard refresh procedure; AC-31–AC-33 |
 | A name-only mask hides a semantic edit (a renamed token swapped back) | Weakened check passes | Low | Class-indexed mask rejects cross-class swaps and rule/workflow path swaps; every entry reviewed by the independent validator |
-| The first deployment adopts a path the user had edited | User text overwritten once, as sync does today | Medium | Documented in the runbook; the leftover and adopt lines name every path; spec 20 adds backups |
+| The first deployment adopts a path the user had edited | User text overwritten once, as sync does today | Medium | Documented in the runbook; the leftover and adopt lines name every path; spec 022 adds backups |
 | A task starts during deployment | Instructions change under a running task | Low | Freeze evaluated under the lock; residual note printed; owner runs sync between runs |
 | Bootstrap rules exceed 300 words after the move (certain for atomic execution and atomic validation, DM-10; atomic execution cannot meet the limit by overflow alone, because its front matter and `## Context Bootstrap` already exceed it, AUD-08-063) | Obligations could be dropped or reworded to fit | High | Named overflow rules (DM-10), recorded in DM-20; nothing deleted; a rule whose front matter, moved `## Context Bootstrap` section, `## Phase Behaviors` heading and citing line alone exceed 300 words keeps that section whole and is listed in DM-20 → Bootstrap size exceptions, and the checker holds it to the listed word count, so later growth stays visible (REQ-19, REQ-32) |
 | Capability evidence for Codex unavailable | Codex records `unknown`; `/spec-run` refuses there | High | Intended conservative path (G4); records updated when evidence exists |
-| Specs 11, 19, 21 overlap the deployment and metadata contracts | Divergent formats | Medium | Notes → Peer requests and Follow-ups name the alignment each needs |
+| Specs 013, 021, 023 overlap the deployment and metadata contracts | Divergent formats | Medium | Notes → Peer requests and Follow-ups name the alignment each needs |
 | Scope exceeds eight subtasks | Large task | Medium | REQ-48 split boundary |
-| The deployed always-on file stays larger than 1,200 words because the embedded declaration is not counted (D-01) | Session context carries the declaration in full | Certain | Intended: the declaration is bounded by spec 11's always-on-set budget; the git-rails residual risks stay in it (ADR-0017); restoring the strict reading is a separate decision |
+| The deployed always-on file stays larger than 1,200 words because the embedded declaration is not counted (D-01) | Session context carries the declaration in full | Certain | Intended: the declaration is bounded by spec 013's always-on-set budget; the git-rails residual risks stay in it (ADR-0017); restoring the strict reading is a separate decision |
 
 ## Assumptions
 
 - A-01 | Where new checks run | Resolved: standalone checker and suites, not in the validator or sync | Source: ADR-0019 Decision 3; `tests/validator-runtime-oracle.py:46-100`; `tests/fixtures/validator-runtime/oracle.py:244-251` (additive suffix hard-coded) | Reversible: yes
-- A-02 | How renamed or superseded frozen checks are accepted | Resolved: schema-2 amendment with `path_changes` (spec 11's record, class-indexed mask) and `contract_changes`, owned here because 09 renames first | Source: ADR-0018 status Provisional (`.ai/adr/index.md:30`); spec 11 A-37; `.ai/specs/README.md` → "Dependency order" | Reversible: yes
-- A-03 | 1,200-word limit scope (old §9 said "including the capability table") | Resolved: the limit applies to the always-on body; the declaration's size is governed by spec 11's always-on-set budget | Source: ADR-0009 D2 (declaration embedded) and D6 (6,000-word set budget); ADR-0017 implications (`.ai/adr/0017-task-06-enforced-git-rails-hook.md:202`, residual risks stay in `capabilities.md`); fact: the declaration alone has 1,607 words | Reversible: yes (D-01; Q-01 resolved)
-- A-04 | Capability syntax | Resolved: spec 19's record form for every canonical key, in a new trailing section | Source: `harness/claude/capabilities.md:31-37`; spec 19 A-32 | Reversible: yes
+- A-02 | How renamed or superseded frozen checks are accepted | Resolved: schema-2 amendment with `path_changes` (spec 013's record, class-indexed mask) and `contract_changes`, owned here because 09 renames first | Source: ADR-0018 status Provisional (`.ai/adr/index.md:30`); spec 013 A-37; `.ai/specs/README.md` → "Dependency order" | Reversible: yes
+- A-03 | 1,200-word limit scope (old §9 said "including the capability table") | Resolved: the limit applies to the always-on body; the declaration's size is governed by spec 013's always-on-set budget | Source: ADR-0009 D2 (declaration embedded) and D6 (6,000-word set budget); ADR-0017 implications (`.ai/adr/0017-task-06-enforced-git-rails-hook.md:202`, residual risks stay in `capabilities.md`); fact: the declaration alone has 1,607 words | Reversible: yes (D-01; Q-01 resolved)
+- A-04 | Capability syntax | Resolved: spec 021's record form for every canonical key, in a new trailing section | Source: `harness/claude/capabilities.md:31-37`; spec 021 A-32 | Reversible: yes
 - A-05 | `step` values 2.5, 4a, 4b | Resolved: grammar of DM-3 keeps them | Source: current descriptions (Context fact 7); best practice (no renumbering churn) | Reversible: yes
-- A-06 | `loads` on rules | Resolved: reserved extension key on rules and workflows, registered by spec 11 | Source: spec 11 REQ-22; ADR-0009 D2 (workflow `loads`) | Reversible: yes
-- A-07 | Manifest revision field name | Resolved: `source_revision`, same derivation as spec 11 | Source: spec 11 DM-4 | Reversible: yes
+- A-06 | `loads` on rules | Resolved: reserved extension key on rules and workflows, registered by spec 013 | Source: spec 013 REQ-22; ADR-0009 D2 (workflow `loads`) | Reversible: yes
+- A-07 | Manifest revision field name | Resolved: `source_revision`, same derivation as spec 013 | Source: spec 013 DM-4 | Reversible: yes
 - A-08 | Implementation language of the engine | Resolved: standard-library Python 3.11+ called from bash `sync.sh` | Source: ADR-0009 D6 (bash for sync, Python for tools); precedent `scripts/install-hooks.sh`/`.py`; the validator that sync already runs needs Python (`scripts/validate-contracts.sh:5846`) | Reversible: yes
 - A-09 | Location of manifests, journal, lock | Resolved: under `<config>/orchestrail/` beside the registry and hook receipt | Source: `scripts/install-hooks.py:658-659`; Context fact 4 | Reversible: yes
-- A-10 | First run without manifest | Resolved for this engine, which is the interim state until spec 20 takes over the write path (A-31): adopt planned managed paths (today's overwrite), remove nothing, report leftovers | Source: REQ-10; P1 (`.ai/principles/architecture.md:11-16`); ADR-0009 D2 (old directories never deleted by scripts) | Reversible: yes
+- A-10 | First run without manifest | Resolved for this engine, which is the interim state until spec 022 takes over the write path (A-31): adopt planned managed paths (today's overwrite), remove nothing, report leftovers | Source: REQ-10; P1 (`.ai/principles/architecture.md:11-16`); ADR-0009 D2 (old directories never deleted by scripts) | Reversible: yes
 - A-11 | Old-name skills left installed vs "no hidden aliases" | Resolved: never created or kept by the engine; existing ones reported every run for manual removal | Source: REQ-10, REQ-40; ADR-0009 D2 | Reversible: yes
 - A-12 | "Maintenance mode" of old REQ-43 | Resolved: an owner-invoked sync is the maintenance action; no unattended global replacement exists; the residual race is printed | Source: previous REQ-43 text; no workflow takes a lock shared with deployment (no `deploy.lock` or registry lock appears in `workflows/`) | Reversible: yes
 - A-13 | Deferral exit status | Resolved: 3, distinct from errors | Source: best practice; old §7.4 (non-zero for a deferred mandatory scope) | Reversible: yes
@@ -1616,29 +1622,29 @@ procedure: run `scripts/sync.sh --from <copy>` with those variables redirected.
 - A-16 | `deploy.env` prefixes | Resolved: only `$HOME/` | Source: `.ai/principles/coding.md:66-67` (no hard-coded home paths); both harnesses live under `$HOME` | Reversible: yes
 - A-17 | Project link directory as data | Resolved: optional `project_skills_link_dir` key | Source: REQ-05 (no provider branch); `scripts/sync.sh:226-239` | Reversible: yes
 - A-18 | Phases of utilities and composite validation | Resolved: DM-11 table | Source: `.ai/principles/coding.md:19-21` description prefixes; `scripts/validate-contracts.sh:1451-1455` (composite trigger owned by `pav-close`) | Reversible: yes
-- A-19 | Section assignment of the `workflow-reference` split | Resolved: DM-12 defaults, amendable from 08 | Source: ADR-0009 D3 (three targets, frozen headings); heading positions (Context fact 9) | Reversible: yes
+- A-19 | Section assignment of the `workflow-reference` split | Resolved: DM-12 defaults, amendable from 010 | Source: ADR-0009 D3 (three targets, frozen headings); heading positions (Context fact 9) | Reversible: yes
 - A-20 | Rule load modes | Resolved: from the current trigger | Source: Context fact 7; ADR-0009 D2 | Reversible: yes
-- A-21 | Validator check descriptions with old names | Resolved: unchanged frozen labels | Source: oracle pins descriptions (Context fact 11); spec 11 "keeps its description" | Reversible: no (changing them needs a new inventory decision)
-- A-22 | Word counter | Resolved: DM-19 | Source: spec 11 A-09; spec 19 Terminology | Reversible: yes
-- A-23 | `always-on-path` line kept although it repeats `deploy.env` | Resolved: kept, equality enforced by the checker | Source: previous §7.2; spec 19 relies on it as a plain line | Reversible: yes
+- A-21 | Validator check descriptions with old names | Resolved: unchanged frozen labels | Source: oracle pins descriptions (Context fact 11); spec 013 "keeps its description" | Reversible: no (changing them needs a new inventory decision)
+- A-22 | Word counter | Resolved: DM-19 | Source: spec 013 A-09; spec 021 Terminology | Reversible: yes
+- A-23 | `always-on-path` line kept although it repeats `deploy.env` | Resolved: kept, equality enforced by the checker | Source: previous §7.2; spec 021 relies on it as a plain line | Reversible: yes
 - A-24 | Symbolic-link policy for `skills_dir` | Resolved: the directory may resolve elsewhere but must stay stable; managed paths inside must not be links | Source: previous §7.3 ("target substitution stops writing"); best practice for dotfile setups | Reversible: yes
 - A-25 | Legacy reporting location | Resolved: dedicated reporter, called by sync and setup | Source: REQ-11 (named exception) | Reversible: yes
-- A-26 | `tests/golden/cases/*/case.json` | Resolved: in scan set R if present; spec 10 is ordered after 09 (`.ai/specs/README.md` → "Dependency order"), so they will normally be authored with new names | Source: spec 10 request; roadmap order | Reversible: yes
+- A-26 | `tests/golden/cases/*/case.json` | Resolved: in scan set R if present; spec 012 is ordered after 011 (`.ai/specs/README.md` → "Dependency order"), so they will normally be authored with new names | Source: spec 012 request; roadmap order | Reversible: yes
 - A-27 | Principle front matter | Resolved: out of scope | Source: REQ-12 covers rules only | Reversible: yes
 - A-28 | Installation record for a future harness with `hooks.json` | Resolved: receives the single hook installer result | Source: `scripts/install-hooks.py` is the only hook installer | Reversible: yes
 - A-29 | Source checkout as an active consumer | Resolved: counted when registered and active | Source: REQ-43 intent (shared skills change under any running task); this repository runs its own pipeline (`CLAUDE.md:3-5`) | Reversible: yes
 - A-30 | Edited global always-on file | Resolved: protected like every owned object; the advice to edit it is removed (REQ-66); placement of personal preferences left open (Q-06) | Source: REQ-42; current advice at `rules/language.md:20-21` would otherwise lose user text on every sync | Reversible: yes
-- A-31 | Who owns global writes after spec 20 | Resolved: spec 20's installer supersedes the `deploy` write path and migrates DM-6 manifests; this spec's engine is the interim state and its preserved contracts are listed in Notes → Relationship to spec 20 | Source: ADR-0009 Decision 1 Consequences and Decision 6 (installer belongs to spec 20); former Q-05; spec 20 REQ-42, REQ-43, REQ-71 | Reversible: yes
+- A-31 | Who owns global writes after spec 022 | Resolved: spec 022's installer supersedes the `deploy` write path and migrates DM-6 manifests; this spec's engine is the interim state and its preserved contracts are listed in Notes → Relationship to spec 022 | Source: ADR-0009 Decision 1 Consequences and Decision 6 (installer belongs to spec 022); former Q-05; spec 022 REQ-42, REQ-43, REQ-71 | Reversible: yes
 - A-32 | Names and placement of files and sections created by later specs | Resolved: Notes → Files and sections created after this spec | Source: DM-2, DM-11 naming patterns; DM-12 default target; P6 | Reversible: yes
-- A-33 | Extension keys in `Requires` cells | Resolved: admitted when every harness declares the record (REQ-67) | Source: spec 16 REQ-24 and its DM-1; DM-4 extension-record convention | Reversible: yes
-- A-34 | 08 acceptance line, root `README.md`, kind definitions | Resolved: Guard checks the `Accepted: owner <date>` line; `README.md` joins scan set R; kinds defined as in spec 08 A-04 | Source: spec 08 DM-8 report layout, A-06 (active class = R plus `README.md`), A-04 | Reversible: yes
-- A-35 | Split targets of mapped rules (spec 11 Q-07) | Resolved: option (a) of spec 11's Q-07, as REQ-68: the later spec appends the split target to the `new` list of the existing `rule` row in its own delivery. Grounds: DM-10 (Overflow rules) already adds created split targets to the source row's `new` list, so one mechanism covers both; the DM-9 token classes include every `new` of the row, so the move is path-only and passes the mask unchanged; the row's checks and `name_map_sha256` are the only things that change. Option (b) is rejected: a `contract_changes` entry needs an `after` that is a superseding contract, a split target supersedes none, and extending the closed set by a requirement of this spec would make a name-only move a semantic change reviewed as one (REQ-52). Limit: text asserted by checks of two different rows cannot move into one new file, because a `new` value joins one row only (DM-1); spec 11 stops there, as its own text says | Source: DM-1, DM-9 (token classes, mask), DM-10 (Overflow rules); spec 11 Q-07, A-37, A-39, REQ-22; `tests/validator-runtime-oracle.py:46-100` (current schema-1 oracle, the schema-2 oracle is delivered by this spec); ADR-0018 (inventory frozen, amendments exact) | Reversible: yes
-- A-36 | Who may extend the closed `requirement` set | Resolved: only a later spec's own delivery, with the oracle change and a DM-20 row per new entry (REQ-69) | Source: DM-9 (set hard-coded in the oracle test), DM-20 (Superseded checks); spec 20 Part A needs it | Reversible: yes
+- A-33 | Extension keys in `Requires` cells | Resolved: admitted when every harness declares the record (REQ-67) | Source: spec 018 REQ-24 and its DM-1; DM-4 extension-record convention | Reversible: yes
+- A-34 | 08 acceptance line, root `README.md`, kind definitions | Resolved: Guard checks the `Accepted: owner <date>` line; `README.md` joins scan set R; kinds defined as in spec 010 A-04 | Source: spec 010 DM-8 report layout, A-06 (active class = R plus `README.md`), A-04 | Reversible: yes
+- A-35 | Split targets of mapped rules (spec 013 Q-07) | Resolved: option (a) of spec 013's Q-07, as REQ-68: the later spec appends the split target to the `new` list of the existing `rule` row in its own delivery. Grounds: DM-10 (Overflow rules) already adds created split targets to the source row's `new` list, so one mechanism covers both; the DM-9 token classes include every `new` of the row, so the move is path-only and passes the mask unchanged; the row's checks and `name_map_sha256` are the only things that change. Option (b) is rejected: a `contract_changes` entry needs an `after` that is a superseding contract, a split target supersedes none, and extending the closed set by a requirement of this spec would make a name-only move a semantic change reviewed as one (REQ-52). Limit: text asserted by checks of two different rows cannot move into one new file, because a `new` value joins one row only (DM-1); spec 013 stops there, as its own text says | Source: DM-1, DM-9 (token classes, mask), DM-10 (Overflow rules); spec 013 Q-07, A-37, A-39, REQ-22; `tests/validator-runtime-oracle.py:46-100` (current schema-1 oracle, the schema-2 oracle is delivered by this spec); ADR-0018 (inventory frozen, amendments exact) | Reversible: yes
+- A-36 | Who may extend the closed `requirement` set | Resolved: only a later spec's own delivery, with the oracle change and a DM-20 row per new entry (REQ-69) | Source: DM-9 (set hard-coded in the oracle test), DM-20 (Superseded checks); spec 022 Part A needs it | Reversible: yes
 - A-37 | Stop message for parallel-only capability keys | Resolved: the next step depends on the failing key (REQ-37) | Source: spec 23 REQ-25 (delegates the stop message and its next step to REQ-37); `/pipeline` has no parallel mode | Reversible: yes
 
 ## Decisions
 
-- D-01 | The 1,200-word limit counts the always-on body only: the generated always-on file with its provenance line, header and core, without the embedded capability declaration and without the installation record (REQ-54) | Overrides: the original text that counted the capability table in the limit | Rationale: the strict reading is unachievable, because `harness/claude/capabilities.md` alone has about 1,607 words, ADR-0009 requires the declaration to be embedded and ADR-0017 requires the git-rails residual risks to stay in it; the declaration's size is bounded by spec 11's 6,000-word budget, so it cannot grow without limit | Follow-up: none in this spec; restoring the strict reading would require shrinking the declaration under ADR-0017 and is a separate decision
+- D-01 | The 1,200-word limit counts the always-on body only: the generated always-on file with its provenance line, header and core, without the embedded capability declaration and without the installation record (REQ-54) | Overrides: the original text that counted the capability table in the limit | Rationale: the strict reading is unachievable, because `harness/claude/capabilities.md` alone has about 1,607 words, ADR-0009 requires the declaration to be embedded and ADR-0017 requires the git-rails residual risks to stay in it; the declaration's size is bounded by spec 013's 6,000-word budget, so it cannot grow without limit | Follow-up: none in this spec; restoring the strict reading would require shrinking the declaration under ADR-0017 and is a separate decision
 - D-02 | The accepted amendments AMD-08-01–AMD-08-07 of the rules and workflows audit (`docs/audits/2026-11-17-rules-workflows-audit.md`, `Accepted: owner 2026-11-18`; amendment records in its assessment) are applied whole, as two sets: references — AMD-08-01 extends DM-16's pre-existing-defect paragraph to the reference defects the report records with owner 09 outside the DM-16 grammar and states their fixes; AMD-08-02 adds AC-50, which checks them; AMD-08-05 widens DM-20 → Pre-existing reference defects to list them; bootstrap size — AMD-08-03 lets REQ-19 keep `## Context Bootstrap` whole and exceed 300 words when the front matter, that section, the `## Phase Behaviors` heading and the citing line alone exceed it; AMD-08-04 makes REQ-32 accept such a rule only at its listed word count; AMD-08-06 adds DM-20 → Bootstrap size exceptions; AMD-08-07 restates AC-11 with the exception and its 316/315-word fixtures | Overrides: the unconditional 300-word limit of REQ-19, REQ-32 and AC-11, and the checker-only scope of DM-20 → Pre-existing reference defects | Rationale: the atomic-execution bootstrap's front matter and `## Context Bootstrap` already have 316 words at the audited revision and DM-12 moves that section verbatim, so the previous REQ-19 could be met only by deleting or rewording load instructions, which it forbids (AUD-08-063); the unmarked, paragraph-label, split and `.md`-suffixed references the audit assigns to this migration (AUD-08-001, AUD-08-004, AUD-08-005, AUD-08-007, AUD-08-033, AUD-08-035, AUD-08-036, AUD-08-062) lie outside the DM-16 grammar and would otherwise survive unchecked; each set is consistent only when applied whole; no amendment requires an ADR | Follow-up: the Non-Functional Requirements row `Bootstrap rule`, the Edge Cases row `Bootstrap over 300 words after the move` and the matching Risks row restated to agree; DM-10's measurement of about 393 words states no rule and is left unchanged (443 words at the audited revision)
 
 Decisions carried from the previous revision are listed under Notes → Preserved decisions.
@@ -1657,7 +1663,7 @@ resolved as A-01–A-37; unresolved items are Q-02–Q-04 and Q-06 (Q-05 and Q-0
   header and core, without the embedded capability declaration and without the installation
   record. The strict reading is unachievable (the declaration alone has about 1,607 words;
   ADR-0009 requires it embedded; ADR-0017 keeps the git-rails residual risks in it); the
-  declaration is bounded by spec 11's 6,000-word budget. Recorded as D-01; folded into REQ-54,
+  declaration is bounded by spec 013's 6,000-word budget. Recorded as D-01; folded into REQ-54,
   the Terminology entry "Always-on body" and A-03.
 
 ## Open Questions
@@ -1666,7 +1672,7 @@ resolved as A-01–A-37; unresolved items are Q-02–Q-04 and Q-06 (Q-05 and Q-0
   file including the declaration) be restored? It requires moving the git-rails protocol and
   residual-risk text (`harness/claude/capabilities.md:39-90`) out of the deployed
   declaration and re-pointing its validator checks and `tests/git-rails.sh:4456`. Impact: the
-  Claude session context stays about 2,600 words until spec 11 or a follow-up acts.
+  Claude session context stays about 2,600 words until spec 013 or a follow-up acts.
   Resolved 2026-11-14: no; the limit counts the always-on body only, without the embedded
   declaration and the installation record (D-01, REQ-54). Restoring the strict reading would
   be a separate decision under ADR-0017.
@@ -1676,16 +1682,16 @@ resolved as A-01–A-37; unresolved items are Q-02–Q-04 and Q-06 (Q-05 and Q-0
   Impact: without it no Codex collision can be established (DM-18).
 - Q-04 | non-blocker | When an inventory decision accepts added checks, should the checker run
   inside `scripts/validate-contracts.sh`? Impact: until then it runs only directly.
-- Q-05 | resolved 2026-11-14 | Spec 20 owns the installer and migrates the deploy manifests
-  of DM-6 (spec 20 REQ-43, REQ-71); see Notes → Relationship to spec 20 and A-31.
+- Q-05 | resolved 2026-11-14 | Spec 022 owns the installer and migrates the deploy manifests
+  of DM-6 (spec 022 REQ-43, REQ-71); see Notes → Relationship to spec 022 and A-31.
 - Q-06 | non-blocker | Where should personal, cross-project preferences live once the global
   always-on file is ownership-protected (REQ-66)? Merging user text into that file is out of
-  scope for spec 20 too. Impact: until decided, users keep such preferences in project files;
+  scope for spec 022 too. Impact: until decided, users keep such preferences in project files;
   an edit to the global file stops sync with a resolution message.
 
 ## Notes
 
-### Old-to-new section mapping (for citations by specs 11, 10, 19, 21, 23)
+### Old-to-new section mapping (for citations by specs 013, 012, 021, 023, 23)
 
 | Previous section | Now |
 |---|---|
@@ -1716,17 +1722,17 @@ REQ-30's "future known versions" became the extension-key registry of DM-2/DM-3.
 08 owns the audit: inventory, link graph, duplicate clusters, mixed-kind detection, word and
 byte measurements and its findings, and proposes amendments to this spec. 09 owns every
 contract and change listed in Scope, including the final maps DM-10–DM-12, which are binding
-defaults; 08's accepted report may change them only through `/spec-sync` before 09's
+defaults; 010's accepted report may change them only through `/spec-sync` before 011's
 Discovery (ADR-0009 D3). 08 should use DM-19 for word counts and DM-2's kinds, and report any
 file missing from DM-10/DM-11.
 
 ### Prerequisites and Guard for the implementing task
 
-Before any change: spec 01 complete and 08's report accepted (ADR-0009 D7; roadmap order).
+Before any change: spec 002 complete and 010's report accepted (ADR-0009 D7; roadmap order).
 Accepted means: exactly one file matches `docs/audits/*-rules-workflows-audit.md`, and its
 `## Acceptance` section holds exactly one line `Accepted: owner <YYYY-MM-DD>` with a valid date
-(the line format of spec 08's report layout, its DM-8); `Accepted: pending`, no match or
-several matches stop the task. The report's `## Blockers for spec 09` (08 DM-8) must read
+(the line format of spec 010's report layout, its DM-8); `Accepted: pending`, no match or
+several matches stop the task. The report's `## Blockers for spec 011` (010 DM-8) must read
 `None.`, or every finding it lists must be cited by an amendment applied to this spec through
 `/spec-sync` and recorded in its Change log; otherwise stop. If the report is missing, stop; do
 not re-run the audit inside this task. Pin the source
@@ -1775,7 +1781,7 @@ Two harnesses; capabilities instead of provider names; `rule-`/`principle-` pref
 rule kinds; a separate audit before migration; frozen headings of the split contract; a final
 command-rename wave; a registry of physical roots; historical data and old installed
 directories preserved. Still rejected: partial support of the retired integration, renaming
-only the five colliding rules, moving command renames to spec 21, per-provider workflow logic.
+only the five colliding rules, moving command renames to spec 023, per-provider workflow logic.
 
 ### Rejected alternatives in this revision
 
@@ -1788,28 +1794,28 @@ only the five colliding rules, moving command renames to spec 21, per-provider w
 
 ### Peer requests
 
-- Spec 19 — record form for every canonical key: **adopted** (DM-4, A-04). `step` type:
-  **adopted** (DM-3, A-05). `always-on.md` becomes generated after 10: **adopted** (REQ-36;
+- Spec 021 — record form for every canonical key: **adopted** (DM-4, A-04). `step` type:
+  **adopted** (DM-3, A-05). `always-on.md` becomes generated after 012: **adopted** (REQ-36;
   REQ-54 counts the body without an embedded declaration). Size 985 + 1,607 + 11 words:
-  **adapted** — the limit applies to the body (A-03, D-01); spec 19's REQ-17 should apply its
+  **adapted** — the limit applies to the body (A-03, D-01); spec 021's REQ-17 should apply its
   1,200 words to provenance line + header + core, not the declaration.
-- Spec 11 — optional `loads` on rules: **adopted** as a registered extension key (A-06).
+- Spec 013 — optional `loads` on rules: **adopted** as a registered extension key (A-06).
   `source_revision`: **adopted** (A-07, REQ-58). `always-on.md` may name `load: always` rules:
   **confirmed**; the lines count toward the 1,200-word body. Re-pointing frozen checks:
-  **09 owns it** (DM-9), with 11's record shape; the mask is widened to `templates/`, `docs/`
+  **09 owns it** (DM-9), with 013's record shape; the mask is widened to `templates/`, `docs/`
   and class-indexed names, which every 11 path-only change between unmapped paths still satisfies.
-- Spec 10 — prompts in `tests/golden/cases/*/case.json`: **adopted** in scan set R (A-26).
+- Spec 012 — prompts in `tests/golden/cases/*/case.json`: **adopted** in scan set R (A-26).
 - Shared finding that the inventory is frozen: **verified** (Context fact 11); new checks are
   standalone (REQ-50).
 
 ### Follow-ups for other specs and shared files (not edited here)
 
-- 10: see Notes → Spec 19 alignment.
+- 10: see Notes → Spec 021 alignment.
 - 08: reuse DM-9 instead of defining schema 2; register `loads` in the checker (DM-2/DM-3).
   Its Q-07 is settled (A-35): a split target that receives frozen-checked text from a mapped
-  rule is appended to that rule's `new` list in 11's own delivery (REQ-68), with the
+  rule is appended to that rule's `new` list in 013's own delivery (REQ-68), with the
   `docs/USAGE.md` row, the `path_changes` entries and the refreshed `name_map_sha256`.
-- 20: preserve the contracts listed in Notes → Relationship to spec 20, including leftover
+- 20: preserve the contracts listed in Notes → Relationship to spec 022, including leftover
   reporting (REQ-57) in a command that remains after `deploy` is removed, and refresh its
   quotation of the former Q-05.
 - 12: wire `--parallel` into the "Parallel children" row of DM-4 (key names agree, Notes →
@@ -1819,39 +1825,39 @@ only the five colliding rules, moving command renames to spec 21, per-provider w
   needs no change.
 - 08: report in DM-19 counts and DM-2 kinds; propose map amendments through `/spec-sync`.
 
-### Relationship to spec 20 (installer)
+### Relationship to spec 022 (installer)
 
-Ruling of 2026-11-14 (A-31): spec 20 owns the public installer and becomes the only writer of
+Ruling of 2026-11-14 (A-31): spec 022 owns the public installer and becomes the only writer of
 global files. This spec is delivered first, so its engine, deploy manifests (DM-6), journal and
 lock (DM-7), `--force` and `sync.sh` exit code 3 are correct and complete as the state between
-the two deliveries. Spec 20 then removes the `deploy` command (its REQ-71), adds
+the two deliveries. Spec 022 then removes the `deploy` command (its REQ-71), adds
 `deployment-set` and `project-pass` on this engine, keeps `list-projects` and `link-project`,
 migrates every DM-6 manifest into its own manifest and deletes them (its REQ-43). From that
-point REQ-10, REQ-42 and REQ-45 for global targets are met by spec 20's engine, and the
-`deploy` cases of `scripts/check-deploy-skills.py` move as spec 20 states.
+point REQ-10, REQ-42 and REQ-45 for global targets are met by spec 022's engine, and the
+`deploy` cases of `scripts/check-deploy-skills.py` move as spec 022 states.
 
-Contracts of this spec that spec 20 must preserve: an owned file the user changed is never
-overwritten or removed and a conflict writes nothing (REQ-42, REQ-63), except under spec 20's
-explicit `--adopt`, which stores a verified backup before replacing a target (spec 20 REQ-03,
-REQ-06) — spec 20 replaces this spec's implicit first-run adoption with that explicit option;
+Contracts of this spec that spec 022 must preserve: an owned file the user changed is never
+overwritten or removed and a conflict writes nothing (REQ-42, REQ-63), except under spec 022's
+explicit `--adopt`, which stores a verified backup before replacing a target (spec 022 REQ-03,
+REQ-06) — spec 022 replaces this spec's implicit first-run adoption with that explicit option;
 deferral
 that writes nothing while an active consumer exists, the source checkout included (REQ-43,
 DM-8), with `--force` overriding only that freeze; leftover skills reported, never removed
 (REQ-57); the registry read-only (REQ-08); the lock never taken over (DM-7); the project pass
-as defined here. The exit code and wording of a deferral become spec 20's (its REQ-42 uses
+as defined here. The exit code and wording of a deferral become spec 022's (its REQ-42 uses
 exit 1 `active-task`); the deferral itself does not change.
 
-Properties of this engine that exist only until spec 20 takes over the write path, and are
+Properties of this engine that exist only until spec 022 takes over the write path, and are
 not permanent claims of this spec: the implicit first-run adoption (A-10, the `adopt`
 action of Contracts → `scripts/deploy-skills.py`), the `forced <root>` output lines under
-`--force`, and the other behaviours that spec 20 changes on purpose. Spec 20's
+`--force`, and the other behaviours that spec 022 changes on purpose. Spec 022's
 `deployment-set` reads the same engine without writing: its per-harness
 `leftover_candidates` is carried by the same name-map logic as the REQ-57 leftover
 definition (Terminology → Leftover skill), listing existing `<skills_dir>/<name>` directories
 for `<old>` of a workflow row, `rule-<old>` of a rule row, `PIPELINE` and `rule-global-claude`
 of the file rows, none of them a current installed name (DM-1); the ownership filter is the
 consumer's. Only `old` names enter that list, so appending split targets to a `new` list
-(REQ-68) never creates a leftover. Spec 20 extends the closed `requirement` set of
+(REQ-68) never creates a leftover. Spec 022 extends the closed `requirement` set of
 `contract_changes` as REQ-69 states, with a DM-20 row per new entry.
 
 ### Files and sections created after this spec
@@ -1868,16 +1874,16 @@ old names its text uses through `docs/name-map.json`:
   split target that receives text moved from a rule that has a `rule` row, whose stem is
   appended to that row's `new` list (REQ-68).
 - A new workflow uses the DM-11 pattern directly: a phase child is `<phase>-<step-name>` with
-  DM-3 `phase` and `step` (spec 17's `/pae-repair` is created as `atomic-execution-repair`,
+  DM-3 `phase` and `step` (spec 019's `/pae-repair` is created as `atomic-execution-repair`,
   phase `atomic-execution`, step `4`, as its A-01 states); orchestrators, entry points and
   utilities use a name without an old prefix. Old prefixes translate as `pd-` →
   `discovery-`, `pe-` → `execution-`, `pv-` → `validation-`, `pae-` → `atomic-execution-`,
   `pav-` → `atomic-validation-`, `phase-<x>` → `<x>`. No map row is added.
 - A section a later spec adds to a file this spec splits or renames lands in that file's
   successor: under an existing parent section, in the target that holds the parent per DM-12
-  (spec 18's `### Merge and split` and `### Boundary Alternatives` under
+  (spec 020's `### Merge and split` and `### Boundary Alternatives` under
   `## Decomposition Rules` land in `rules/protocol-subtask-classifier.md`); a new `## ` section
-  lands in `rules/contract-state-files.md`, the default target of DM-12 (spec 18's
+  lands in `rules/contract-state-files.md`, the default target of DM-12 (spec 020's
   `## Coverage and Interfaces`, which defines plan sections and their Protected Sections
   entries), unless the authoring spec names another DM-12 target. Citations become
   `<target> → ## <heading>`.
@@ -1893,18 +1899,18 @@ record; until the Claude records carry evidence and `state: yes`, spec 23 refuse
 `--parallel N` with N > 1, which is the intended conservative path (REQ-38). Spec 23 wires the
 flag into the "Parallel children" row.
 
-### Spec 19 alignment (this spec's side)
+### Spec 021 alignment (this spec's side)
 
-All three items are adopted by spec 19:
-- Size: spec 19's always-on limit counts exactly REQ-54's body — the generated file including
+All three items are adopted by spec 021:
+- Size: spec 021's always-on limit counts exactly REQ-54's body — the generated file including
   its provenance line, header and core, without the embedded capability declaration and without
-  the installation record (19 REQ-17, A-42).
-- Steps: spec 19 uses the DM-3 `step` grammar and its sort order (`"-"` first, then integer,
-  decimal part, letter) (19 A-44).
+  the installation record (021 REQ-17, A-42).
+- Steps: spec 021 uses the DM-3 `step` grammar and its sort order (`"-"` first, then integer,
+  decimal part, letter) (021 A-44).
 - Harness: a non-hidden directory with `deploy.env` (DM-5), which on a valid tree is the same
   set as directories with `capabilities.md`; retiring a harness also deletes its `deploy.env`
-  (19 A-43).
-- After spec 19, `harness/<name>/always-on.md` is a generated output at the same path; this
+  (021 A-43).
+- After spec 021, `harness/<name>/always-on.md` is a generated output at the same path; this
   spec's checks keep applying to it (REQ-36, REQ-54).
 
 ### Change log
@@ -1915,20 +1921,20 @@ All three items are adopted by spec 19:
 - 2026-11-14 — English refinement: REQ-05–REQ-49 and AC-02–AC-29 restated and made precise;
   REQ-50–REQ-65 (REQ-60 unused) and AC-30–AC-43 added; data model DM-1–DM-20, engine,
   reporter, checker and suites contracts, schema-2 inventory amendment and peer dispositions.
-- 2026-11-14 — reconciliation with specs 08, 09, 12–19, 21 and 23: installer ownership ruling (Notes →
-  Relationship to spec 21, A-31, Q-05 resolved); 08 acceptance line in the Guard, root
+- 2026-11-14 — reconciliation with specs 010, 011, 014–19, 21 and 23: installer ownership ruling (Notes →
+  Relationship to spec 023, A-31, Q-05 resolved); 08 acceptance line in the Guard, root
   `README.md` in scan set R, kind definitions (A-34); REQ-67 and AC-47 for extension keys in
-  `Requires` cells (spec 16); rules for files and sections created by later specs (A-32);
-  capability key names (spec 23); spec 19 alignment; DM-5 harness definition and DM-3 sort
+  `Requires` cells (spec 018); rules for files and sections created by later specs (A-32);
+  capability key names (spec 23); spec 021 alignment; DM-5 harness definition and DM-3 sort
   order made binding; project pass writes no profile files.
-- 2026-11-14 — second reconciliation pass with specs 11, 21, 23, 12–15, 17, 18: split targets
-  of mapped rules append to the row's `new` list (REQ-68, AC-48, A-35; settles spec 11 Q-07);
+- 2026-11-14 — second reconciliation pass with specs 013, 023, 23, 014–15, 17, 18: split targets
+  of mapped rules append to the row's `new` list (REQ-68, AC-48, A-35; settles spec 013 Q-07);
   the `/spec-run` stop message names the next step by failing key (REQ-37, AC-23, A-37; spec
   23 delegates the wording to REQ-37); the closed `requirement` set is extended only by a later spec's own delivery (REQ-69,
-  AC-49, A-36; spec 21); interim properties of the engine marked and the `deployment-set`
-  leftover list confirmed (Notes → Relationship to spec 21); the rule names in Notes → Files and
+  AC-49, A-36; spec 023); interim properties of the engine marked and the `deployment-set`
+  leftover list confirmed (Notes → Relationship to spec 023); the rule names in Notes → Files and
   sections created after this spec checked against the owning specs (12–15, 17) and unchanged.
-- 2026-11-14 — independent final review: REQ-69 fixes the prefix form of added values; DM-2 defines extension-key blocks; REQ-30 names `metadata-invalid-value`; split boundary moves REQ-14–REQ-16 and REQ-37 to 09b; REQ-11 and Scope item 1 include `docs/USAGE.md → ## Removed integrations`; DM-12 assigns the preamble; DM-16 form 1 excludes ` → ` spans; Guard requires 08's blockers list to be cleared; spec 19 alignment marked adopted; line 23 untouched.
+- 2026-11-14 — independent final review: REQ-69 fixes the prefix form of added values; DM-2 defines extension-key blocks; REQ-30 names `metadata-invalid-value`; split boundary moves REQ-14–REQ-16 and REQ-37 to 09b; REQ-11 and Scope item 1 include `docs/USAGE.md → ## Removed integrations`; DM-12 assigns the preamble; DM-16 form 1 excludes ` → ` spans; Guard requires 010's blockers list to be cleared; spec 021 alignment marked adopted; line 23 untouched.
 - 2026-11-14 — owner decision recorded: D-01 keeps the 1,200-word limit on the always-on body only (without the embedded declaration and the installation record); Q-01 resolved; REQ-54, Terminology, A-03, Risks, Rejected alternatives, Peer requests and the Readiness Checklist aligned.
 - 2026-11-18 — audit amendments applied (`/spec-sync`, owner acceptance of
   `docs/audits/2026-11-17-rules-workflows-audit.md` on 2026-11-18; D-02). AMD-08-01: DM-16
@@ -1938,7 +1944,7 @@ All three items are adopted by spec 19:
   AMD-08-05: DM-20 → Pre-existing reference defects includes those defects. AMD-08-06:
   DM-20 → Bootstrap size exceptions added. AMD-08-07: AC-11 restated for the exception. The
   NFR row `Bootstrap rule`, the Edge Cases row `Bootstrap over 300 words after the move` and
-  the matching Risks row restated to agree. The report's `## Blockers for spec 09` findings
+  the matching Risks row restated to agree. The report's `## Blockers for spec 011` findings
   AUD-08-001, AUD-08-004, AUD-08-005, AUD-08-007, AUD-08-033, AUD-08-035, AUD-08-036,
   AUD-08-062 (AMD-08-01, AMD-08-02, AMD-08-05) and AUD-08-063 (AMD-08-03, AMD-08-04,
   AMD-08-06, AMD-08-07) are each cited by an applied amendment. No requirement or criterion
@@ -1971,5 +1977,5 @@ Owner decision pass 2026-11-14: D-01 recorded (Q-01 resolved); changed passages 
 
 Audit amendment pass 2026-11-18: AMD-08-01–AMD-08-07 applied (D-02: DM-16, DM-20, REQ-19, REQ-32, AC-11, new AC-50; NFR, Edge Cases and Risks rows restated); checks 3, 4 and 7 rerun on the changed passages (every REQ still maps to an AC and every AC names a REQ); no open question added; no independent pass on this edit; verdict unchanged.
 
-**Verdict: READY FOR DEVELOPMENT** once its prerequisites hold (spec 01 complete, 08 report
+**Verdict: READY FOR DEVELOPMENT** once its prerequisites hold (spec 002 complete, 08 report
 accepted; Notes → Prerequisites). Automated readiness is not sign-off.

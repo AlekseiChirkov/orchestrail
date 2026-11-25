@@ -30,11 +30,11 @@ existing owned-hook installer with a deny-only permissions fragment.
 ## Context
 
 ADR-0008 and principle P10 move enforcement toward the harness. ADR-0009 Decision 5
-scoped a git-rails hook. Spec 06 (revision 2026-11-03) turns that scope into an
+scoped a git-rails hook. Spec 007 (revision 2026-11-03) turns that scope into an
 implementation contract with owner decisions D1–D4 and revision defaults D5–D10.
-Spec 09 (final harness layout) was planned first; the owner decided on 2026-11-03 to
+Spec 011 (final harness layout) was planned first; the owner decided on 2026-11-03 to
 implement 06 against the current `harness/claude/` layout so the enforced rails protect
-spec 09's mass-rename runs. Discovery confirmed from the official Claude Code
+spec 011's mass-rename runs. Discovery confirmed from the official Claude Code
 documentation (2.1.317, read 2026-11-03) that hook `ask` decisions reach a human in
 `default` and `auto` modes and that `"onFailure": "block"` exists.
 
@@ -170,7 +170,7 @@ override owner approvals.
 
 | Question | Answer | Impact on implementation |
 |---|---|---|
-| Spec 09 is not done; implement against the current layout? | Yes (owner, 2026-11-03) | Files placed under current `harness/claude/`; rule path kept in one constant |
+| Spec 011 is not done; implement against the current layout? | Yes (owner, 2026-11-03) | Files placed under current `harness/claude/`; rule path kept in one constant |
 | Can hook `ask` reach a human in an interactive mode? | Yes: `default` and `auto` (docs, 2026-11-03) | Spec §14 step-2 stop does not fire; allowlist starts with those modes |
 | May tests carry literal `T-NN`/`ADR-NNNN` strings? | Yes, only as commit-message pattern fixtures in `tests/git-rails.sh` (owner, 2026-11-03) | Scoped exception to the pipeline-identifier rule; nowhere else |
 | What is a malformed registry? | Strict: the registration writer's validity predicate plus non-UTF-8 or unreadable (owner, 2026-11-03) | Any invalid line denies relevant commands machine-wide; next step tells the owner to fix or remove that line |
@@ -196,9 +196,9 @@ override owner approvals.
 ## Implications for Future Work
 
 - Spec 23 adds the child-branch deletion verifier through Decision 2.
-- Spec 09 adds `permissions.json` to its adapter file list and may move the rule-path
+- Spec 011 adds `permissions.json` to its adapter file list and may move the rule-path
   constant.
-- Spec 14 must add any output-bounding wrapper to the supported wrapper list with tests.
+- Spec 016 must add any output-bounding wrapper to the supported wrapper list with tests.
 - Residual risks X1–X20 in `harness/claude/capabilities.md` remain documented
   non-guarantees; X11 is operational: the entrypoint lives in the checkout and blocks on
   failure, so uninstall before checking out a revision without it.
@@ -220,6 +220,6 @@ override owner approvals.
 
 ## References
 
-- Specification: `.ai/specs/completed/06-harness-git-rails.md`
+- Specification: `.ai/specs/completed/007-harness-git-rails.md`
 - Claude Code documentation: https://code.claude.com/docs/en/hooks,
   https://code.claude.com/docs/en/permissions, https://code.claude.com/docs/en/permission-modes

@@ -75,8 +75,8 @@ See Alternatives.
 
 ## Implications for Future Work
 
-`specs/02` (vocabulary validation in the helper), `specs/03` (hook-driven calls so
-timestamps are real), `specs/05` (token/cost fields) all extend this decision without
+`specs/003` (vocabulary validation in the helper), `specs/004` (hook-driven calls so
+timestamps are real), `specs/006` (token/cost fields) all extend this decision without
 reversing it.
 
 ## Verification

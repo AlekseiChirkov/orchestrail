@@ -31,7 +31,7 @@ Off-limits: no change to `rules/`, `workflows/`, `harness/`, `templates/`, `prin
 - The `req21` record has one statement per statement unit of the two sections and a verdict consistent with them.
 - The report's Spec 09 inputs subsection lists every map entry with a null default and the coverage verdict; the Sections subsection shows word counts for every section of every audited file; the impact subsection has one row per non-`keep` entry.
 - Every finding with `blocks_09: true` is named under `## Blockers for spec 09`; the acceptance line is `Accepted: pending`.
-- `grep -rn '/home/\|/Users/' docs/audits/*-rules-workflows-audit.*` prints nothing, and `.ai/specs/09-model-only-harnesses-and-rule-naming.md` is unchanged.
+- `grep -rn '/home/\|/Users/' docs/audits/*-rules-workflows-audit.*` prints nothing, and `.ai/specs/011-model-only-harnesses-and-rule-naming.md` is unchanged.
 
 ## Test Plan
 - **Level:** integration

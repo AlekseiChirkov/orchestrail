@@ -58,13 +58,13 @@ repository-level override exists, changes here run through `/phase-*` manually o
 here, but the no-attribution and no-identifier commit rules still do.
 
 **Related files:**
-- `.gitignore` (to be created with `specs/completed/01-git-source-of-truth.md`)
+- `.gitignore` (to be created with `specs/completed/002-git-source-of-truth.md`)
 
 ## Questions and Answers
 
 | Question | Answer | Impact on implementation |
 |---|---|---|
-| Should `.ai/tasks/todo/` be tracked too? | Yes — the owner wants `.ai/` committed in full | No `.gitignore` entry for `.ai/`; `specs/01` updated |
+| Should `.ai/tasks/todo/` be tracked too? | Yes — the owner wants `.ai/` committed in full | No `.gitignore` entry for `.ai/`; `specs/002` updated |
 | Should `/spec-run` gain a flag to allow a tracked `.ai/`? | Open | If yes, a spec is needed; if no, this repository never uses `/spec-run` on itself |
 
 ## Rejected Options
@@ -73,7 +73,7 @@ See Alternatives.
 
 ## Implications for Future Work
 
-When `specs/01` puts the repository under git, the first commit includes `.ai/` in full.
+When `specs/002` puts the repository under git, the first commit includes `.ai/` in full.
 A future ADR may revisit `tasks/todo/` if history noise becomes a problem.
 
 ## Verification

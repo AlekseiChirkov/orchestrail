@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/05-cost-and-duration-telemetry.md
+spec_path: .ai/specs/completed/006-cost-and-duration-telemetry.md
 contract_version: 0.9.0
 flow: full
 
@@ -777,7 +777,7 @@ This manual validation continuation uses owner-requested isolation per PR. Repai
 sync: complete
 synced_at: 2026-10-30
 deltas: 3 (implemented-differently: 3, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/completed/05-cost-and-duration-telemetry.md
+spec: .ai/specs/completed/006-cost-and-duration-telemetry.md
 
 ## Pull Request Promotion
 - PRs #37–#63 promoted to ready for review in stack order using the connected GitHub application. The command-line token lacked permission for this transition.

@@ -8,7 +8,7 @@ until the score reaches at least 9.5/10. The owner reports test runs of 50 minut
 or longer. This review changes the specification and its supporting knowledge only.
 The optimizations are not implemented.
 
-Specification: [Contract validator runtime](../../.ai/specs/06-1-test-suite-runtime.md).
+Specification: [Contract validator runtime](../../.ai/specs/completed/008-test-suite-runtime.md).
 Inspected HEAD: `672cd514ade50e0207b839ba424222701771a5fa`.
 Inspected validator: blob `d64c4a413e7be1114df51bdbc67ffd0b6ad75709`, 5,796 lines.
 Existing unrelated working-tree changes were preserved.

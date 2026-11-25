@@ -4,7 +4,7 @@ completed_task: task-00-sensitive-data-scrub
 completed_at: 2026-10-19
 ---
 
-# Scrub sensitive data before further publication
+# 001. Scrub sensitive data before further publication
 
 ## Implementation review — 2026-11-06
 
@@ -93,7 +93,7 @@ The original pre-initialization premise no longer holds: an initial Git commit a
   does not attempt secret detection (a separate concern if the repository ever holds one)
 - Rewriting the run log store (`logs/` is untracked and stays local)
 - `.claude/settings.local.json` (untracked; it keeps machine-specific allow-rules)
-- The Orchestrail rename itself (spec 01) — this spec only removes what must never be
+- The Orchestrail rename itself (spec 002) — this spec only removes what must never be
   committed; path constants are renamed in 01
 
 ## Notes
@@ -105,7 +105,7 @@ The original pre-initialization premise no longer holds: an initial Git commit a
   `rules/quick-flow.md` (two worked examples from client code), `workflows/retro.md`
   (example path), `templates/.ai-umbrella/README.md` (umbrella example), plus
   `~/Documents/projects/alterra/…` literals in six scripts and eleven workflow/rule files.
-- The local checkout stays at `~/Documents/projects/alterra/orchestrail/` after spec 01's
+- The local checkout stays at `~/Documents/projects/alterra/orchestrail/` after spec 002's
   rename; `alterra` is a private path component and is on the denylist precisely because it
   must not appear inside any file. `sync.sh` resolving its own location and
   `ORCHESTRAIL_HOME` make that possible.

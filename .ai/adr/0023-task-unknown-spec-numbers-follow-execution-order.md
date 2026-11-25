@@ -33,8 +33,8 @@ to delivered work and were already in order.
 
 Two facts constrained the change:
 
-- The specifications cite each other by number about four thousand times (`13 REQ-68`,
-  `spec 09`, prerequisite lists, tables keyed by specification).
+- The specifications cite each other by number about four thousand times (`015 REQ-68`,
+  `spec 011`, prerequisite lists, tables keyed by specification).
 - The contract validator's identity-ledger check requires every `.ai` path of a recorded
   baseline commit to exist at its path or under `.ai/specs/completed/`. Seven of the
   sixteen files existed at that baseline, which is why the split of 2026-11-16 kept the
@@ -73,8 +73,8 @@ date to be interpreted.
 implementer, rejected by the owner).
 
 **Consequences:** Historical statements that named a numeric range now name the
-equivalent set, for example "specs 14–20" became "specs 12–18" and "specs 01–13" became
-"specs 01–07, 09–11, 19, 21 and 23". ADR-0009 Decision 7 and ADR-0017 read in the new
+equivalent set, for example "specs 016–20" became "specs 014–18" and "specs 002–13" became
+"specs 002–07, 09–11, 19, 21 and 23". ADR-0009 Decision 7 and ADR-0017 read in the new
 numbers.
 
 ### Decision 3 — The knowledge inventory baseline moves to the renaming commit

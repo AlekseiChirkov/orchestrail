@@ -4,14 +4,14 @@ completed_task: Git source of truth
 completed_at: 2026-10-20
 ---
 
-# Make Orchestrail the Git source of truth and publish a minimal public slice
+# 002. Make Orchestrail the Git source of truth and publish a minimal public slice
 
 ## Implementation review — 2026-11-06
 
 - **Disposition:** Delivered with owner deferrals.
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Versioned source, portable setup paths, public documentation, and the tracked knowledge base are present.
-- **Outstanding scope and limits:** The license and release-tag deferrals recorded in the Change Log remain unresolved owner decisions; publication readiness is separately owned by spec 21.
+- **Outstanding scope and limits:** The license and release-tag deferrals recorded in the Change Log remain unresolved owner decisions; publication readiness is separately owned by spec 023.
 - **Sources:** [`VERSION`](../../../VERSION), [`README.md`](../../../README.md), [`scripts/sync.sh`](../../../scripts/sync.sh), [`.ai/tasks/completed/task-01-git-source-of-truth/state.md`](../../../.ai/tasks/completed/task-01-git-source-of-truth/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
@@ -57,9 +57,9 @@ read the repository.
 ## Out of Scope
 
 - Installer, `--dry-run`, `--uninstall`, profiles, examples, scrubbing of client project
-  names (spec 21). Until spec 21, the README states that `sync.sh` overwrites
+  names (spec 023). Until spec 023, the README states that `sync.sh` overwrites
   `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
-- Branch protection (enabled at the public release, spec 21)
+- Branch protection (enabled at the public release, spec 023)
 - Rewriting or deleting existing history
 
 ## Notes
@@ -70,7 +70,7 @@ read the repository.
   on-disk consumer formats only.
 - `sync.sh --from` remains available when a consumer needs a source checkout other than
   the directory containing the script.
-- **Depends on `.ai/specs/completed/00-sensitive-data-scrub.md`.** Discovery must stop if the
+- **Depends on `.ai/specs/completed/001-sensitive-data-scrub.md`.** Discovery must stop if the
   scrub's forbidden-token check is absent or failing before a public branch is pushed;
   existing ancestry remains unchanged.
 

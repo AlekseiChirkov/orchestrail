@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/01-git-source-of-truth.md
+spec_path: .ai/specs/completed/002-git-source-of-truth.md
 flow: full
 
 ## Phases
@@ -74,7 +74,7 @@ None
 - Mention that `sync.sh` also writes to Windsurf global directories and updates eligible project-local files.
 T-04 | Public identity sweep | atomic-tests: green | atomic-execution: complete | atomic-validation: complete
   last_action: pav-close DONE — independent validation passed all acceptance criteria; no important findings or useful proposals.
-  target_files: CLAUDE.md, README.md, docs/README.md, docs/USAGE.md, link-skills.sh, setup-all-repos.sh, setup-new-project.sh, setup-umbrella.sh, sync.sh, validate-contracts.sh, templates/.ai/principles/architecture.md, templates/codex-global-AGENTS.md, workflows/pv-create-fixes.md, .ai/README.md, .ai/adr/index.md, .ai/context/runbook.md, .ai/memory/architecture.md, .ai/memory/state.md, .ai/principles/architecture.md, .ai/specs/README.md, .ai/specs/09-model-only-harnesses-and-rule-naming.md
+  target_files: CLAUDE.md, README.md, docs/README.md, docs/USAGE.md, link-skills.sh, setup-all-repos.sh, setup-new-project.sh, setup-umbrella.sh, sync.sh, validate-contracts.sh, templates/.ai/principles/architecture.md, templates/codex-global-AGENTS.md, workflows/pv-create-fixes.md, .ai/README.md, .ai/adr/index.md, .ai/context/runbook.md, .ai/memory/architecture.md, .ai/memory/state.md, .ai/principles/architecture.md, .ai/specs/README.md, .ai/specs/011-model-only-harnesses-and-rule-naming.md
   blocker: none
   notes: Assigned model `gemini-3.8-flash` is unavailable in this agent runtime; the session default was used. tdd: smoke — one exact identity-ledger check, AC coverage 4/4. tdd: red digest — AC1,AC2,AC4 → test_public_identity_matches_exact_ledger_and_preserves_knowledge; AC3 → identity check and test_public_hygiene_tracked_tree_excludes_private_tokens. tdd: green — full validator 551/551; hygiene-only pass; all root scripts pass bash -n; git diff --check passes; ShellCheck unavailable. Final scan scope: all 163 tracked and non-ignored untracked worktree files, with no directory exclusions; only the 14 self-referential ledger data rows are masked while all other state content is scanned. The exact ledger records 22 `(path, line, token, count)` tuples across 21 line locations, 26 total occurrences in 10 files. The only current-content match is the single public-slug token in `docs/USAGE.md:245`; all other retained matches are source or historical lines listed below. pav-check NEEDS WORK: AC1 — `.ai/principles/coding.md` still names obsolete root variables; AC3 test gap — the knowledge inventory reads current HEAD instead of the pre-branch base, so it cannot detect a file removed in this branch. Review confirms the current base and HEAD both contain the same 45 knowledge paths. Independent revalidation 2026-10-20: pav-check NEEDS WORK. AC1 remains unmet (important): docs/USAGE.md:637 says --from takes precedence over $WORKFLOWS_SOURCE, but sync.sh reads ORCHESTRAIL_HOME; setting the documented variable has no effect. TDD audit (important): test changes were committed after RED in 1314aa2, but the required amendment record was absent. Checks: full validator 551/551; hygiene-only, shell syntax, and git diff --check passed; all 45 base .ai paths are present and tracked in HEAD; ShellCheck unavailable. tdd: test amended — 1314aa2: compare the knowledge inventory against the recorded base commit and require every baseline file to remain present and tracked. tdd: test amended — test_runtime_instructions_public_configuration_uses_orchestrail: include docs/USAGE.md so published setup examples must use the public source-root variable and reject its obsolete name.
   amendment: tdd test changes were recorded before the separate test commits; both independent validation findings have been corrected and the full validator is GREEN at 551/551.
@@ -169,8 +169,8 @@ Use the sequential feature stack. It keeps each independently verifiable outcome
 (none)
 
 ## Approved Identity Scan Exceptions
-- .ai/specs/completed/02-run-log-vocabulary-validation.md:15 — preserve only the unchanged issue link in the current active source specification, within the existing owner-approved source category.
-- .ai/specs/completed/01-git-source-of-truth.md:22 — preserve only the active source criterion.
+- .ai/specs/completed/003-run-log-vocabulary-validation.md:15 — preserve only the unchanged issue link in the current active source specification, within the existing owner-approved source category.
+- .ai/specs/completed/002-git-source-of-truth.md:22 — preserve only the active source criterion.
 - .ai/adr/0007-task-unknown-commit-ai-directory-in-this-repository.md:18 — preserve the historical repository-tracking decision.
 - .ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:70 — preserve the historical naming decision.
 - .ai/adr/0010-task-unknown-public-hygiene-and-local-publication.md:105,107 — preserve only the publication authorization and historical pull-request links.
@@ -187,8 +187,8 @@ The final scan compares each `(path, line, token, count)` against this ledger. E
 
 | Path | Line | Expected token counts |
 |---|---:|---|
-| `.ai/specs/completed/02-run-log-vocabulary-validation.md` | 25 | `agentic-workflows` × 1 |
-| `.ai/specs/completed/01-git-source-of-truth.md` | 32 | `agentic_workflows` × 1; `agentic-workflows` × 1 |
+| `.ai/specs/completed/003-run-log-vocabulary-validation.md` | 25 | `agentic-workflows` × 1 |
+| `.ai/specs/completed/002-git-source-of-truth.md` | 32 | `agentic_workflows` × 1; `agentic-workflows` × 1 |
 | `.ai/adr/0007-task-unknown-commit-ai-directory-in-this-repository.md` | 18 | `agentic_workflows` × 1 |
 | `.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md` | 70 | `agentic_workflows` × 1 |
 | `.ai/adr/0010-task-unknown-public-hygiene-and-local-publication.md` | 105 | `agentic-workflows` × 1 |
@@ -202,10 +202,10 @@ The final scan compares each `(path, line, token, count)` against this ledger. E
 | `docs/analysis/2026-09-16-comparative-analysis.ru.md` | 1, 14, 117, 225, 263, 444 | `agentic_workflows` × 1 per line |
 | `docs/analysis/2026-09-16-comparative-analysis.ru.md` | 429 | `AGENTIC_WORKFLOWS` × 1 |
 | `docs/USAGE.md` | 256 | `agentic-workflows` × 1 |
-| `.ai/specs/completed/05-cost-and-duration-telemetry.md` | 698 | `agentic-workflows` × 5 |
-| `.ai/specs/completed/06-harness-git-rails.md` | 25 | `agentic-workflows` × 2 |
-| `.ai/specs/09-model-only-harnesses-and-rule-naming.md` | 23 | `agentic-workflows` × 1 |
-| `.ai/specs/08-rules-workflows-audit.md` | 23 | `agentic-workflows` × 1 |
+| `.ai/specs/completed/006-cost-and-duration-telemetry.md` | 698 | `agentic-workflows` × 5 |
+| `.ai/specs/completed/007-harness-git-rails.md` | 25 | `agentic-workflows` × 2 |
+| `.ai/specs/011-model-only-harnesses-and-rule-naming.md` | 29 | `agentic-workflows` × 1 |
+| `.ai/specs/010-rules-workflows-audit.md` | 23 | `agentic-workflows` × 1 |
 
 ### Subsequent Publication Authorization — 2026-10-28
 
@@ -311,7 +311,7 @@ Created: T-05-fix-validation-metadata
 sync: complete
 synced_at: 2026-10-20
 deltas: 5 (implemented-differently: 3, not-implemented: 2, implemented-beyond: 0)
-spec: .ai/specs/completed/01-git-source-of-truth.md
+spec: .ai/specs/completed/002-git-source-of-truth.md
 
 ## Specification delivery review — 2026-11-06
 - authority: explicit owner request to reconcile every specification and update state

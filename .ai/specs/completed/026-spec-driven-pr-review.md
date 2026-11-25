@@ -1,4 +1,4 @@
-# Specification-driven, risk-based pull request review pilot
+# 026. Specification-driven, risk-based pull request review pilot
 
 ## Source
 
@@ -151,7 +151,7 @@ On a fresh `spec-run`, Discovery selects the first numbered phase. Analysis read
 | Prepare blinded adjudication and the paired report template | Agreed record format | AC-50 |
 | Rehearse the combined process and record readiness | Prepared packets, review and scoring templates | AC-48 and integrated verification of AC-45–AC-50 |
 
-The current runner creates each new leaf branch from the preceding reviewed tip and runs one subtask and one orchestration agent at a time (`workflows/spec-run.md:271–277,380–381,480`, `rules/orchestration.md:7–14`). Inside a worker, batch independent reads and run independent fixture checks concurrently where they have disjoint outputs. Keep test-first and independent validation checkpoints, shared writes and branch handoffs serialized. Use the bounded parallel review sessions for the separate operator-run rehearsal and historical comparison. The [parallel-children contract](../23-composite-branch-model-and-parallel-children.md) remains a separate initiative.
+The current runner creates each new leaf branch from the preceding reviewed tip and runs one subtask and one orchestration agent at a time (`workflows/spec-run.md:271–277,380–381,480`, `rules/orchestration.md:7–14`). Inside a worker, batch independent reads and run independent fixture checks concurrently where they have disjoint outputs. Keep test-first and independent validation checkpoints, shared writes and branch handoffs serialized. Use the bounded parallel review sessions for the separate operator-run rehearsal and historical comparison. The [parallel-children contract](../027-parallel-execution-program.md) remains a separate initiative.
 
 Implementation completion records fixture evidence. Run the historical comparison when source-backed packets are prepared and the isolation rehearsal passes. A repeated `spec-run` can select the next numbered phase after the first phase validates. Invoke that next phase only after the owner decides to proceed and refines its scope. Whole-spec completion requires the deferred phase (`workflows/pv-finalize.md:62–67`).
 

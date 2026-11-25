@@ -22,6 +22,8 @@ text="$(<"$workflow")"
 
 # Each row: description, then an extended regular expression the workflow must match.
 required=(
+  "new specification numbers use three digits starting at 001"
+  'use `\.ai/specs/NNN-<slug>\.md`'
   "Step 6 is the Devil's Advocate review"
   $'(^|\n)## Step 6 — Devil\'s Advocate review\n'
   "loop bounds name 10 rounds and the 95/100 threshold on one line"

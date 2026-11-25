@@ -4,7 +4,7 @@ completed_task: task-03-hook-based-logging
 completed_at: 2026-10-26
 ---
 
-# Drive run-log `step` calls from harness hooks
+# 004. Drive run-log `step` calls from harness hooks
 
 ## Implementation review — 2026-11-06
 
@@ -52,14 +52,14 @@ workflows retain approximate prompt logging at boundaries the hooks cannot demon
 
 ## Out of Scope
 
-- Cost/token fields (spec 05); git rails (spec 06)
+- Cost/token fields (spec 006); git rails (spec 007)
 - Project-level hook installation (rejected: would be committed with consumer repos)
 
 ## Notes
 
 - Decisions: ADR-0009 Decision 2 (capabilities, registry) and 5 (user-level hooks,
   `SubagentStop` + `Stop`, run-start/run-end prompt-driven, Codex approximate).
-- Depends on spec 02 (vocabulary) and spec 09 (`harness/` layout, capabilities).
+- Depends on spec 003 (vocabulary) and spec 011 (`harness/` layout, capabilities).
 - The hook must be fast and must never fail the tool call it observes.
 
 ## Review integration — 2026-10-21
@@ -67,7 +67,7 @@ workflows retain approximate prompt logging at boundaries the hooks cannot demon
 ### Requirements
 
 - **REQ-01** THE SYSTEM SHALL correlate run/session/agent/checkpoint identities explicitly,
-  deduplicate Stop/SubagentStop delivery and preserve completed spec 02's validation,
+  deduplicate Stop/SubagentStop delivery and preserve completed spec 003's validation,
   non-blocking diagnostics and no-mutation-on-invalid-input behavior.
 - **REQ-02** IF hook payloads lack a reliable run, step, outcome or start time, THEN
   THE SYSTEM SHALL report attribution/coverage unavailable or approximate; it SHALL

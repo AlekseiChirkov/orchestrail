@@ -26,7 +26,7 @@ Usage:
       bytes),
       the work-tree state, and every per-item rule of the assessment, including the
       migration map, its deviation from the recorded migration defaults, the amendments
-      against the single `.ai/specs/09-*.md` file (read as strict UTF-8 without following a
+      against the single `.ai/specs/011-*.md` file (read as strict UTF-8 without following a
       symbolic link), the statement coverage of the statement units of
       `## Codebase Reading Rules` and `## Decision Protocol` in rules/phase-discovery.md,
       and every well-formed evidence item of the files rows, findings and amendments: a
@@ -2723,8 +2723,8 @@ def installed_rules(check: Verification) -> Iterator[Diagnostic]:
 # ---------------------------------------------------------------------------
 
 SPEC09_DIRECTORY = ".ai/specs"
-SPEC09_NAME_RE = re.compile(r"09-.*\.md", re.DOTALL)
-SPEC09_ANY = f"{SPEC09_DIRECTORY}/09-*.md"
+SPEC09_NAME_RE = re.compile(r"011-.*\.md", re.DOTALL)
+SPEC09_ANY = f"{SPEC09_DIRECTORY}/011-*.md"
 SPEC09_TOKEN_RE = re.compile(r"[A-Za-z0-9_-]+")
 # Specific to this audit's rule set: the rule whose statement units the assessment
 # covers. Once the rule is renamed or split, verify reports req21-invalid.
@@ -2777,7 +2777,7 @@ def migration_text(text: str) -> MigrationText:
 
 def spec09_matches(root: Path) -> list[str]:
     """Names of the non-directory entries of the specification directory that match
-    `09-*.md`; raises ValueError when that directory is absent, a link or unreadable."""
+    `011-*.md`; raises ValueError when that directory is absent, a link or unreadable."""
     directory = root / SPEC09_DIRECTORY
     try:
         if not is_real_directory(directory):

@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/04-model-catalog-cache.md
+spec_path: .ai/specs/completed/005-model-catalog-cache.md
 flow: full
 contract_version: 0.9.0
 adr: .ai/adr/0015-task-04-cached-model-selection.md (Accepted)
@@ -366,7 +366,7 @@ Created: T-06-fix-independent-validator-wording
 sync: complete
 synced_at: 2026-10-28
 deltas: 1 (implemented-differently: 1, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/completed/04-model-catalog-cache.md
+spec: .ai/specs/completed/005-model-catalog-cache.md
 
 Only dependency sequencing is clarified: owner-selected delivery uses explicit current-invocation capability input before the broader harness migration. All eight requirements and all five acceptance statements remain unchanged. All five acceptance boxes are marked verified. Source: Task Analysis/Assumptions and Solution Design/Scope; ADR-0015 corroborates. Optional deferred fixture precision is not a requirement divergence.
 
@@ -392,7 +392,7 @@ Only dependency sequencing is clarified: owner-selected delivery uses explicit c
 | .ai/project_state.md | skipped | File absent. |
 | .ai/adr/0015-task-04-cached-model-selection.md | accepted in place | Existing provisional record promoted after final verification; no duplicate ADR. |
 | .ai/adr/index.md | updated | Existing record status/date accepted. |
-| .ai/specs/completed/04-model-catalog-cache.md | completed and reconciled | Completion marker, verified acceptance and attributable dependency clarification only. |
+| .ai/specs/completed/005-model-catalog-cache.md | completed and reconciled | Completion marker, verified acceptance and attributable dependency clarification only. |
 | .ai/specs/README.md | updated | Catalog delivery no longer described as pending. |
 
 All deferred scope is optional example-verification precision; no original subtask or acceptance criterion is deferred. No additional architectural record is owed. Shared state compression preserves phase, contract, TDD, archive and Git audit fields. All six PRs were promoted sequentially to ready for review with verified unchanged head hashes. None was merged.

@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/25-spec-driven-pr-review.md
+spec_path: .ai/specs/completed/026-spec-driven-pr-review.md
 contract_version: 0.9.0
 flow: full
 active_phase: 1
@@ -255,6 +255,6 @@ Created: T-06-fix-cutoff-observation
 sync: complete
 synced_at: 2026-11-24T18:07:13+06:00
 deltas: 0 (implemented-differently: 0, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/25-spec-driven-pr-review.md
+spec: .ai/specs/026-spec-driven-pr-review.md
 
 Scope: Phase 1 acceptance verified without rewrites. The historical comparison and Phase 2 remain explicitly deferred under the spec.

@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/03-hook-based-logging.md
+spec_path: .ai/specs/completed/004-hook-based-logging.md
 contract_version: 0.9.0
 flow: full
 
@@ -407,7 +407,7 @@ recorded_paths:
 - .ai/adr/index.md
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/completed/task-01-git-source-of-truth/state.md
 - .ai/tasks/todo/task-03-hook-based-logging/T-01-correlated-event-contract/description.md
 - .ai/tasks/todo/task-03-hook-based-logging/T-02-hook-event-adapter/description.md
@@ -425,7 +425,7 @@ expected_parent: 2ec642806e1700eaa409af44704b291e6f629f53
 allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/todo/task-03-hook-based-logging/T-05-retrospective-timing/description.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
 - .ai/tasks/todo/task-03-hook-based-logging/state.md
@@ -437,7 +437,7 @@ expected_parent: b17ca232dbde31705a0b375890348059451be336
 allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
 - .ai/tasks/todo/task-03-hook-based-logging/state.md
 
@@ -448,7 +448,7 @@ expected_parent: c6c7f89dd9dbf61c74a6e900819389a8aa27744e
 allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
 - .ai/memory/architecture.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
 - .ai/tasks/todo/task-03-hook-based-logging/state.md
 
@@ -463,7 +463,7 @@ recorded_paths:
 - .ai/context/runbook.md
 - .ai/memory/architecture.md
 - .ai/memory/state.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/completed/task-01-git-source-of-truth/state.md
 - .ai/tasks/todo/task-03-hook-based-logging/T-05-retrospective-timing/description.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
@@ -481,7 +481,7 @@ recorded_paths:
 - .ai/memory/architecture.md
 - .ai/memory/progress.md
 - .ai/memory/state.md
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/specs/README.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
 - .ai/tasks/todo/task-03-hook-based-logging/state.md
@@ -503,7 +503,7 @@ branch: fix/private-event-replay
 expected_parent: da4e027b708d42cb6ae858d032c84ceb71b8fd5f
 allowed_scope: exactly the listed knowledge-base paths
 recorded_paths:
-- .ai/specs/03-hook-based-logging.md
+- .ai/specs/004-hook-based-logging.md
 - .ai/tasks/todo/task-03-hook-based-logging/plan.md
 - .ai/tasks/todo/task-03-hook-based-logging/state.md
 - .ai/tasks/todo/task-03-hook-based-logging/T-07-fix-private-event-replay/description.md
@@ -626,7 +626,7 @@ Created: T-06-fix-hook-function-boundaries, T-07-fix-private-event-replay
 sync: complete
 synced_at: 2026-10-26
 deltas: 0 (implemented-differently: 0, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/03-hook-based-logging.md
+spec: .ai/specs/004-hook-based-logging.md
 
 All five source requirements and ten original/additional acceptance criteria retain their intent. The resolved interfaces and explicitly recorded implementation/review refinements are already in the specification. The standards repair changes private structure only; no failed criterion was weakened or reclassified as a delta. Sources: Task Analysis assumptions/amendments, T-06 decision and TDD notes, approved issue #1, Contract Check, final Code Review and reviewed plan.
 

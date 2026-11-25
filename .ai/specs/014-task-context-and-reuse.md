@@ -1,4 +1,10 @@
-# 12. Reusable project context and fresh task packets
+# 014. Reusable project context and fresh task packets
+
+> **Scope reconciliation, 2026-11-25:** The former spec 23 was consolidated into
+> [the parallel execution specification](027-parallel-execution-program.md). References
+> below to its numbered requirements or data models describe a historical design preserved
+> at Git revision `42325d2` and require reconciliation before implementation.
+
 
 ## Source
 
@@ -124,7 +130,7 @@ deletion of source context."
   or the behaviour of the code.
 - **REQ-07.** Where possible place stable instructions before mutable data, excluding
   changing times and progress from the stable prefix. Pass observed cache reads and writes
-  under 05. If the environment provides no cache control, use ordinary loading without
+  under 006. If the environment provides no cache control, use ordinary loading without
   invented parameters and guarantees.
 - **REQ-08.** Support standalone invocations and old projects without a manifest: build a
   sufficient packet from the originals or perform a full load. Missing mandatory
@@ -135,7 +141,7 @@ deletion of source context."
   paths resolve within explicitly allowed roots of the project/shared parent project.
 - **REQ-10.** Apply G1–G8, document disabling and full loading, pass hashes, sizes and load
   decisions to 05. Check coverage, freshness and isolation offline. Comparison of live
-  tokens, cache and cost is done separately with permission under 10."
+  tokens, cache and cost is done separately with permission under 012."
 
 **5. Data model version 1.** "The fields below are the target contract. Extension must be
 additive; old packets stay readable but do not receive a new freshness status without a
@@ -271,7 +277,7 @@ and recovery. Document disabling without changing canonical files. Dependencies:
 G1–G8 are mandatory; the explanation of the boundaries is in the set guide. The quality of
 selected context cannot be proven by hashes alone: a hash confirms the identity of a
 source, completeness is determined by the obligation map and independent checks. A paid
-estimate of savings requires a separate permission under 10."
+estimate of savings requires a separate permission under 012."
 
 ## Context & Problem
 
@@ -344,7 +350,7 @@ Facts verified on 2026-11-14 at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
    name other than `global-claude.md` to appear in `scripts/setup-new-project.sh` and
    `scripts/sync.sh` (`scripts/validate-contracts.sh:1293-1305`), whose rule lists are at
    `scripts/setup-new-project.sh:89-91,124-126` and `scripts/sync.sh:208-210,218-220`.
-7. **Telemetry hook point.** Completed spec 05 registers the diagnostic metric
+7. **Telemetry hook point.** Completed spec 006 registers the diagnostic metric
    `context.loaded_bytes` (unit `bytes`, `scripts/usage_telemetry_contract.py:304-306`); a
    `diagnostic_measurement` may carry an optional `context_hash`
    (`:1406-1435`), which must be an opaque `sha256:<64 hex>` identifier (`:350-353`) that
@@ -365,7 +371,7 @@ Facts verified on 2026-11-14 at `060ce6dbc7116002ac5e6cd47981cfd3c13d60ff`:
 mtime; the cache mixes stable rules with mutable state, so any task progress invalidates it;
 condensed content can silently drop an obligation; and every fresh Implementer and Validator
 re-reads the whole bootstrap plus whole task files with no statement of which parts concern
-its leaf, no verifiable record of what it loaded, and no way for specs 23, 13, 15, 17 and 18
+its leaf, no verifiable record of what it loaded, and no way for specs 23, 015, 017, 019 and 020
 to name the context a worker used.
 
 ## Goal
@@ -400,29 +406,29 @@ disabled or cannot prove freshness.
    `/spec-run` steps 4.2 and 4.3, and `/pd-design`.
 8. A disable switch, a standalone acceptance suite `scripts/check-context-pack.py`,
    knowledge-base and documentation updates and an ADR.
-9. The context record contract exposed to specs 05, 23, 13, 15, 17 and 18 (C-8).
+9. The context record contract exposed to specs 006, 23, 015, 017, 019 and 020 (C-8).
 
 ## Out of Scope
 
-- Instruction loading, `loads:` declarations, rule size limits and report forms (spec 11);
-  this spec only declares its own rule under 11's mechanism.
-- Rule and workflow renaming (spec 09); names below follow 09's map (`## Requirements`
+- Instruction loading, `loads:` declarations, rule size limits and report forms (spec 013);
+  this spec only declares its own rule under 013's mechanism.
+- Rule and workflow renaming (spec 011); names below follow 011's map (`## Requirements`
   preamble).
 - Mapping context records into 05 `diagnostic_measurement` objects or the usage store, and
-  any token, cache-hit or cost measurement (spec 05); paid or comparative runs (spec 10).
+  any token, cache-hit or cost measurement (spec 006); paid or comparative runs (spec 012).
 - Packets for the Orchestrator and the Arbiter, and packets in single-session workflows
   (`/phase-execution`, `/phase-pipeline`, `/phase-validation`, standalone children), which
   keep the stable-pack substitution and ADR-0014 same-session reuse.
 - Condensed or model-summarized derivations; any derivation other than
   `verbatim-sections@1`.
 - A whole-working-tree digest (`effective_tree_digest` of the original §5); tree identity
-  evidence belongs to specs 13 and 15.
+  evidence belongs to specs 015 and 017.
 - Automatic removal of old packets; vector databases, search servers, provider cache
   control parameters, changes to the billing model.
-- Parallel scheduling and worktree management (spec 23), checkpoint messages (spec 13),
-  verification sufficiency (spec 15), tool-output bounding (spec 14).
+- Parallel scheduling and worktree management (spec 23), checkpoint messages (spec 015),
+  verification sufficiency (spec 017), tool-output bounding (spec 016).
 - Any change to status vocabularies, protected sections, test-first order, stops, git rails
-  or the single-writer rule; the state tool of spec 07 is not used.
+  or the single-writer rule; the state tool of spec 009 is not used.
 
 ## Actors & Roles
 
@@ -437,7 +443,7 @@ disabled or cannot prove freshness.
 | Any phase step | Reads the stable pack instead of six stable sources after `check` reports `fresh` |
 | `scripts/context-pack.sh` | Reads allowed sources and git; writes only the pack (build) or the packet store (packet); never runs a model or opens a network connection |
 | `scripts/check-context-pack.py` | Acceptance suite, run manually; never run by `scripts/sync.sh` or `scripts/validate-contracts.sh` |
-| Owner | Disables the feature (`ORCHESTRAIL_CONTEXT_PACKETS=off`); decides on any paid comparison under 10 |
+| Owner | Disables the feature (`ORCHESTRAIL_CONTEXT_PACKETS=off`); decides on any paid comparison under 012 |
 
 ## Terminology
 
@@ -462,7 +468,7 @@ disabled or cannot prove freshness.
 | Expansion | A direct read of a canonical source beyond the packet, recorded as `context-expansion:` | Previous REQ-05 |
 | Design basis | The DM-9 line in `## Solution Design → ### Decision` listing the digests the design was made against | Previous REQ-06 |
 | Packet store | `<git-common-dir>/orchestrail-context/packets/` (DM-10) | This spec |
-| Word | As spec 11 Terminology (Python `str.split()` counter version 1) | Spec 11 |
+| Word | As spec 013 Terminology (Python `str.split()` counter version 1) | Spec 013 |
 
 Rejected synonyms: "cache hit" for a reused pack (no provider cache is observed here);
 "receipt" for a packet digest (a digest alone is not loaded content); "fresh" for a size or
@@ -470,19 +476,19 @@ mtime match; "summary" for any packet content (all content is verbatim).
 
 ## Requirements
 
-Names follow spec 09's map, which lands before this spec (prerequisite order 09 → 10 → 11
+Names follow spec 011's map, which lands before this spec (prerequisite order 09 → 10 → 11
 → 12, `.ai/specs/README.md` "Dependency order"): `rules/workflow-globals.md` →
 `rules/contract-phases.md`, `rules/phase-atomic-execution.md` →
 `rules/bootstrap-atomic-execution.md`, `rules/phase-atomic-validation.md` →
 `rules/bootstrap-atomic-validation.md`, `rules/orchestration.md` →
 `rules/contract-orchestration.md`, `workflows/pd-design.md` → `workflows/discovery-design.md`;
-`workflows/spec-run.md` and `workflows/context-pack.md` keep their names. Where 09's final
-map differs, its map governs. Spec 11 (also a prerequisite) limits every top-level rule to
+`workflows/spec-run.md` and `workflows/context-pack.md` keep their names. Where 011's final
+map differs, its map governs. Spec 013 (also a prerequisite) limits every top-level rule to
 700 words and may split `contract-orchestration` and `contract-phases` (today 1,646 and 2,634
-words, spec 11 Context & Problem item 2): each section this spec edits
+words, spec 013 Context & Problem item 2): each section this spec edits
 (`## Context Pack`, the orchestration roles table, `### Implementer`, `### Validator`,
 `## Shared-file discipline`) is located by its heading wherever 11 placed it, every edited
-file stays within 11's limit, edited obligations never move to `rules/reference/`, and when
+file stays within 013's limit, edited obligations never move to `rules/reference/`, and when
 added text would exceed a limit only a one-line citation of `contract-context` is added there
 and the detail stays in `contract-context`. "The helper" means the context helper; "THE
 SYSTEM" is the helper unless a requirement names a workflow or rule.
@@ -647,17 +653,17 @@ SYSTEM" is the helper unless a requirement names a workflow or rule.
 ### Delivery
 
 - **REQ-47.** THE delivered change SHALL pass the unchanged `scripts/validate-contracts.sh`,
-  spec 11's `measure-context.sh check` and spec 09's metadata check, with no change to
+  spec 013's `measure-context.sh check` and spec 011's metadata check, with no change to
   `scripts/validate-contracts.sh` or to any file under `tests/`.
-- **REQ-48.** THE delivered change SHALL pass spec 10's offline suite
+- **REQ-48.** THE delivered change SHALL pass spec 012's offline suite
   (`python3 -I tests/golden-runs.py`) with no change to its expected results.
 - **REQ-49.** THE delivered change SHALL update `.ai/principles/domain.md`,
   `.ai/memory/architecture.md`, `.ai/context/runbook.md`, `scripts/README.md`,
-  `docs/USAGE.md` and the pipeline reference (`docs/PIPELINE.md` after spec 09), and add an
+  `docs/USAGE.md` and the pipeline reference (`docs/PIPELINE.md` after spec 011), and add an
   Accepted ADR indexed in `.ai/adr/index.md`, with the content of C-10.
 - **REQ-53.** THE delivered change SHALL register `rules/contract-context.md` in the rule
   deployment mechanism current at delivery — today the four rule lists of
-  `scripts/setup-new-project.sh` and `scripts/sync.sh` (Context fact 6), or spec 09's
+  `scripts/setup-new-project.sh` and `scripts/sync.sh` (Context fact 6), or spec 011's
   deployment code where it replaced them — so that it is deployed like every other rule.
 
 ## Data Model
@@ -809,7 +815,7 @@ items 1–6 and the specification file (used for the design-basis status) are ma
 sources with `part: contract` (the DM-9 basis sources that are stable sources are already
 recorded under `part: stable`; the design-basis status is re-checked through the
 `design_basis` field). `parts.contract.sha256` is the task contract hash exposed to
-spec 13.
+spec 015.
 
 ### DM-6 Execution View, Relevant Files, exclusions
 
@@ -1035,7 +1041,7 @@ Diagnostics go to stderr as at most one line `context-pack: <code>: <detail>`.
   `read_source(path) -> bytes | None` (`None` when absent); the acceptance suite replaces it
   to inject changes (REQ-15). Text is decoded as strict UTF-8.
 - **Sections.** Headings are ATX lines outside fenced code blocks and front matter; a
-  heading path is matched and its extent computed exactly as spec 11 `## Contracts &
+  heading path is matched and its extent computed exactly as spec 013 `## Contracts &
   Interfaces → Section resolution` defines; a heading path matching more than one location
   renders `<!-- ambiguous section <label> → <heading path> -->` in place of its content, and
   the worker treats it like an absent section (reads the source directly).
@@ -1119,8 +1125,8 @@ The rule also states, in prose: only the Orchestrator builds role packets; only
 verbatim; the disable switch; and that the helper's fixed read-only `git` forms (C-3) run by `verify` are
 not git operations in the sense of "the Implementer never runs `git` itself"
 (`rules/orchestration.md:65`), which concerns commits and other repository writes.
-Spec 11: every workflow or rule that cites a section of `contract-context` declares it in
-`loads:` (mandatory, section-selected where 11 permits) so that 11's `check` reports no
+Spec 013: every workflow or rule that cites a section of `contract-context` declares it in
+`loads:` (mandatory, section-selected where 11 permits) so that 013's `check` reports no
 `textual-load-undeclared`.
 
 ### C-7 Workflow and rule edits
@@ -1146,8 +1152,8 @@ Spec 11: every workflow or rule that cites a section of `contract-context` decla
    `` `contract-context → ## Packet consumption` ``; only `/context-pack` writes the pack.
 3. **Atomic bootstrap rules.** Add to `## Context Bootstrap` one sentence: "When your caller
    supplied a context packet, apply `contract-context → ## Packet consumption` first." Each
-   rule stays within spec 09's 300-word bootstrap limit, moving excess `## Phase Behaviors`
-   text to its overflow rule as 09 REQ-19 prescribes.
+   rule stays within spec 011's 300-word bootstrap limit, moving excess `## Phase Behaviors`
+   text to its overflow rule as 011 REQ-19 prescribes.
 4. **Orchestration rule.** Implementer and Validator rows' "Sees" column add "its context
    packet when supplied" (no `git` in the Implementer row); `### Implementer` and
    `### Validator` say the worker loads context from a supplied packet per
@@ -1171,12 +1177,12 @@ Spec 11: every workflow or rule that cites a section of `contract-context` decla
 
 | Consumer | Contract |
 |---|---|
-| 05 | DM-8 result records (`digest`, `parts.*.bytes`, `bytes`, `source_bytes`, `sources`) and DM-11 receipts. A 05 adapter may emit `context.loaded_bytes` with `quality: measured` only for a role whose receipt says `packet … fresh`, using the packet's `bytes`; `context_hash` must be derived by 05's keyed mapping from the packet digest, never copied (ADR-0016 Decision 3). 12 emits no 05 object |
+| 006 | DM-8 result records (`digest`, `parts.*.bytes`, `bytes`, `source_bytes`, `sources`) and DM-11 receipts. A 006 adapter may emit `context.loaded_bytes` with `quality: measured` only for a role whose receipt says `packet … fresh`, using the packet's `bytes`; `context_hash` must be derived by 006's keyed mapping from the packet digest, never copied (ADR-0016 Decision 3). 014 emits no 006 object |
 | 23 | `packet --work <child worktree> --ai-dir <root knowledge root>`; the store is shared by all worktrees; packets are immutable read-only snapshots; `--base-commit` is the child's recorded base; concurrent builds are safe (C-5) |
-| 13 | `packet_digest` = the packet's `sha256:<hex>` digest; `task_contract_hash` = `sha256:` + `parts.contract.sha256`; both readable from the manifest and the DM-11 entries; 13's checkpoint message carries them |
-| 15 | The validator packet: Task Contract, `base_commit`, reviewed revision, changed paths; 15 decides sufficiency and may add sources by expansion |
-| 17 | The same role packets; a repair attempt receives a fresh `implementer` packet with `--predecessor` |
-| 18 | The stable block plus the Solution Design items of DM-5 and the design-basis status as the shared architectural contract; DM-8 `bytes` per part as context-cost evidence |
+| 015 | `packet_digest` = the packet's `sha256:<hex>` digest; `task_contract_hash` = `sha256:` + `parts.contract.sha256`; both readable from the manifest and the DM-11 entries; 015's checkpoint message carries them |
+| 017 | The validator packet: Task Contract, `base_commit`, reviewed revision, changed paths; 017 decides sufficiency and may add sources by expansion |
+| 019 | The same role packets; a repair attempt receives a fresh `implementer` packet with `--predecessor` |
+| 020 | The stable block plus the Solution Design items of DM-5 and the design-basis status as the shared architectural contract; DM-8 `bytes` per part as context-cost evidence |
 
 ### C-9 Acceptance suite
 
@@ -1210,7 +1216,7 @@ New: `scripts/context-pack.sh`, `scripts/context-pack.py`, `scripts/check-contex
 `rules/contract-context.md`, `.ai/adr/<NNNN>-*.md`.
 Changed: `workflows/context-pack.md`, `rules/contract-phases.md` (`## Context Pack`),
 `rules/bootstrap-atomic-execution.md`, `rules/bootstrap-atomic-validation.md` (and their
-overflow rules if 09 REQ-19 requires), `rules/contract-orchestration.md`,
+overflow rules if 011 REQ-19 requires), `rules/contract-orchestration.md`,
 `workflows/spec-run.md`, `workflows/discovery-design.md`, the `loads:` declarations of every
 file citing `contract-context`, `scripts/README.md` (three rows), `docs/USAGE.md` (the
 `context-pack.md` row at `docs/USAGE.md:798` today and the command reference),
@@ -1220,7 +1226,7 @@ file citing `contract-context`, `scripts/README.md` (three rows), `docs/USAGE.md
 "Design basis"), `.ai/memory/architecture.md` (scripts table, inventory counts, the
 "metadata, not content hashes" sentence), `.ai/context/runbook.md` (suite command, disable
 switch, packet-store removal), `.ai/adr/index.md`, and the rule-deployment lists of
-`scripts/setup-new-project.sh` and `scripts/sync.sh` or 09's replacement (REQ-53). The ADR records: verbatim-only
+`scripts/setup-new-project.sh` and `scripts/sync.sh` or 011's replacement (REQ-53). The ADR records: verbatim-only
 derivation, removal of `memory/state.md` from the stable set, the git-common-dir store,
 self-service expansion instead of orchestrator-issued additions, no new stop on contract
 change, and the disable switch.
@@ -1235,11 +1241,11 @@ change, and the disable switch.
 | Compatibility (G4) | Helper missing, disabled or non-fresh → today's full bootstrap; legacy packs rebuilt, never trusted | AC-05, AC-13, AC-15, AC-16 |
 | Ownership (G5) | One writer per artifact: `/context-pack` for the pack, the Orchestrator for packets; workers write notes entries in their own block only | AC-17 |
 | Testing (G6) | Every AC has a failing suite case before implementation; no paid run in the suite, sync or validator | AC-21; suite never invokes a model |
-| Attribution and measurement (G1, G2, G8) | Byte counts and digests only; no token, cache-hit or cost claim; any saving claim goes through spec 10 | AC-06 |
+| Attribution and measurement (G1, G2, G8) | Byte counts and digests only; no token, cache-hit or cost claim; any saving claim goes through spec 012 | AC-06 |
 | Quality (G3) | Test-first order, frozen RED, stops and independent validation unchanged; Validator never receives Implementer reasoning (packets read files only) | AC-21, AC-22 |
 | Rollback (G7) | `ORCHESTRAIL_CONTEXT_PACKETS=off` restores today's loading; history and packets untouched | AC-13 |
 | Runtime | No numeric target: no measured basis exists; the suite records the duration of `build` and `packet` on F1 in its output | Recorded, not gated |
-| Size | `rules/contract-context.md` and every rule this spec edits (`contract-phases`, `contract-orchestration` or the files 11 split them into) ≤ 700 words (11 REQ-01); bootstrap rules ≤ 300 words (09 REQ-19) | AC-17; 11 and 09 checks (AC-21) |
+| Size | `rules/contract-context.md` and every rule this spec edits (`contract-phases`, `contract-orchestration` or the files 11 split them into) ≤ 700 words (013 REQ-01); bootstrap rules ≤ 300 words (011 REQ-19) | AC-17; 11 and 09 checks (AC-21) |
 
 ## Edge Cases & Failure Modes
 
@@ -1358,7 +1364,7 @@ created `orchestrail-context/` directory or a changed directory mtime is not a d
   it contains `bash "$CONTEXT_HELPER" check --work "$WORK_DIR"`,
   `bash "$CONTEXT_HELPER" build --work "$WORK_DIR"`, `manifest`, `Never packed`, `integrations.md`, a `**stop**` reporting `verdict: unknown —` for an unavailable
   or disabled helper, and neither `mtime` nor `Condense`; and `contract-phases` (or
-  `rules/workflow-globals.md` before 09) `## Context Pack` contains `confirmed the pack
+  `rules/workflow-globals.md` before 011) `## Context Pack` contains `confirmed the pack
   fresh`, `memory/state.md` with "directly", and `` `contract-context → ## Packet
   consumption` ``.
 - **AC-16** (REQ-40, REQ-41, REQ-42, REQ-52) — Given the delivered `workflows/spec-run.md`,
@@ -1369,7 +1375,7 @@ created `orchestrail-context/` directory or a changed directory mtime is not a d
 - **AC-17** (REQ-05, REQ-34, REQ-36, REQ-43, REQ-46) — Given the delivered rules, then
   `rules/contract-context.md` has the C-6 front matter, contains the `Packet consumption:`,
   `Receipt:`, `Expansion:` and `Trust:` lines byte for byte, and has at most 700 words by
-  11's counter; the orchestration rule contains `` `contract-context → ## Packet
+  013's counter; the orchestration rule contains `` `contract-context → ## Packet
   consumption` ``; its Implementer row contains `code, tests` and no `git` in any case; and
   its shared-file discipline names role packets and the stable pack.
 - **AC-18** (REQ-25, REQ-44) — Given F1, when `basis` runs, then `line` matches the DM-9
@@ -1387,7 +1393,7 @@ created `orchestrail-context/` directory or a changed directory mtime is not a d
   `unshare --user --net true` succeeds on the host, `packet` on F1 inside that namespace
   exits 0 (otherwise this case is reported skipped).
 - **AC-21** (REQ-47) — Given the delivered tree, when `bash scripts/validate-contracts.sh`,
-  `bash scripts/measure-context.sh check --root .` and spec 09's metadata check run, then
+  `bash scripts/measure-context.sh check --root .` and spec 011's metadata check run, then
   each exits 0; and `git diff --exit-code <base> -- scripts/validate-contracts.sh tests/`
   exits 0, where `<base>` is the commit the implementing task started from.
 - **AC-22** (REQ-48) — Given the delivered tree, when `python3 -I tests/golden-runs.py`
@@ -1398,7 +1404,7 @@ created `orchestrail-context/` directory or a changed directory mtime is not a d
   `ORCHESTRAIL_CONTEXT_PACKETS`, `.ai/memory/architecture.md` no longer contains "metadata,
   not content hashes", `.ai/adr/index.md` links a new Accepted ADR, and `contract-context.md`
   occurs in each rule-deployment list of `scripts/setup-new-project.sh` and `scripts/sync.sh`
-  (or in 09's deployment source that replaced them).
+  (or in 011's deployment source that replaced them).
 - **AC-24** (REQ-27) — Given F2 and a `git worktree add` of `P` at `W`, when `packet --work W
   --ai-dir P/.ai --leaf T-01 …` runs, then the manifest's `umbrella` root is the umbrella of
   `P`, not `W/../.ai`; and `verify --packet <path>` run with the current directory `W`
@@ -1537,19 +1543,19 @@ Every AC-01–AC-33 names at least one REQ above.
 
 | Risk | Impact | Likelihood | Mitigation |
 |---|---|---|---|
-| Verbatim stable block is as large as today's bootstrap | No byte reduction from the stable part | High for large `memory/architecture.md` | Expected; reductions come from section selection, excluding `state.md` and task excerpts; any saving is measured under 10, not claimed |
+| Verbatim stable block is as large as today's bootstrap | No byte reduction from the stable part | High for large `memory/architecture.md` | Expected; reductions come from section selection, excluding `state.md` and task excerpts; any saving is measured under 012, not claimed |
 | Workers ignore the packet and bootstrap anyway | No reuse; receipts show `bootstrap` | Medium | Receipts make it visible; 05/10 evidence; never a correctness risk |
 | Worker treats a stale packet as current | Work against outdated rules | Low | `verify` before use; Orchestrator re-verifies at continuation; Validator gets a fresh packet |
 | Packets accumulate in the git common directory | Disk use | Medium over long use | Documented safe removal (DM-10, runbook) |
 | `/compress-state` summarizes away the design-basis line or notes entries | Status `unrecorded`; lost receipts | Low | Conservative reading; entries are evidence, not state |
-| 09 or 11 land with different names or loads mechanics | Edits target wrong names | Medium | Requirements preamble: 09's map governs; C-6 defers to 11's `loads:` |
+| 09 or 11 land with different names or loads mechanics | Edits target wrong names | Medium | Requirements preamble: 011's map governs; C-6 defers to 013's `loads:` |
 | Spec 23 later needs packets of the coordinator role | Missing role | Medium | `role` vocabulary is additive under a new schema version |
 | A source change between `verify` and the worker's read | Worker reads newer bytes than verified | Low | Packet content is immutable; only expansions read live sources, recorded as such |
 
 ## Assumptions
 
 - A-01 | Mechanism for content hashing | Resolved: optional Bash launcher plus Python 3.11+ standard-library engine; without it no pack or packet is used. This deliberately withdraws today's helper-less metadata-verified pack reuse (`workflows/context-pack.md` Step 1); the conservative path without the helper is a full bootstrap (REQ-38, REQ-52) | Source: ADR-0009 Decision 6 (`.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md:243-244`); ADR-0001 implications (`:64-65`); `scripts/run-log-timing.sh:17-22` pattern; G4 | Reversible: yes
-- A-02 | Python version | Resolved: 3.11+, matching installer and timing engines | Source: `.ai/context/runbook.md` "Installer and offline timing engines require Python 3.11 or newer"; spec 11 Contracts & Interfaces → Command line | Reversible: yes
+- A-02 | Python version | Resolved: 3.11+, matching installer and timing engines | Source: `.ai/context/runbook.md` "Installer and offline timing engines require Python 3.11 or newer"; spec 013 Contracts & Interfaces → Command line | Reversible: yes
 - A-03 | Derivation | Resolved: verbatim sections only (`verbatim-sections@1`); no condensation | Source: original invariant 1 ("reproduced exactly"); `workflows/context-pack.md:35-37` permits condensation but cannot prove obligation preservation; best practice, smallest reversible | Reversible: yes (new derivation version)
 - A-04 | `memory/state.md` in the stable pack | Resolved: removed from the stable set; read directly or via the Execution View | Source: original REQ-01 and §3 (stable excludes progress); `rules/orchestration.md:113` (state deltas per leaf) | Reversible: yes
 - A-05 | Stable sources | Resolved: the six DM-2 sources, runbook limited to `## Commands` | Source: `workflows/context-pack.md:25-33`; `rules/phase-atomic-execution.md:24-34` | Reversible: yes
@@ -1558,7 +1564,7 @@ Every AC-01–AC-33 names at least one REQ above.
 - A-08 | Who receives packets | Resolved: only `/spec-run` Implementers and Validators | Source: ADR-0014 Decision 1 (single-session reuse already covers other workflows); `rules/orchestration.md:69-71`, `:85-88` | Reversible: yes
 - A-09 | Expansion protocol | Resolved: the worker reads the canonical source itself and records it; no Orchestrator round trip | Source: original §2 ("full context is always available"); `rules/orchestration.md:69-71` (workers load context themselves); original §6.3 step 4 narrowed to avoid a stop per request | Reversible: yes
 - A-10 | Contract change during a leaf | Resolved: no new stop; successor packet at continuation, Validator judges against the current contract; a design-basis contradiction uses the existing non-status blocker route ("an invariant conflict", `rules/phase-atomic-execution.md:65`; `rules/orchestration.md:187`), not a new stop | Source: original §6.3 step 5 ("impact check …, not automatic rejection or acceptance"); P5 (no undeclared stop) | Reversible: yes
-- A-11 | Receipt placement | Resolved: `notes:` entries in the leaf block, not report fields | Source: P2 (state on disk); spec 11 DM-8 fixes report fields; spec 10 excludes free-text notes from projections (spec 10 A-06, NR-4; DM-3 fact "Leaf mode and leaf tests" reads only three `tdd:` entry kinds) | Reversible: yes
+- A-11 | Receipt placement | Resolved: `notes:` entries in the leaf block, not report fields | Source: P2 (state on disk); spec 013 DM-8 fixes report fields; spec 012 excludes free-text notes from projections (spec 012 A-06, NR-4; DM-3 fact "Leaf mode and leaf tests" reads only three `tdd:` entry kinds) | Reversible: yes
 - A-12 | Architecture-analysis reuse | Resolved: design-basis line plus status in packets | Source: original REQ-06; `workflows/pd-design.md:32-60` is the task's analysis record | Reversible: yes
 - A-13 | `effective_tree_digest` | Resolved: not computed; HEAD, base commit and validator changed paths recorded instead | Source: Out of Scope rationale (13/15 own tree evidence); smallest reversible choice | Reversible: yes
 - A-14 | Telemetry hand-off | Resolved: DM-8 records and receipts only; 05 adapters own `diagnostic_measurement` mapping | Source: `scripts/usage_telemetry_contract.py:304-306`, `:350-353`; ADR-0016 Decision 3 | Reversible: yes
@@ -1568,8 +1574,8 @@ Every AC-01–AC-33 names at least one REQ above.
 - A-18 | Unknown manifest fields | Resolved: rejected (`invalid`); a new field requires a new schema version | Source: original §8 ("unknown schema version is not interpreted as the latest"); P3 satisfied by rebuild of a derived cache | Reversible: yes
 - A-19 | Shared gates | Resolved: G1–G8 of `.ai/specs/README.md` (the index defines eight) | Source: `.ai/specs/README.md` "Shared acceptance gates"; original §4 REQ-10 | Reversible: no
 - A-20 | Acceptance suite location | Resolved: `scripts/check-context-pack.py`, not registered in the validator | Source: ADR-0019 Decision 3; `tests/fixtures/validator-runtime/oracle.py:250` | Reversible: yes
-- A-21 | Names | Resolved: spec 09's map | Source: `.ai/specs/README.md` dependency order; spec 09 DM-10 | Reversible: yes
-- A-22 | Packet file mode | Resolved: directory `0700`, files `0600` | Source: spec 05 NFR-05 permission precedent; best practice | Reversible: yes
+- A-21 | Names | Resolved: spec 011's map | Source: `.ai/specs/README.md` dependency order; spec 011 DM-10 | Reversible: yes
+- A-22 | Packet file mode | Resolved: directory `0700`, files `0600` | Source: spec 006 NFR-05 permission precedent; best practice | Reversible: yes
 - A-23 | Legacy pack | Resolved: `stale` (rebuilt), not `invalid` | Source: original §5 ("old packets stay readable but get no new freshness without a rebuild"); `workflows/context-pack.md:49` (malformed manifest is stale) | Reversible: yes
 - A-24 | Foreign file at the pack path | Resolved: never overwritten | Source: `.ai/principles/coding.md` workflow shape item 4 ("ask before overwriting; never silently redo") | Reversible: yes
 - A-25 | Design-basis membership | Resolved: principles ×3, `adr/index.md` per present layer and the spec; not `memory/architecture.md` or the runbook | Source: `workflows/pae-finalize.md:44-47` (architecture updated after leaves, which would make the status permanent noise); original REQ-06 ("sources and interfaces" of the decision) | Reversible: yes
@@ -1594,8 +1600,8 @@ N/A — no questions were asked (autonomous mode, owner unavailable for this run
 
 ### Prerequisites and guard for the implementing task
 
-Specs 05 (done), 09, 10 and 11 must have landed (`.ai/specs/README.md` "Dependency order").
-If 11's `measure-context.sh` or 09's metadata check is absent, AC-21's corresponding command
+Specs 006 (done), 09, 10 and 11 must have landed (`.ai/specs/README.md` "Dependency order").
+If 013's `measure-context.sh` or 011's metadata check is absent, AC-21's corresponding command
 cannot run: record it as unmet and hand the decision to the owner rather than weakening it.
 
 ### Implementation order (hint; Discovery decides)
@@ -1621,11 +1627,11 @@ rewritten. Resume by unsetting the variable; the next `/context-pack` rebuilds t
 
 - 05: an adapter mapping DM-8 records and receipts to `context.loaded_bytes` (C-8).
 - 12: pass `--ai-dir` of the root worktree and the child's base commit when building child
-  packets — adopted (22 REQ-53, A-18).
-- 15: carry `packet_digest` and `task_contract_hash` (C-8) in its checkpoint message (13 DM-2, DM-3).
+  packets — adopted (024 REQ-53, A-18).
+- 15: carry `packet_digest` and `task_contract_hash` (C-8) in its checkpoint message (015 DM-2, DM-3).
 - 16: define reviewer-packet sufficiency on top of the validator packet.
 - 20: cite C-8's shared architectural contract and per-part byte evidence.
-- `.ai/specs/README.md`: the workstream row for 12 stays valid; no change required.
+- `.ai/specs/README.md`: the workstream row for 014 stays valid; no change required.
 
 ### Rejected alternatives
 
@@ -1634,7 +1640,7 @@ rewritten. Resume by unsetting the variable; the next `/context-pack` rebuilds t
 - Model-condensed packs — rejected: obligation preservation cannot be verified by digest
   (original invariant 1).
 - Passing packet content inline in the spawn message — rejected: the Orchestrator would
-  read every packet into its own context (spec 13's concern).
+  read every packet into its own context (spec 015's concern).
 - Packets under `AI_DIR` — rejected: not shared by worktrees whose `.ai/` is untracked
   (ADR-0002) and visible to `git status` where `.ai/` is tracked (ADR-0012).
 - A stop when the contract changes mid-leaf — rejected: an undeclared new stop where the
@@ -1654,7 +1660,7 @@ rewritten. Resume by unsetting the variable; the next `/context-pack` rebuilds t
 
 #### 2026-11-14 — independent final review
 
-- DM-11 append rule names the last line of the last `notes` group; A-01 records the deliberate withdrawal of helper-less pack reuse; spec 13 term "checkpoint message" used; follow-ups updated; citations corrected.
+- DM-11 append rule names the last line of the last `notes` group; A-01 records the deliberate withdrawal of helper-less pack reuse; spec 015 term "checkpoint message" used; follow-ups updated; citations corrected.
 
 ## Readiness Checklist
 

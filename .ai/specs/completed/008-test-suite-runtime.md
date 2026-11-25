@@ -1,4 +1,4 @@
-# 06-1. Contract validator runtime
+# 008. Contract validator runtime
 
 ## Implementation review — 2026-11-06
 
@@ -6,7 +6,7 @@
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** PRs #77-#79 delivered lighter fixtures/test workload, the guarded warning prefix, per-file identity scanning, and bounded source-reference protection.
 - **Outstanding scope and limits:** Bounded concurrent acceptance execution and opt-in result timing were not integrated. DEBUG compatibility regressions remain unresolved; the extra identity-output I/O fix and later guard candidate also remain unintegrated. Comparative performance targets are unverified. Administrative task closure is not acceptance of the remaining criteria.
-- **Sources:** [`scripts/validate-contracts.sh`](../../scripts/validate-contracts.sh), [`tests/validator-runtime-warning.py`](../../tests/validator-runtime-warning.py), [`tests/validator-runtime-identity.py`](../../tests/validator-runtime-identity.py), [`tests/fixtures/validator-runtime/source_guard.py`](../../tests/fixtures/validator-runtime/source_guard.py), [`.ai/tasks/completed/task-06-1-test-suite-runtime/state.md`](../../.ai/tasks/completed/task-06-1-test-suite-runtime/state.md).
+- **Sources:** [`scripts/validate-contracts.sh`](../../../scripts/validate-contracts.sh), [`tests/validator-runtime-warning.py`](../../../tests/validator-runtime-warning.py), [`tests/validator-runtime-identity.py`](../../../tests/validator-runtime-identity.py), [`tests/fixtures/validator-runtime/source_guard.py`](../../../tests/fixtures/validator-runtime/source_guard.py), [`.ai/tasks/completed/task-06-1-test-suite-runtime/state.md`](../../../.ai/tasks/completed/task-06-1-test-suite-runtime/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
 

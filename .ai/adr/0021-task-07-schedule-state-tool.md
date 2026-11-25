@@ -10,8 +10,8 @@ Accepted
 
 ## Related Task
 
-- Task: owner decision to schedule `.ai/specs/completed/07-state-tool.md` for implementation.
-- Related files: `.ai/specs/completed/07-state-tool.md`, `.ai/specs/README.md`,
+- Task: owner decision to schedule `.ai/specs/completed/009-state-tool.md` for implementation.
+- Related files: `.ai/specs/completed/009-state-tool.md`, `.ai/specs/README.md`,
   `.ai/memory/state.md`, `.ai/adr/0009-task-unknown-roadmap-decisions-2026-09.md`.
 
 ## Summary
@@ -39,7 +39,7 @@ record in this repository.
 
 ### Decision 1: Schedule the state tool
 
-**What was decided:** The owner schedules spec 07 for implementation on 2026-11-13. The
+**What was decided:** The owner schedules spec 009 for implementation on 2026-11-13. The
 corruption-evidence precondition is waived; the finding that no corruption is on record
 is kept here instead.
 

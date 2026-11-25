@@ -1,4 +1,4 @@
-spec_path: .ai/specs/24-task-finalization.md
+spec_path: .ai/specs/025-task-finalization.md
 flow: full
 
 ## Phases
@@ -200,7 +200,7 @@ Updated current architecture/module inventory, environment/runbook, scope index,
 sync: complete
 synced_at: 2026-11-18T00:56:29+06:00
 deltas: 0 (implemented-differently: 0, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/24-task-finalization.md
+spec: .ai/specs/025-task-finalization.md
 
 Reconciled under the verified `/pv-finalize` completion context after all independent contract/review/fix prerequisites and actual final checks passed. All 12 requirements and six criteria retain their original text and identifiers. Completion metadata describes validated implementation only; it does not prove merge, cleanup, archival or deployment. The accepted decision is reused, not replaced.
 
@@ -242,7 +242,7 @@ Canonical changed files relative to the pinned dependency (all retained in this 
 .ai/memory/progress.md
 .ai/memory/state.md
 .ai/principles/domain.md
-.ai/specs/24-task-finalization.md
+.ai/specs/025-task-finalization.md
 .ai/specs/README.md
 .ai/tasks/completed/task-01-git-source-of-truth/state.md
 .ai/tasks/todo/task-24-task-finalization/T-01-finalization-evidence/description.md

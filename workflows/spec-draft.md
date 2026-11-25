@@ -38,8 +38,9 @@ Guard confirmations and `## Blocker escalation`.
 1. Detect refinement: an input spec with H1, `## Goal` and `## Acceptance Criteria` is
    refined in place unless `--output` chooses another destination. Other files are source
    material, not overwrite targets.
-2. For a new spec without `--output`, use `.ai/specs/NN-<slug>.md`, creating the directory
-   when needed. Choose the next unused numeric prefix (`01` when empty), and a title-derived
+2. For a new spec without `--output`, use `.ai/specs/NNN-<slug>.md`, creating the directory
+   when needed. Choose the next unused numeric prefix (`001` when empty), considering both
+   active and `completed/` specifications, and a title-derived
    kebab-case slug of at most five words. Honor an established project spec destination.
 3. If the output exists, show the proposed edit scope and obtain confirmation before
    replacement unless that exact edit was already authorized. This applies in auto mode.

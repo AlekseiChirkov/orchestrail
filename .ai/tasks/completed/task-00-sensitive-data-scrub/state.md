@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/00-sensitive-data-scrub.md
+spec_path: .ai/specs/completed/001-sensitive-data-scrub.md
 flow: full
 status: completed
 closed_at: 2026-10-19
@@ -137,7 +137,7 @@ T-03 | Public hygiene scanner and final sweep | atomic-tests: green | atomic-exe
          implementation: NUL-safe indexed path enumeration, literal case-insensitive matching, exact root metadata/source-spec exemptions, link text scanning, configurable standalone mode, empty-index rejection, and fail-closed missing/unreadable inputs or scan errors; empty ordinary files accepted.
          tdd: green — both frozen RED checks and supplemental production group pass; full validator 542 passed, 0 failed; original 539 checks byte-identical after the scanner prefix is removed; frozen smoke block and denylist SHA-256 unchanged.
          verification: root Bash syntax and configured lint pass; shellcheck unavailable; git diff --check passes. Local logs and machine settings remain ignored, no log/settings content modified, no git mutations or deployment performed.
-         manual sweep: bash /tmp/public-hygiene-manual-sweep.sh; exit 0; 152 files scanned, 0 unexpected matches, 0 errors. Command uses find with NUL output, prunes exact root .git and logs directories, skips exact root scrub-denylist.txt, .ai/specs/00-sensitive-data-scrub.md, and .claude/settings.local.json, then grep -Fia -f filtered-patterns on every remaining regular file or symlink text. Includes tracked and untracked knowledge files; all 44 baseline paths remain present.
+         manual sweep: bash /tmp/public-hygiene-manual-sweep.sh; exit 0; 152 files scanned, 0 unexpected matches, 0 errors. Command uses find with NUL output, prunes exact root .git and logs directories, skips exact root scrub-denylist.txt, .ai/specs/001-sensitive-data-scrub.md, and .claude/settings.local.json, then grep -Fia -f filtered-patterns on every remaining regular file or symlink text. Includes tracked and untracked knowledge files; all 44 baseline paths remain present.
          acceptance: AC-1 production RED before cleanup plus final scanner pass; AC-2 frozen synthetic fixtures and unchanged public denylist; AC-3 final whole-tree sweep and approved local ignores; AC-4 unchanged prior checks plus full 542-check suite, exact local evidence recorded.
          shared deltas: Orchestrator applied mutable context, narrative, roadmap wording, historical heading spelling, and current check-count redactions; source specification preserved. Host and consumer details are neutral; all knowledge files retained.
          architecture.md: update applied by Orchestrator — validator inventory and standalone hygiene CLI described with 542 checks. Public operating manual current count updated; dated historical counts preserved.
@@ -210,7 +210,7 @@ All subtasks complete; none skipped, blocked, deferred, or not reached. No Do No
 
 ## Manual Sweep Evidence
 Command: grep -rniE -f scrub-denylist.txt -- <all explicitly enumerated regular files under the approved exclusions>; argv supplied directly by Python to preserve filenames.
-Exact exclusions: root .git/ and logs/; root scrub-denylist.txt; .ai/specs/00-sensitive-data-scrub.md; .claude/settings.local.json.
+Exact exclusions: root .git/ and logs/; root scrub-denylist.txt; .ai/specs/001-sensitive-data-scrub.md; .claude/settings.local.json.
 Result: 152 files; grep exit 1 (no matches); stdout 0 bytes; stderr 0 bytes. No project symlinks were present. The independently inspected manual helper additionally tests symlink target text: 152 files, 0 unexpected matches, 0 errors.
 Preservation: all 44 baseline knowledge-base paths remain; all 45 current knowledge-base files, including the new decision record, are indexed. Standalone tracked-file scanner passes after inclusion.
 
@@ -285,7 +285,7 @@ Created: none
 sync: complete
 synced_at: 2026-10-19
 deltas: 5 (implemented-differently: 4, not-implemented: 0, implemented-beyond: 1)
-spec: .ai/specs/completed/00-sensitive-data-scrub.md
+spec: .ai/specs/completed/001-sensitive-data-scrub.md
 
 ## Validation Finalization
 All original subtasks reviewed; no required fix-tasks. Existing history and remote publication remain separate owner decisions, as explicitly agreed. Optional fixture refinement and the existing template path followup do not change the passed hygiene contract. Root architecture/current counts and repository-specific tracking principles are updated; no new runtime or deployment target was introduced. Project state skipped because absent. Post-validation spec reconciliation records owner-approved differences; no failed criterion was weakened or reclassified.
@@ -318,21 +318,21 @@ recorded_paths:
 - .ai/principles/architecture.md
 - .ai/principles/coding.md
 - .ai/principles/domain.md
-- .ai/specs/00-sensitive-data-scrub.md
-- .ai/specs/completed/01-git-source-of-truth.md
-- .ai/specs/02-run-log-vocabulary-validation.md
-- .ai/specs/03-hook-based-logging.md
-- .ai/specs/04-model-catalog-cache.md
-- .ai/specs/05-cost-and-duration-telemetry.md
-- .ai/specs/06-harness-git-rails.md
-- .ai/specs/07-state-tool.md
-- .ai/specs/11-context-tiering.md
-- .ai/specs/10-golden-run-tests.md
-- .ai/specs/19-generated-reference-docs.md
-- .ai/specs/21-open-source-readiness.md
+- .ai/specs/001-sensitive-data-scrub.md
+- .ai/specs/completed/002-git-source-of-truth.md
+- .ai/specs/003-run-log-vocabulary-validation.md
+- .ai/specs/004-hook-based-logging.md
+- .ai/specs/005-model-catalog-cache.md
+- .ai/specs/006-cost-and-duration-telemetry.md
+- .ai/specs/007-harness-git-rails.md
+- .ai/specs/009-state-tool.md
+- .ai/specs/013-context-tiering.md
+- .ai/specs/012-golden-run-tests.md
+- .ai/specs/021-generated-reference-docs.md
+- .ai/specs/023-open-source-readiness.md
 - .ai/specs/23-composite-branch-model-and-parallel-children.md
-- .ai/specs/09-model-only-harnesses-and-rule-naming.md
-- .ai/specs/08-rules-workflows-audit.md
+- .ai/specs/011-model-only-harnesses-and-rule-naming.md
+- .ai/specs/010-rules-workflows-audit.md
 - .ai/specs/README.md
 - .ai/tasks/completed/.gitkeep
 - .ai/tasks/todo/.gitkeep
@@ -393,7 +393,7 @@ The owner explicitly authorized merging the three reviewed pull requests, closin
 - PR #3 retargeted to main and integrated at 457f0ac9b6d026ea4500c186ec05d725fa1a79a6.
 - PR #4 carries the reviewed corrections and this closure; its final integration hash is reported externally because this record is included in that integration.
 - All phases are complete and all subtasks remain reviewed. No critical or important issues remain. The optional Git-error fixture refinement and the unrelated template example followup remain outside this task.
-- Complete task retained at .ai/tasks/completed/task-00-sensitive-data-scrub/; source retained at .ai/specs/completed/00-sensitive-data-scrub.md. No knowledge-base content was discarded.
+- Complete task retained at .ai/tasks/completed/task-00-sensitive-data-scrub/; source retained at .ai/specs/completed/001-sensitive-data-scrub.md. No knowledge-base content was discarded.
 - Current source references and roadmap links were updated; historical path lists above describe their original commits and remain unchanged.
 - Scanner exemption is limited to the root denylist and the exact completed source path. A regression verifies the old source location is scanned normally.
 - Earlier final-state descriptors are historical. The latest closure commit follows regression commit 6a4e38e7e825a91f7c354e0eb44c29788213e12c; it contains the record moves, related knowledge-base links/status, and the scanner exemption update. Its hash and PR #4 integration hash are reported externally. Original branch-point hashes remain immutable.

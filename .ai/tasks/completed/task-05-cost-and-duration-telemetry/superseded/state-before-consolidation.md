@@ -1,4 +1,4 @@
-spec_path: .ai/specs/05-cost-and-duration-telemetry.md
+spec_path: .ai/specs/006-cost-and-duration-telemetry.md
 contract_version: 0.9.0
 flow: full
 

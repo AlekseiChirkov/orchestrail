@@ -4,7 +4,7 @@ completed_task: task-05-cost-and-duration-telemetry
 completed_at: 2026-10-30
 ---
 
-# 05. Достоверный учёт использования моделей, стоимости и времени
+# 006. Model usage, cost and duration telemetry
 
 ## Implementation review — 2026-11-06
 

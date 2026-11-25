@@ -109,4 +109,4 @@ The selector is 1,017 words. 100 warm isolated fixture lookups remain below one 
 ## References
 
 - Task: .ai/tasks/completed/task-04-model-catalog-cache/state.md
-- Related documents: .ai/specs/completed/04-model-catalog-cache.md; .ai/specs/README.md; ADR-0009 Decision 6; ADR-0013 Decision 2
+- Related documents: .ai/specs/completed/005-model-catalog-cache.md; .ai/specs/README.md; ADR-0009 Decision 6; ADR-0013 Decision 2

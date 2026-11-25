@@ -1,4 +1,4 @@
-spec_path: .ai/specs/completed/02-run-log-vocabulary-validation.md
+spec_path: .ai/specs/completed/003-run-log-vocabulary-validation.md
 flow: full
 
 ## Phases
@@ -489,7 +489,7 @@ recorded_paths:
 - .ai/adr/index.md
 - .ai/memory/progress.md
 - .ai/memory/state.md
-- .ai/specs/02-run-log-vocabulary-validation.md
+- .ai/specs/003-run-log-vocabulary-validation.md
 - .ai/specs/README.md
 - .ai/tasks/completed/task-01-git-source-of-truth/state.md
 - .ai/tasks/todo/task-02-run-log-vocabulary-validation/state-archive.md
@@ -684,7 +684,7 @@ None. All four earlier findings are resolved; no critical, important, optional o
 sync: complete
 synced_at: 2026-10-21
 deltas: 0 (implemented-differently: 0, not-implemented: 0, implemented-beyond: 0)
-spec: .ai/specs/02-run-log-vocabulary-validation.md
+spec: .ai/specs/003-run-log-vocabulary-validation.md
 
 - All requirements are met as stated. The structured export is the chosen verification mechanism, not a divergent requirement. Validation defects were repaired rather than rewritten into weaker acceptance criteria. No readiness checklist exists to replace.
 

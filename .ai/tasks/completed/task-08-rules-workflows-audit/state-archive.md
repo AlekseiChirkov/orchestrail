@@ -12,7 +12,7 @@ Deliver one pinned, reproducible audit of every rule, workflow and harness adapt
 - New: `scripts/audit-instructions.py` (extractor, verifier, renderer; Python 3.11+ standard library; git read commands only), `scripts/check-audit-instructions.py` (`unittest`, temporary fixture roots, synthetic stems).
 - New: `docs/audits/<run_date>-rules-workflows-audit.md`, `.inventory.json`, `.assessment.json`.
 - Changed (one line or row each): `docs/README.md` (audits index), `scripts/README.md` (two table rows), `.ai/context/runbook.md` (commands note), `.ai/memory/architecture.md` (inventory sentence), `.ai/memory/state.md`, `.ai/memory/progress.md`.
-- Read-only inputs: 14 files in `rules/`, 42 in `workflows/`, 4 in `harness/`, `templates/codex-global-AGENTS.md` (61 audited paths at this revision), every reader of DM-3, and `.ai/specs/09-model-only-harnesses-and-rule-naming.md` for defaults and amendment targets.
+- Read-only inputs: 14 files in `rules/`, 42 in `workflows/`, 4 in `harness/`, `templates/codex-global-AGENTS.md` (61 audited paths at this revision), every reader of DM-3, and `.ai/specs/011-model-only-harnesses-and-rule-naming.md` for defaults and amendment targets.
 - Unchanged by contract: `rules/`, `workflows/`, `harness/`, `templates/`, `principles/`, `hooks/`, `tests/`, `scripts/validate-contracts.sh`, `scripts/sync.sh`, every other existing script, and every other specification.
 
 ### Codebase Analysis

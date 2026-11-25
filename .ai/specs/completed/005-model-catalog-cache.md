@@ -4,14 +4,14 @@ completed_task: task-04-model-catalog-cache
 completed_at: 2026-10-28
 ---
 
-# Cached model catalog and consistent, availability-aware selection
+# 005. Cached model catalog and consistent, availability-aware selection
 
 ## Implementation review — 2026-11-06
 
 - **Disposition:** Delivered; later selection refinements integrated.
 - **Verified source scope:** main at `23bded3d96d9c562d16eb7e90285414f4412ac79`; owner-authorized specification/state reconciliation on 2026-11-06.
 - **Delivered evidence:** Cached catalog refresh/validation, conservative recommendation, provider plan columns, and current-invocation resolution are implemented. Main also contains configured recommendation-fallback refinements.
-- **Outstanding scope and limits:** Catalog data, actual worker identity, and effort support require fresh evidence. This does not deliver the separate role/stage effort policy in spec 16 or prove economic optimality.
+- **Outstanding scope and limits:** Catalog data, actual worker identity, and effort support require fresh evidence. This does not deliver the separate role/stage effort policy in spec 018 or prove economic optimality.
 - **Sources:** [`scripts/model-catalog.py`](../../../scripts/model-catalog.py), [`scripts/model_selection.py`](../../../scripts/model_selection.py), [`scripts/model_plan.py`](../../../scripts/model_plan.py), [`tests/model-selection.py`](../../../tests/model-selection.py), [`docs/MODEL-CATALOG.md`](../../../docs/MODEL-CATALOG.md), [`.ai/tasks/completed/task-04-model-catalog-cache/state.md`](../../../.ai/tasks/completed/task-04-model-catalog-cache/state.md).
 - Existing requirement and acceptance identifiers remain binding. Source inspection and historical validation records do not constitute a fresh full-suite or deployed-environment certification.
 
@@ -47,7 +47,7 @@ filtering, plan columns and requested-versus-resolved model reporting.
 
 ## Out of Scope
 
-Learned routing without calibration, automatic mid-task switching (spec 17), effort
+Learned routing without calibration, automatic mid-task switching (spec 019), effort
 policy (16), or defining a second token-price ledger (05).
 
 ## Actors & Roles
@@ -73,7 +73,7 @@ choice whose actual execution model must still be recorded by telemetry.
 - **REQ-02** THE SYSTEM SHALL retain a table `tier | anthropic model id | openai model id |
   relative cost`, with `light | standard | frontier`, and explicit availability,
   supported traits/context/tools and evidence dates. Relative cost SHALL reference
-  spec 05 price snapshots where available; a missing price is unknown, not free.
+  spec 006 price snapshots where available; a missing price is unknown, not free.
 - **REQ-03** WHEN selecting, THE SYSTEM SHALL first filter for actual harness/model
   availability, context/tool support, owner constraints and mandatory quality floors.
   Only eligible candidates may be compared by cost. Security, financial, core invariant
@@ -110,7 +110,7 @@ choice whose actual execution model must still be recorded by telemetry.
 Additive catalog fields: schema version, refresh/evidence dates, exact provider model
 IDs, price snapshot references, availability, context/tool limits and supported traits.
 Plan columns remain optional. Requested/resolved/actual model identities are distinct
-in spec 05. No speculative success probabilities are stored as measured facts.
+in spec 006. No speculative success probabilities are stored as measured facts.
 
 ## Contracts & Interfaces
 
@@ -173,7 +173,7 @@ selection logic without introducing a learned router or mandatory live evaluatio
 
 ## Clarifications
 
-2026-10-21: remove harness-name-based orchestration exclusions; spec 09 capabilities
+2026-10-21: remove harness-name-based orchestration exclusions; spec 011 capabilities
 control eligibility. Public API-equivalent price and actual subscription charge differ.
 
 ## Open Questions
@@ -184,10 +184,10 @@ None blocking. A new default model or paid routing comparison requires explicit 
 
 Deterministic catalog selection and plan resolution use explicit current-invocation
 capability evidence. The owner selected implementation before the broader harness
-migration; unknown support remains unavailable. Spec 09 retains ownership of the full
+migration; unknown support remains unavailable. Spec 011 retains ownership of the full
 deployed harness capability contract and naming migration.
 
-Consumers: 16 effort, 17 escalation, 18 decomposition. Spec 05 owns
+Consumers: 16 effort, 17 escalation, 18 decomposition. Spec 006 owns
 monetary definitions; 10 owns comparative evidence. Suggested slices: catalog/TTL,
 consistent scoring, availability/plan resolution, checks and documentation.
 

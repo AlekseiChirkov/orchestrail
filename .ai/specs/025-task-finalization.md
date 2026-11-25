@@ -4,7 +4,7 @@ completed_task: task-24-task-finalization
 completed_at: 2026-11-18
 ---
 
-# Post-merge task finalization
+# 025. Post-merge task finalization
 
 ## Goal
 Close one validated development task after delivery to its intended integration branches, preserving evidence and unfinished product scope.
