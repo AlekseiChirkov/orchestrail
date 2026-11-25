@@ -1,6 +1,7 @@
 ---
-description: Discovery Step 4b — Archive verbose Discovery content to state-archive.md
-             to reduce Execution-phase context load. Called by /pd-finalize.
+description: Discovery Step 4b — Archive verbose Discovery content to state-archive.md to reduce Execution-phase context load. Called by /pd-finalize.
+phase: discovery
+step: 4b
 ---
 
 Invocation: `/pd-archive <task-directory>`

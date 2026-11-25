@@ -99,3 +99,41 @@ ownership`. Isolated `check-finalization-safety.py` fixtures verify this source 
 that evidence does not establish live installation or new native workflow-step coverage.
 The four Enforcement values, restack semantics and other harnesses' textual-only status
 remain unchanged. Finalization dry-run never emits telemetry.
+
+## Capability records
+
+always-on-path: $HOME/.claude/CLAUDE.md
+
+name: sub-agents
+state: unknown
+
+Limitations: Spawning a separate worker context lacks versioned verification.
+
+name: concurrent-sub-agents
+state: unknown
+
+Limitations: Multiple simultaneous workers lack versioned verification.
+
+name: agent-messaging
+state: unknown
+
+Limitations: Sending a follow-up to a worker that retains context lacks versioned verification.
+
+name: hooks
+state: yes
+runtime: Claude Code 2.1.309
+verified: 2026-10-25
+evidence: harness/claude/hooks.json
+evidence: tests/hook-install.sh
+
+Limitations: Verify installation and checkpoint coverage separately for the current session.
+
+name: worktrees
+state: unknown
+
+Limitations: Isolated Git worktrees for workers lack versioned verification.
+
+name: git
+state: unknown
+
+Limitations: Session Git tool access lacks versioned verification.

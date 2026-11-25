@@ -1,5 +1,7 @@
 ---
 description: Atomic Execution Step 3 — Update statuses in atomic and parent state files, compress
+phase: atomic-execution
+step: 3
 ---
 
 Invocation: `/pae-finalize <path-to-atomic-description>`

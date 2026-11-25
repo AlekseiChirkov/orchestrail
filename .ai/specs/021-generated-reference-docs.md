@@ -455,7 +455,7 @@ leaves the digest unchanged. `file` digest: SHA-256 of the file bytes.
 | Field | Type | Owner | Rule |
 |---|---|---|---|
 | `description` | string | Spec 011 REQ-12/13 | Non-empty, single line |
-| `phase` | token | Spec 011 REQ-13, DM-3 | One of DM-3's phases: `discovery`, `execution`, `validation`, `atomic-execution`, `atomic-validation`, `orchestrated`, `entry`, `utility` |
+| `phase` | token | Spec 011 REQ-13, DM-3 | One of DM-3's phases: `discovery`, `execution`, `validation`, `atomic-execution`, `atomic-validation`, `finalization`, `orchestrated`, `entry`, `utility` |
 | `step` | string | Spec 011 REQ-13, DM-3 | Plain value matching `^[1-9][0-9]*(\.[1-9][0-9]*|[a-z])?$` (for example `1`, `2.5`, `4a`) or the JSON string `"-"` |
 | `loads` | mapping | Spec 013 DM-1 | `schema_version` the generator supports: `1` |
 | `reads` | list of strings | This spec | Required; `[]` means the workflow reads no canonical file; every entry matches Location grammar; possible reads of conditional branches included |
@@ -1063,7 +1063,7 @@ lists it as standalone.
 | No harness directory at all; hidden directory under `harness/` | `input-missing` (location `harness/`); hidden directory ignored | Data Model |
 | Workflow body edit only | Outputs and manifest unchanged; `--check` exit 0 | REQ-02 |
 | Empty `reads`/`writes`/`called_by` | Valid; rendered `none` | REQ-05 |
-| Missing field in a workflow with only spec-09 fields | One `metadata-missing-field` per missing field | REQ-05 |
+| Missing field in a workflow with only spec 011 fields | One `metadata-missing-field` per missing field | REQ-05 |
 | Two `Invocation:` lines, or one only inside a code fence | `invocation-missing` | REQ-36 |
 | `\|` inside an invocation or description | Escaped `\|` in the table | Contracts |
 | `Called by:` prose naming a non-caller after the leading list | Not compared | REQ-35 |
@@ -1435,16 +1435,16 @@ No questions were asked. A reconciliation pass aligned this spec with the final 
 - Q-01 | resolved 2026-11-14 (A-44: spec 011 DM-3 admits these steps and fixes their order) | Spec 011 REQ-13 allowed `step` to be a positive integer or `"-"`,
   but current steps include `2.5` (`workflows/pd-select-model.md:2`), `4a`
   (`workflows/pv-classify-fixes.md:2`) and `4b` (`workflows/pd-archive.md:2`). Impact: the
-  sort order of `commands.md` follows whatever 09 finally allows; 011 owns the answer.
+  sort order of `commands.md` follows what spec 011 finally allows; 011 owns the answer.
 - Q-02 | resolved 2026-11-14 (A-42: spec 011 REQ-54 limits only the body; the risk remains in Risks) | The Claude always-on content (985 + 1,607 words today) exceeds the
   1,200-word limit that the previous spec 011 text imposed on that file, and this spec adds an
-  11-word provenance line. Impact: if 09 delivers a file within 11 words of the limit,
-  `--write` stops with `size-limit` until 011/11 trim it; 09/11 own the content.
+  11-word provenance line. Impact: if spec 011 delivers a file within 11 words of the limit,
+  `--write` stops with `size-limit` until specs 011 and 013 trim it; they own the content.
 - Q-03 | non-blocker | Should `docs/PIPELINE.md` (command index and status glossary,
   `workflows/PIPELINE.md:108-145`) also be replaced by links? Impact: drift there remains
   possible; candidate follow-up spec.
 - Q-04 | resolved 2026-11-14 (A-45: adopted as spec 011 DM-4) | Will spec 011 adopt the capability record form (A-32) for its
-  canonical keys? Impact: if 09 delivers another syntax, this spec's Data Model →
+  canonical keys? Impact: if spec 011 delivers another syntax, this spec's Data Model →
   Capability declaration is reconciled before Discovery; until 011's declarations contain
   records, every canonical key renders `unknown` (today only `git-rails` is a record).
   `always-on-path` stays a plain line outside records.

@@ -12,7 +12,7 @@ deployed into, plus consumer projects.
 ### Claude Code (primary)
 - Workflows → `~/.claude/skills/<name>/SKILL.md`
 - Rules → `~/.claude/skills/rule-<name>/SKILL.md`; principles → `principle-<name>`
-- `rules/global-claude.md` → `~/.claude/CLAUDE.md` (overwritten on every sync)
+- `harness/claude/always-on.md` → `~/.claude/CLAUDE.md` (overwritten on every sync)
 - Per project: `CLAUDE.md` (pointer or two-level protocol), `.claude/skills/<name>` symlinks
   to the global skills (workaround: a project-local `.claude/skills/` hides global skills)
 - Only harness where `/spec-run`'s sub-agent model (Arbiter kept alive, Implementer paused
@@ -20,7 +20,7 @@ deployed into, plus consumer projects.
 
 ### OpenAI Codex
 - Same three skill layouts under `~/.codex/skills/`
-- `templates/codex-global-AGENTS.md` → `~/.codex/AGENTS.md`
+- `harness/codex/always-on.md` → `~/.codex/AGENTS.md`
 - Per project: `AGENTS.md` from `templates/AGENTS.md` (never overwritten; manual updates)
 - No sub-agent orchestration; `/spec-run` is not executable here.
 

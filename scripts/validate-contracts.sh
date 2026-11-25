@@ -861,8 +861,31 @@ check "M-3: PIPELINE.md documents Type 3 no-integration-validation limitation" \
 check "TDD: rules/tdd.md exists" \
   "$([ -f rules/tdd.md ] && echo pass || echo 'rules/tdd.md not found')"
 
+rule_loads_always() {
+  python3 -I - "$1" <<'PYRULELOAD'
+import json
+from pathlib import Path
+import sys
+
+try:
+    text = Path(sys.argv[1]).read_bytes().decode("utf-8")
+    lines = text.replace("\r\n", "\n").split("\n")
+    if lines[0] != "---":
+        sys.exit(1)
+    end = lines.index("---", 1)
+    loads = [line for line in lines[1:end] if line.startswith("load:")]
+    if len(loads) != 1 or not loads[0].startswith("load: ") or "\t" in loads[0]:
+        sys.exit(1)
+    raw = loads[0].removeprefix("load: ").rstrip(" ")
+    value = json.loads(raw) if raw.startswith('"') else raw
+except (OSError, ValueError):
+    sys.exit(1)
+sys.exit(0 if value == "always" else 1)
+PYRULELOAD
+}
+
 check "TDD: rules/tdd.md is always_on" \
-  "$(grep -q 'trigger: always_on' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md missing trigger: always_on')"
+  "$(rule_loads_always rules/tdd.md && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')"
 
 check "TDD: workflows/pae-tests.md exists" \
   "$([ -f workflows/pae-tests.md ] && echo pass || echo 'workflows/pae-tests.md not found')"
@@ -956,11 +979,112 @@ check "TDD: testing-standards links to the executing workflow" \
 check "TDD: PIPELINE.md documents the three-step atomic cycle" \
   "$(grep -q 'pae-tests' workflows/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing pae-tests in atomic cycle / child workflow table')"
 
+deployment_rule_evidence() (
+  local fixture
+  fixture="$(mktemp -d "${TMPDIR:-/tmp}/deployment-rules.XXXXXX")" || return 1
+  trap 'rm -rf -- "$fixture"' EXIT
+  export HOME="$fixture/home" XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
+  python3 -I - "$REPO_ROOT" "$fixture" <<'PYDEPLOYMENTRULES'
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+checkout, fixture = map(Path, sys.argv[1:])
+home = Path(os.environ["HOME"])
+config = Path(os.environ["XDG_CONFIG_HOME"])
+registered = fixture / "registered project"
+new_project = fixture / "new project"
+
+
+def relative_path(value):
+    segments = value.split("/")
+    if any(part in (".", "..") or not re.fullmatch(r"[A-Za-z0-9._-]+", part) for part in segments):
+        raise SystemExit(f"Invalid adapter fixture path: {value}")
+    return Path(value)
+
+
+def global_path(value):
+    if not value.startswith("$HOME/"):
+        raise SystemExit(f"Invalid global adapter fixture path: {value}")
+    return home / relative_path(value.removeprefix("$HOME/"))
+
+
+adapters = {}
+for directory in sorted((checkout / "harness").iterdir()):
+    name = directory.name
+    declaration = directory / "deploy.env"
+    if (directory.is_symlink() or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name)
+            or not declaration.is_file()):
+        continue
+    if declaration.is_symlink():
+        raise SystemExit(f"Expected a regular adapter declaration: {declaration}")
+    values = dict(line.split("=", 1) for line in declaration.read_text(encoding="utf-8").splitlines()
+                  if line and not line.startswith("#"))
+    project_path = values.get("project_skills_link_dir")
+    adapters[name] = (global_path(values["skills_dir"]), global_path(values["always_on_path"]),
+                      relative_path(project_path) if project_path is not None else None)
+
+link_adapters = [(skills, links) for skills, _, links in adapters.values() if links is not None]
+if not link_adapters:
+    raise SystemExit("No adapter declares a project skill link directory")
+
+for _, links in link_adapters:
+    (registered / links).mkdir(parents=True, exist_ok=True)
+new_project.mkdir()
+registry = config / "orchestrail/projects"
+registry.parent.mkdir(parents=True)
+registry.write_text(f"{registered}\n", encoding="utf-8")
+
+
+def run_engine(command, option, value):
+    result = subprocess.run(
+        [sys.executable, "-I", str(checkout / "scripts/deploy-skills.py"),
+         command, "--from", str(checkout), option, value],
+        cwd=fixture, capture_output=True, text=True, timeout=20,
+    )
+    if result.returncode:
+        raise SystemExit(result.stderr or result.stdout)
+
+
+run_engine("deploy", "--hook-result", '{"reason":"fixture","status":"unavailable"}')
+rules = {f"rule-{path.stem}": path for path in (checkout / "rules").iterdir()
+         if path.suffix == ".md" and path.is_file()}
+if not rules:
+    raise SystemExit("The deployment fixture has no rule sources")
+for name, (skills, always_on, _) in adapters.items():
+    if not always_on.is_file():
+        raise SystemExit(f"{name} did not produce its declared always-on file: {always_on}")
+    for skill, rule in sorted(rules.items()):
+        target = skills / skill / "SKILL.md"
+        if not target.is_file() or target.read_bytes() != rule.read_bytes():
+            raise SystemExit(f"{name} did not deploy {rule.name} as {target}")
+
+run_engine("link-project", "--project", str(new_project))
+for outcome, project in (("refresh", registered), ("setup", new_project)):
+    for skills, links in link_adapters:
+        for skill in rules:
+            target = project / links / skill
+            if not target.is_symlink() or target.resolve() != skills / skill:
+                raise SystemExit(f"Missing {outcome} link for {skill}: {target}")
+
+for name in adapters:
+    print(f"adapter:{name}")
+for skill in sorted(rules):
+    print(f"installed:{skill}")
+    print(f"refresh:{skill}")
+    print(f"setup:{skill}")
+PYDEPLOYMENTRULES
+)
+
+RULE_SKILL_EVIDENCE="$(deployment_rule_evidence)" || RULE_SKILL_EVIDENCE=""
+
 check "TDD: scripts/sync.sh deploys tdd.md to projects" \
-  "$(grep -q 'tdd\.md' scripts/sync.sh 2>/dev/null && echo pass || echo 'scripts/sync.sh does not deploy tdd.md to per-project rule directories')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'installed:rule-tdd' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')"
 
 check "TDD: scripts/setup-new-project.sh deploys tdd.md" \
-  "$(grep -q 'tdd\.md' scripts/setup-new-project.sh 2>/dev/null && echo pass || echo 'scripts/setup-new-project.sh does not deploy tdd.md to new projects')"
+  "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qxF 'setup:rule-tdd' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')"
 
 check "TDD: pv-create-fixes requires Test Plan for fix-tasks" \
   "$(grep -q '## Test Plan' workflows/pv-create-fixes.md 2>/dev/null && echo pass || echo 'pv-create-fixes.md missing Test Plan requirement for fix-tasks')"
@@ -975,7 +1099,7 @@ done
 
 for f in rules/git-flow.md rules/orchestration.md; do
   check "ORCH: $f is always_on" \
-    "$(grep -q 'trigger: always_on' "$f" 2>/dev/null && echo pass || echo "$f missing trigger: always_on")"
+    "$(rule_loads_always "$f" && echo pass || echo "$f must declare load: always in its front matter")"
 done
 
 # base_commit is the single input that makes restack strategy-agnostic.
@@ -1034,9 +1158,16 @@ check "ORCH: commits carry no AI authorship attribution" \
 check "ORCH: no-attribution rule overrides harness defaults" \
   "$(grep -qi 'overrides any tool default' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must state the no-attribution rule overrides harness defaults that append a trailer')"
 
-for f in rules/global-claude.md templates/codex-global-AGENTS.md templates/AGENTS.md; do
+managed_instruction_sources=(
+  'global-claude.md:harness/claude/always-on.md'
+  'codex-global-AGENTS.md:harness/codex/always-on.md'
+  'AGENTS.md:templates/AGENTS.md'
+)
+for entry in "${managed_instruction_sources[@]}"; do
+  f=${entry%%:*}
+  instruction_source=${entry#*:}
   check "ORCH: no-attribution rule present in $(basename $f)" \
-    "$(grep -q 'Co-Authored-By' "$f" 2>/dev/null && grep -qi 'overrides any tool default' "$f" 2>/dev/null && echo pass || echo "$f missing the no-attribution commit rule — harness defaults would append an attribution trailer")"
+    "$(grep -q 'Co-Authored-By' "$instruction_source" 2>/dev/null && grep -qi 'overrides any tool default' "$instruction_source" 2>/dev/null && echo pass || echo "$instruction_source missing the no-attribution commit rule — harness defaults would append an attribution trailer")"
 done
 
 check "ORCH: Co-Authored-By named as forbidden" \
@@ -1137,9 +1268,11 @@ check "ORCH: PR stack line names predecessors by branch" \
 check "ORCH: code-quality forbids pipeline references in code" \
   "$(grep -qi 'AI-pipeline artifacts in code' principles/code-quality.md 2>/dev/null && echo pass || echo 'code-quality.md must forbid T-XX / ADR / .ai references in code and comments')"
 
-for f in rules/global-claude.md templates/codex-global-AGENTS.md templates/AGENTS.md; do
+for entry in "${managed_instruction_sources[@]}"; do
+  f=${entry%%:*}
+  instruction_source=${entry#*:}
   check "ORCH: identifier ban present in $(basename $f)" \
-    "$(grep -qi 'No internal planning identifiers' "$f" 2>/dev/null && echo pass || echo "$f missing the no-identifier rule for commits and code")"
+    "$(grep -qi 'No internal planning identifiers' "$instruction_source" 2>/dev/null && echo pass || echo "$instruction_source missing the no-identifier rule for commits and code")"
 done
 
 check "ORCH: report warns hashes are pre-merge" \
@@ -1171,7 +1304,7 @@ check "ORCH: pd-select-model no longer claims it writes no files" \
 # Deployment
 for f in scripts/sync.sh scripts/setup-new-project.sh; do
   check "ORCH: $f deploys git-flow.md and orchestration.md" \
-    "$(grep -q 'git-flow\.md' "$f" 2>/dev/null && grep -q 'orchestration\.md' "$f" 2>/dev/null && echo pass || echo "$f does not deploy the orchestration rules")"
+    "$(grep -qE '(deploy|link-project) --from ' "$f" && grep -qxF 'installed:rule-git-flow' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'installed:rule-orchestration' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'setup:rule-git-flow' <<< "$RULE_SKILL_EVIDENCE" && grep -qxF 'setup:rule-orchestration' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available")"
 done
 
 check "ORCH: setup-new-project seeds .ai/ into .gitignore" \
@@ -1179,35 +1312,33 @@ check "ORCH: setup-new-project seeds .ai/ into .gitignore" \
 
 # Exercise the real per-project policy block without deploying global skills.
 test_sync_preserves_repository_knowledge_policy() (
-  local fixture project_dir policy output mode
+  local fixture project_dir tracked untracked policy output
   fixture="$(mktemp -d "${TMPDIR:-/tmp}/knowledge-policy.XXXXXX")" || return 1
   trap 'rm -rf "$fixture"' EXIT
-  policy="$(sed -n '/^  # 5\./,/^  PROJECTS_UPDATED=/p' scripts/sync.sh | sed '$d')"
-  [ -n "$policy" ] || return 1
-  for mode in tracked untracked; do
-    project_dir="$fixture/$mode"
+  export HOME="$fixture/home" XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
+  tracked="$fixture/tracked"
+  untracked="$fixture/untracked"
+  mkdir -p "$HOME" "$XDG_CONFIG_HOME/orchestrail" "$fixture/source"/{workflows,rules,principles,harness} || return 1
+  for project_dir in "$tracked" "$untracked"; do
     mkdir -p "$project_dir/.ai" || return 1
     git -C "$project_dir" init -q || return 1
     printf '%s\n' 'Knowledge fixture' > "$project_dir/.ai/README.md"
     printf '%s\n' 'local-cache/' > "$project_dir/.gitignore"
-    if [ "$mode" = tracked ]; then
-      git -C "$project_dir" add -- .ai/README.md || return 1
+  done
+  git -C "$tracked" add -- .ai/README.md || return 1
+  printf '%s\n' "$tracked" "$untracked" > "$XDG_CONFIG_HOME/orchestrail/projects"
+  for _ in first repeat; do
+    output="$(python3 -I scripts/deploy-skills.py deploy --from "$fixture/source" --hook-result '{}')" || return 1
+    policy="$(cmp -s "$tracked/.gitignore" <(printf '%s\n' 'local-cache/') && echo pass || echo 'Sync changed ignore policy for tracked knowledge')"
+    if [ "$policy" != pass ]; then
+      echo "$policy"; return 1
     fi
-    output="$(eval "$policy")" || return 1
-    if [ "$mode" = tracked ]; then
-      cmp -s "$project_dir/.gitignore" <(printf '%s\n' 'local-cache/') || {
-        echo 'Sync changed ignore policy for tracked knowledge'; return 1;
-      }
-      if grep -q 'rm -r --cached' <<< "$output"; then
-        echo 'Sync tells a tracked knowledge repository to remove its files'; return 1
-      fi
-    else
-      grep -qxF '.ai/' "$project_dir/.gitignore" || {
-        echo 'Sync no longer supplies the ignore default for untracked state'; return 1;
-      }
+    if grep -q 'rm -r --cached' <<< "$output"; then
+      echo 'Sync tells a tracked knowledge repository to remove its files'; return 1
     fi
-    eval "$policy" >/dev/null || return 1
-    [ "$(grep -cxF '.ai/' "$project_dir/.gitignore")" -le 1 ] || return 1
+    [ "$(grep -cxF '.ai/' "$untracked/.gitignore")" = 1 ] || {
+      echo 'Sync must idempotently ignore untracked knowledge'; return 1
+    }
   done
 )
 
@@ -1296,7 +1427,8 @@ check "QUICK: phase-execution quick branch records ## TDD (quick)" \
 # Checking two named rules passed while quick-flow and all five phase-* rules were absent
 # from scripts/setup-new-project.sh: a workflow saying "follow phase-atomic-execution rules" had
 # nothing to follow in a freshly set-up project.
-for rule in rules/*.md; do
+# Preserve the former Claude collision label while the deployment names migrate.
+for rule in rules/*.md 'global-claude.md'; do
   name=$(basename "$rule")
   base="${name%.md}"
   # Claude Code and Codex have no rules directory: every rule is deployed as a skill under the
@@ -1306,23 +1438,23 @@ for rule in rules/*.md; do
     "$([ ! -f "workflows/rule-$base.md" ] && echo pass || echo "workflows/rule-$base.md exists, so the rule skill rule-$base and that workflow skill would deploy to the same path")"
   [ "$name" = "global-claude.md" ] && continue   # deployed as ~/.claude/CLAUDE.md, not as a project rule
   check "DEPLOY: scripts/setup-new-project.sh copies $name" \
-    "$(grep -q "$name" scripts/setup-new-project.sh 2>/dev/null && echo pass || echo "scripts/setup-new-project.sh does not copy rules/$name into .windsurf/rules/ and .devin/rules/")"
+    "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qxF "setup:rule-$base" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "setup must link the deployed rule skill for $rule via the declared project adapter")"
   check "DEPLOY: scripts/sync.sh refreshes $name in existing projects" \
-    "$(grep -q "$name" scripts/sync.sh 2>/dev/null && echo pass || echo "scripts/sync.sh per-project loop does not refresh rules/$name")"
+    "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF "refresh:rule-$base" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "sync must refresh registered project links to the deployed rule skill for $rule")"
 done
 
 # Both skill roots must receive *every* rule, not a hand-maintained subset: the deployment loop
 # has to iterate "$RULES"/*.md. Before this, "load the `tdd` rule" pointed at a file that existed
 # in neither Claude Code nor Codex.
 check "DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill" \
-  "$(awk '/^# ── 3c\./,/^# ── 4\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in "$RULES"/\*\.md' && awk '/^# ── 3c\./,/^# ── 4\./' scripts/sync.sh 2>/dev/null | grep -q 'cp "$file" ~/.claude/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.claude/skills/rule-<name>/SKILL.md — every "load the <rule> rule" instruction is unreachable in Claude Code')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'adapter:claude' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/claude/deploy.env')"
 
 check "DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill" \
-  "$(awk '/^# ── 4d\./,/^# ── 5\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in "$RULES"/\*\.md' && awk '/^# ── 4d\./,/^# ── 5\./' scripts/sync.sh 2>/dev/null | grep -q 'cp "$file" ~/.codex/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.codex/skills/rule-<name>/SKILL.md — every "load the <rule> rule" instruction is unreachable in Codex')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qxF 'adapter:codex' <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/codex/deploy.env')"
 
 for root in claude codex; do
   check "DEPLOY: the $root rule deployment uses the rule- prefix" \
-    "$(grep -q "skill_name=\"rule-\${name}\"" scripts/sync.sh 2>/dev/null && grep -q "mkdir -p ~/.$root/skills/\$skill_name" scripts/sync.sh 2>/dev/null && echo pass || echo "scripts/sync.sh deploys rules into ~/.$root/skills/ without the rule- prefix, which overwrites the five identically-named workflow skills")"
+    "$(grep -qxF "adapter:$root" <<< "$RULE_SKILL_EVIDENCE" && echo pass || echo "rule skills must be distinct from workflow skills at the target declared by harness/$root/deploy.env")"
 done
 
 check "DEPLOY: workflow-globals tells the reader how to resolve a rule reference per agent" \
@@ -1857,7 +1989,7 @@ check "LOG: rules/run-log.md exists" \
   "$([ -f rules/run-log.md ] && echo pass || echo 'rules/run-log.md not found')"
 
 check "LOG: rules/run-log.md is always_on" \
-  "$(grep -q 'trigger: always_on' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md missing trigger: always_on')"
+  "$(rule_loads_always rules/run-log.md && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')"
 
 check "LOG: scripts/log-step.sh exists and is executable" \
   "$([ -x scripts/log-step.sh ] && echo pass || echo 'scripts/log-step.sh is missing or not executable — every logging instruction in the pipelines is then unrunnable')"
@@ -2093,15 +2225,18 @@ test_shell_paths_public_defaults_pass_syntax() {
 }
 
 test_shell_paths_relocated_checkout_preserves_overrides() (
-  local fixture source_tree alternate script mode target selected output status bad=0
+  local fixture source_tree alternate script mode target selected output status preflight bad=0
   fixture="$(mktemp -d "${TMPDIR:-/tmp}/script-paths.XXXXXX")" || return 1
   trap 'rm -rf "$fixture"' EXIT
+  export XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
   source_tree="$fixture/checkout with spaces"
   alternate="$fixture/alternate source"
   mkdir -p "$fixture/home/.claude/skills/example" "$fixture/work"
   for selected in "$source_tree" "$alternate"; do
     mkdir -p "$selected"/{workflows,rules,principles,scripts,templates/.ai,templates/.ai-umbrella}
     cp scripts/sync.sh scripts/log-step.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh scripts/link-skills.sh "$selected/scripts/"
+    cp scripts/deploy-skills.py scripts/report-legacy-artifacts.sh "$selected/scripts/"
+    cp -R harness "$selected/harness"
     printf '%s\n' "$selected" > "$selected/templates/.ai/source-marker"
     printf '%s\n' "$selected" > "$selected/templates/.ai-umbrella/source-marker"
     printf '%s\n' 'Umbrella fixture' > "$selected/templates/.ai-umbrella/README.md"
@@ -2121,7 +2256,8 @@ test_shell_paths_relocated_checkout_preserves_overrides() (
     esac
     status=0
     output="$(cd "$fixture/work" && env "${source_env[@]}" HOME="$fixture/home" bash "$source_tree/scripts/sync.sh" "${sync_args[@]}" 2>&1)" || status=$?
-    if [ "$status" -ne 1 ] || ! printf '%s\n' "$output" | grep -Fxq "source=$selected"; then
+    preflight="$([ "$status" -eq 1 ] && printf '%s\n' "$output" | grep -Fxq "source=$selected" && echo pass)"
+    if [ "$preflight" != pass ]; then
       echo "scripts/sync.sh ($mode): expected selected source to reach failing preflight"
       bad=1
     fi
@@ -4928,19 +5064,88 @@ test_public_identity_matches_exact_ledger_and_preserves_knowledge() (
   git cat-file -e "${baseline_commit}^{commit}" 2>/dev/null || {
     echo 'Identity ledger baseline commit is unavailable'; return 1;
   }
-  git ls-tree -r --name-only "$baseline_commit" -- .ai > "$scratch/baseline" || return 1
-  while IFS= read -r file; do
-    [ -n "$file" ] || continue
-    if [ ! -e "$file" ]; then
-      case "$file" in
-        .ai/tasks/todo/*) file=".ai/tasks/completed/${file#.ai/tasks/todo/}" ;;
-        .ai/specs/*) file=".ai/specs/completed/${file#.ai/specs/}" ;;
-      esac
-    fi
-    [ -e "$file" ] || { printf 'Knowledge file was removed: %s\n' "$file"; return 1; }
-    git ls-files --error-unmatch -- "$file" >/dev/null 2>&1 || {
-      printf 'Knowledge file is no longer tracked: %s\n' "$file"; return 1;
+  # Exact reviewed task-directory moves. The phase-one review moved in a later
+  # commit than the numbering review, independently of its finalization journal.
+  local -A task_moves=(
+    [task-00-sensitive-data-scrub]=task-001-sensitive-data-scrub
+    [task-01-git-source-of-truth]=task-002-git-source-of-truth
+    [task-02-run-log-vocabulary-validation]=task-003-run-log-vocabulary-validation
+    [task-03-hook-based-logging]=task-004-hook-based-logging
+    [task-04-model-catalog-cache]=task-005-model-catalog-cache
+    [task-05-cost-and-duration-telemetry]=task-006-cost-and-duration-telemetry
+    [task-06-harness-git-rails]=task-007-harness-git-rails
+    [task-06-1-test-suite-runtime]=task-008-test-suite-runtime
+    [task-07-state-tool]=task-009-state-tool
+    [task-08-rules-workflows-audit]=task-010-rules-workflows-audit
+    [task-24-task-finalization]=task-025-task-finalization
+    [task-25-spec-driven-pr-review-p1]=task-026-spec-driven-pr-review-p1
+  )
+
+  knowledge_path_is_safe() {
+    local ancestor="$1"
+    while :; do
+      if [ -L "$ancestor" ]; then
+        printf 'Knowledge path contains a symbolic link: %s\n' "$1"
+        return 1
+      fi
+      [[ "$ancestor" == */* ]] || return 0
+      ancestor="${ancestor%/*}"
+    done
+  }
+
+  knowledge_path_is_tracked() {
+    [ -f "$1" ] && git --literal-pathspecs ls-files --error-unmatch -- "$1" >/dev/null 2>&1 || {
+      printf 'Knowledge file is no longer tracked: %s\n' "$1"
+      return 1
     }
+  }
+
+  resolve_missing_knowledge_path() {
+    local original="$1" candidate task_relative placement task_directory mapped suffix found=0
+    local -a alternatives=()
+    case "$original" in
+      .ai/tasks/todo/*) alternatives+=(".ai/tasks/completed/${original#.ai/tasks/todo/}") ;;
+      .ai/specs/completed/*) ;;
+      .ai/specs/*) alternatives+=(".ai/specs/completed/${original#.ai/specs/}") ;;
+    esac
+    case "$original" in
+      .ai/tasks/todo/*/*|.ai/tasks/completed/*/*)
+        task_relative="${original#.ai/tasks/}"
+        placement="${task_relative%%/*}"
+        task_relative="${task_relative#*/}"
+        task_directory="${task_relative%%/*}"
+        mapped="${task_moves[$task_directory]:-}"
+        if [ -n "$mapped" ]; then
+          suffix="${task_relative#*/}"
+          alternatives+=(".ai/tasks/$placement/$mapped/$suffix")
+          if [ "$placement" = todo ]; then
+            alternatives+=(".ai/tasks/completed/$mapped/$suffix")
+          fi
+        fi
+        ;;
+    esac
+    for candidate in "${alternatives[@]}"; do
+      knowledge_path_is_safe "$candidate" || return 1
+      [ -e "$candidate" ] || continue
+      knowledge_path_is_tracked "$candidate" || return 1
+      found=$((found + 1))
+    done
+    case "$found" in
+      1) return 0 ;;
+      0) printf 'Knowledge file was removed: %s\n' "$original" ;;
+      *) printf 'Knowledge file has multiple relocation candidates: %s\n' "$original" ;;
+    esac
+    return 1
+  }
+
+  git ls-tree -r -z --name-only "$baseline_commit" -- .ai > "$scratch/baseline" || return 1
+  while IFS= read -r -d '' file; do
+    knowledge_path_is_safe "$file" || return 1
+    if [ -e "$file" ]; then
+      knowledge_path_is_tracked "$file" || return 1
+    else
+      resolve_missing_knowledge_path "$file" || return 1
+    fi
   done < "$scratch/baseline"
 )
 

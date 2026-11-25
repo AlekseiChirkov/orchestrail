@@ -1,5 +1,7 @@
 ---
 description: Phase 3 — Validation orchestrator: verify contract, review code, create and execute fix-tasks
+phase: validation
+step: "-"
 ---
 
 Invocation: `/phase-validation <task-directory>`

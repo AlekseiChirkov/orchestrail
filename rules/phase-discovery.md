@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for discovery phase — load when running /phase-discovery, /pd-analyze, /pd-decompose, /pd-design, /pd-finalize
+load: on-demand
 ---
 
 # Phase: Discovery — Context Rules

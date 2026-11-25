@@ -1634,7 +1634,7 @@ Reference workspaces come from `build-reference`.
 | Adapter result fields and cost cap unverified | Live cost and model unknown; promotion impossible; launches refused without weaker-design acceptance | High | `null` fields stay unknown (REQ-34); Q-02, Q-06 |
 | New files under `tests/` invalidate the source guard inventory | Validator red after the change | Certain | Re-pin per `tests/fixtures/validator-runtime/README.md:9-28` in the same change (Notes) |
 | Offline suite not run by `validate-contracts.sh` | Regressions unnoticed between releases | Medium | Manual run before release and in the manual; Q-01 |
-| Spec 011 renames workflows | Case prompts stale | Medium | Prompts are data in `case.json`; update with 09 |
+| Spec 011 renames workflows | Case prompts stale | Medium | Prompts are data in `case.json`; update with spec 011 |
 | Small samples | Most comparisons `insufficient-data` | High | Valid result by design (REQ-12) |
 | Scope size | Long implementation | Medium | Delivery order in eight parts; parts 1–3 are useful alone |
 

@@ -1,5 +1,7 @@
 ---
 description: Phase 2 — Execution orchestrator: execute all pending subtasks via atomic cycles
+phase: execution
+step: "-"
 ---
 
 Invocation: `/phase-execution <task-directory>`

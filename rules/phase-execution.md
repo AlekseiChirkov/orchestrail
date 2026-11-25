@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for execution phase — load when running /phase-execution, /pe-execute, /pae-implement, /pae-finalize
+load: on-demand
 ---
 
 # Phase: Execution — Context Rules

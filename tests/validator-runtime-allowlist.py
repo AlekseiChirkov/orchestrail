@@ -16,7 +16,9 @@ ORACLE = contract.ORACLE
 
 class RuntimeAllowlist(unittest.TestCase):
     def test_runtime_additions_have_exact_expressions_order_and_positions(self) -> None:
-        frozen = contract.load_frozen_inventory(ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz')
+        inventory_path = ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz'
+        frozen = contract.load_frozen_inventory(inventory_path)
+        amendment = contract.load_pinned_amendment(inventory_path)
         source = (ROOT / 'scripts/validate-contracts.sh').read_text()
         names = ('test_validator_runtime_characterization', 'test_validator_runtime_oracle')
         blocks = []
@@ -38,12 +40,13 @@ class RuntimeAllowlist(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='validator-allowlist-') as temp:
             path = Path(temp) / 'validate-contracts.sh'
             path.write_text(source)
-            self.assertTrue(ORACLE.matches_structure(frozen, ORACLE.inventory(path, include_resources=False)))
+            self.assertTrue(ORACLE.matches_structure(
+                frozen, contract.amended_source_inventory(path, amendment, include_resources=False)))
             for name, candidate in mutations.items():
                 with self.subTest(mutation=name):
                     path.write_text(candidate)
                     try:
-                        actual = ORACLE.inventory(path, include_resources=False)
+                        actual = contract.amended_source_inventory(path, amendment, include_resources=False)
                         accepted = ORACLE.matches_structure(frozen, actual)
                     except ValueError:
                         accepted = False

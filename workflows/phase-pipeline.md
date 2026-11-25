@@ -1,5 +1,7 @@
 ---
 description: Fully autonomous pipeline — run Discovery, Execution and Validation with explicit decision overrides and resumable state
+phase: orchestrated
+step: "-"
 ---
 
 Invocation: `/phase-pipeline <spec-path|task-directory>`

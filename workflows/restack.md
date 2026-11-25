@@ -1,5 +1,7 @@
 ---
 description: Repair a stacked branch series after part was merged — replay each remaining branch onto its new base using recorded branch points
+phase: utility
+step: "-"
 ---
 
 Invocation: `/restack <task-directory> [--repo <directory>] [--onto <branch>] [--allow-pr]`

@@ -223,7 +223,7 @@ Rule and workflow names follow spec 011's target names (011 DM-10, DM-11):
 - **REQ-02.** WHEN deployment runs, THE SYSTEM SHALL install each reference file
   `rules/reference/<stem>.md` byte-for-byte as `<skills_dir>/ref-<stem>/SKILL.md` for every
   supported harness and record each as an owned object in the deploy manifest in force
-  (011 DM-6; after spec 022, the manifest of its installer, 09 Notes "Relationship to spec 022").
+  (011 DM-6; after spec 022, the manifest of its installer, 011 Notes "Relationship to spec 022").
 - **REQ-03.** WHEN `check` runs, THE SYSTEM SHALL report `loads-missing` for every workflow
   without a `loads:` declaration and `loads-not-cited` for every workflow whose body does
   not contain the citation `` `contract-loads → ## Runtime resolution` ``.
@@ -1347,8 +1347,8 @@ with REQ-26 added to AC-05.
 - A-34 | Evidence path base | Resolved: two named bases, `work` (`WORK_DIR`) and `task` (parent task directory) | Source: `workflows/spec-run.md:238-239`; `rules/phase-atomic-execution.md:16-22` | Reversible: yes
 - A-35 | Baseline revision content | Resolved: declarations, citation line, `contract-loads`, the always-on lines naming every `load: always` rule, and REQ-22 only; `contract-loads` counted | Source: previous revision §8 step 4 ("add the load schema … then split texts"); best practice | Reversible: no once committed (REQ-28)
 - A-36 | Handling of 010's 11-owned proposals and findings | Resolved: implement or decline each proposal and each finding of any type with owner 11, recorded in the measurement summary | Source: 010 REQ-02; owner decision on AUD-08-065 (2026-11-18) | Reversible: yes
-- A-37 | Changed validator expressions under the frozen inventory | Resolved (amended 2026-11-14): reuse 011's schema-2 amendment (011 DM-9, REQ-51); 013 supplies `path_changes` entries and `resources` changes for its own re-pointing and defines no schema; the earlier fallback definition is withdrawn | Source: 011 DM-9, REQ-51, REQ-52, A-02; 09 Notes "Peer requests" ("011 owns it") | Reversible: yes
-- A-38 | Rules created after this spec and after the baseline | Resolved: 011's naming and placement rule; full `check`; counted only in after records; over-limit edits stop, with `/spec-sync` to the owning spec for word-fixed rules | Source: 09 Notes "Files and sections created after this spec"; 016 REQ-47, REQ-48; 015 REQ-49; REQ-28 | Reversible: yes
+- A-37 | Changed validator expressions under the frozen inventory | Resolved (amended 2026-11-14): reuse 011's schema-2 amendment (011 DM-9, REQ-51); 013 supplies `path_changes` entries and `resources` changes for its own re-pointing and defines no schema; the earlier fallback definition is withdrawn | Source: 011 DM-9, REQ-51, REQ-52, A-02; 011 Notes "Peer requests" ("011 owns it") | Reversible: yes
+- A-38 | Rules created after this spec and after the baseline | Resolved: 011's naming and placement rule; full `check`; counted only in after records; over-limit edits stop, with `/spec-sync` to the owning spec for word-fixed rules | Source: 011 Notes "Files and sections created after this spec"; 016 REQ-47, REQ-48; 015 REQ-49; REQ-28 | Reversible: yes
 - A-39 | Delivery order of 011's changes and 013's re-pointing | Resolved: 011's guard (A-28) stays; 013 adds its entries to 011's amendment after 011 has delivered it | Source: `.ai/specs/README.md` dependency order; 011 DM-9 ("reused by spec 013") | Reversible: yes
 
 ## Decisions

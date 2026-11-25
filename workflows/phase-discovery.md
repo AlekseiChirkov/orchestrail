@@ -1,5 +1,7 @@
 ---
 description: Phase 1 — Discovery orchestrator: analyze task, decompose, design architecture, finalize plan
+phase: discovery
+step: "-"
 ---
 
 Invocation: `/phase-discovery <path-to-spec> [--phase N] [--step-by-step]`

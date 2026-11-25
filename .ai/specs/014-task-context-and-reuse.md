@@ -1600,7 +1600,7 @@ N/A — no questions were asked (autonomous mode, owner unavailable for this run
 
 ### Prerequisites and guard for the implementing task
 
-Specs 006 (done), 09, 10 and 11 must have landed (`.ai/specs/README.md` "Dependency order").
+Specs 006 (done), 011, 012 and 013 must have landed (`.ai/specs/README.md` "Dependency order").
 If 013's `measure-context.sh` or 011's metadata check is absent, AC-21's corresponding command
 cannot run: record it as unmet and hand the decision to the owner rather than weakening it.
 

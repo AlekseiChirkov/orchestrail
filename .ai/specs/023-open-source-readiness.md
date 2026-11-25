@@ -1088,7 +1088,7 @@ Autonomous refinement: no questions were asked before 2026-11-14.
 ### 2026-11-14 — reconciliation with refined peer specs
 
 - Spec 011: Q-05 recorded as resolved; the relationship section now states 011's engine as the
-  interim state, maps each preserved contract of 011's Notes → Relationship to spec 023 to a
+  interim state, maps each preserved contract of 011's Notes → Relationship to spec 022 to a
   requirement, and lists the explicit changes with reasons. Added REQ-79 (leftover skills,
   reported by the installer through `deployment-set`'s `leftover_candidates`; A-42) and REQ-80
   (registry, lock and project-pass boundaries), AC-41, AC-42 and the plan field `leftover`.

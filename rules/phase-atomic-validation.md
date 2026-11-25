@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for atomic-validation — load when running /phase-atomic-validation or /pav-check standalone (without parent /phase-validation)
+load: on-demand
 ---
 
 # Phase: Atomic Validation — Context Rules

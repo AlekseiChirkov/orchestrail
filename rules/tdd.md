@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the Orchestrail test-first execution rules.
+load: always
 ---
 
 # TDD Contract

@@ -192,7 +192,7 @@ stay as they are; without the helper the existing manual procedure continues unc
 1. A checkpoint journal per task directory holding write-once attempt records, worker
    reports, checkpoint messages, proposals and receipts.
 2. A versioned checkpoint message for the four `/spec-run` boundaries (`red`, `pinned`,
-   `green`, `review`), composed deterministically from the worker's spec-11 report and observed
+   `green`, `review`), composed deterministically from the worker's spec 013 report and observed
    repository and task facts.
 3. A structured syntax for the content of `delta` blocks (five operations) with a closed
    per-checkpoint policy, and its use by the four worker workflows that return deltas under
@@ -237,8 +237,8 @@ stay as they are; without the helper the existing manual procedure continues unc
 | Actor | Allowed actions |
 |---|---|
 | Orchestrator (`/spec-run`) | Runs the helper; writes journal records, worker reports and patches it receives from the helper; applies patches; commits; writes git fields; decides on stops. Sole writer of shared files and of the journal |
-| Implementer | Unchanged rights (own progress block, code, tests). Returns its spec-11 report with deltas in DM-4 syntax |
-| Validator | Unchanged rights (own block). Returns its spec-11 reports with deltas in DM-4 syntax; never receives Implementer reports, messages or journal paths |
+| Implementer | Unchanged rights (own progress block, code, tests). Returns its spec 013 report with deltas in DM-4 syntax |
+| Validator | Unchanged rights (own block). Returns its spec 013 reports with deltas in DM-4 syntax; never receives Implementer reports, messages or journal paths |
 | Arbiter | Unchanged; not part of checkpoints |
 | `scripts/controller-step.py` | Reads files and runs read-only git subcommands; prints JSON; writes nothing, starts no model, uses no network |
 | `scripts/check-controller-step.py` | Acceptance suite; creates and removes disposable fixture repositories under a temporary directory only |
@@ -465,12 +465,12 @@ and the remainder of each previous requirement is split into later identifiers.
   `.ai/principles/domain.md` before the rules use them.
 - **REQ-50 Final response composition.** THE `/spec-run` spawn instructions for the
   Implementer's GREEN batch and for the Validator SHALL require a final response that contains,
-  in step order, every spec-11 report form the batch produced (GREEN; Check, then Completion
+  in step order, every spec 013 report form the batch produced (GREEN; Check, then Completion
   when `/pav-close` ran), followed by every `delta` block the batch produced.
 - **REQ-51 Context packet fields.** WHEN `attempt` or `compose` runs, THE SYSTEM SHALL set
   `packet_digest` to the digest of the leaf's latest Orchestrator `context-packet:` notes
   entry for the role (spec 014 DM-11; a `successor` entry counts) and `task_contract_hash` to
-  `sha256:` plus `parts.contract.sha256` of that packet's manifest in the spec-12 store, and
+  `sha256:` plus `parts.contract.sha256` of that packet's manifest in the spec 014 store, and
   set both to `null` when the entry is absent or `none`, or the packet file is missing.
 - **REQ-49 Rule size.** Each new rule file SHALL be `load: on-demand` and SHALL raise no
   `rule-size-exceeded` finding of spec 013's meter (013 REQ-01: at most 700 words per top-level
@@ -568,13 +568,13 @@ cleanup is defined. Migration: none; a task without a journal is a manual-route 
 | `next_gate` | string | `Next:` value of the last form |
 | `proposed_delta` | list | Structured operations (DM-4) in report order, each with an added `block` (0-based index of its `delta` block) and `line` (1-based line within the block) |
 | `manual_deltas` | list of `{"block", "sha256", "reason"}` | Unstructured or empty `delta` blocks; `reason` ∈ `delta-unstructured`, `delta-empty` |
-| `packet_digest`, `task_contract_hash` | digest or `null` | Packet in effect when `compose` runs (REQ-51); differs from the attempt record after a spec-12 successor packet at the RED continuation |
+| `packet_digest`, `task_contract_hash` | digest or `null` | Packet in effect when `compose` runs (REQ-51); differs from the attempt record after a spec 014 successor packet at the RED continuation |
 | `context_receipt` | string or `null` | The leaf's latest worker `context-receipt:` notes entry for the role, verbatim (spec 014 DM-11) |
 | `input_handoff_digest`, `telemetry_ref` | copied | From the attempt record |
 | `payload_digest` | digest | Self-digest |
 
 `acceptance_criteria` replaces the previous revision's `ac_ids`: subtask descriptions carry no
-criterion identifiers today (`templates/subtask-description.md:32-37`); when a spec-12 contract
+criterion identifiers today (`templates/subtask-description.md:32-37`); when a spec 014 contract
 supplies identifiers, they appear verbatim in the items.
 
 ### DM-4 Delta operations (worker-authored; one JSON object per line)
@@ -742,7 +742,7 @@ and exits 0; the Orchestrator then uses the manual route's existing reconciliati
 
 ### C-1 Contract rules and anchored lines
 
-`rules/contract-checkpoints.md` (`load: on-demand`; a mandatory entry of `spec-run`'s spec-11
+`rules/contract-checkpoints.md` (`load: on-demand`; a mandatory entry of `spec-run`'s spec 013
 `loads:` declaration) has exactly these sections: `## Helper route` (C-5 including the save
 procedure), `## Stop classes` (C-6), `## Waiting` (C-7) and `## Manual route` (C-8).
 `rules/contract-delta-operations.md` (`load: on-demand`) has the section `## Delta operations`
@@ -907,7 +907,7 @@ directories are created with `mkdir -p` on the first save.
 shares a Bash call with a write of another step, because a same-command write makes the git
 rails deny later reads, `.ai/memory/architecture.md:204-205`):
 
-1. Before the spawn, after any spec-12 packet is built and its `context-packet:` entry
+1. Before the spawn, after any spec 014 packet is built and its `context-packet:` entry
    recorded: `attempt …` → save `attempts/<attempt_id>.json` (REQ-09).
 2. On the final response: save the report (REQ-10–REQ-12); `compose` → save
    `messages/<event_id>.json`. Outcomes follow C-6.
@@ -996,7 +996,7 @@ remains the authority for boundaries handled manually.
 
 `python3 -I scripts/check-controller-step.py` builds disposable git repositories in a temporary
 directory (tracked and ignored `.ai/` variants, real `state.md`/`plan.md` shapes copied from
-`.ai/tasks/completed/task-007-harness-git-rails/`), a scripted spec-11
+`.ai/tasks/completed/task-007-harness-git-rails/`), a scripted spec 013
 `rules/contract-reports.md` and synthetic worker reports, runs the helper as a subprocess with
 `ORCHESTRAIL_HOME` pointing at a temporary checkout copy, and exits 0 only when every AC case
 passes. It reads, never edits, the repository's rules and workflows for the contract cases.
@@ -1034,7 +1034,7 @@ passes. It reads, never edits, the repository's rules and workflows for the cont
 | Resume with tracked uncommitted implementation files | Step 0 item 3 stops as today; its report names `reconcile`'s next actions | REQ-25 |
 | Interruption while applying manual deltas | State `committed`, next action `manual-then-render`; the manual route checks each target before changing it | REQ-20, REQ-26 |
 | Boundary handled by the manual route, helper available on a later resume | `manual-route` state; `none` when canonical completion holds | REQ-26 |
-| Successor spec-12 packet at the RED continuation | `green` message carries the successor's digests; the attempt record keeps the dispatch packet | REQ-51 |
+| Successor spec 014 packet at the RED continuation | `green` message carries the successor's digests; the attempt record keeps the dispatch packet | REQ-51 |
 | Worker response with CRLF endings or two trailing newlines | Saved in canonical form; a non-canonical file → `report-not-canonical` fallback | REQ-10 |
 | Orchestrator wrote git fields after compose | Proposal `derived: true`; applies normally | REQ-18 |
 | Human edited the same plan cell | `conflict`; stop | REQ-04, REQ-24 |
@@ -1288,7 +1288,7 @@ REQ-35, REQ-39; G7 — REQ-33, REQ-46, C-8; G8 — REQ-47, NFR-05.
 - A-03 | Helper language and name | Resolved: one Python 3.11+ standard-library file `scripts/controller-step.py`, run with `python3 -I` without a Bash launcher; the previous `.sh` name becomes `.py`. Consequence: the entry file as a whole uses only syntax older Python 3 interpreters parse and loads 3.11-only code after the check, so that REQ-45's version check, not a syntax error, decides (spec 020 A-26: entry module plus path-loaded engine) | Source: ADR-0021 Decision 3 (`scripts/`); `scripts/model-catalog.py` pattern; spec 011 Scope item 3 (standard-library Python 3.11+ engine precedent) | Reversible: yes
 - A-04 | Who writes the journal | Resolved: the Orchestrator through Bash redirection and the save procedure; the helper writes nothing | Source: previous revision §2 helper row and AC-02 ("files unchanged") | Reversible: yes
 - A-05 | Journal location | Resolved: `<task>/checkpoints/`, ignored in this repository and in the consumer entries of project setup | Source: previous revision §6 ("durable in the task's local data"); spec 009 REQ-26 ignore precedent | Reversible: yes
-- A-06 | Who builds the message | Resolved: the helper, run by the Orchestrator, from the worker's spec-11 report and observed facts; worker rights unchanged | Source: previous revision §2 ("new messages do not extend worker rights"); spec 013 Terminology "Full structured result" | Reversible: yes
+- A-06 | Who builds the message | Resolved: the helper, run by the Orchestrator, from the worker's spec 013 report and observed facts; worker rights unchanged | Source: previous revision §2 ("new messages do not extend worker rights"); spec 013 Terminology "Full structured result" | Reversible: yes
 - A-07 | Event identity | Resolved: deterministic readable `event_id` from attempt and kind; attempts numbered per leaf and role | Source: previous revision §4 (`event_id` stable across redelivery); best practice | Reversible: yes
 - A-08 | Acceptance-criterion identity | Resolved: verbatim report items plus `description_sha256` | Source: `templates/subtask-description.md:32-37` (no ids) | Reversible: yes
 - A-09 | Checkpoint kinds | Resolved: `red`, `pinned`, `green`, `review`; `close` folded into `review` | Source: `workflows/spec-run.md:291-292` (one Validator return covers check to close) | Reversible: yes

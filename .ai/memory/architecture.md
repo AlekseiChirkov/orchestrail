@@ -9,26 +9,26 @@ surface changes.
 ## Overview
 
 Orchestrail is a **file-based specification of an AI-assisted SDLC**. Core workflow
-behaviour lives in instructions that an LLM agent (Claude Code, Codex, or
-Windsurf/Devin) reads and follows. Small local helpers provide validation, deployment
-and telemetry, including the Python installer engine. The repository is the single source of truth;
-`scripts/sync.sh` copies it into each harness's global configuration, and
-`scripts/setup-new-project.sh` seeds a target project with a `CLAUDE.md`/`AGENTS.md`, rule
-copies, skill symlinks, and a `.ai/` knowledge base. Development runs through
+behaviour lives in instructions that Claude Code and Codex read and follow. The
+repository is the source of truth for validation, deployment and telemetry.
+`scripts/sync.sh` installs global instructions and skills at the paths declared by
+each harness. `scripts/setup-new-project.sh` seeds `CLAUDE.md`, `AGENTS.md` and a
+`.ai/` knowledge base, registers the project and adds available skill links.
+Development runs through
 Discovery, Execution and Validation. After owner-controlled integration, a separately
 invoked Finalization closes the selected task with safe cleanup and archival. Progress
 is persisted in the target project's `.ai/tasks/…/state.md`; ordinary runs attempt
 best-effort telemetry to the central store that `/retro` reads, while dry-run emits none.
 
-Current inventory: 43 workflows, 15 rules, 4 principles, 11 shell scripts and 46 Python
-helpers under `scripts/`, with automated consistency and smoke checks.
+Current inventory: 43 workflows, 14 rules, 4 principles, 13 shell and 52 Python files
+under `scripts/`, with automated consistency and smoke checks.
 
 ## Components
 
-### Layer 1 — `rules/` (always-on contracts, 15 files)
-Policies every workflow obeys. Deployed as Windsurf/Devin global rules, and — because
-Claude Code and Codex have no rules directory — as skills under the mandatory `rule-`
-prefix (six basenames collide with workflows). Key files:
+### Layer 1 — `rules/` (rule skills, 14 files)
+The deployment engine installs these policies as skills under the mandatory `rule-`
+prefix. The `load` field declares `always` or `on-demand`. Each harness always-on file
+summarizes essential policies. Several basenames also occur in workflows. Key files:
 
 | File | Owns |
 |---|---|
@@ -41,13 +41,11 @@ prefix (six basenames collide with workflows). Key files:
 | `run-log.md` | log store, three `scripts/log-step.sh` calls, field vocabulary, never-block rule, canonical per-boundary capability/evidence routing and receipt-confirmed suppression; unobserved prompt boundaries remain approximate |
 | `language.md` | English in every project file |
 | `phase-*.md` (6) | per-phase Context Bootstrap (which `.ai/` files to load and in what order), Blocker Reconciliation |
-| `global-claude.md` | the content of `~/.claude/CLAUDE.md` — always-on essentials for Claude Code |
 
 ### Layer 2 — `principles/` (engineering standards, 4 files)
 `code-quality.md`, `python-standards.md`, `testing-standards.md`, `infra-standards.md`.
-Domain-quality rules, Python/FastAPI/GCP-centric. Deployed as Windsurf global rules and
-as `principle-*` skills. `testing-standards` owns test *style*; `rules/tdd.md` owns test
-*process*.
+Domain-quality rules for Python, FastAPI and GCP, deployed as `principle-*` skills.
+`testing-standards` defines test style. `rules/tdd.md` defines the test process.
 
 ### Layer 3 — `workflows/` (slash commands, 43 files)
 
@@ -65,23 +63,36 @@ Utilities            context-pack, compress-state, retro, suggest-commit-message
 Reference            PIPELINE.md (not executable)
 ```
 
-Every executable workflow has: a front-matter `description:`, an `Invocation:` line, a
+Every executable workflow declares a front-matter `description:`, `phase:` and `step:`
+and carries an `Invocation:` line and a
 `## Guard` section (detects completed work, asks before overwriting), numbered steps,
 explicit `**stop**` points, and a report line. Children are callable standalone and must
 run the full Context Bootstrap when they are.
 
 ### Layer 4 — `templates/`
 `.ai/` skeleton (seeded into projects, never overwrites), `.ai-umbrella/` (multi-repo
-root), `AGENTS.md` (Codex, per project), `codex-global-AGENTS.md` (→ `~/.codex/AGENTS.md`),
-`subtask-description.md` and `spec.md` (reference skeletons), `stacks/python-fastapi.md`.
+root), `AGENTS.md` (Codex, per project), `subtask-description.md` and `spec.md`
+(reference skeletons), `stacks/python-fastapi.md`.
+
+### Harness adapters
+
+`harness/claude/always-on.md` supplies `~/.claude/CLAUDE.md` and
+`harness/codex/always-on.md` supplies `~/.codex/AGENTS.md`. Each adapter declares
+its global paths in `deploy.env` and includes ordered canonical records in
+`capabilities.md`. Hook support describes the shipped implementation, with current
+installation and checkpoint coverage verified separately. The sync command manages both
+deployed global instruction files. Edits to deployed files surface as ownership conflicts.
 
 ### Layer 5 — scripts
 | Script | Role |
 |---|---|
 | `scripts/validate-contracts.sh` | Consistency and smoke checks across layers 1–3, including bidirectional canonical JSON-table/runtime contract comparison (`--run-log-contract-only`); includes an optional tracked-file public-hygiene scanner using local patterns (`--hygiene-only`, `--root`, `--denylist`); run by `scripts/sync.sh`; any failure blocks deploy |
 | `scripts/validate-task.sh` | applies the same contracts to one task directory's artifacts; run by `/pd-finalize` and `/pe-finalize` |
-| `scripts/sync.sh` | Mandatory full and finalization preflight → generate Windsurf, Claude Code and Codex outputs; normal mode then installs and refreshes projects with `.devin/`; `--stage <directory>` generates isolated artifacts without hook installation or consumer scans |
-| `scripts/setup-new-project.sh` | seed a project (auto-detects umbrella `../.ai/`) |
+| `scripts/lint-instructions.py` | Standalone checker for instruction metadata, capability records, executable references and retired names. It validates the name map and its usage table. The frozen validator oracle pins the map digest for path-only changes. |
+| `scripts/sync.sh` | Runs contract and finalization preflight, installs hooks, reports retired files, and delegates deployment. `--stage <directory>` renders the declared harness outputs in an isolated destination. |
+| `scripts/deploy-skills.py` | Plans and applies deployment under a lock. It validates targets and ownership, persists a recovery journal before atomic writes, advances the harness manifests, and refreshes registered project links. It defers global changes while a registered consumer is active, records working-tree HEAD, and reports former skill directories. |
+| `scripts/report-legacy-artifacts.sh` | Reports legacy global and project objects with shell-quoted paths. It uses a non-dereferencing metadata check. |
+| `scripts/setup-new-project.sh` | Seeds and registers a project, detects umbrella context, reports legacy objects, and links skills into the directories declared by the adapters. |
 | `scripts/setup-umbrella.sh`, `scripts/setup-all-repos.sh` | multi-repo initialization |
 | `scripts/link-skills.sh` | workaround: symlink global skills into a project's `.claude/skills/` |
 | `scripts/log-step.sh` | validates complete producer arguments and exact legacy aliases before append-only JSONL writes; optional-jq legacy fallback; sorted runtime `contract` export and read-only `lint` diagnostics/summary; executable integer `ts_ms` boundaries; optional correlated identities and spans use bounded per-run flock, private active-only deduplication and matching JSON acceptance receipts; jq is required for lint and correlated writes, with flock/truncate additionally required for correlated writes; exits 0 on every error |
@@ -95,7 +106,10 @@ root), `AGENTS.md` (Codex, per project), `codex-global-AGENTS.md` (→ `~/.codex
 
 `harness/claude/hooks.json` contains the portable native hook fragment: the git-rails `PreToolUse` group for `Bash` (`onFailure: block`) and the Stop/SubagentStop logging groups (`onFailure: continue`). `harness/claude/permissions.json` is the deny-only permission fragment `{"permissions":{"deny":[…]}}`: five exact rules for blanket staging and commit-all, defence in depth beside the hook, each with a positive and a negative fixture under the recorded match semantics. Claude and Codex capability declarations under `harness/` distinguish mechanism support, current installation status and demonstrated checkpoint coverage. Sync rebuilds the existing global instruction bodies and appends each capability block and installation result once; installation unavailability does not interrupt the other deployment targets or consumer refresh. The Claude capability record also carries a verified `git-rails` section (PreToolUse/Bash exit and JSON protocol, the anchored `git-rails ask-capable modes:` allowlist, permission-rule match semantics, the blocking failure option, limitations and residual risks X1–X10); the Codex record declares `git-rails: none (textual rules only)`. Contract checks in `scripts/validate-contracts.sh` pin each field.
 
-Project setup is the sole writer of the XDG configuration project registry. It registers physical canonical roots idempotently under a dedicated lock with atomic replacement, preserves existing entries and rejects newline paths. The hook adapter only reads this registry; sync does not register or prune project roots.
+Project setup is the sole writer of the XDG configuration project registry. It atomically
+registers canonical roots under a dedicated lock. Both deployment and the hook adapter read
+the registry. Deployment refreshes owned links in eligible roots and preserves existing
+knowledge tracking. Each manifest lives at `<config>/orchestrail/deploy/<harness>.json`.
 
 ### Executable acceptance checks
 
@@ -133,10 +147,10 @@ author edits rules/ workflows/ principles/ templates/
 scripts/validate-contracts.sh ──fail──▶ deploy blocked
         │ pass
         ▼
-scripts/sync.sh ──▶ ~/.codeium/windsurf/global_{workflows,rules}/
-        ├─▶ ~/.claude/skills/{<wf>,rule-<r>,principle-<p>}/SKILL.md + ~/.claude/CLAUDE.md
-        ├─▶ ~/.codex/skills/… + ~/.codex/AGENTS.md
-        └─▶ every project with .devin/: refresh .devin/rules, .windsurf/rules, .claude/skills symlinks
+scripts/sync.sh ──▶ scripts/deploy-skills.py
+        ├─▶ harness-declared skill directories and global instruction files
+        ├─▶ deployment manifests with recorded object digests
+        └─▶ registered projects: refresh owned skill links and apply the knowledge ignore policy
         │
         ▼
 scripts/setup-new-project.sh (per project) ──▶ CLAUDE.md, AGENTS.md, .ai/ skeleton, .gitignore (.ai/ untracked)
@@ -178,8 +192,8 @@ scripts/log-step.sh ──▶ logs/runs/*.jsonl ──▶ read-only lint ──�
 
 ## External Dependencies
 
-- Agent harnesses: Claude Code (skills, `CLAUDE.md`, sub-agents), OpenAI Codex
-  (`AGENTS.md`, skills), Windsurf / Devin Desktop (global workflows and rules).
+- Agent harnesses: Claude Code (skills, `CLAUDE.md`, sub-agents) and OpenAI Codex
+  (`AGENTS.md`, skills).
   Model and worker requestability must be observed from the active session; harness
   names and logging declarations alone do not establish support.
 - Tools invoked by workflows: `git`, `gh` (authoritative finalization PR reads; publication only with its own authorization), `jq`
@@ -374,3 +388,11 @@ Bootstrap`). Acceptance: `python3 scripts/check-repo-set.py` (38 tests).
 ## Post-merge task closure mechanics
 
 The finalization coordinator (`scripts/phase-finalize.py`) returns explicit Git action plans and coordinates evidence, locked revision-checked journals and no-overwrite archival. `finalization_support.py` owns strict paths, atomic writes and protected-state normalization; `finalization_evidence.py` owns read-only Git/PR checks; `finalization_archive.py` owns manifests, original snapshots, location resolution and separately recorded Markdown link relocation. Scoped hook authorization now checks the journal, exact action, mutable refs/protection/worktrees, immutable recovery pack and configured/effective remote transport. The single public phase owns sequence and semantic reconciliation; shared readers preserve the existing development endpoints and treat its additive marker independently. `finalization_attempts.py` records immutable failed/recovered command evidence offline, without issuing new deletion receipts. Per-operation checkpoints distinguish execution attempts from verified postconditions. `finalization_knowledge.py` captures typed current-record inventory before edits and accepts exact independently attested changes without staging or relaxing unrelated dirty-tree checks. `finalization_outputs.py` preserves large exact UTF-8 command output in immutable digest-bound artifacts; every authoritative journal write is bounded before replacement to remain readable by helpers and hooks. The standalone acceptance suites are mandatory sync preflight, outside the frozen validator inventory. Semantic knowledge, test and deployment verification remain externally attested with source provenance; these receipts are not fresh suite execution by the helper. See ADR-0025.
+
+## Planned harness infrastructure
+
+The first migration phase plans a standard-library deployment entry point with separate
+functions for planning, project links and transactions, plus a standalone instruction
+checker. The planned knowledge inventory repair keeps its pinned baseline and verifies
+specific tracked relocations. The later phase owns the naming migration and read-only
+finalization journal relocation.

@@ -1,36 +1,34 @@
 ---
-trigger: always_on
+description: Load the shared contract for all Orchestrail workflow phases.
+load: always
 ---
 
 # Workflow Global Principles
 
 These rules govern ALL phase workflows (`/phase-discovery`, `/phase-execution`, `/phase-validation`, `/phase-finalize` and their atomic counterparts) without exception.
 
-**Context Bootstrap (mandatory for every phase invocation).** Before reading any codebase file or modifying any project file, load `.ai/` context from the phase-specific rules file:
+**Context Bootstrap (mandatory for every phase invocation).** Before reading any codebase file or modifying any project file, load `.ai/` context using the phase-specific rule skill:
 
-| Phase | Rules file (Windsurf / Devin) | Skill name (Claude Code / Codex) | Loaded by |
-|-------|-------------------------------|----------------------------------|-----------|
-| Discovery | `phase-discovery` | `rule-phase-discovery` | `/phase-discovery`, `/pd-analyze` |
-| Execution | `phase-execution` | `rule-phase-execution` | `/phase-execution`, `/pe-execute` |
-| Validation | `phase-validation` | `rule-phase-validation` | `/phase-validation`, `/pv-contract`, `/pv-review` |
-| Finalization | `phase-finalize` | `rule-phase-finalize` | `/phase-finalize` |
-| Atomic Execution | `phase-atomic-execution` | `rule-phase-atomic-execution` | `/phase-atomic-execution`, `/pae-tests`, `/pae-implement` |
-| Atomic Validation | `phase-atomic-validation` | `rule-phase-atomic-validation` | `/phase-atomic-validation`, `/pav-check` |
+| Phase | Skill name (Claude Code / Codex) | Loaded by |
+|-------|----------------------------------|-----------|
+| Discovery | `rule-phase-discovery` | `/phase-discovery`, `/pd-analyze` |
+| Execution | `rule-phase-execution` | `/phase-execution`, `/pe-execute` |
+| Validation | `rule-phase-validation` | `/phase-validation`, `/pv-contract`, `/pv-review` |
+| Finalization | `rule-phase-finalize` | `/phase-finalize` |
+| Atomic Execution | `rule-phase-atomic-execution` | `/phase-atomic-execution`, `/pae-tests`, `/pae-implement` |
+| Atomic Validation | `rule-phase-atomic-validation` | `/phase-atomic-validation`, `/pav-check` |
 
-**How to resolve a rules reference in each environment.** On Windsurf and Devin a rule is a file
-under `global_rules/` / `.windsurf/rules/` / `.devin/rules/`, addressed by its bare basename. On
-Claude Code and Codex there is no rules directory, so `scripts/sync.sh` deploys every `rules/*.md` as a
-skill under the `rule-` prefix — `workflow-globals` → `rule-workflow-globals`, `tdd` →
-`rule-tdd`. The prefix is mandatory: six basenames (`phase-discovery`, `phase-execution`,
-`phase-validation`, `phase-finalize`, `phase-atomic-execution`, `phase-atomic-validation`) exist in both
-`workflows/` and `rules/`, and an unprefixed rule skill would overwrite the identically-named
-*workflow* skill. When a workflow says "load the `<name>` rule", resolve it to
-`rule-<name>` on Claude Code and Codex and to the bare basename on Windsurf and Devin.
+**How to resolve a rule reference.** `scripts/sync.sh` deploys every `rules/*.md` as a skill
+with the `rule-` prefix in Claude Code and Codex. For example, it installs `workflow-globals`
+as `rule-workflow-globals` and `tdd` as `rule-tdd`. Six basenames (`phase-discovery`,
+`phase-execution`, `phase-validation`, `phase-finalize`, `phase-atomic-execution`, and
+`phase-atomic-validation`) exist in both `workflows/` and `rules/`. The prefix keeps each
+rule skill distinct from its workflow. When a workflow says "load the `<name>` rule", resolve
+it to `rule-<name>`.
 
-A skill is model-invoked, not always-on. Deploying an `always_on` rule as a skill therefore
-changes its trigger semantics: the file is reachable, but it is not loaded unbidden. That is why
-the always-on essentials stay duplicated in `rules/global-claude.md` (→ `~/.claude/CLAUDE.md`)
-and `templates/codex-global-AGENTS.md` (→ `~/.codex/AGENTS.md`), which those agents do read on
+A skill is model-invoked, not always-on. The `load: always` declaration identifies policies that
+apply throughout a session. The essentials stay duplicated in `harness/claude/always-on.md` (→ `~/.claude/CLAUDE.md`)
+and `harness/codex/always-on.md` (→ `~/.codex/AGENTS.md`), which those agents read on
 every session. The `rule-*` skills carry the full contracts those summaries point at.
 
 Rules define the exact load order, what to extract, and phase-specific behaviors.

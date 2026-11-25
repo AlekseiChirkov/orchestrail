@@ -1,5 +1,7 @@
 ---
 description: Discovery Step 1 — Analyze task and codebase; resolve ambiguities autonomously by default, ask clarifying questions with --step-by-step
+phase: discovery
+step: 1
 ---
 
 Invocation: `/pd-analyze <task-directory> [--step-by-step]`

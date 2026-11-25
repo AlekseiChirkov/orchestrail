@@ -1,5 +1,7 @@
 ---
 description: One-time knowledge-base initialization for legacy projects — inspect code and fill missing project context without overwriting established knowledge
+phase: entry
+step: "-"
 ---
 
 Invocation: `/onboard-legacy-project`

@@ -1,5 +1,7 @@
 ---
 description: Validation Step 4a — Classify approved fix-tasks into shared or dedicated branches using the quick-flow gate
+phase: validation
+step: 4a
 ---
 
 Invocation: `/pv-classify-fixes <task-directory>`

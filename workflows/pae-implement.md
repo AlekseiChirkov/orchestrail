@@ -1,5 +1,7 @@
 ---
 description: Atomic Execution Step 2 (TDD GREEN) — Execute implementation steps until the RED tests pass, then refactor and verify
+phase: atomic-execution
+step: 2
 ---
 
 Invocation: `/pae-implement <path-to-atomic-description>`

@@ -1,5 +1,7 @@
 ---
 description: Clean and compress state files — remove stale content, keep only what is current and accurate
+phase: utility
+step: "-"
 ---
 
 Invocation: `/compress-state [path] [--auto]`

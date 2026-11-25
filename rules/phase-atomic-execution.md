@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for atomic-execution — load when running /phase-atomic-execution, /pae-tests, or /pae-implement standalone (without parent /phase-execution)
+load: on-demand
 ---
 
 # Phase: Atomic Execution — Context Rules

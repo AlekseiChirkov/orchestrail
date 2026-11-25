@@ -1,0 +1,2406 @@
+#!/usr/bin/env python3
+"""Check harness deployment contracts with isolated homes and project fixtures."""
+
+import ast
+from contextlib import chdir
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import runpy
+import stat
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+
+SOURCE = Path(__file__).resolve().parents[1]
+REPORTER = SOURCE / "scripts/report-legacy-artifacts.sh"
+CHECKER = SOURCE / "scripts/lint-instructions.py"
+
+
+class LegacyArtifactReporterTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.home = self.root / "fixture home"
+        self.project = self.root / "project 'with spaces'\nand $dollars"
+        self.config = self.root / "config"
+        self.state = self.root / "state"
+        for path in (self.home, self.project, self.config, self.state):
+            path.mkdir()
+        self.environment = {
+            "HOME": str(self.home),
+            "XDG_CONFIG_HOME": str(self.config),
+            "XDG_STATE_HOME": str(self.state),
+            "PATH": os.defpath,
+            "LC_ALL": "C",
+        }
+
+    def snapshot(self) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        entries = {}
+        for path in self.root.rglob("*"):
+            info = path.lstat()
+            payload = None
+            if stat.S_ISLNK(info.st_mode):
+                payload = os.readlink(path)
+            elif stat.S_ISREG(info.st_mode):
+                payload = path.read_bytes()
+            entries[path.relative_to(self.root)] = (info.st_mode, info.st_mtime_ns, payload)
+        return entries
+
+    def run_reporter(self, *arguments: str) -> subprocess.CompletedProcess[str]:
+        self.assertTrue(REPORTER.is_file(), "The legacy reporter entry point is missing")
+        return subprocess.run(
+            ["bash", str(REPORTER), *arguments],
+            cwd=self.root,
+            env=self.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+
+    def expected_line(self, path: Path) -> str:
+        quoted = subprocess.run(
+            ["bash", "-c", 'printf "%q" "$1"', "bash", str(path)],
+            cwd=self.root,
+            env=self.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+            timeout=15,
+        ).stdout
+        return (
+            f"legacy: {quoted} — created by an earlier Orchestrail version; "
+            f"review it, then remove it manually if unused: rm -r -- {quoted}\n"
+        )
+
+    def assert_reports(self, paths: list[Path], *arguments: str) -> None:
+        before = self.snapshot()
+        result = self.run_reporter(*arguments)
+        self.assertEqual(self.snapshot(), before)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(result.stdout, "".join(self.expected_line(path) for path in paths))
+
+    def test_global_reports_only_registered_paths_in_order(self) -> None:
+        integrations = self.home / ".codeium/windsurf"
+        workflows = integrations / "global_workflows"
+        rules = integrations / "global_rules"
+        workflows.mkdir(parents=True)
+        (workflows / "retained.md").write_bytes(b"Retained workflow")
+        rules.write_bytes(b"Retained rules")
+        (integrations / "unrelated").mkdir()
+        (self.project / ".devin").mkdir()
+
+        self.assert_reports([workflows, rules], "global")
+
+    def test_project_reports_shell_sensitive_paths_without_writes(self) -> None:
+        windsurf = self.project / ".windsurf"
+        devin = self.project / ".devin"
+        (windsurf / "rules").mkdir(parents=True)
+        (windsurf / "rules/tdd.md").write_bytes(b"Retained project rule")
+        devin.mkdir()
+        (devin / "settings.json").write_bytes(b"{}\n")
+
+        for _ in range(2):
+            self.assert_reports([windsurf, devin], "project", str(self.project))
+
+    def test_missing_objects_emit_nothing_and_dangling_symlinks_are_reported(self) -> None:
+        self.assert_reports([], "global")
+        self.assert_reports([], "project", str(self.project))
+
+        windsurf = self.project / ".windsurf"
+        windsurf.symlink_to(self.root / "absent target")
+        workflows = self.home / ".codeium/windsurf/global_workflows"
+        workflows.parent.mkdir(parents=True)
+        workflows.symlink_to(self.root / "absent global target")
+
+        self.assert_reports([windsurf], "project", str(self.project))
+        self.assert_reports([workflows], "global")
+
+    def test_invalid_invocations_return_usage_status_without_writes(self) -> None:
+        before = self.snapshot()
+        arguments = ((), ("other",), ("global", "extra"), ("project",), ("project", ""),
+                     ("project", str(self.project), "extra"))
+        for command in arguments:
+            with self.subTest(arguments=command):
+                result = self.run_reporter(*command)
+                self.assertEqual(self.snapshot(), before)
+                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                self.assertEqual(result.stdout, "")
+
+    def test_removed_integrations_section_is_exempt_from_legacy_lint(self) -> None:
+        usage = (SOURCE / "docs/USAGE.md").read_text(encoding="utf-8")
+        heading = "## Removed integrations"
+        _, found, remainder = usage.partition(f"\n{heading}\n")
+        self.assertTrue(found, "The usage guide is missing the Removed integrations heading")
+        section = remainder.partition("\n## ")[0]
+        for integration in ("windsurf", "codeium", "devin"):
+            self.assertIn(integration, section.casefold())
+
+        docs = self.root / "docs"
+        docs.mkdir()
+        (docs / "USAGE.md").write_text(f"{heading}\n{section}\n", encoding="utf-8")
+        rules = self.root / "rules"
+        rules.mkdir()
+        (rules / "contract-demo.md").write_text(
+            "---\ndescription: An example rule\nload: on-demand\n---\n\n# Rule\nWindsurf\n",
+            encoding="utf-8",
+        )
+        scripts = self.root / "scripts"
+        scripts.mkdir()
+        self.assertTrue(REPORTER.is_file(), "The legacy reporter entry point is missing")
+        (scripts / REPORTER.name).write_bytes(REPORTER.read_bytes())
+
+        result = subprocess.run(
+            [sys.executable, "-I", str(CHECKER), "--root", str(self.root)],
+            cwd=self.root,
+            env=self.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.splitlines(), [
+            "legacy-mention rules/contract-demo.md:7 Legacy integration mention: Windsurf.",
+        ])
+
+
+ENGINE = SOURCE / "scripts/deploy-skills.py"
+HOOK_RESULT = '{"status":"unavailable","reason":"fixture"}'
+NO_NATIVE_HOOK = b'{"reason":"no-native-adapter","status":"unavailable"}'
+SKILL_BYTES = b"---\ndescription: Current skill\n---\n\n# Current skill\n"
+OWNERSHIP_RESOLUTION = (
+    "changed since the last deployment; save your changes elsewhere, then delete the "
+    "file or restore its deployed bytes, and rerun"
+)
+
+
+class PlannerFixture:
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self.home = root / "fixture home"
+        self.config = root / "config"
+        self.state = root / "state"
+        self.source = root / "source"
+        self.environment = {
+            "HOME": str(self.home),
+            "XDG_CONFIG_HOME": str(self.config),
+            "XDG_STATE_HOME": str(self.state),
+            "PATH": str(root / "bin"),
+            "LC_ALL": "C",
+        }
+        for path in (self.home, self.config, self.state, root / "bin"):
+            path.mkdir()
+        for directory in ("workflows", "rules", "principles"):
+            (self.source / directory).mkdir(parents=True)
+        self.write(self.source / "workflows/current.md", SKILL_BYTES)
+        self.make_harness("alpha")
+        self.make_harness("omega")
+
+    def make_harness(self, name: str) -> None:
+        adapter = self.source / "harness" / name
+        always_on = f"$HOME/.{name}/AGENTS.md"
+        settings = f"skills_dir=$HOME/.{name}/skills\nalways_on_path={always_on}\n"
+        self.write(adapter / "deploy.env", settings.encode())
+        self.write(adapter / "always-on.md", f"# {name} instructions\n".encode())
+        capabilities = (SOURCE / "harness/codex/capabilities.md").read_bytes()
+        self.write(adapter / "capabilities.md", capabilities.replace(
+            b"$HOME/.codex/AGENTS.md", always_on.encode(),
+        ))
+
+    @staticmethod
+    def write(path: Path, payload: bytes) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(payload)
+
+    def adapter(self, name: str = "alpha") -> Path:
+        return self.source / "harness" / name / "deploy.env"
+
+    def skills_dir(self, name: str = "alpha") -> Path:
+        return self.home / f".{name}" / "skills"
+
+    def skill(self, name: str, harness: str = "alpha") -> Path:
+        return self.skills_dir(harness) / name / "SKILL.md"
+
+    def always_on(self, name: str = "alpha") -> Path:
+        return self.home / f".{name}" / "AGENTS.md"
+
+    def assembled_always_on(self, name: str) -> bytes:
+        adapter = self.adapter(name).parent
+        return (
+            (adapter / "always-on.md").read_bytes() + b"\n<!-- Logging capabilities -->\n"
+            + (adapter / "capabilities.md").read_bytes()
+            + b"\n## Current hook installation\n\ninstallation-result: " + NO_NATIVE_HOOK + b"\n"
+        )
+
+    def manifest_path(self, name: str = "alpha") -> Path:
+        return self.config / "orchestrail" / "deploy" / f"{name}.json"
+
+    @staticmethod
+    def manifest_object(path: Path, payload: bytes, name: str | None = None) -> dict:
+        return {
+            "kind": "always-on" if name is None else "skill",
+            "name": name,
+            "path": str(path),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+
+    def manifest(self, name: str, *objects: dict) -> dict:
+        root = self.skills_dir(name)
+        resolved = root.resolve()
+        return {
+            "schema_version": 1,
+            "harness": name,
+            "install_id": hashlib.sha256(f"{name}\n{resolved}".encode()).hexdigest(),
+            "skills_dir": str(root),
+            "skills_dir_resolved": str(resolved),
+            "always_on_path": str(self.always_on(name)),
+            "source_revision": None,
+            "objects": sorted(objects, key=lambda item: item["path"]),
+        }
+
+    @staticmethod
+    def manifest_bytes(manifest: dict) -> bytes:
+        return (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
+
+    def snapshot(self) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        entries = {}
+        for path in self.root.rglob("*"):
+            info = path.lstat()
+            payload = None
+            if stat.S_ISLNK(info.st_mode):
+                payload = os.readlink(path)
+            elif stat.S_ISREG(info.st_mode):
+                payload = path.read_bytes()
+            entries[path.relative_to(self.root)] = (info.st_mode, info.st_mtime_ns, payload)
+        return entries
+
+
+class DeploymentPlanningTests(unittest.TestCase):
+    def fixture(self) -> PlannerFixture:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        return PlannerFixture(Path(temporary.name))
+
+    def plan(self, fixture: PlannerFixture, *, refusal: str | None = None):
+        self.assertTrue(ENGINE.is_file(), "The side-effect-free deployment planner is missing")
+        before = fixture.snapshot()
+        try:
+            with chdir(fixture.root), patch.dict(os.environ, fixture.environment, clear=True):
+                engine = runpy.run_path(str(ENGINE))
+                planner = engine.get("_plan_deployment")
+                self.assertTrue(callable(planner), "The side-effect-free deployment planner is missing")
+                if refusal is None:
+                    return planner(fixture.source, HOOK_RESULT)
+                with self.assertRaises(engine["_DeploymentError"]) as caught:
+                    planner(fixture.source, HOOK_RESULT)
+                error = caught.exception
+                self.assertEqual(error.exit_status, 1)
+                self.assertEqual(error.code, refusal)
+                separator = " " if refusal == "ownership-conflict" else ": "
+                self.assertTrue(str(error).startswith(f"ERROR {refusal}{separator}"), str(error))
+                return str(error)
+        finally:
+            self.assertEqual(fixture.snapshot(), before)
+
+    def test_first_plan_adopts_existing_targets_and_keeps_unowned_files(self) -> None:
+        fixture = self.fixture()
+        fixture.write(fixture.skill("current"), b"Earlier deployment bytes")
+        fixture.write(fixture.skill("obsolete"), b"Unowned bytes")
+        fixture.write(fixture.source / "harness/orphan/always-on.md", b"Orphaned body")
+        fixture.write(fixture.skill("current", "omega"), SKILL_BYTES)
+
+        plan = self.plan(fixture)
+
+        self.assertCountEqual([(action.kind, action.path) for action in plan.actions], [
+            ("adopt", fixture.skill("current")),
+            ("create", fixture.always_on()),
+            ("create", fixture.always_on("omega")),
+        ])
+        for harness in ("alpha", "omega"):
+            expected = fixture.manifest(
+                harness,
+                fixture.manifest_object(fixture.skill("current", harness), SKILL_BYTES, "current"),
+                fixture.manifest_object(fixture.always_on(harness), fixture.assembled_always_on(harness)),
+            )
+            self.assertEqual(
+                plan.manifests[fixture.manifest_path(harness)], fixture.manifest_bytes(expected),
+            )
+
+    def test_plan_removes_only_unchanged_obsolete_owned_files(self) -> None:
+        fixture = self.fixture()
+        old = fixture.skill("old")
+        edited = fixture.skill("edited")
+        missing = fixture.skill("missing")
+        foreign = fixture.skill("foreign")
+        current = fixture.skill("current")
+        fixture.write(old, b"Owned old bytes")
+        fixture.write(old.parent / "personal.md", b"Keep the directory and this foreign file")
+        fixture.write(edited, b"Edited after deployment")
+        fixture.write(foreign, b"Never owned")
+        fixture.write(current, b"Owned previous bytes")
+        always_on = fixture.assembled_always_on("alpha")
+        fixture.write(fixture.always_on(), always_on)
+        before = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(old, b"Owned old bytes", "old"),
+            fixture.manifest_object(edited, b"Before user edit", "edited"),
+            fixture.manifest_object(missing, b"Before deletion", "missing"),
+            fixture.manifest_object(current, b"Owned previous bytes", "current"),
+            fixture.manifest_object(fixture.always_on(), always_on),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(before))
+        fixture.write(
+            fixture.source / "workflows/new.md", b"---\ndescription: New skill\n---\n\n# New skill\n",
+        )
+
+        plan = self.plan(fixture)
+
+        actions = [(action.kind, action.path) for action in plan.actions]
+        self.assertCountEqual([path for kind, path in actions if kind == "remove"], [old])
+        self.assertIn(("create", fixture.skill("new")), actions)
+        self.assertIn(("replace", current), actions)
+        self.assertIn(f"release-modified {edited}", plan.notices)
+        self.assertIn(f"keep-nonempty {old.parent}", plan.notices)
+        desired = json.loads(plan.manifests[fixture.manifest_path()])
+        self.assertCountEqual([obj["path"] for obj in desired["objects"]], [
+            str(fixture.always_on()), str(current), str(fixture.skill("new")),
+        ])
+
+    def test_rejects_unsafe_target_types(self) -> None:
+        for target, file_type in (
+            ("skill", "symlink"), ("skill-directory", "symlink"), ("always-on", "symlink"),
+            ("skill", "directory"), ("always-on", "directory"),
+            ("skills-root", "file"), ("skill-directory", "file"), ("always-on-parent", "file"),
+        ):
+            with self.subTest(target=target, file_type=file_type):
+                fixture = self.fixture()
+                skill = fixture.skill("current", "omega")
+                always_on = fixture.always_on("omega")
+                path = {
+                    "skill": skill, "skill-directory": skill.parent,
+                    "skills-root": fixture.skills_dir("omega"),
+                    "always-on": always_on, "always-on-parent": always_on.parent,
+                }[target]
+                path.parent.mkdir(parents=True, exist_ok=True)
+                if file_type == "symlink":
+                    protected = fixture.root / "foreign target"
+                    if target == "skill-directory":
+                        fixture.write(protected / "SKILL.md", b"Foreign target bytes")
+                    else:
+                        protected.write_bytes(b"Foreign target bytes")
+                    path.symlink_to(protected, target_is_directory=target == "skill-directory")
+                elif file_type == "directory":
+                    path.mkdir()
+                else:
+                    path.write_bytes(b"Foreign target bytes")
+
+                self.assertIn(str(path), self.plan(fixture, refusal="unsafe-target"))
+
+    def test_rejects_manifest_skill_outside_resolved_root(self) -> None:
+        fixture = self.fixture()
+        outside = fixture.root / "foreign/SKILL.md"
+        fixture.write(outside, b"Do not remove")
+        obj = fixture.manifest_object(outside, b"Do not remove", "obsolete")
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(fixture.manifest("alpha", obj)))
+
+        self.plan(fixture, refusal="unsafe-target")
+
+    def test_rejects_invalid_manifests(self) -> None:
+        fixture = self.fixture()
+        obj = fixture.manifest_object(fixture.skill("current"), SKILL_BYTES, "current")
+        manifest = fixture.manifest("alpha", obj)
+        manifest_bytes = fixture.manifest_bytes(manifest)
+        cases = {
+            "unknown key": fixture.manifest_bytes(manifest | {"unexpected": True}),
+            "unsupported version": fixture.manifest_bytes(manifest | {"schema_version": 2}),
+            "wrong version type": fixture.manifest_bytes(manifest | {"schema_version": True}),
+            "duplicate key": manifest_bytes.replace(
+                b'"harness": "alpha",', b'"harness": "alpha", "harness": "alpha",',
+            ),
+            "duplicate object key": manifest_bytes.replace(
+                b'"kind": "skill",', b'"kind": "skill", "kind": "skill",',
+            ),
+            "duplicate object identity": fixture.manifest_bytes(manifest | {"objects": [obj, obj]}),
+            "unknown object key": fixture.manifest_bytes(manifest | {"objects": [obj | {"extra": 1}]}),
+            "wrong revision type": fixture.manifest_bytes(manifest | {"source_revision": []}),
+            "invalid JSON": b"{\n",
+        }
+
+        for reason, payload in cases.items():
+            with self.subTest(reason=reason):
+                fixture.write(fixture.manifest_path(), payload)
+                self.plan(fixture, refusal="manifest-invalid")
+
+    def test_rejects_invalid_adapter_values(self) -> None:
+        fixture = self.fixture()
+        good = fixture.adapter().read_bytes()
+        for invalid, line in (
+            (good.replace(b"$HOME/.alpha/skills", b"$HOME/$(id)"), 1),
+            (good.replace(b"$HOME/.alpha/skills", b'"$HOME/x"'), 1),
+            (good.replace(b"$HOME/.alpha/skills", b"$HOME/../outside"), 1),
+            (good.replace(b"$HOME/.alpha/skills", b"$HOME/.alpha/skills "), 1),
+            (good + b"unknown=ignored\n", 3),
+            (good + b"skills_dir=$HOME/repeated\n", 3),
+            (good + b"project_skills_link_dir=$HOME/project/skills\n", 3),
+        ):
+            with self.subTest(payload=invalid):
+                fixture.adapter().write_bytes(invalid)
+                diagnostic = self.plan(fixture, refusal="deploy-env-invalid")
+                self.assertRegex(
+                    diagnostic, rf"{re.escape(str(fixture.adapter()))}(?::|[^\n]*\bline ){line}\b",
+                )
+
+    def test_rejects_incomplete_adapters(self) -> None:
+        for missing in ("always-on.md", "capabilities.md", "deploy.env"):
+            with self.subTest(missing=missing):
+                fixture = self.fixture()
+                (fixture.adapter("omega").parent / missing).unlink()
+                self.plan(fixture, refusal="adapter-incomplete")
+
+    def test_rejects_owned_edits_and_foreign_new_skill(self) -> None:
+        for scenario in ("skill edited", "always-on edited", "new skill occupied"):
+            with self.subTest(scenario=scenario):
+                fixture = self.fixture()
+                if scenario == "always-on edited":
+                    target = fixture.always_on()
+                    objects = [fixture.manifest_object(target, b"Owned content")]
+                else:
+                    target = fixture.skill("current")
+                    always_on = fixture.assembled_always_on("alpha")
+                    fixture.write(fixture.always_on(), always_on)
+                    objects = [fixture.manifest_object(fixture.always_on(), always_on)]
+                    if scenario == "skill edited":
+                        objects.append(fixture.manifest_object(target, b"Owned content", "current"))
+                fixture.write(target, b"Bytes that must survive")
+                manifest = fixture.manifest("alpha", *objects)
+                fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+
+                self.assertEqual(self.plan(fixture, refusal="ownership-conflict"),
+                                 f"ERROR ownership-conflict {target}: {OWNERSHIP_RESOLUTION}")
+
+    def test_rejects_second_harness_before_any_first_harness_write(self) -> None:
+        fixture = self.fixture()
+        first_skill = fixture.skill("current")
+        fixture.write(first_skill, b"Old first-harness bytes")
+        obj = fixture.manifest_object(first_skill, b"Old first-harness bytes", "current")
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(fixture.manifest("alpha", obj)))
+        fixture.write(fixture.always_on("omega"), b"Old second-harness bytes")
+        invalid = fixture.adapter("omega")
+        invalid.write_bytes(invalid.read_bytes() + b"unsupported=ignored\n")
+
+        self.assertIn(str(invalid), self.plan(fixture, refusal="deploy-env-invalid"))
+
+    def test_rejects_invalid_home_and_conflicting_adapters(self) -> None:
+        fixture = self.fixture()
+        absolute_home = fixture.environment["HOME"]
+        for home in ("relative/home", ""):
+            with self.subTest(home=home):
+                fixture.environment["HOME"] = home
+                self.plan(fixture, refusal="home-invalid")
+        fixture.environment["HOME"] = absolute_home
+
+        for skills, always_on in (
+            (b"$HOME/.alpha/skills/demo", b"$HOME/.omega/AGENTS.md"),
+            (b"$HOME/.alpha/skills", b"$HOME/.omega/AGENTS.md"),
+            (b"$HOME/.omega/skills", b"$HOME/.alpha/AGENTS.md"),
+            (b"$HOME/.omega/skills", b"$HOME/.alpha/skills/always-on.md"),
+        ):
+            with self.subTest(skills=skills, always_on=always_on):
+                fixture.adapter("omega").write_bytes(
+                    b"skills_dir=" + skills + b"\nalways_on_path=" + always_on + b"\n",
+                )
+                self.plan(fixture, refusal="adapter-conflict")
+
+    @staticmethod
+    def link_skill_root(fixture: PlannerFixture) -> Path:
+        root = fixture.skills_dir()
+        root.parent.mkdir()
+        real_root = fixture.home / "original skills"
+        real_root.mkdir()
+        root.symlink_to(real_root, target_is_directory=True)
+        return real_root
+
+    def test_plans_for_resolved_linked_skill_root(self) -> None:
+        fixture = self.fixture()
+        real_root = self.link_skill_root(fixture)
+        path = real_root / "current/SKILL.md"
+        obj = fixture.manifest_object(path, SKILL_BYTES, "current")
+        manifest = fixture.manifest("alpha", obj)
+
+        plan = self.plan(fixture)
+
+        self.assertIn(("create", path), [(action.kind, action.path) for action in plan.actions])
+        desired = json.loads(plan.manifests[fixture.manifest_path()])
+        self.assertEqual(desired["skills_dir_resolved"], str(real_root))
+        self.assertEqual(desired["install_id"], manifest["install_id"])
+
+    def test_rejects_moved_installation(self) -> None:
+        fixture = self.fixture()
+        real_root = self.link_skill_root(fixture)
+        path = real_root / "current/SKILL.md"
+        obj = fixture.manifest_object(path, SKILL_BYTES, "current")
+        manifest = fixture.manifest("alpha", obj)
+
+        with self.subTest(reason="incorrect installation identity"):
+            fixture.write(
+                fixture.manifest_path(), fixture.manifest_bytes(manifest | {"install_id": "0" * 64}),
+            )
+            self.plan(fixture, refusal="target-moved")
+
+        with self.subTest(reason="changed target resolution"):
+            fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+            new_root = fixture.home / "different skills"
+            new_root.mkdir()
+            root = fixture.skills_dir()
+            root.unlink()
+            root.symlink_to(new_root, target_is_directory=True)
+            self.plan(fixture, refusal="target-moved")
+
+    def test_rejects_direct_and_resolved_legacy_targets(self) -> None:
+        for target in ("declared paths", "symlinked skill root"):
+            with self.subTest(target=target):
+                fixture = self.fixture()
+                legacy = fixture.home / ".codeium/windsurf"
+                fixture.write(legacy / "skills/current/SKILL.md", b"Retained legacy skill bytes")
+                if target == "declared paths":
+                    fixture.write(legacy / "AGENTS.md", b"Retained legacy instructions")
+                    fixture.adapter().write_bytes(
+                        b"skills_dir=$HOME/.codeium/windsurf/skills\n"
+                        b"always_on_path=$HOME/.codeium/windsurf/AGENTS.md\n",
+                    )
+                else:
+                    root = fixture.skills_dir()
+                    root.parent.mkdir()
+                    root.symlink_to(legacy / "skills", target_is_directory=True)
+
+                self.plan(fixture, refusal="adapter-conflict")
+
+    def test_rejects_target_inside_manifest_namespace(self) -> None:
+        fixture = self.fixture()
+        config = fixture.home / ".config"
+        fixture.environment["XDG_CONFIG_HOME"] = str(config)
+        retained = fixture.skill("current", "dormant")
+        fixture.write(retained, SKILL_BYTES)
+        obj = fixture.manifest_object(retained, SKILL_BYTES, "current")
+        dormant = config / "orchestrail/deploy/dormant.json"
+        fixture.write(dormant, fixture.manifest_bytes(fixture.manifest("dormant", obj)))
+        fixture.adapter().write_bytes(
+            b"skills_dir=$HOME/.alpha/skills\n"
+            b"always_on_path=$HOME/.config/orchestrail/deploy/dormant.json\n",
+        )
+
+        self.plan(fixture, refusal="adapter-conflict")
+
+
+class DeploymentTransactionTests(unittest.TestCase):
+    def fixture(self) -> PlannerFixture:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        return PlannerFixture(Path(temporary.name).resolve())
+
+    @staticmethod
+    def lock_path(fixture: PlannerFixture) -> Path:
+        return fixture.config / "orchestrail/deploy.lock"
+
+    @staticmethod
+    def journal_path(fixture: PlannerFixture) -> Path:
+        return fixture.manifest_path("journal")
+
+    def deploy(
+        self, fixture: PlannerFixture, *, interrupt_after: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        launcher = []
+        if interrupt_after is not None:
+            # Kill only the fixture process just after a global atomic replacement completes.
+            launcher = ["-c", """
+import os
+from pathlib import Path
+import runpy
+import sys
+
+interrupt_after = Path(sys.argv[1])
+sys.argv = sys.argv[2:]
+replace = os.replace
+
+def replace_then_interrupt(source, target, **kwargs):
+    replace(source, target, **kwargs)
+    if Path(target).absolute() == interrupt_after:
+        os._exit(73)
+
+os.replace = replace_then_interrupt
+runpy.run_path(sys.argv[0], run_name="__main__")
+""", str(interrupt_after)]
+        return subprocess.run(
+            [sys.executable, "-I", *launcher, str(ENGINE), "deploy", "--from", str(fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=fixture.root,
+            env=fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+
+    def assert_no_temporary_files(self, fixture: PlannerFixture) -> None:
+        self.assertEqual(list(fixture.root.rglob(".*.orchestrail-tmp")), [])
+
+    def assert_refused(self, fixture: PlannerFixture, code: str) -> None:
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+        self.assertEqual(fixture.snapshot(), before)
+        self.assert_no_temporary_files(fixture)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertRegex(result.stderr, rf"^ERROR {code}(?: [^\n]+)?: ")
+
+    def assert_deployed(self, fixture: PlannerFixture) -> None:
+        self.assertFalse(self.journal_path(fixture).exists(), "Completed journal still exists")
+        self.assert_no_temporary_files(fixture)
+        for harness in ("alpha", "omega"):
+            with self.subTest(harness=harness):
+                skill = fixture.skill("current", harness)
+                always_on = fixture.always_on(harness)
+                always_on_bytes = fixture.assembled_always_on(harness)
+                self.assertEqual(skill.read_bytes(), SKILL_BYTES)
+                self.assertEqual(always_on.read_bytes(), always_on_bytes)
+                manifest = fixture.manifest(
+                    harness,
+                    fixture.manifest_object(skill, SKILL_BYTES, "current"),
+                    fixture.manifest_object(always_on, always_on_bytes),
+                )
+                self.assertEqual(fixture.manifest_path(harness).read_bytes(),
+                                 fixture.manifest_bytes(manifest))
+
+    def half_applied_journal(self, fixture: PlannerFixture) -> dict:
+        fixture.write(self.lock_path(fixture), b"")
+        old_always_on = b"Previously deployed instructions\n"
+        old_skill = b"Previously deployed skill\n"
+        fixture.write(fixture.always_on(), fixture.assembled_always_on("alpha"))
+        fixture.write(fixture.skill("current"), old_skill)
+        previous_manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(fixture.always_on(), old_always_on),
+            fixture.manifest_object(fixture.skill("current"), old_skill, "current"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(previous_manifest))
+        steady_skill = fixture.skill("current", "omega")
+        steady_always_on = fixture.always_on("omega")
+        steady_always_on_bytes = fixture.assembled_always_on("omega")
+        fixture.write(steady_skill, SKILL_BYTES)
+        fixture.write(steady_always_on, steady_always_on_bytes)
+        steady_manifest = fixture.manifest(
+            "omega",
+            fixture.manifest_object(steady_skill, SKILL_BYTES, "current"),
+            fixture.manifest_object(steady_always_on, steady_always_on_bytes),
+        )
+        fixture.write(fixture.manifest_path("omega"), fixture.manifest_bytes(steady_manifest))
+
+        journal = {
+            "schema_version": 1,
+            "entries": [
+                {"path": str(path), "old_sha256": hashlib.sha256(old).hexdigest(),
+                 "new_sha256": hashlib.sha256(new).hexdigest()}
+                for path, old, new in (
+                    (fixture.always_on(), old_always_on, fixture.assembled_always_on("alpha")),
+                    (fixture.skill("current"), old_skill, SKILL_BYTES),
+                )
+            ],
+        }
+        fixture.write(self.journal_path(fixture), fixture.manifest_bytes(journal))
+        return journal
+
+    def test_first_deploy_installs_and_records_targets_then_leaves_them_untouched(self) -> None:
+        fixture = self.fixture()
+        skill = fixture.skill("current")
+        fixture.write(skill, b"Old non-manifest bytes\n")
+        foreign = skill.parent / "personal.md"
+        unrecorded = fixture.skill("unrecorded")
+        fixture.write(foreign, b"Keep this foreign file\n")
+        fixture.write(unrecorded, b"Earlier unrecorded skill\n")
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(f"adopt {skill}", result.stdout.splitlines())
+        self.assertTrue(self.lock_path(fixture).is_file())
+        self.assert_deployed(fixture)
+        self.assertEqual(foreign.read_bytes(), b"Keep this foreign file\n")
+        self.assertEqual(unrecorded.read_bytes(), b"Earlier unrecorded skill\n")
+
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotRegex(result.stdout, r"(?m)^(?:adopt|create|remove|replace) ")
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_deploy_removes_unmodified_obsolete_skills_and_keeps_other_files(self) -> None:
+        fixture = self.fixture()
+        obsolete = fixture.skill("obsolete")
+        edited = fixture.skill("edited")
+        foreign = fixture.skill("foreign")
+        old = b"Previously deployed skill\n"
+        fixture.write(obsolete, old)
+        fixture.write(edited, b"User-edited skill\n")
+        fixture.write(foreign, b"Unowned skill\n")
+        manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(obsolete, old, "obsolete"),
+            fixture.manifest_object(edited, old, "edited"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(obsolete.parent.exists())
+        self.assertEqual(edited.read_bytes(), b"User-edited skill\n")
+        self.assertEqual(foreign.read_bytes(), b"Unowned skill\n")
+        self.assertIn(f"release-modified {edited}", result.stdout.splitlines())
+        self.assert_deployed(fixture)
+
+    def test_first_deploy_journals_global_changes_before_replacing_targets(self) -> None:
+        fixture = self.fixture()
+        skill = fixture.skill("current")
+        old_skill = b"Old non-manifest bytes\n"
+        fixture.write(skill, old_skill)
+
+        interrupted = self.deploy(fixture, interrupt_after=fixture.always_on())
+
+        self.assertEqual(interrupted.returncode, 73, interrupted.stdout + interrupted.stderr)
+        self.assertFalse(fixture.manifest_path().exists())
+        self.assert_no_temporary_files(fixture)
+        retained = json.loads(self.journal_path(fixture).read_bytes())
+        target_bytes = {
+            skill: SKILL_BYTES,
+            fixture.always_on(): fixture.assembled_always_on("alpha"),
+            fixture.skill("current", "omega"): SKILL_BYTES,
+            fixture.always_on("omega"): fixture.assembled_always_on("omega"),
+        }
+        expected = []
+        for path, payload in sorted(target_bytes.items()):
+            old = old_skill if path == skill else None
+            current = path.read_bytes() if path.exists() else None
+            self.assertIn(current, (old, payload), str(path))
+            expected.append({"path": str(path), "new_sha256": hashlib.sha256(payload).hexdigest(),
+                             "old_sha256": hashlib.sha256(old).hexdigest() if old else None})
+        self.assertEqual(retained, {"schema_version": 1, "entries": expected})
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_with_held_lock_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        lock = self.lock_path(fixture)
+        fixture.write(lock, b"Existing lock contents\n")
+
+        with lock.open("rb") as descriptor:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assert_refused(fixture, "deploy-locked")
+
+    def test_deploy_with_invalid_journal_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        journal = self.half_applied_journal(fixture)
+        applied, pending = journal["entries"]
+        invalid_entries = {
+            "unknown entry key": [applied | {"unknown": False}, pending],
+            "invalid digest": [applied, pending | {"old_sha256": "not-a-digest"}],
+            "relative path": [applied, pending | {"path": "relative/SKILL.md"}],
+            "duplicate path": [applied, applied],
+        }
+        cases = {
+            "invalid JSON": b"{\n",
+            "duplicate schema key": b'{"schema_version": 1, "schema_version": 1, "entries": []}\n',
+        }
+        cases.update({reason: fixture.manifest_bytes(journal | {"entries": entries})
+                      for reason, entries in invalid_entries.items()})
+
+        for reason, payload in cases.items():
+            with self.subTest(reason=reason):
+                fixture.write(self.journal_path(fixture), payload)
+                self.assert_refused(fixture, "journal-invalid")
+
+    def test_deploy_with_edited_recovery_target_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        self.half_applied_journal(fixture)
+        fixture.write(fixture.always_on(), b"User change after the interruption\n")
+
+        self.assert_refused(fixture, "journal-mismatch")
+
+    def test_deploy_completes_a_half_applied_journal(self) -> None:
+        fixture = self.fixture()
+        self.half_applied_journal(fixture)
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_recovers_again_after_a_second_interruption(self) -> None:
+        fixture = self.fixture()
+        journal = self.half_applied_journal(fixture)
+        previous_manifest = fixture.manifest_path().read_bytes()
+
+        interrupted = self.deploy(fixture, interrupt_after=fixture.skill("current"))
+
+        self.assertEqual(interrupted.returncode, 73, interrupted.stdout + interrupted.stderr)
+        self.assert_no_temporary_files(fixture)
+        self.assertEqual(fixture.manifest_path().read_bytes(), previous_manifest)
+        retained = json.loads(self.journal_path(fixture).read_bytes())
+        for entry in journal["entries"]:
+            self.assertEqual(hashlib.sha256(Path(entry["path"]).read_bytes()).hexdigest(),
+                             entry["new_sha256"])
+            self.assertIn(entry, retained["entries"])
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_rejects_reserved_path_collisions_before_writing(self) -> None:
+        paths = (
+            ("always_on_path", ".config/orchestrail/deploy.lock"),
+            ("skills_dir", ".config/orchestrail/deploy.lock/skills"),
+            ("always_on_path", ".config/orchestrail/deploy/journal.json"),
+            ("always_on_path", ".config/orchestrail/deploy/omega.json"),
+        )
+        for key, path in paths:
+            with self.subTest(key=key, path=path):
+                fixture = self.fixture()
+                fixture.environment["XDG_CONFIG_HOME"] = str(fixture.home / ".config")
+                adapter = fixture.adapter()
+                settings = adapter.read_text(encoding="utf-8")
+                updated = re.sub(rf"(?m)^{key}=.*$", f"{key}=$HOME/{path}", settings)
+                adapter.write_text(updated, encoding="utf-8")
+                if key == "always_on_path":
+                    capabilities = adapter.with_name("capabilities.md")
+                    capabilities.write_bytes(capabilities.read_bytes().replace(
+                        b"$HOME/.alpha/AGENTS.md", f"$HOME/{path}".encode(),
+                    ))
+
+                self.assert_refused(fixture, "adapter-conflict")
+
+    def test_deploy_rejects_harness_whose_manifest_path_is_the_journal(self) -> None:
+        fixture = self.fixture()
+        fixture.make_harness("journal")
+
+        self.assert_refused(fixture, "adapter-conflict")
+
+    def assert_prewrite_refusal(self, fixture: PlannerFixture, code: str) -> None:
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertFalse(self.journal_path(fixture).exists(), result.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+        self.assertRegex(result.stderr, rf"^ERROR {code}(?: [^\n]+)?: ")
+
+    def test_deploy_refuses_a_skill_root_at_another_targets_temporary_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        fixture.write(fixture.skill("current"), b"Previous first-harness skill\n")
+        fixture.adapter().write_bytes(
+            b"skills_dir=$HOME/.alpha/skills\nalways_on_path=$HOME/shared/AGENTS.md\n",
+        )
+        capabilities = fixture.adapter().with_name("capabilities.md")
+        capabilities.write_bytes(capabilities.read_bytes().replace(
+            b"$HOME/.alpha/AGENTS.md", b"$HOME/shared/AGENTS.md",
+        ))
+        fixture.adapter("omega").write_bytes(
+            b"skills_dir=$HOME/shared/.AGENTS.md.orchestrail-tmp\n"
+            b"always_on_path=$HOME/.omega/AGENTS.md\n",
+        )
+        root = fixture.home / "shared/.AGENTS.md.orchestrail-tmp"
+        fixture.write(root / "personal.md", b"Unowned bytes in the skill root\n")
+
+        self.assert_prewrite_refusal(fixture, "adapter-conflict")
+
+    def test_deploy_refuses_a_symlink_at_a_pending_replacements_temporary_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        skill = fixture.skill("current", "omega")
+        fixture.write(skill, b"Previous second-harness skill\n")
+        foreign = fixture.home / "personal.md"
+        fixture.write(foreign, b"Unowned bytes behind the link\n")
+        skill.with_name(".SKILL.md.orchestrail-tmp").symlink_to(foreign)
+
+        self.assert_prewrite_refusal(fixture, "unsafe-target")
+
+    def test_deploy_refuses_an_unencodable_journal_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        fixture.skills_dir().mkdir(parents=True)
+        entry = {
+            "path": f"{fixture.skills_dir()}/\ud800/SKILL.md",
+            "old_sha256": None,
+            "new_sha256": hashlib.sha256(SKILL_BYTES).hexdigest(),
+        }
+        journal = {"schema_version": 1, "entries": [entry]}
+        fixture.write(self.journal_path(fixture), fixture.manifest_bytes(journal))
+
+        self.assert_refused(fixture, "journal-invalid")
+
+
+class RegisteredProjectTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.registry = self.fixture.config / "orchestrail/projects"
+
+    def command(self, *arguments: str) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.run(
+            [sys.executable, "-I", str(ENGINE), *arguments],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            timeout=15,
+        )
+
+    def deploy(self) -> subprocess.CompletedProcess[bytes]:
+        return self.command(
+            "deploy", "--from", str(self.fixture.source), "--hook-result", HOOK_RESULT,
+        )
+
+    def project(self, name: str) -> Path:
+        project = self.fixture.root / name
+        project.mkdir(parents=True)
+        return project
+
+    def include_links(self, harness: str, directory: str) -> None:
+        adapter = self.fixture.adapter(harness)
+        adapter.write_bytes(adapter.read_bytes() + f"project_skills_link_dir={directory}\n".encode())
+
+    def assert_success(self, result: subprocess.CompletedProcess[bytes]) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def assert_link(self, link: Path, target: Path) -> None:
+        self.assertTrue(link.is_symlink(), link)
+        self.assertEqual(link.resolve(strict=True), target.resolve(strict=True))
+
+    def project_entries(self, *roots: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        relative = tuple(root.relative_to(self.fixture.root) for root in roots)
+        return {path: entry for path, entry in self.fixture.snapshot().items()
+                if any(path.is_relative_to(root) for root in relative)}
+
+    def test_lists_existing_projects_in_registry_order_without_writes(self) -> None:
+        parent = self.project("zéta project 'with spaces' ")
+        nested = self.project(f"{parent.name}/child")
+        first = self.project("alpha project")
+        missing = self.fixture.root / "missing"
+        file = self.fixture.root / "regular file"
+        file.write_bytes(b"Not a project directory\n")
+        roots = (parent, missing, first, SOURCE, parent, file, nested, first)
+        self.fixture.write(self.registry, "\n".join(map(str, roots)).encode())
+        self.fixture.write(self.fixture.home / ".config/orchestrail/projects", b"ignored/relative/path\n")
+        before = self.fixture.snapshot()
+
+        result = self.command("list-projects")
+
+        self.assert_success(result)
+        self.assertEqual(result.stdout, b"".join(os.fsencode(root) + b"\0" for root in (parent, first, nested)))
+        self.assertEqual(self.fixture.snapshot(), before)
+
+    def test_absent_registry_lists_nothing_and_deploy_does_not_discover_home_projects(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".alpha/skills")
+        unregistered = fixture.home / "unregistered project"
+        fixture.write(unregistered / ".devin/workflows/local.md", b"Legacy bytes\n")
+        (unregistered / ".alpha/skills").mkdir(parents=True)
+        before = fixture.snapshot()
+        project_before = self.project_entries(unregistered)
+
+        with self.subTest(command="list-projects"):
+            listed = self.command("list-projects")
+            self.assert_success(listed)
+            self.assertEqual(listed.stdout, b"")
+            self.assertEqual(fixture.snapshot(), before)
+
+        with self.subTest(command="deploy"):
+            result = self.deploy()
+            self.assert_success(result)
+            self.assertIn(
+                b"registry absent: no projects registered; run scripts/setup-new-project.sh in each project",
+                result.stdout.splitlines(),
+            )
+            self.assertEqual(fixture.skill("current").read_bytes(), SKILL_BYTES)
+            self.assertFalse(self.registry.exists())
+            self.assertEqual(self.project_entries(unregistered), project_before)
+
+    def test_links_declared_adapter_directories_and_preserves_existing_entries(self) -> None:
+        fixture = self.fixture
+        fixture.make_harness("gamma")
+        self.include_links("alpha", ".providers/alpha/skills")
+        self.include_links("omega", ".omega/custom")
+        project = self.project("explicit project")
+        alpha = project / ".providers/alpha/skills"
+        local = alpha / "manual"
+        fixture.write(local, b"Project-owned bytes\n")
+        foreign_link = alpha / "private"
+        foreign_link.symlink_to("../missing")
+        for name in ("current", "manual", "private"):
+            fixture.skill(name).parent.mkdir(parents=True)
+        fixture.write(fixture.skills_dir() / "notes.md", b"Global loose file\n")
+        fixture.skill("second", "omega").parent.mkdir(parents=True)
+        fixture.skill("unconfigured", "gamma").parent.mkdir(parents=True)
+
+        arguments = ("link-project", "--from", str(fixture.source), "--project", str(project))
+        self.assert_success(self.command(*arguments))
+
+        self.assert_link(alpha / "current", fixture.skills_dir() / "current")
+        self.assert_link(project / ".omega/custom/second", fixture.skills_dir("omega") / "second")
+        self.assertEqual(local.read_bytes(), b"Project-owned bytes\n")
+        self.assertEqual(os.readlink(foreign_link), "../missing")
+        self.assertEqual({path.name for path in alpha.iterdir()}, {"current", "manual", "private"})
+        self.assertEqual({path.name for path in project.iterdir()}, {".providers", ".omega"})
+        self.assertFalse(self.registry.exists())
+        after = fixture.snapshot()
+        self.assert_success(self.command(*arguments))
+        self.assertEqual(fixture.snapshot(), after)
+
+    def make_tracking_stub(self) -> None:
+        git = self.fixture.root / "bin/git"
+        git.write_text(r"""#!/bin/sh
+if [ "$1" = -C ]; then
+    cd -- "$2" || exit 1
+    shift 2
+fi
+[ "$1" = ls-files ] || exit 1
+if [ -f .git/tracked-knowledge ]; then
+    printf '%s\n' '.ai/README.md'
+fi
+""", encoding="utf-8")
+        git.chmod(0o755)
+
+    def test_deployment_refreshes_each_root_and_changes_only_owned_links_and_ignore(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        resolved = fixture.home / "resolved skills"
+        resolved.mkdir()
+        fixture.skills_dir().parent.mkdir()
+        fixture.skills_dir().symlink_to(resolved, target_is_directory=True)
+        self.assert_success(self.deploy())
+
+        parent = self.project("parent")
+        nested = self.project("parent/nested project")
+        empty = self.project("no configured link directory")
+        for project in (parent, nested):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+            fixture.write(project / ".gitignore", b"*.cache\n")
+            fixture.write(project / ".ai/README.md", b"Existing knowledge\n")
+        fixture.write(nested / ".git/tracked-knowledge", b"")
+        self.make_tracking_stub()
+
+        links = parent / ".providers/skills"
+        owned = links / "stale-declared"
+        owned.symlink_to(fixture.skills_dir() / "retired")
+        resolved_owned = links / "stale-resolved"
+        resolved_owned.symlink_to(resolved / "retired")
+        live = links / "live"
+        live.symlink_to(fixture.skills_dir() / "current")
+        foreign = links / "foreign"
+        foreign.symlink_to(f"{fixture.skills_dir()}-other/retired")
+        relative_foreign = links / "relative-foreign"
+        relative_foreign.symlink_to("../personal")
+        missing = fixture.root / "missing project"
+        roots = (parent, missing, fixture.source, nested, parent, empty)
+        registry_bytes = "".join(f"{root}\n" for root in roots).encode()
+        fixture.write(self.registry, registry_bytes)
+        for name in (".devin/workflows/old.md", ".windsurf/rules/old.md", "AGENTS.md", "CLAUDE.md"):
+            fixture.write(parent / name, f"Preserved {name}\n".encode())
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(
+            [line for line in result.stdout.splitlines() if line.startswith(b"project ")],
+            [
+                f"project updated {parent} (linked 1, unlinked 2)".encode(),
+                f"project missing {missing}".encode(),
+                f"project skipped (source checkout) {fixture.source}".encode(),
+                f"project updated {nested} (linked 1, unlinked 0)".encode(),
+                f"project updated {empty} (linked 0, unlinked 0)".encode(),
+            ],
+        )
+        self.assertFalse(owned.is_symlink())
+        self.assertFalse(resolved_owned.is_symlink())
+        self.assert_link(links / "current", resolved / "current")
+        self.assert_link(nested / ".providers/skills/current", resolved / "current")
+        self.assertFalse((empty / ".providers").exists())
+        self.assertEqual((parent / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+        after = fixture.snapshot()
+        removed = {owned.relative_to(fixture.root), resolved_owned.relative_to(fixture.root)}
+        added = {(project / ".providers/skills/current").relative_to(fixture.root)
+                 for project in (parent, nested)}
+        changed = {(project / ".providers/skills").relative_to(fixture.root)
+                   for project in (parent, nested)}
+        changed.add((parent / ".gitignore").relative_to(fixture.root))
+        self.assertEqual(set(before) - set(after), removed)
+        self.assertEqual(set(after) - set(before), added)
+        preserved = (before.keys() & after.keys()) - changed
+        self.assertEqual({path: before[path] for path in preserved}, {path: after[path] for path in preserved})
+
+        retry = self.deploy()
+        self.assert_success(retry)
+        self.assertIn(f"project updated {parent} (linked 0, unlinked 0)".encode(), retry.stdout.splitlines())
+        self.assertEqual(fixture.snapshot(), after)
+
+    def test_deployment_skips_legacy_destinations_and_symlinked_project_parents(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".windsurf/skills")
+        self.include_links("omega", ".devin/skills")
+        fixture.make_harness("gamma")
+        self.include_links("gamma", ".redirected/skills")
+        project = self.project("protected project")
+        fixture.write(project / ".windsurf/skills/legacy.md", b"Retired editor bytes\n")
+        fixture.write(project / ".devin/rules/legacy.md", b"Another retired editor's bytes\n")
+        (project / ".windsurf/skills/owned").symlink_to(fixture.skills_dir() / "retired")
+        external = self.project("outside project")
+        (external / "skills").mkdir()
+        (external / "skills/owned").symlink_to(fixture.skills_dir("gamma") / "retired")
+        (project / ".redirected").symlink_to(external, target_is_directory=True)
+        fresh = self.project("fresh project")
+        fixture.write(self.registry, f"{project}\n{fresh}\n".encode())
+        before = self.project_entries(project, fresh, external)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        lines = result.stdout.splitlines()
+        for root in (project, fresh):
+            self.assertIn(f"project updated {root} (linked 0, unlinked 0)".encode(), lines)
+        self.assertEqual(self.project_entries(project, fresh, external), before)
+
+    def test_rejects_invalid_registry_before_global_or_project_writes(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".alpha/skills")
+        project = self.project("registered project")
+        (project / ".alpha/skills").mkdir(parents=True)
+        (project / ".git").mkdir()
+        alias = fixture.root / "project alias"
+        alias.symlink_to(project, target_is_directory=True)
+        fixtures = {
+            "relative path": b"relative/path",
+            "noncanonical path": os.fsencode(alias),
+            "carriage return": os.fsencode(project) + b"\r",
+            "NUL": os.fsencode(project) + b"\0",
+            "invalid UTF-8": b"/invalid-\xff",
+            "empty line": b"\n",
+            "nonregular registry": None,
+        }
+        for name, payload in fixtures.items():
+            if payload is None:
+                self.registry.unlink()
+                self.registry.mkdir()
+            else:
+                fixture.write(self.registry, os.fsencode(project) + b"\n" + payload + b"\n")
+            before = fixture.snapshot()
+
+            for arguments in (("list-projects",),
+                              ("deploy", "--from", str(fixture.source), "--hook-result", HOOK_RESULT)):
+                with self.subTest(registry=name, command=arguments[0]):
+                    result = self.command(*arguments)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertTrue(result.stderr.startswith(b"ERROR registry-invalid: "), result.stderr)
+                    self.assertEqual(fixture.snapshot(), before)
+
+    def test_refuses_global_targets_that_would_replace_the_registry(self) -> None:
+        fixture = self.fixture
+        config = fixture.home / ".config"
+        fixture.environment["XDG_CONFIG_HOME"] = str(config)
+        registry = config / "orchestrail/projects"
+        registry_bytes = os.fsencode(fixture.source) + b"\n"
+        fixture.write(registry, registry_bytes)
+        previous = b"$HOME/.alpha/AGENTS.md"
+        conflicting = b"$HOME/.config/orchestrail/projects"
+        for path in (fixture.adapter(), fixture.adapter().parent / "capabilities.md"):
+            path.write_bytes(path.read_bytes().replace(previous, conflicting))
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(registry.read_bytes(), registry_bytes)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, b"")
+        self.assertTrue(result.stderr.startswith(b"ERROR adapter-conflict: "), result.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_skips_only_the_ignore_file_that_backs_the_registry(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        self.make_tracking_stub()
+        protected = self.project("project with the registry")
+        other = self.project("other project")
+        for project in (protected, other):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+        backing_file = protected / ".gitignore"
+        registry_bytes = f"{protected}\n{other}\n".encode()
+        backing_file.write_bytes(registry_bytes)
+        self.registry.parent.mkdir()
+        self.registry.symlink_to(backing_file)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(os.readlink(self.registry), str(backing_file))
+        self.assertEqual(backing_file.read_bytes(), registry_bytes)
+        self.assertEqual((other / ".gitignore").read_bytes(), b".ai/\n")
+        for project in (protected, other):
+            self.assert_link(project / ".providers/skills/current", fixture.skills_dir() / "current")
+
+    def test_deployment_preserves_registered_projects_under_the_retired_home_tree(self) -> None:
+        fixture = self.fixture
+        self.include_links("alpha", ".providers/skills")
+        self.make_tracking_stub()
+        retired = fixture.home / ".codeium"
+        protected = retired / "project"
+        other = self.project("supported project")
+        for project in (protected, other):
+            (project / ".providers/skills").mkdir(parents=True)
+            (project / ".git").mkdir()
+        (protected / ".providers/skills/stale").symlink_to(fixture.skills_dir() / "retired")
+        fixture.write(protected / ".gitignore", b"*.cache\n")
+        fixture.write(retired / "windsurf/global_rules/legacy.md", b"Retired rule\n")
+        fixture.write(self.registry, f"{protected}\n{other}\n".encode())
+        before = self.project_entries(retired)
+
+        result = self.deploy()
+
+        self.assert_success(result)
+        self.assertEqual(self.project_entries(retired), before)
+        self.assert_link(other / ".providers/skills/current", fixture.skills_dir() / "current")
+        self.assertEqual((other / ".gitignore").read_bytes(), b".ai/\n")
+
+
+class ActiveConsumerFreezeTests(unittest.TestCase):
+    race_note = (
+        b"note: task starts during deployment are not detected; "
+        b"run sync when no pipeline run is starting"
+    )
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.registry = self.fixture.config / "orchestrail/projects"
+        adapter = self.fixture.adapter()
+        adapter.write_bytes(adapter.read_bytes() + b"project_skills_link_dir=.claude/skills\n")
+
+    def deploy(
+        self, *arguments: str, unreadable: Path | None = None,
+    ) -> subprocess.CompletedProcess[bytes]:
+        launcher = []
+        if unreadable is not None and os.geteuid() == 0:
+            # Root can read a mode-000 file. Inject the same open error for that file.
+            launcher = ["-c", """
+import os
+import runpy
+import sys
+
+unreadable = sys.argv[1]
+sys.argv = sys.argv[2:]
+
+def deny_state_read(event, arguments):
+    if event == 'open' and arguments[0] in (unreadable, os.fsencode(unreadable)):
+        raise PermissionError(13, 'Permission denied', unreadable)
+
+sys.addaudithook(deny_state_read)
+runpy.run_path(sys.argv[0], run_name='__main__')
+""", str(unreadable)]
+        return subprocess.run(
+            [sys.executable, "-I", *launcher, str(ENGINE), "deploy", "--from",
+             str(self.fixture.source), "--hook-result", HOOK_RESULT, *arguments],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            timeout=15,
+        )
+
+    def initialize_deployment(self) -> None:
+        result = self.deploy()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def project(self, name: str) -> Path:
+        project = self.fixture.root / name
+        (project / ".claude/skills").mkdir(parents=True)
+        (project / ".git").mkdir()
+        self.fixture.write(project / ".gitignore", b"*.cache\n")
+        return project
+
+    def task(self, project: Path, name: str, contents: bytes) -> Path:
+        directory = project / ".ai/tasks/todo" / name
+        self.fixture.write(directory / "state.md", contents)
+        return directory
+
+    def register(self, *roots: Path) -> None:
+        self.fixture.write(self.registry, b"".join(os.fsencode(root) + b"\n" for root in roots))
+
+    def assert_deferred(
+        self, result: subprocess.CompletedProcess[bytes], *active: tuple[Path, Path],
+    ) -> None:
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            b"deferred: active consumers",
+            *(b"active " + os.fsencode(root) + b" " + os.fsencode(task) for root, task in active),
+        ])
+
+    def test_unchanged_globals_refresh_only_projects_without_active_phase_lines(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        discovering = self.project("discovering consumer")
+        executing = self.project("executing consumer")
+        validating = self.project("validating consumer")
+        complete = self.project("completed consumer")
+        unrelated = self.project("unrelated phase text")
+        missing = fixture.root / "missing consumer"
+        regular_file = fixture.root / "non-directory consumer"
+        fixture.write(regular_file, b"Not a directory\n")
+        self.task(discovering, "discovery", b"## Phases\n### Details\n- discovery: in-progress\t \n")
+        self.task(executing, "execution", b"## Phases\n- execution: in-progress")
+        self.task(validating, "validation", b"## Phases\n- validation: in-progress\n## Other\n")
+        self.task(complete, "published", b"## Phases\n- discovery: complete\n- execution: complete\n"
+                  b"- validation: complete\n")
+        self.task(unrelated, "unrelated", b"- execution: in-progress\n## Phases\n"
+                  b" - validation: in-progress\n- validation: in-progress now\n"
+                  b"- finalization: in-progress\n- discovery: in-progress\xc2\xa0\n"
+                  b"## Notes\n- validation: in-progress\n")
+        self.task(unrelated, "wrong heading", b"## Phases elsewhere\n- discovery: in-progress\n")
+        (unrelated / ".ai/tasks/todo/directory/state.md").mkdir(parents=True)
+        fixture.write(unrelated / ".ai/tasks/completed/archived/state.md", b"## Phases\n- execution: in-progress\n")
+        self.register(complete, missing, discovering, complete, unrelated, regular_file,
+                      executing, validating, validating)
+        mutable_projects = tuple(project.relative_to(fixture.root) for project in (complete, unrelated))
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            f"project updated {complete} (linked 1, unlinked 0)".encode(),
+            f"project missing {missing}".encode(),
+            f"project skipped (active task) {discovering}".encode(),
+            f"project updated {unrelated} (linked 1, unlinked 0)".encode(),
+            f"project missing {regular_file}".encode(),
+            f"project skipped (active task) {executing}".encode(),
+            f"project skipped (active task) {validating}".encode(),
+            self.race_note,
+        ])
+        after = fixture.snapshot()
+        self.assertEqual(
+            {path: entry for path, entry in after.items()
+             if not any(path.is_relative_to(project) for project in mutable_projects)},
+            {path: entry for path, entry in before.items()
+             if not any(path.is_relative_to(project) for project in mutable_projects)},
+        )
+        for project in (complete, unrelated):
+            link = project / ".claude/skills/current"
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(link.resolve(strict=True), fixture.skills_dir() / "current")
+            self.assertEqual((project / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+
+    def test_changed_globals_defer_for_active_consumer_with_global_links(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        active = self.project("already linked consumer")
+        ready = self.project("ready consumer")
+        linked = active / ".claude/skills/current"
+        linked.symlink_to(fixture.skills_dir() / "current")
+        task = self.task(active, "running pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(ready, active, active, fixture.source)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Changed workflow\n")
+        fixture.write(fixture.adapter().parent / "always-on.md", b"# Changed instructions\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_deferred(result, (active, task))
+        self.assertEqual(fixture.snapshot(), before)
+        self.assertEqual((linked / "SKILL.md").read_bytes(), SKILL_BYTES)
+
+    def test_changed_globals_defer_for_active_registered_source(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        ready = self.project("ready consumer")
+        self.task(ready, "finished pipeline", b"## Phases\n- execution: complete\n")
+        source_task = self.task(fixture.source, "source pipeline", b"## Phases\n- validation: in-progress\n")
+        self.register(ready, fixture.source)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Changed workflow\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assert_deferred(result, (fixture.source, source_task))
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_unreadable_and_non_utf8_states_defer_a_pending_global_update(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        malformed = self.project("invalid UTF-8 consumer")
+        unreadable = self.project("unreadable consumer")
+        malformed_task = self.task(malformed, "invalid encoding", b"## Phases\n- execution: complete\n\xff\n")
+        unreadable_task = self.task(unreadable, "unreadable task", b"## Phases\n- execution: complete\n")
+        unreadable_state = unreadable_task / "state.md"
+        self.register(malformed, unreadable)
+        desired = SKILL_BYTES + b"Updated workflow\n"
+        fixture.write(fixture.source / "workflows/current.md", desired)
+        fixture.write(fixture.manifest_path("journal"), fixture.manifest_bytes({
+            "schema_version": 1,
+            "entries": [{
+                "path": str(fixture.skill("current")),
+                "old_sha256": hashlib.sha256(SKILL_BYTES).hexdigest(),
+                "new_sha256": hashlib.sha256(desired).hexdigest(),
+            }],
+        }))
+        before = fixture.snapshot()
+        mode = stat.S_IMODE(unreadable_state.stat().st_mode)
+        unreadable_state.chmod(0)
+        try:
+            result = self.deploy(unreadable=unreadable_state)
+        finally:
+            unreadable_state.chmod(mode)
+
+        self.assert_deferred(result, (malformed, malformed_task), (unreadable, unreadable_task))
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_force_refreshes_active_projects_and_preserves_preflight_refusals(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        active = self.project("forced consumer")
+        self.task(active, "active pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(active, active)
+        registry_bytes = self.registry.read_bytes()
+        target = fixture.skill("current")
+        source = fixture.source / "workflows/current.md"
+        desired = SKILL_BYTES + b"New workflow\n"
+        source.write_bytes(desired)
+
+        self.registry.write_bytes(registry_bytes + b"not-an-absolute-root\n")
+        before = fixture.snapshot()
+        invalid = self.deploy("--force")
+        self.assertEqual(invalid.returncode, 1, invalid.stdout + invalid.stderr)
+        self.assertEqual(invalid.stdout, b"")
+        self.assertTrue(invalid.stderr.startswith(b"ERROR registry-invalid: "), invalid.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+        self.registry.write_bytes(registry_bytes)
+
+        target.write_bytes(b"Consumer's own edit\n")
+        before = fixture.snapshot()
+        conflict = self.deploy("--force")
+        self.assertEqual(conflict.returncode, 1, conflict.stdout + conflict.stderr)
+        self.assertEqual(conflict.stdout, b"")
+        self.assertEqual(conflict.stderr, f"ERROR ownership-conflict {target}: {OWNERSHIP_RESOLUTION}\n".encode())
+        self.assertEqual(fixture.snapshot(), before)
+        target.write_bytes(SKILL_BYTES)
+
+        before = fixture.snapshot()
+        with (fixture.config / "orchestrail/deploy.lock").open("rb") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            locked = self.deploy("--force")
+        self.assertEqual(locked.returncode, 1, locked.stdout + locked.stderr)
+        self.assertEqual(locked.stdout, b"")
+        self.assertTrue(locked.stderr.startswith(b"ERROR deploy-locked: "), locked.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+
+        result = self.deploy("--force")
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, b"")
+        self.assertEqual(result.stdout.splitlines(), [
+            f"replace {target}".encode(),
+            f"replace {fixture.skill('current', 'omega')}".encode(),
+            f"project updated {active} (linked 1, unlinked 0)".encode(),
+            f"forced {active}".encode(),
+            self.race_note,
+        ])
+        link = active / ".claude/skills/current"
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.resolve(strict=True), fixture.skills_dir() / "current")
+        self.assertEqual((link / "SKILL.md").read_bytes(), desired)
+        self.assertEqual((active / ".gitignore").read_bytes(), b"*.cache\n.ai/\n")
+        self.assertEqual(self.registry.read_bytes(), registry_bytes)
+        self.assertFalse(fixture.manifest_path("journal").exists())
+
+    def test_unsafe_pending_replacement_is_refused_before_active_consumer_deferral(self) -> None:
+        self.initialize_deployment()
+        fixture = self.fixture
+        project = self.project("active consumer")
+        self.task(project, "running pipeline", b"## Phases\n- execution: in-progress\n")
+        self.register(project)
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Updated workflow\n")
+        foreign = fixture.home / "personal.md"
+        fixture.write(foreign, b"Unowned bytes behind the temporary link\n")
+        temporary = fixture.skill("current", "omega").with_name(".SKILL.md.orchestrail-tmp")
+        temporary.symlink_to(foreign)
+        before = fixture.snapshot()
+        diagnostic = f"ERROR unsafe-target: {temporary} must be absent or a regular temporary file\n".encode()
+
+        for arguments in ((), ("--force",)):
+            with self.subTest(force=bool(arguments)):
+                result = self.deploy(*arguments)
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertEqual(result.stdout, b"")
+                self.assertEqual(result.stderr, diagnostic)
+                self.assertEqual(fixture.snapshot(), before)
+
+
+class DeploymentSourceRevisionTests(unittest.TestCase):
+    initial_revision = "0123456789abcdef0123456789abcdef01234567"
+    next_revision = "fedcba9876543210fedcba9876543210fedcba98"
+    harnesses = ("alpha", "omega")
+
+    def source_fixture(self) -> tuple[PlannerFixture, Path, Path]:
+        temporary = tempfile.TemporaryDirectory(prefix="deployment's source ")
+        self.addCleanup(temporary.cleanup)
+        fixture = PlannerFixture(Path(temporary.name).resolve())
+        head = fixture.source / ".git/fixture-head"
+        fixture.write(head, (self.initial_revision + "\n").encode())
+        git = fixture.root / "bin/git"
+        git.write_text(r"""#!/bin/sh
+[ "$#" -ge 4 ] && [ "$1" = -C ] && [ "$3" = rev-parse ] || exit 2
+if [ ! -f "$2/.git/fixture-head" ]; then
+    printf '%s\n' 'fatal: not a git repository' >&2
+    exit 128
+fi
+if [ "$#" -eq 4 ] && [ "$4" = --is-inside-work-tree ]; then
+    if [ -f "$2/.git/fixture-bare" ]; then
+        printf '%s\n' false
+    else
+        printf '%s\n' true
+    fi
+    exit 0
+fi
+[ "$#" -eq 5 ] && [ "$4" = --verify ] && [ "$5" = HEAD ] || exit 2
+IFS= read -r revision < "$2/.git/fixture-head" || exit 1
+printf '%s\n' "$revision"
+""", encoding="utf-8")
+        git.chmod(0o755)
+        return fixture, head, git
+
+    def deploy(self, fixture: PlannerFixture) -> subprocess.CompletedProcess[str]:
+        result = subprocess.run(
+            [sys.executable, "-I", str(ENGINE), "deploy", "--from", str(fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=fixture.root,
+            env=fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        return result
+
+    def manifests(self, fixture: PlannerFixture) -> list[dict]:
+        return [json.loads(fixture.manifest_path(name).read_bytes()) for name in self.harnesses]
+
+    def test_manifest_records_selected_source_head(self) -> None:
+        fixture, _, _ = self.source_fixture()
+
+        self.deploy(fixture)
+
+        self.assertEqual(
+            [manifest["source_revision"] for manifest in self.manifests(fixture)],
+            [self.initial_revision, self.initial_revision],
+        )
+
+    def test_revision_change_rewrites_only_manifests_then_becomes_noop(self) -> None:
+        fixture, head, _ = self.source_fixture()
+        self.deploy(fixture)
+        previous_manifests = self.manifests(fixture)
+        head.write_text(self.next_revision + "\n", encoding="utf-8")
+        before_update = fixture.snapshot()
+
+        update = self.deploy(fixture)
+        after_update = fixture.snapshot()
+        repeat = self.deploy(fixture)
+
+        self.assertEqual(self.manifests(fixture), [
+            manifest | {"source_revision": self.next_revision} for manifest in previous_manifests
+        ])
+        self.assertEqual([manifest["source_revision"] for manifest in previous_manifests],
+                         [self.initial_revision, self.initial_revision])
+        for name in self.harnesses:
+            for path in (fixture.skill("current", name), fixture.always_on(name)):
+                relative = path.relative_to(fixture.root)
+                self.assertEqual(after_update[relative], before_update[relative])
+        for result in (update, repeat):
+            self.assertNotRegex(result.stdout, r"(?m)^(?:adopt|create|remove|replace) ")
+        self.assertFalse(fixture.manifest_path("journal").exists())
+        self.assertEqual(fixture.snapshot(), after_update)
+
+    def test_manifest_revision_clears_when_source_provenance_is_unavailable(self) -> None:
+        for reason in ("plain copy", "missing Git"):
+            with self.subTest(reason=reason):
+                fixture, head, git = self.source_fixture()
+                self.deploy(fixture)
+                previous_manifests = self.manifests(fixture)
+                if reason == "plain copy":
+                    head.unlink()
+                    head.parent.rmdir()
+                else:
+                    git.unlink()
+
+                self.deploy(fixture)
+
+                self.assertEqual(self.manifests(fixture), [
+                    manifest | {"source_revision": None} for manifest in previous_manifests
+                ])
+                self.assertEqual([manifest["source_revision"] for manifest in previous_manifests],
+                                 [self.initial_revision, self.initial_revision])
+
+    def test_manifest_revision_is_null_for_bare_repository_with_head(self) -> None:
+        fixture, head, _ = self.source_fixture()
+        fixture.write(head.with_name("fixture-bare"), b"")
+
+        self.deploy(fixture)
+
+        self.assertEqual(
+            [manifest["source_revision"] for manifest in self.manifests(fixture)],
+            [None, None],
+        )
+
+
+class DeploymentLeftoverTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = PlannerFixture(Path(temporary.name).resolve())
+        self.name_map = self.fixture.source / "docs/name-map.json"
+
+    def write_map(self, *rows: tuple[str, str, list[str]]) -> None:
+        data = {"schema_version": 1, "rows": [
+            {"kind": kind, "old": old, "new": new} for kind, old, new in sorted(rows)
+        ]}
+        self.fixture.write(self.name_map, self.fixture.manifest_bytes(data))
+
+    def deploy(self) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, "-I", str(ENGINE), "deploy", "--from", str(self.fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=self.fixture.root,
+            env=self.fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+
+    def assert_leftovers(self, result: subprocess.CompletedProcess[str], *directories: Path) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertCountEqual(
+            [line for line in result.stdout.splitlines() if line.startswith("leftover ")],
+            [f"leftover {directory} (not removed; review, then remove it manually)"
+             for directory in directories],
+        )
+
+    def snapshot_paths(self, *paths: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        roots = {path.relative_to(self.fixture.root) for path in paths}
+        return {path: entry for path, entry in self.fixture.snapshot().items()
+                if path in roots or roots.intersection(path.parents)}
+
+    def test_reports_only_mapped_old_directories_on_every_deploy(self) -> None:
+        fixture = self.fixture
+        old_pipeline = Path("workflows/PIPELINE.md")
+        old_claude = Path("rules/global-claude.md")
+        old_codex = Path("templates/codex-global-AGENTS.md")
+        self.write_map(
+            ("file", str(old_claude), ["harness/claude/always-on.md"]),
+            ("file", str(old_codex), ["harness/codex/always-on.md"]),
+            ("file", str(old_pipeline), [str(Path("docs") / old_pipeline.name)]),
+            ("rule", "retired-guide", ["contract-guide", "procedure-guide"]),
+            ("workflow", "missing-command", ["replacement-command"]),
+            ("workflow", "regular-file", ["file-command"]),
+            ("workflow", "retired-command", ["current-command"]),
+            ("workflow", "rule-retired-guide", ["guide-command"]),
+            ("workflow", "symbolic-link", ["link-command"]),
+        )
+        present = [fixture.skill(name).parent for name in (
+            old_pipeline.stem, f"rule-{old_claude.stem}", "rule-retired-guide", "retired-command",
+        )]
+        present.append(fixture.skill("retired-command", "omega").parent)
+        ignored = [fixture.skill(name).parent for name in (
+            old_codex.stem, "personal-skill", "rule-procedure-guide", "current-command",
+        )]
+        for directory in present + ignored:
+            fixture.write(directory / "SKILL.md", f"Custom content for {directory.name}\n".encode())
+            fixture.write(directory / "notes/details.md", b"Personal notes\n")
+        regular_file = fixture.skills_dir() / "regular-file"
+        fixture.write(regular_file, b"Custom file\n")
+        symlink = fixture.skills_dir() / "symbolic-link"
+        symlink.symlink_to(ignored[0], target_is_directory=True)
+        protected = [*present, *ignored, regular_file, symlink]
+        before = self.snapshot_paths(*protected)
+        for run in ("first deployment", "repeat deployment", "without a map"):
+            with self.subTest(run=run):
+                if run == "without a map":
+                    self.name_map.unlink()
+
+                result = self.deploy()
+
+                self.assertEqual(self.snapshot_paths(*protected), before)
+                for harness in ("alpha", "omega"):
+                    self.assertFalse(fixture.skill("missing-command", harness).parent.exists())
+                self.assert_leftovers(result, *(present if run != "without a map" else []))
+
+    def test_distinguishes_current_owned_and_unowned_mapped_skills(self) -> None:
+        fixture = self.fixture
+        self.write_map(
+            ("rule", "live-guide", ["contract-live-guide"]),
+            ("workflow", "current", ["renamed-current"]),
+            ("workflow", "edited-command", ["renamed-edited"]),
+            ("workflow", "old-command", ["renamed-old"]),
+        )
+        fixture.write(fixture.source / "rules/live-guide.md", SKILL_BYTES)
+        owned = fixture.skill("old-command")
+        edited = fixture.skill("edited-command")
+        foreign = fixture.skill("old-command", "omega")
+        old = b"Owned deployment bytes\n"
+        custom = b"Personal skill bytes\n"
+        fixture.write(owned, old)
+        for skill in (edited, foreign, fixture.skill("current"), fixture.skill("rule-live-guide")):
+            fixture.write(skill, custom)
+        leftover_temporary = foreign.with_name(".SKILL.md.orchestrail-tmp")
+        managed_temporary = fixture.skill("current").with_name(".SKILL.md.orchestrail-tmp")
+        fixture.write(leftover_temporary, custom)
+        fixture.write(managed_temporary, b"Incomplete deployment bytes\n")
+        leftover_before = self.snapshot_paths(edited.parent, foreign.parent)
+        manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(owned, old, "old-command"),
+            fixture.manifest_object(edited, old, "edited-command"),
+            fixture.manifest_object(fixture.skill("current"), custom, "current"),
+            fixture.manifest_object(fixture.skill("rule-live-guide"), custom, "rule-live-guide"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+
+        for run in ("first deployment", "repeat deployment"):
+            with self.subTest(run=run):
+                result = self.deploy()
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertFalse(owned.parent.exists())
+                self.assertEqual(edited.read_bytes(), custom)
+                self.assertEqual(foreign.read_bytes(), custom)
+                self.assertFalse(managed_temporary.exists())
+                self.assertEqual(self.snapshot_paths(edited.parent, foreign.parent), leftover_before)
+                for harness in ("alpha", "omega"):
+                    self.assertEqual(fixture.skill("current", harness).read_bytes(), SKILL_BYTES)
+                    self.assertEqual(fixture.skill("rule-live-guide", harness).read_bytes(), SKILL_BYTES)
+                self.assert_leftovers(result, edited.parent, foreign.parent)
+
+    def test_refuses_malformed_name_map_before_writes(self) -> None:
+        fixture = self.fixture
+        fixture.write(fixture.skill("retired-command"), b"Personal skill bytes\n")
+        row = {"kind": "workflow", "old": "retired-command", "new": ["current-command"]}
+        invalid_rows = {
+            "unknown field": [{**row, "note": "Renamed"}],
+            "duplicate identity": [row, {**row, "new": ["other-command"]}],
+            "duplicate target": [row, {**row, "old": "unused-command"}],
+            "target is an old name": [{**row, "new": ["retired-command"]}],
+            "unsorted rows": [{**row, "old": "unused-command", "new": ["other-command"]}, row],
+            "workflow split": [{**row, "new": ["current-command", "other-command"]}],
+            "unsafe file path": [{"kind": "file", "old": "rules/../outside.md",
+                                   "new": ["docs/Outside.md"]}],
+            "command substitution": [{**row, "old": "$(touch fixture-marker)"}],
+        }
+        invalid_maps = {label: fixture.manifest_bytes({"schema_version": 1, "rows": rows})
+                        for label, rows in invalid_rows.items()}
+        invalid_maps.update({
+            "duplicate JSON key": b'{"schema_version": 1, "rows": [], "rows": []}',
+            "incorrect schema version": b'{"schema_version": true, "rows": []}',
+            "invalid JSON": b"[",
+            "invalid UTF-8": b"\xff",
+        })
+
+        for label, content in invalid_maps.items():
+            with self.subTest(mutation=label):
+                fixture.write(self.name_map, content)
+                before = fixture.snapshot()
+
+                result = self.deploy()
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertEqual(result.stdout, "")
+                self.assertTrue(result.stderr.startswith("ERROR name-map-invalid"), result.stderr)
+                self.assertIn(str(self.name_map), result.stderr)
+                self.assertEqual(fixture.snapshot(), before)
+
+    def test_deferred_deploy_reports_leftovers_without_writes(self) -> None:
+        fixture = self.fixture
+        self.assert_leftovers(self.deploy())
+        self.write_map(("workflow", "retired-command", ["replacement-command"]))
+        leftovers = [fixture.skill("retired-command", harness) for harness in ("alpha", "omega")]
+        for skill in leftovers:
+            fixture.write(skill, b"Personal skill bytes\n")
+            fixture.write(skill.with_name(".SKILL.md.orchestrail-tmp"), b"Personal temporary file\n")
+        project = fixture.root / "active consumer"
+        task = project / ".ai/tasks/todo/active task"
+        fixture.write(task / "state.md", b"## Phases\n- execution: in-progress\n")
+        fixture.write(fixture.config / "orchestrail/projects", os.fsencode(project) + b"\n")
+        fixture.write(fixture.source / "workflows/current.md", SKILL_BYTES + b"Pending changes\n")
+        before = fixture.snapshot()
+
+        result = self.deploy()
+
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(fixture.snapshot(), before)
+        lines = result.stdout.splitlines()
+        self.assertEqual(lines[:2], ["deferred: active consumers", f"active {project} {task}"])
+        self.assertCountEqual(lines[2:], [
+            f"leftover {skill.parent} (not removed; review, then remove it manually)" for skill in leftovers
+        ])
+
+
+class DeploymentEntrypointTests(unittest.TestCase):
+    preflights = (
+        "check-phase-finalize.py", "check-finalization-safety.py", "check-finalization-workflow.py",
+    )
+    adapter_targets = {
+        "claude": (".claude/skills", ".claude/CLAUDE.md"),
+        "codex": (".codex/skills", ".codex/AGENTS.md"),
+        "demo": ("demo/commands", "demo/config/instructions.md"),
+    }
+    skill_sources = {
+        "phase-discovery": "workflows/phase-discovery.md",
+        "rule-tdd": "rules/tdd.md",
+        "principle-testing": "principles/testing.md",
+    }
+    installed_hook = b'{"status":"installed","events":["PreToolUse"]}'
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory(prefix="entrypoint's fixture ")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name).resolve()
+        self.home = self.root / "home"
+        self.config = self.root / "config"
+        self.state = self.root / "state"
+        self.source = self.root / "selected source"
+        self.bin = self.root / "bin"
+        self.calls = self.root / "preflight calls"
+        self.registry = self.config / "orchestrail/projects"
+        self.environment = {
+            "HOME": str(self.home),
+            "XDG_CONFIG_HOME": str(self.config),
+            "XDG_STATE_HOME": str(self.state),
+            "PATH": f"{self.bin}{os.pathsep}{os.defpath}",
+            "FIXTURE_CALLS": str(self.calls),
+            "ORCHESTRAIL_HOME": str(self.source),
+            "LC_ALL": "C",
+        }
+        for directory in (self.home, self.config, self.state, self.bin, self.source / "templates"):
+            directory.mkdir(parents=True)
+        self.calls.touch()
+        self.executable("git", b"#!/bin/bash\nexit 128\n")
+        (self.bin / "python3").symlink_to(sys.executable)
+        for script in (ENGINE, REPORTER, SOURCE / "scripts/setup-new-project.sh"):
+            self.write(self.source / "scripts" / script.name, script.read_bytes())
+        self.write(self.source / "scripts/validate-contracts.sh",
+                   b'#!/bin/bash\nprintf "%s\\n" validator >> "$FIXTURE_CALLS"\n')
+        for name in self.preflights:
+            self.write(self.source / "scripts" / name, (
+                "import os\nfrom pathlib import Path\n"
+                "with Path(os.environ['FIXTURE_CALLS']).open('a') as calls:\n"
+                f"    calls.write({name!r} + '\\n')\n"
+            ).encode())
+        self.write(self.source / "templates/.ai/README.md", b"# Project knowledge\n")
+        for path in self.skill_sources.values():
+            self.write(self.source / path, f"# Selected source: {path}\n".encode())
+
+        for name in ("claude", "codex"):
+            for filename in ("deploy.env", "always-on.md", "capabilities.md"):
+                path = Path("harness") / name / filename
+                self.write(self.source / path, (SOURCE / path).read_bytes())
+        skills, core = self.adapter_targets["demo"]
+        self.write(self.source / "harness/demo/deploy.env", (
+            f"skills_dir=$HOME/{skills}\nalways_on_path=$HOME/{core}\n"
+            "project_skills_link_dir=.demo/skill-links\n"
+        ).encode())
+        self.write(self.source / "harness/demo/always-on.md", b"# Demo instructions\n")
+        capability = (self.source / "harness/codex/capabilities.md").read_bytes()
+        self.write(self.source / "harness/demo/capabilities.md",
+                   capability.replace(b"$HOME/.codex/AGENTS.md", f"$HOME/{core}".encode()))
+        self.write(self.source / "harness/claude/hooks.json", b"{}\n")
+        self.installer(exit_status=0)
+
+    def write(self, path: Path, content: bytes) -> None:
+        PlannerFixture.write(path, content)
+
+    def executable(self, name: str, content: bytes) -> None:
+        path = self.bin / name
+        self.write(path, content)
+        path.chmod(0o755)
+
+    def installer(self, *, exit_status: int) -> None:
+        self.write(self.source / "scripts/install-hooks.sh", (
+            b"#!/bin/bash\n"
+            b'[[ "$#" -eq 3 && "$1" == install && "$2" == --from && '
+            b'"$3" == "${BASH_SOURCE[0]%/scripts/install-hooks.sh}" ]] || exit 2\n'
+            b'printf "%s\\n" installer >> "$FIXTURE_CALLS"\n'
+            b"printf '%s\\n' '" + self.installed_hook + b"'\n"
+            + f"exit {exit_status}\n".encode()
+        ))
+
+    def python_310(self) -> None:
+        (self.bin / "python3").unlink()
+        self.environment["FIXTURE_PYTHON"] = sys.executable
+        self.executable("python3", b"""#!/bin/bash
+if [[ "$1" == -I ]]; then shift; fi
+case "$1" in
+    -V|--version) printf '%s\\n' 'Python 3.10.14' ;;
+    -c)
+        shift
+        exec "$FIXTURE_PYTHON" -I -c 'from collections import namedtuple
+import sys
+sys.version_info = namedtuple("version_info", "major minor micro releaselevel serial")(3, 10, 14, "final", 0)
+code = sys.argv.pop(1)
+exec(code)
+' "$@" ;;
+    *) exec "$FIXTURE_PYTHON" -I "$@" ;;
+esac
+""")
+
+    def command(
+        self, script: str, *arguments: str, cwd: Path | None = None,
+        expected_source: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        environment = self.environment.copy()
+        if expected_source is not None:
+            environment["ORCHESTRAIL_HOME"] = str(expected_source)
+        return subprocess.run(
+            ["bash", str(SOURCE / "scripts" / script), *arguments],
+            cwd=self.root if cwd is None else cwd,
+            env=environment,
+            input="2\n" * 4,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=20,
+        )
+
+    def sync(self, *arguments: str) -> subprocess.CompletedProcess[str]:
+        return self.command(
+            "sync.sh", "--from", str(self.source), *arguments,
+            expected_source=self.root / "unused source",
+        )
+
+    @staticmethod
+    def snapshot(*roots: Path) -> dict[Path, tuple[int, int, bytes | str | None]]:
+        entries = {}
+        for root in roots:
+            for path in (root, *root.rglob("*")):
+                try:
+                    info = path.lstat()
+                except FileNotFoundError:
+                    continue
+                payload = None
+                if stat.S_ISLNK(info.st_mode):
+                    payload = os.readlink(path)
+                elif stat.S_ISREG(info.st_mode):
+                    payload = path.read_bytes()
+                entries[path] = (info.st_mode, info.st_mtime_ns, payload)
+        return entries
+
+    def project_legacy(self, project: Path) -> tuple[Path, Path]:
+        windsurf = project / ".windsurf"
+        devin = project / ".devin"
+        self.write(windsurf / "rules/tdd.md", b"Keep this project rule\x00.\n")
+        self.write(devin / "settings.json", b'{"keep":"original"}\n')
+        return windsurf, devin
+
+    def legacy_lines(self, result: subprocess.CompletedProcess[str], *paths: Path) -> None:
+        expected = []
+        for path in paths:
+            quoted = subprocess.run(
+                ["bash", "-c", 'printf "%q" "$1"', "bash", str(path)],
+                cwd=self.root, env=self.environment, capture_output=True, encoding="utf-8",
+                timeout=10, check=True,
+            ).stdout
+            expected.append(
+                f"legacy: {quoted} — created by an earlier Orchestrail version; "
+                f"review it, then remove it manually if unused: rm -r -- {quoted}"
+            )
+        self.assertEqual([line for line in result.stdout.splitlines() if line.startswith("legacy:")],
+                         expected)
+        self.assertFalse(any(line.startswith("legacy:") for line in result.stderr.splitlines()))
+
+    def assert_assembly(self, target: Path, name: str, hook_result: bytes) -> None:
+        adapter = self.source / "harness" / name
+        body = (adapter / "always-on.md").read_bytes()
+        capability = (adapter / "capabilities.md").read_bytes()
+        installation = hook_result if name == "claude" else NO_NATIVE_HOOK
+        contents = target.read_bytes()
+        expected = (
+            body + b"\n<!-- Logging capabilities -->\n" + capability
+            + b"\n## Current hook installation\n\ninstallation-result: " + installation + b"\n"
+        )
+        self.assertEqual(contents, expected, str(target))
+        self.assertEqual(contents.count(capability), 1, str(target))
+        self.assertEqual(contents.count(b"installation-result: "), 1, str(target))
+
+    def assert_rendered(self, destination: Path, hook_result: bytes) -> set[Path]:
+        files = set()
+        for name, (skills, core) in self.adapter_targets.items():
+            self.assertTrue((destination / core).is_file(), f"Missing {name} always-on file: {core}")
+            self.assert_assembly(destination / core, name, hook_result)
+            files.add(destination / core)
+            for skill, source in self.skill_sources.items():
+                deployed = destination / skills / skill / "SKILL.md"
+                self.assertTrue(deployed.is_file(), f"Missing {name} skill: {deployed}")
+                self.assertEqual(deployed.read_bytes(), (self.source / source).read_bytes())
+                files.add(deployed)
+        return files
+
+    def assert_setup_discovery(self, result: subprocess.CompletedProcess[str]) -> None:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        next_steps = result.stdout.partition("\nNext steps:\n")[2]
+        self.assertIn("/phase-discovery", next_steps)
+        self.assertNotRegex(next_steps, r"(?i)\b(?:Windsurf|Devin|Claude Code|Codex)\b")
+        self.assertNotRegex(next_steps, r"(?<![\w-])/discovery\b")
+
+    def test_normal_sync_uses_selected_source_and_installs_every_adapter(self) -> None:
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights, "installer"])
+        self.assertTrue((self.home / "demo/commands/phase-discovery/SKILL.md").is_file(),
+                        result.stdout + result.stderr)
+        self.assertFalse((self.home / ".codeium").exists())
+        self.assert_rendered(self.home, self.installed_hook)
+        self.legacy_lines(result)
+
+    def test_sync_reports_global_and_registered_legacy_without_changes(self) -> None:
+        workflows = self.home / ".codeium/windsurf/global_workflows"
+        rules = self.home / ".codeium/windsurf/global_rules"
+        self.write(workflows / "phase-discovery.md", b"Retained global workflow\n")
+        self.write(rules / "tdd.md", b"Retained global rule\n")
+        project = self.root / "registered 'product"
+        project_legacy = self.project_legacy(project)
+        ignored = self.project_legacy(self.source) + self.project_legacy(self.root / "unregistered")
+        registry = (f"{self.source}\n{project}\n{self.root / 'missing'}\n{project}\n").encode()
+        self.write(self.registry, registry)
+        protected = workflows, rules, *project_legacy, *ignored, self.registry
+        before = self.snapshot(*protected)
+
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.legacy_lines(result, workflows, rules, *project_legacy)
+        self.assertEqual(self.snapshot(*protected), before)
+
+    def test_setup_preserves_legacy_and_links_adapter_skills(self) -> None:
+        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        project = self.root / "selected 'project"
+        legacy = self.project_legacy(project)
+        before = self.snapshot(*legacy)
+
+        result = self.command("setup-new-project.sh", cwd=project)
+
+        self.legacy_lines(result, *legacy)
+        self.assertEqual(self.snapshot(*legacy), before)
+        self.assert_setup_discovery(result)
+        link = project / ".demo/skill-links/phase-discovery"
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.resolve(), self.home / "demo/commands/phase-discovery")
+        self.assertIn(os.fsencode(project) + b"\n", self.registry.read_bytes())
+
+    def test_umbrella_setup_reports_legacy_and_omits_it_in_fresh_services(self) -> None:
+        umbrella = self.root / "umbrella"
+        self.write(umbrella / ".ai/README.md", b"# Umbrella knowledge\n")
+        legacy = self.project_legacy(umbrella / "existing 'service")
+        fresh = umbrella / "fresh service"
+        fresh.mkdir()
+        before = self.snapshot(*legacy)
+
+        result = self.command("setup-all-repos.sh", "--include-non-git", cwd=umbrella)
+
+        self.legacy_lines(result, *legacy)
+        self.assertEqual(self.snapshot(*legacy, fresh / ".windsurf", fresh / ".devin"), before)
+        self.assert_setup_discovery(result)
+        self.assertTrue((fresh / ".ai/README.md").is_file())
+
+    def test_sync_python_310_exits_before_writes(self) -> None:
+        self.python_310()
+        marker = self.home / "kept"
+        marker.write_bytes(b"Existing home data\n")
+        before = self.snapshot(self.home, self.config, self.state)
+
+        result = self.sync()
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("ERROR: Python 3.11 or newer is required for deployment",
+                      (result.stdout + result.stderr).splitlines())
+        self.assertNotIn("installer", self.calls.read_text().splitlines())
+        self.assertEqual(self.snapshot(self.home, self.config, self.state), before)
+
+    def test_setup_python_310_warns_and_continues(self) -> None:
+        self.python_310()
+        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        project = self.root / "fresh project"
+        project.mkdir()
+
+        result = self.command("setup-new-project.sh", cwd=project)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("WARNING: skill links unavailable: Python 3.11 or newer is required",
+                      (result.stdout + result.stderr).splitlines())
+        self.assertTrue((project / ".ai/README.md").is_file())
+        self.assertFalse((project / ".demo/skill-links").exists())
+        self.assertFalse((project / ".windsurf").exists())
+        self.assertFalse((project / ".devin").exists())
+        self.assertEqual(self.registry.read_bytes(), os.fsencode(project) + b"\n")
+        self.assert_setup_discovery(result)
+
+    def test_sync_installer_failure_and_absence_record_exact_fallback(self) -> None:
+        installer = self.source / "scripts/install-hooks.sh"
+        self.installer(exit_status=5)
+        for reason in ("installer-failed", "installer-unavailable"):
+            with self.subTest(reason=reason):
+                self.calls.write_text("")
+                # Exercise ORCHESTRAIL_HOME without a command-line source override.
+                result = self.command("sync.sh")
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                expected = f'{{"reason":"{reason}","status":"unavailable"}}'.encode()
+                self.assert_assembly(self.home / ".claude/CLAUDE.md", "claude", expected)
+                self.assert_assembly(self.home / ".codex/AGENTS.md", "codex", expected)
+                tail = ["installer"] if installer.exists() else []
+                self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights, *tail])
+            installer.unlink(missing_ok=True)
+
+    def test_stage_renders_only_declared_adapters_without_live_writes(self) -> None:
+        stage = self.root / "empty stage"
+        stage.mkdir()
+        project = self.root / "consumer"
+        (project / ".demo/skill-links").mkdir(parents=True)
+        self.write(self.registry, os.fsencode(project) + b"\n")
+        self.write(self.home / ".claude/CLAUDE.md", b"Live instructions\n")
+        self.write(self.state / "retained", b"Live state\n")
+        protected = self.home, self.config, self.state, project
+        before = self.snapshot(*protected)
+
+        result = self.sync(f"--stage={stage}")
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights])
+        self.assertEqual(self.snapshot(*protected), before)
+        self.assertFalse((stage / ".codeium").exists(), "Staging rendered legacy provider paths")
+        fallback = b'{"reason":"installer-unavailable","status":"unavailable"}'
+        expected_files = self.assert_rendered(stage, fallback)
+        self.assertEqual({path for path in stage.rglob("*") if path.is_file()}, expected_files)
+
+    def test_stage_rejects_existing_nonempty_overlapping_and_symlink_destinations(self) -> None:
+        nonempty = self.root / "nonempty stage"
+        self.write(nonempty / "retained", b"Keep this file\n")
+        target = self.root / "empty target"
+        target.mkdir()
+        symlink = self.root / "stage alias"
+        symlink.symlink_to(target, target_is_directory=True)
+        before = self.snapshot(self.root)
+        for path in (nonempty, self.source, self.home, self.home / ".claude/new", symlink):
+            with self.subTest(stage=path):
+                result = self.sync("--stage", str(path))
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("staging needs an empty isolated directory", result.stderr)
+                self.assertEqual(self.snapshot(self.root), before)
+
+    def test_sync_requires_every_finalization_preflight_before_deployment(self) -> None:
+        stage = self.root / "absent stage"
+        protected = self.home, self.config, self.state, stage
+        before = self.snapshot(*protected)
+        for arguments in ((), ("--stage", str(stage))):
+            for index, name in enumerate(self.preflights):
+                script = self.source / "scripts" / name
+                original = script.read_bytes()
+                for missing in (True, False):
+                    with self.subTest(staged=bool(arguments), preflight=name, missing=missing):
+                        self.calls.write_text("")
+                        if missing:
+                            script.unlink()
+                        else:
+                            script.write_bytes(original + b"raise SystemExit(17)\n")
+
+                        result = self.sync(*arguments)
+
+                        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                        status = "required acceptance check missing" if missing else "acceptance check failed"
+                        self.assertIn(f"ERROR: {status}: {name}", result.stderr)
+                        completed = index if missing else index + 1
+                        self.assertEqual(self.calls.read_text().splitlines(),
+                                         ["validator", *self.preflights[:completed]])
+                        self.assertEqual(self.snapshot(*protected), before)
+                        script.write_bytes(original)
+
+    def test_sync_and_engine_have_no_literal_harness_targets(self) -> None:
+        engine = ast.parse(ENGINE.read_text(encoding="utf-8"))
+        forbidden = {"claude", "codex", ".claude", ".codex"}
+        literal_names = {node.value for node in ast.walk(engine)
+                         if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+        self.assertFalse(literal_names & forbidden)
+        shell = (SOURCE / "scripts/sync.sh").read_text(encoding="utf-8")
+        harness_path = re.compile(r"""['"]\.?(?:claude|codex)['"]|(?:/|~)\.(?:claude|codex)(?:/|\b)""")
+        lines = [line for line in shell.splitlines()
+                 if not line.lstrip().startswith("#") and harness_path.search(line)]
+        self.assertEqual(lines, [])
+
+    def test_sync_refuses_to_replace_the_held_project_registration_lock(self) -> None:
+        _, core = self.adapter_targets["demo"]
+        for filename in ("deploy.env", "capabilities.md"):
+            source = self.source / "harness/demo" / filename
+            source.write_bytes(source.read_bytes().replace(
+                f"$HOME/{core}".encode(), b"$HOME/.config/orchestrail/projects.lock",
+            ))
+        contents = b"Existing registration lock\n"
+
+        for variant in ("direct config", "aliased config"):
+            with self.subTest(variant=variant):
+                home = self.root / variant
+                config = home / ".config"
+                lock_path = config / "orchestrail/projects.lock"
+                self.write(lock_path, contents)
+                config_path = config
+                if variant == "aliased config":
+                    config_path = home / "config alias"
+                    config_path.symlink_to(config, target_is_directory=True)
+                self.environment.update(HOME=str(home), XDG_CONFIG_HOME=str(config_path))
+                before = self.snapshot(home, self.state)
+
+                with lock_path.open("r+b") as lock:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    result = self.sync()
+
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("ERROR adapter-conflict:", result.stderr)
+                    self.assertNotRegex(result.stdout, r"(?m)^(?:create|adopt|replace|remove) ")
+                    self.assertFalse((config / "orchestrail/deploy").exists())
+                    self.assertTrue(os.path.samestat(lock_path.lstat(), os.fstat(lock.fileno())))
+                    self.assertEqual(lock_path.read_bytes(), contents)
+                    self.assertEqual(self.snapshot(home, self.state), before)
+
+
+def offline_source_findings(source: str) -> list[str]:
+    """Check direct subprocess launches and network imports in the standalone sources."""
+    tree = ast.parse(source)
+    network = {"socket", "ssl", "http", "urllib", "ftplib"}
+    launchers = {"call", "check_call", "check_output", "getoutput", "getstatusoutput", "Popen", "run"}
+    repository_scripts = {
+        "scripts/deploy-skills.py", "scripts/lint-instructions.py", "scripts/report-legacy-artifacts.sh",
+        "scripts/setup-all-repos.sh", "scripts/setup-new-project.sh", "scripts/sync.sh",
+    }
+    commands = {"bash", "python3", "git", *repository_scripts}
+    findings = []
+    subprocess_modules = set()
+    subprocess_functions = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.split(".")[0] in network:
+                    findings.append(f"line {node.lineno}: network import {alias.name}")
+                if alias.name == "subprocess":
+                    subprocess_modules.add(alias.asname or alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            if node.module.split(".")[0] in network:
+                findings.append(f"line {node.lineno}: network import {node.module}")
+            if node.module == "subprocess":
+                subprocess_functions.update(alias.asname or alias.name
+                                            for alias in node.names if alias.name in launchers)
+
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+
+    def program(node: ast.expr | None, call: ast.Call) -> ast.expr | None:
+        if not isinstance(node, (ast.List, ast.Tuple)) or not node.elts:
+            return None
+        first = node.elts[0]
+        if not isinstance(first, ast.Starred):
+            return first
+        if not isinstance(first.value, ast.Name):
+            return None
+        scope = parents[call]
+        while not isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
+            scope = parents[scope]
+        # Permit a literal program supplied by an earlier, unambiguous list prefix.
+        name = first.value.id
+        definitions = [item for item in ast.walk(scope) if (
+            isinstance(item, ast.Name) and item.id == name and isinstance(item.ctx, ast.Store)
+        )]
+        if len(definitions) != 1:
+            return None
+        assignment = parents[definitions[0]]
+        if (isinstance(assignment, ast.Assign) and assignment in scope.body
+                and assignment.lineno < call.lineno
+                and isinstance(assignment.value, (ast.List, ast.Tuple)) and assignment.value.elts):
+            return assignment.value.elts[0]
+        return None
+
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        function = call.func
+        if isinstance(function, ast.Name):
+            launches = function.id in subprocess_functions
+        else:
+            launches = (
+                isinstance(function, ast.Attribute) and isinstance(function.value, ast.Name)
+                and function.value.id in subprocess_modules and function.attr in launchers
+            )
+        if not launches:
+            continue
+        command = (call.args[0] if call.args else
+                   next((keyword.value for keyword in call.keywords if keyword.arg == "args"), None))
+        executable = program(command, call)
+        if (isinstance(executable, ast.Constant) and isinstance(executable.value, str)
+                and executable.value in commands):
+            continue
+        if (isinstance(executable, ast.Attribute) and isinstance(executable.value, ast.Name)
+                and executable.value.id == "sys" and executable.attr == "executable"):
+            continue
+        findings.append(f"line {call.lineno}: subprocess program is not on the offline allowlist")
+    return findings
+
+
+class DeploymentSourceIsolationTests(unittest.TestCase):
+    def test_deployment_and_checker_source_only_use_offline_programs(self) -> None:
+        for path in (ENGINE, CHECKER, Path(__file__)):
+            with self.subTest(path=path.name):
+                self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
+
+    def test_source_check_detects_network_imports_and_unknown_subprocess_programs(self) -> None:
+        findings = offline_source_findings(
+            "import urllib.request\n"
+            "from ssl import SSLContext\n"
+            "from subprocess import run as launch\n"
+            "import subprocess as child\n"
+            "launch(['curl', 'fixture'])\n"
+            "child.run(args=[program, 'fixture'])\n"
+            "launch(['bash', 'fixture.sh'])\n"
+        )
+        self.assertEqual(findings, [
+            "line 1: network import urllib.request",
+            "line 2: network import ssl",
+            "line 5: subprocess program is not on the offline allowlist",
+            "line 6: subprocess program is not on the offline allowlist",
+        ])
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

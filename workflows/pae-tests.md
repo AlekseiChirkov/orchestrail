@@ -1,5 +1,7 @@
 ---
 description: Atomic Execution Step 1 (TDD RED) — classify test level, write failing tests from Acceptance Criteria, observe them fail; --characterize pins existing behaviour for behaviour-preserving work
+phase: atomic-execution
+step: 1
 ---
 
 Invocation: `/pae-tests <path-to-atomic-description> [--batch] [--characterize]`

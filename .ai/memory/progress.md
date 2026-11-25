@@ -7,6 +7,26 @@ and the audit spec — dates are those recorded in the sources.
 
 ## Log
 
+- **2026-11-25 — Harness infrastructure and inventory validated.** Both harnesses
+  deploy declared targets with ownership manifests, active-project deferral and
+  recoverable transactions. Source instructions carry structured metadata. The
+  validator preserves the pinned inventory while recognizing tracked relocations.
+  The exact candidate `06236d4e8a6b188fc235481255ab69af7c2c73d4` passed 725 contract checks,
+  both standalone suites and an isolated staged byte comparison. Two optional
+  private-hygiene checks were skipped. PRs #139–#157 await owner integration.
+  The final name table, renames and finalization-journal relocation belong to Phase 2.
+
+- **2026-11-25 — Parallel capability direction reconciled.** The owner selected the
+  automatic-parallel program direction for the harness migration. Its undelivered
+  preflight retains the sequential capability gate and defers parallel admission and
+  fallback to the program. Discovery remains blocked by newly unmapped finalization
+  sources; no implementation or completed validation is claimed.
+
+- **2026-11-25 — Specification references reviewed.** Corrected stale numbered references
+  and the accepted audit heading without renumbering specifications or report schema fields.
+  Former parallel specification references still require semantic reconciliation with the
+  current program; see the [reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
+
 - **2026-11-25 — Specification references and inventory reconciled.** Remaining
   contextual references use the new numbering, while historical report-schema labels
   retain their established wire form. The owner approved the prior source-file deletion;

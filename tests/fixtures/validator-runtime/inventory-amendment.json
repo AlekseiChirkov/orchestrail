@@ -4325,8 +4325,8 @@
           "after": [
             {
               "path": "tests/model-workflow.py",
-              "provenance": "direct lexical reference",
-              "sha256": "d513c0a02c3de22fd87983402865ef7210c8083b6289f272d25a1826585b2b2a"
+              "sha256": "e38e39b6bbf14bf418f80f28cac9d155c1c2abfe330a738029505e16daaeac1a",
+              "provenance": "direct lexical reference"
             }
           ],
           "before": [
@@ -4342,84 +4342,69 @@
         {
           "after": [
             {
-              "line": 51,
-              "line_sha256": "2acbde18dab7b8c2c90c85fb2e71df91a62d2fd7a373670156452a9128e49592",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 82,
+              "line_sha256": "67ce6d019a0ae99b0dfc9789febb0dc0d82fc2ed07b56f77efa7fabf7fc80fd5"
             },
             {
-              "line": 60,
-              "line_sha256": "ce09674abd86ffc003d0954413a233a9b6416fb701ae9480fcc472171f10dbb1",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 83,
+              "line_sha256": "30873bfdbad2df7aabfb8e72d4de86957892fc3bf12919c8e250c3a26f767ba5"
             },
             {
-              "line": 61,
-              "line_sha256": "147fbe8eb2792c2b2117fcf364895c4ef1226a486142d1261535517608d83e4a",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 120,
+              "line_sha256": "62aa6b7309a7151acac9916ed417bb2a63c3a2fc0e30a7fb642f1e1cbb0bb936"
             },
             {
-              "line": 70,
-              "line_sha256": "67ce6d019a0ae99b0dfc9789febb0dc0d82fc2ed07b56f77efa7fabf7fc80fd5",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 121,
+              "line_sha256": "64020439e34cce629ca9b01b6f00b1d3b4c3d175832653989dd71f8e622be24a"
             },
             {
-              "line": 71,
-              "line_sha256": "30873bfdbad2df7aabfb8e72d4de86957892fc3bf12919c8e250c3a26f767ba5",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 334,
+              "line_sha256": "8c4f073bbe9967332dca3b9376b7b163af6e9a202495ec2f2d7c435b6475a01e"
             },
             {
-              "line": 108,
-              "line_sha256": "62aa6b7309a7151acac9916ed417bb2a63c3a2fc0e30a7fb642f1e1cbb0bb936",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 354,
+              "line_sha256": "8c4f073bbe9967332dca3b9376b7b163af6e9a202495ec2f2d7c435b6475a01e"
             },
             {
-              "line": 109,
-              "line_sha256": "64020439e34cce629ca9b01b6f00b1d3b4c3d175832653989dd71f8e622be24a",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 362,
+              "line_sha256": "2043ed013580fc08c1161c3db7b5698e511db897fdae67963376c7d701826899"
             },
             {
-              "line": 322,
-              "line_sha256": "8c4f073bbe9967332dca3b9376b7b163af6e9a202495ec2f2d7c435b6475a01e",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 368,
+              "line_sha256": "7ea5c103c9b692d6b0d769e3c6ad42aa12eeee698640087e6b7996c871c08856"
             },
             {
-              "line": 342,
-              "line_sha256": "8c4f073bbe9967332dca3b9376b7b163af6e9a202495ec2f2d7c435b6475a01e",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 515,
+              "line_sha256": "f17ad8a09d574b09a4ff4cec4700b260bca25ea6bcd297c76709b34b109f3432"
             },
             {
-              "line": 350,
-              "line_sha256": "2043ed013580fc08c1161c3db7b5698e511db897fdae67963376c7d701826899",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 516,
+              "line_sha256": "41dcfac40656fea2507b5d163149da215930237b650f9e237a97c070e829035a"
             },
             {
-              "line": 356,
-              "line_sha256": "7ea5c103c9b692d6b0d769e3c6ad42aa12eeee698640087e6b7996c871c08856",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 520,
+              "line_sha256": "415f2a3c64c138ef509d87a71081ae8a0da6a4cc1b8349a4b62a7e558aeed2ff"
             },
             {
-              "line": 503,
-              "line_sha256": "f17ad8a09d574b09a4ff4cec4700b260bca25ea6bcd297c76709b34b109f3432",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 522,
+              "line_sha256": "eae9e44d152d75e4fecb5659aa1aa634fd8160cff1a7bd123b376677f45ded14"
             },
             {
-              "line": 504,
-              "line_sha256": "41dcfac40656fea2507b5d163149da215930237b650f9e237a97c070e829035a",
-              "path": "tests/model-workflow.py"
-            },
-            {
-              "line": 508,
-              "line_sha256": "415f2a3c64c138ef509d87a71081ae8a0da6a4cc1b8349a4b62a7e558aeed2ff",
-              "path": "tests/model-workflow.py"
-            },
-            {
-              "line": 510,
-              "line_sha256": "eae9e44d152d75e4fecb5659aa1aa634fd8160cff1a7bd123b376677f45ded14",
-              "path": "tests/model-workflow.py"
-            },
-            {
-              "line": 512,
-              "line_sha256": "3352e1f852acf3bed98e05fb8a47bb24070db4df657124d651a5a45e9b373739",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 524,
+              "line_sha256": "3352e1f852acf3bed98e05fb8a47bb24070db4df657124d651a5a45e9b373739"
             }
           ],
           "before": [
@@ -4511,14 +4496,14 @@
         {
           "after": [
             {
-              "line": 110,
-              "line_sha256": "81ff707f0fd2d37a62d44cfa455d62a6e73564f2388e69eb39594de69a1f3e24",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 122,
+              "line_sha256": "81ff707f0fd2d37a62d44cfa455d62a6e73564f2388e69eb39594de69a1f3e24"
             },
             {
-              "line": 113,
-              "line_sha256": "ec871ed7114eda3c35d76d0aa6bd11787f5ca07436a1d72c27aba4a0216134ca",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 125,
+              "line_sha256": "ec871ed7114eda3c35d76d0aa6bd11787f5ca07436a1d72c27aba4a0216134ca"
             }
           ],
           "before": [
@@ -4540,84 +4525,99 @@
         {
           "after": [
             {
-              "line": 114,
-              "line_sha256": "295b8b7a1e4c45c89705dcaeda938051efbf1f28e5a6073e1434105a8f98c258",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 52,
+              "line_sha256": "b4dddf8f5c9e87ee816d8ddea2f6896a1ea01a3bff01f492f656c3a9dd770b70"
             },
             {
-              "line": 115,
-              "line_sha256": "d642cb8f3b13a0f7ad86bf83b682394c74cc33e249a6dbb4d26f8eb81e6e7a61",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 53,
+              "line_sha256": "4256654e111d1ced672a815a76393224f60a0d6ea2d1ebb6dc542242b407a511"
             },
             {
-              "line": 116,
-              "line_sha256": "965f3d90d552e4516d4621a1eac705a36a66f94622a84d987e3fcec8cda642a8",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 67,
+              "line_sha256": "479b860341f6f852cc8f4c4d23cede19a70127997713f6ff021fbb554a5e4601"
             },
             {
-              "line": 117,
-              "line_sha256": "10770dcd293794b92bda6b37cfeaf7a974b55c73e4821bd6e00ac5db922b82b2",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 126,
+              "line_sha256": "295b8b7a1e4c45c89705dcaeda938051efbf1f28e5a6073e1434105a8f98c258"
             },
             {
-              "line": 138,
-              "line_sha256": "1929c5dc9e95823ce7678b2209353e9d11a79f739701a1899d9e9b3e8d6bd879",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 127,
+              "line_sha256": "d642cb8f3b13a0f7ad86bf83b682394c74cc33e249a6dbb4d26f8eb81e6e7a61"
             },
             {
-              "line": 139,
-              "line_sha256": "a93e688aa9442b2cbd41aab9428b26668d039e85a2a776f21bd6293c1fe5c2ee",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 128,
+              "line_sha256": "965f3d90d552e4516d4621a1eac705a36a66f94622a84d987e3fcec8cda642a8"
             },
             {
-              "line": 140,
-              "line_sha256": "c9ff40ead3e77d0ec053d51c02c7a4a040d90fa67fb62adb4420247473e601fc",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 129,
+              "line_sha256": "10770dcd293794b92bda6b37cfeaf7a974b55c73e4821bd6e00ac5db922b82b2"
             },
             {
-              "line": 141,
-              "line_sha256": "43a347c636b8bbf3b054b4c4138fdac17ee2816e690c365402824f3708dfb2a6",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 150,
+              "line_sha256": "1929c5dc9e95823ce7678b2209353e9d11a79f739701a1899d9e9b3e8d6bd879"
             },
             {
-              "line": 142,
-              "line_sha256": "c8debb9ff840e3ed436fda72b191c4d0ccb56304deec43f718e4e5fc3197efae",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 151,
+              "line_sha256": "a93e688aa9442b2cbd41aab9428b26668d039e85a2a776f21bd6293c1fe5c2ee"
             },
             {
-              "line": 159,
-              "line_sha256": "76724438e026a29cb126d5e9b21181bd3f43a6cf03dd1ddb29270e0e8672c3c1",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 152,
+              "line_sha256": "c9ff40ead3e77d0ec053d51c02c7a4a040d90fa67fb62adb4420247473e601fc"
             },
             {
-              "line": 199,
-              "line_sha256": "5ecac748b9017bed4fb74d41590f81bc6f7e3bfdb2babce5aa7dbb5e86d04e38",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 153,
+              "line_sha256": "43a347c636b8bbf3b054b4c4138fdac17ee2816e690c365402824f3708dfb2a6"
             },
             {
-              "line": 202,
-              "line_sha256": "5ecac748b9017bed4fb74d41590f81bc6f7e3bfdb2babce5aa7dbb5e86d04e38",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 154,
+              "line_sha256": "c8debb9ff840e3ed436fda72b191c4d0ccb56304deec43f718e4e5fc3197efae"
             },
             {
-              "line": 303,
-              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 171,
+              "line_sha256": "76724438e026a29cb126d5e9b21181bd3f43a6cf03dd1ddb29270e0e8672c3c1"
             },
             {
-              "line": 323,
-              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 211,
+              "line_sha256": "5ecac748b9017bed4fb74d41590f81bc6f7e3bfdb2babce5aa7dbb5e86d04e38"
             },
             {
-              "line": 327,
-              "line_sha256": "e2e3eb660d3c3ece4a2f2d2279ed8b4b8a3dc5b4d0b434d4f69a37fee7401596",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 214,
+              "line_sha256": "5ecac748b9017bed4fb74d41590f81bc6f7e3bfdb2babce5aa7dbb5e86d04e38"
             },
             {
-              "line": 343,
-              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 315,
+              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d"
+            },
+            {
+              "path": "tests/model-workflow.py",
+              "line": 335,
+              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d"
+            },
+            {
+              "path": "tests/model-workflow.py",
+              "line": 339,
+              "line_sha256": "e2e3eb660d3c3ece4a2f2d2279ed8b4b8a3dc5b4d0b434d4f69a37fee7401596"
+            },
+            {
+              "path": "tests/model-workflow.py",
+              "line": 355,
+              "line_sha256": "6383fe2437293f6389c5a1f84634d3a18177201157bc13e3ea4edc5fc207976d"
             }
           ],
           "before": [
@@ -4694,14 +4694,19 @@
         {
           "after": [
             {
-              "line": 120,
-              "line_sha256": "8ee8d61e6e4f6c809d8006773a29c8b3863736fbdcf39a380a5dec4c328e4a26",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 57,
+              "line_sha256": "167e8e5a5af1a881d9df3ffbcb2bdea8859377c0d3b69c9725e9690cec00d2cb"
             },
             {
-              "line": 146,
-              "line_sha256": "0b467c5a2aad30ec8ff31a36f6f8f98a730a3cdd61e3d22e4e49d95b1bd51886",
-              "path": "tests/model-workflow.py"
+              "path": "tests/model-workflow.py",
+              "line": 132,
+              "line_sha256": "8ee8d61e6e4f6c809d8006773a29c8b3863736fbdcf39a380a5dec4c328e4a26"
+            },
+            {
+              "path": "tests/model-workflow.py",
+              "line": 158,
+              "line_sha256": "0b467c5a2aad30ec8ff31a36f6f8f98a730a3cdd61e3d22e4e49d95b1bd51886"
             }
           ],
           "before": [
@@ -8166,8 +8171,8 @@
           "after": [
             {
               "path": "tests/hook-install.sh",
-              "provenance": "direct lexical reference",
-              "sha256": "689efc26f278948130446382880246b7dd8822d93398754d4a9520f47e6b729a"
+              "sha256": "8353be25eea7e4c1dd9cb82a94d95e4d1f947966784bc8d2dc76ff0c14d47628",
+              "provenance": "direct lexical reference"
             }
           ],
           "before": [
@@ -8183,444 +8188,459 @@
         {
           "after": [
             {
+              "path": "tests/hook-install.sh",
               "line": 56,
-              "line_sha256": "55c8b8105425e19031da85a657a21b76aac85073317c6ff0a5d1434b4df4008e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "55c8b8105425e19031da85a657a21b76aac85073317c6ff0a5d1434b4df4008e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 60,
-              "line_sha256": "0193bb58a98292f81c925cfb816b8873ee047327173579ca0045524fb42e8261",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0193bb58a98292f81c925cfb816b8873ee047327173579ca0045524fb42e8261"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 73,
-              "line_sha256": "2cecaf73af627a366f61ad059f0c07ba25d4422ea33b71ddb2abed0cd9e68bb2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2cecaf73af627a366f61ad059f0c07ba25d4422ea33b71ddb2abed0cd9e68bb2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 76,
-              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 77,
-              "line_sha256": "0c9955711883034201587dfbec2f2da1cbdbb3e6d252206c876b144678c2fa43",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0c9955711883034201587dfbec2f2da1cbdbb3e6d252206c876b144678c2fa43"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 138,
-              "line_sha256": "12c964c473758c26ffad3260c6f8ede20cb76c3e8a4e37c4ec0144a091129d0d",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "12c964c473758c26ffad3260c6f8ede20cb76c3e8a4e37c4ec0144a091129d0d"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 140,
-              "line_sha256": "d287b5d31edc1a728c315386d234ec08942f2d7fe96fd4e25e874fd39964ff4e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d287b5d31edc1a728c315386d234ec08942f2d7fe96fd4e25e874fd39964ff4e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 163,
-              "line_sha256": "d13b877ff78bd56d4a38424f6cf43ac2110ff824af2fbdb366749297266ef11a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d13b877ff78bd56d4a38424f6cf43ac2110ff824af2fbdb366749297266ef11a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 164,
-              "line_sha256": "7e570cba06b21b6f05c65fc3067e4e1dcb4c2d5c853f37b6c7eb8e04c74484b6",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7e570cba06b21b6f05c65fc3067e4e1dcb4c2d5c853f37b6c7eb8e04c74484b6"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 169,
-              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 170,
-              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 186,
-              "line_sha256": "7dd0fd8f1d1141d3484e3c58fcd7fed3410215903ea076078c5b0d1aea326e23",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7dd0fd8f1d1141d3484e3c58fcd7fed3410215903ea076078c5b0d1aea326e23"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 197,
-              "line_sha256": "3a16a63d250f8eba23fbcc3ab3ad8f34a6ba6600320013cbf0af624c24758c6c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "3a16a63d250f8eba23fbcc3ab3ad8f34a6ba6600320013cbf0af624c24758c6c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 356,
-              "line_sha256": "5cb935e2a375160603bb79bc2037dc7384089131bf5c80e67d0da7c701ad46e6",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "5cb935e2a375160603bb79bc2037dc7384089131bf5c80e67d0da7c701ad46e6"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 382,
-              "line_sha256": "1bf06a0b5a1617fc6d83f2f2790e2dfc8d3d27dbe5cf39ebe4c1f71f74cb26ef",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "1bf06a0b5a1617fc6d83f2f2790e2dfc8d3d27dbe5cf39ebe4c1f71f74cb26ef"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 383,
-              "line_sha256": "d9ea03a71975d6654617ce9a5b27dd953a4e9561e535cb893dd80fd15d4ebd6e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d9ea03a71975d6654617ce9a5b27dd953a4e9561e535cb893dd80fd15d4ebd6e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 392,
-              "line_sha256": "07bec7e2bf69e860fda1a5fb4e5a165637309f57bd86956ac28344e788764b54",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "07bec7e2bf69e860fda1a5fb4e5a165637309f57bd86956ac28344e788764b54"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 408,
-              "line_sha256": "2a9785229d6a6ade39681d88516edcfa97102f3a70399517e788899c7df0cc7a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2a9785229d6a6ade39681d88516edcfa97102f3a70399517e788899c7df0cc7a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 412,
-              "line_sha256": "9761dfee2182713bd1c66be18052a4aa8432f2fb1c1295f7f22fdfe0c7a89fa6",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "9761dfee2182713bd1c66be18052a4aa8432f2fb1c1295f7f22fdfe0c7a89fa6"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 420,
-              "line_sha256": "ebad6b3a8010a8cee7e3265e4f1f51e926d9f9c78b61922e26f4a4017a901e23",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ebad6b3a8010a8cee7e3265e4f1f51e926d9f9c78b61922e26f4a4017a901e23"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 433,
-              "line_sha256": "4331f1cabb70e0de88dd05ac575ab801698b747fe3ce4041e1ef127514f03648",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "4331f1cabb70e0de88dd05ac575ab801698b747fe3ce4041e1ef127514f03648"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 495,
-              "line_sha256": "b86087ad497a211e222e189c8c6b027a907843ddf548a4d2754aef3311f0b108",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b86087ad497a211e222e189c8c6b027a907843ddf548a4d2754aef3311f0b108"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 540,
-              "line_sha256": "e720be1612d3f169f35a1a9ae5eadd4d7e8318573b67f80abfd41bd8c15e2c99",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e720be1612d3f169f35a1a9ae5eadd4d7e8318573b67f80abfd41bd8c15e2c99"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 542,
-              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 543,
-              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 551,
-              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 570,
-              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 571,
-              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 591,
-              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 595,
-              "line_sha256": "62796b4aa6f38f5ad6544db85d7081c0590854ba3003e97e5f3300ab175451e1",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "62796b4aa6f38f5ad6544db85d7081c0590854ba3003e97e5f3300ab175451e1"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 618,
-              "line_sha256": "45687e3bf13dbee2d1e9c8df5b1a8c3f8fef7ab9bb80d7c4b791d6aa738ed472",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "45687e3bf13dbee2d1e9c8df5b1a8c3f8fef7ab9bb80d7c4b791d6aa738ed472"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 620,
-              "line_sha256": "3cc73ffa2d22b751ddee534e7a1431838c0adfae3f8d294b3a00d8acea2e3a3f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "3cc73ffa2d22b751ddee534e7a1431838c0adfae3f8d294b3a00d8acea2e3a3f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 651,
-              "line_sha256": "4d329f34df679377e7c65170eb9bfd5b061b84df2362f84881b4d8253010096b",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "4d329f34df679377e7c65170eb9bfd5b061b84df2362f84881b4d8253010096b"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 658,
-              "line_sha256": "977181aead3dcd0513a729f9b0636cd0d30cb263ee2b2c392f4a0b639a5b0d09",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "977181aead3dcd0513a729f9b0636cd0d30cb263ee2b2c392f4a0b639a5b0d09"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 668,
-              "line_sha256": "af5ab49ba992df0fb87a9e19bccc55918ce6fab2e28b585e5cfc4d4c06238ae2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "af5ab49ba992df0fb87a9e19bccc55918ce6fab2e28b585e5cfc4d4c06238ae2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 672,
-              "line_sha256": "573b9f63c7686d54b9b4134393a7013faf898826c9e4c24a49a3e97ca357d235",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "573b9f63c7686d54b9b4134393a7013faf898826c9e4c24a49a3e97ca357d235"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 680,
-              "line_sha256": "d13b877ff78bd56d4a38424f6cf43ac2110ff824af2fbdb366749297266ef11a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d13b877ff78bd56d4a38424f6cf43ac2110ff824af2fbdb366749297266ef11a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 726,
-              "line_sha256": "05b1c33b592e07444b694633974e6aa1392125a81b845fafbdd3a3e8615ff92c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "05b1c33b592e07444b694633974e6aa1392125a81b845fafbdd3a3e8615ff92c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 731,
-              "line_sha256": "e549be2204015345d6fe0eda0340553727cec6c4b99876a2d7c55f9319894920",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e549be2204015345d6fe0eda0340553727cec6c4b99876a2d7c55f9319894920"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 748,
-              "line_sha256": "ccc3c24d7f3f0765cb49bb005a513f956040512430755d59c1828cb6e9faa897",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ccc3c24d7f3f0765cb49bb005a513f956040512430755d59c1828cb6e9faa897"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 749,
-              "line_sha256": "2bc99eb29a43850398948c4cf270757ce2d6aaea115c0496965c8f22527eb12f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2bc99eb29a43850398948c4cf270757ce2d6aaea115c0496965c8f22527eb12f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 756,
-              "line_sha256": "b7222bab0dc382654b70820bfa339c7c3b6dd18f94b9b5fef6cb080d5329c584",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b7222bab0dc382654b70820bfa339c7c3b6dd18f94b9b5fef6cb080d5329c584"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 757,
-              "line_sha256": "fe5fb8b307864c2b669175aab7c68a7c652cea1b8a9a2b57616f217511b923ae",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fe5fb8b307864c2b669175aab7c68a7c652cea1b8a9a2b57616f217511b923ae"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 773,
-              "line_sha256": "b8e96f72a4966724af0d06104c777bcd6f9e386e713c38e3cde605b43bd2c3ef",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b8e96f72a4966724af0d06104c777bcd6f9e386e713c38e3cde605b43bd2c3ef"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 777,
-              "line_sha256": "e0d6c643580b29af447f565a08d4d74dddf42c9ba1e10721a765cb77381395b9",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e0d6c643580b29af447f565a08d4d74dddf42c9ba1e10721a765cb77381395b9"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 779,
-              "line_sha256": "b5e2b90bab7b299e08854a45747aa4473d96229c2979b1eba495b8c6401c2fbb",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b5e2b90bab7b299e08854a45747aa4473d96229c2979b1eba495b8c6401c2fbb"
             },
             {
-              "line": 814,
-              "line_sha256": "6ddef56c26a3274e04e6e6427b7a358e9de1426f7d5f276fd81e74b63bf5ea28",
-              "path": "tests/hook-install.sh"
+              "path": "tests/hook-install.sh",
+              "line": 811,
+              "line_sha256": "6ddef56c26a3274e04e6e6427b7a358e9de1426f7d5f276fd81e74b63bf5ea28"
             },
             {
+              "path": "tests/hook-install.sh",
+              "line": 812,
+              "line_sha256": "bd74163a992a449bd78392520b2fd8182e5ad075252d8e1567d4f15ee681e800"
+            },
+            {
+              "path": "tests/hook-install.sh",
               "line": 815,
-              "line_sha256": "bd74163a992a449bd78392520b2fd8182e5ad075252d8e1567d4f15ee681e800",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ce86fe28f1b9952fbc2f21b1d579c6ec01fc0f03cc7415875236119a2243fe22"
             },
             {
+              "path": "tests/hook-install.sh",
+              "line": 816,
+              "line_sha256": "b0c7938404e916960e4e725a1f4657b244035a58f7761c8961ddcd7cded6d987"
+            },
+            {
+              "path": "tests/hook-install.sh",
+              "line": 817,
+              "line_sha256": "9abf1b09c821cc82eafc90c2da50676388d6d7cbd0ecdbd30142875a6143190c"
+            },
+            {
+              "path": "tests/hook-install.sh",
               "line": 818,
-              "line_sha256": "ce86fe28f1b9952fbc2f21b1d579c6ec01fc0f03cc7415875236119a2243fe22",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "6d7d0f5432a6302511cb8916e9ce56b1d39131c075a064aeee3e4d5701d9606c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 819,
-              "line_sha256": "b0c7938404e916960e4e725a1f4657b244035a58f7761c8961ddcd7cded6d987",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "016d56da0bbfdb71a887e004cf89c1236ad7f558ffd5ae0e53945219b9e1ce8d"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 820,
-              "line_sha256": "6d7d0f5432a6302511cb8916e9ce56b1d39131c075a064aeee3e4d5701d9606c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e37f3c7234dbf42245446f2bbb9405c347ec05a088e7f40ba0ef7d8837557bfa"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 821,
-              "line_sha256": "016d56da0bbfdb71a887e004cf89c1236ad7f558ffd5ae0e53945219b9e1ce8d",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "942ed8460b7e42ab8b5a2e2735b1b9686292f60dc189c171b59b41ad8dda0724"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 893,
-              "line_sha256": "55247ac636ae894fef7c4becdc5cb80d4ac57f2986ce6b3b1f6a9d74d7039ec2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "55247ac636ae894fef7c4becdc5cb80d4ac57f2986ce6b3b1f6a9d74d7039ec2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 894,
-              "line_sha256": "6c17c118c45344a83da7e1eee8d208f85b65b04fe0f25cc8246224c95bc008b4",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "6c17c118c45344a83da7e1eee8d208f85b65b04fe0f25cc8246224c95bc008b4"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 899,
-              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d79583d6a3bcffef11837b0c7d369698352b5b5077d25efe342ed196c0a458fd"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 900,
-              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fb89b338a5f7edf7be87bbc857a80938b924935b56db43a4dfa83ac1577d5708"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 908,
-              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 968,
-              "line_sha256": "e37f3c7234dbf42245446f2bbb9405c347ec05a088e7f40ba0ef7d8837557bfa",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e37f3c7234dbf42245446f2bbb9405c347ec05a088e7f40ba0ef7d8837557bfa"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 969,
-              "line_sha256": "5f940836bb6d86fd34d4d8a3a1b400433ea65e06c3af899e2b4a28da3f8f0f88",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "5f940836bb6d86fd34d4d8a3a1b400433ea65e06c3af899e2b4a28da3f8f0f88"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 981,
-              "line_sha256": "68d56623aaccda9edbf2b4cbea57bcc1feac58eeba0d61a82b67df237d659f47",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "68d56623aaccda9edbf2b4cbea57bcc1feac58eeba0d61a82b67df237d659f47"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 983,
-              "line_sha256": "0946916dda28a7dff124fdb093a3e4b35bcaa7152a49e3f426b70c71b39fe3e7",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0946916dda28a7dff124fdb093a3e4b35bcaa7152a49e3f426b70c71b39fe3e7"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 993,
-              "line_sha256": "43e755dcd382e94886280cbeb664dfdfc147a9f38320c51a9a48e9a9f178c116",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "43e755dcd382e94886280cbeb664dfdfc147a9f38320c51a9a48e9a9f178c116"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1047,
-              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1059,
-              "line_sha256": "d9ea03a71975d6654617ce9a5b27dd953a4e9561e535cb893dd80fd15d4ebd6e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d9ea03a71975d6654617ce9a5b27dd953a4e9561e535cb893dd80fd15d4ebd6e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1127,
-              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1130,
-              "line_sha256": "62796b4aa6f38f5ad6544db85d7081c0590854ba3003e97e5f3300ab175451e1",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "62796b4aa6f38f5ad6544db85d7081c0590854ba3003e97e5f3300ab175451e1"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1163,
-              "line_sha256": "e720be1612d3f169f35a1a9ae5eadd4d7e8318573b67f80abfd41bd8c15e2c99",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e720be1612d3f169f35a1a9ae5eadd4d7e8318573b67f80abfd41bd8c15e2c99"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1193,
-              "line_sha256": "1e1cca239a82d3580e9fb4b357d5374f4a46f25a5c2492b8a1e7c0e423012a63",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "1e1cca239a82d3580e9fb4b357d5374f4a46f25a5c2492b8a1e7c0e423012a63"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1219,
-              "line_sha256": "ccf831c012dcba4f1d2c6f52202bc6a32d6eb4f314645d53bc9774b28d851167",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ccf831c012dcba4f1d2c6f52202bc6a32d6eb4f314645d53bc9774b28d851167"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1304,
-              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1316,
-              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7f1851accde42f4b038f93fe1af4fcb525d37e492b3f8b29bc1b33ddc0d6ae0c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1404,
-              "line_sha256": "55247ac636ae894fef7c4becdc5cb80d4ac57f2986ce6b3b1f6a9d74d7039ec2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "55247ac636ae894fef7c4becdc5cb80d4ac57f2986ce6b3b1f6a9d74d7039ec2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1405,
-              "line_sha256": "6c17c118c45344a83da7e1eee8d208f85b65b04fe0f25cc8246224c95bc008b4",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "6c17c118c45344a83da7e1eee8d208f85b65b04fe0f25cc8246224c95bc008b4"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1455,
-              "line_sha256": "d200b7b07573cf2f2ba408a2d2903aef1ff6fbe88a0d88e5d1bac32a5ee90d5a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "d200b7b07573cf2f2ba408a2d2903aef1ff6fbe88a0d88e5d1bac32a5ee90d5a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1458,
-              "line_sha256": "1383c85bccf329ca0f58fc9a00e7fb576451b07d49526aab87f3991147454d4a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "1383c85bccf329ca0f58fc9a00e7fb576451b07d49526aab87f3991147454d4a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1459,
-              "line_sha256": "e37f3c7234dbf42245446f2bbb9405c347ec05a088e7f40ba0ef7d8837557bfa",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e37f3c7234dbf42245446f2bbb9405c347ec05a088e7f40ba0ef7d8837557bfa"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1460,
-              "line_sha256": "5cf33953cd3b0ad7f72c0cbe98decc58dc0fb39d3600653ebe0588aa7ab6a7f6",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "5cf33953cd3b0ad7f72c0cbe98decc58dc0fb39d3600653ebe0588aa7ab6a7f6"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1496,
-              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b5f7602b971d0b9cd347c84f0e44c0805723f0b77c41bd84f4231d34babd014f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1497,
-              "line_sha256": "87b3ca70c3785a3da2339e888d80fcc5c18d452649faa879296883354fdae768",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "87b3ca70c3785a3da2339e888d80fcc5c18d452649faa879296883354fdae768"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1566,
-              "line_sha256": "72cea65fba03c27575ee107f3b15e550715e00bf17c7bacdabcffa7177d8e77f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "72cea65fba03c27575ee107f3b15e550715e00bf17c7bacdabcffa7177d8e77f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1587,
-              "line_sha256": "2e30da8ad81d4e2bfb09378d77150f4e755d643690310cdc2bc5eed80f02123a",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2e30da8ad81d4e2bfb09378d77150f4e755d643690310cdc2bc5eed80f02123a"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1606,
-              "line_sha256": "8c7cdc7413ff55a3b44edc150f20bd39b0cf75561aba64aa083d3e4b83887dab",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "8c7cdc7413ff55a3b44edc150f20bd39b0cf75561aba64aa083d3e4b83887dab"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1629,
-              "line_sha256": "4a32c02a221e23ff7a39fd3b7ec059bd764ba2c8a30489787fbeef0e7f6bb3a8",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "4a32c02a221e23ff7a39fd3b7ec059bd764ba2c8a30489787fbeef0e7f6bb3a8"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1635,
-              "line_sha256": "ccfddc6c6f43da64986954887f28233171eec1e21ccbc9a74bf49730d453b685",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ccfddc6c6f43da64986954887f28233171eec1e21ccbc9a74bf49730d453b685"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1671,
-              "line_sha256": "ada746c2e6855033e34ded5ef0b38ccdba12b3e936107951287c5b692b72402f",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ada746c2e6855033e34ded5ef0b38ccdba12b3e936107951287c5b692b72402f"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1672,
-              "line_sha256": "06e76c8fb3578da1d48873a41bc05c9965337bc9717bc66e7deeeccd21e6c6ec",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "06e76c8fb3578da1d48873a41bc05c9965337bc9717bc66e7deeeccd21e6c6ec"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1707,
-              "line_sha256": "7839a91f9960254eabea751e1ea7a4b88d58975341704ee1b9f996b96f613505",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7839a91f9960254eabea751e1ea7a4b88d58975341704ee1b9f996b96f613505"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1738,
-              "line_sha256": "9896e6d6c9ac74875e0daad207c39e554ef53837ac52347322aeed2989ab616e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "9896e6d6c9ac74875e0daad207c39e554ef53837ac52347322aeed2989ab616e"
             }
           ],
           "before": [
@@ -9110,204 +9130,204 @@
         {
           "after": [
             {
+              "path": "tests/hook-install.sh",
               "line": 3,
-              "line_sha256": "8600ba56dfd1bb2b2e06d3934c05704de2cc9c0d07b15aea90fba6b6cf6d609b",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "8600ba56dfd1bb2b2e06d3934c05704de2cc9c0d07b15aea90fba6b6cf6d609b"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 41,
-              "line_sha256": "e754bbb437236eb46d3065291fd8ecb2c6a6b1db82b02214434944e4f6c5a7cf",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e754bbb437236eb46d3065291fd8ecb2c6a6b1db82b02214434944e4f6c5a7cf"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 55,
-              "line_sha256": "4069f2ff0ce31a7d0e582c3cbc916dbac410358a7adf6055f0d4d411b1e96459",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "4069f2ff0ce31a7d0e582c3cbc916dbac410358a7adf6055f0d4d411b1e96459"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 56,
-              "line_sha256": "55c8b8105425e19031da85a657a21b76aac85073317c6ff0a5d1434b4df4008e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "55c8b8105425e19031da85a657a21b76aac85073317c6ff0a5d1434b4df4008e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 61,
-              "line_sha256": "84181ef64923aac430787694c455532688331cfcf04e89ef57f36a097f6c52a0",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "84181ef64923aac430787694c455532688331cfcf04e89ef57f36a097f6c52a0"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 64,
-              "line_sha256": "7202bcfd61c78f8a5594405896bf5403a3b329c057242279a1aa9fe759c921af",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "7202bcfd61c78f8a5594405896bf5403a3b329c057242279a1aa9fe759c921af"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 65,
-              "line_sha256": "fda67b29aa6467c83ce04494486bee5dc9fe5c4b20442a9a654e7ec2f0a7cf53",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "fda67b29aa6467c83ce04494486bee5dc9fe5c4b20442a9a654e7ec2f0a7cf53"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 66,
-              "line_sha256": "ae858ddc3f11087733c2a3d14e5ec11a63cd1d2b670b978dee6413b4db3c1ffb",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ae858ddc3f11087733c2a3d14e5ec11a63cd1d2b670b978dee6413b4db3c1ffb"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 177,
-              "line_sha256": "c39f8e0fa21a984c4af1f4cce0132b2fc3376814992adc1b7b767bb03ed1d0bd",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "c39f8e0fa21a984c4af1f4cce0132b2fc3376814992adc1b7b767bb03ed1d0bd"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 314,
-              "line_sha256": "0be3dbe95fb90f50754b590eb83e3b44ca927b969028e8961c71335513bcb37c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0be3dbe95fb90f50754b590eb83e3b44ca927b969028e8961c71335513bcb37c"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 329,
-              "line_sha256": "f1e486eee8e0e1f9f855e7d1e552a3b7ded34f459c0e9135ce4b7962f93b50d2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "f1e486eee8e0e1f9f855e7d1e552a3b7ded34f459c0e9135ce4b7962f93b50d2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 334,
-              "line_sha256": "ec617452d43e39efefb45106b0599f4f15f12290fc61bfb31b69910903fd7c21",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ec617452d43e39efefb45106b0599f4f15f12290fc61bfb31b69910903fd7c21"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 353,
-              "line_sha256": "873e6b14b1c4844f9516aa9bf285766dfaa2f6ab0e5efb9389814dcf4fa97946",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "873e6b14b1c4844f9516aa9bf285766dfaa2f6ab0e5efb9389814dcf4fa97946"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 374,
-              "line_sha256": "ed333f6041f519d651b97a51185d4da0246e5e0785478aad9f05de724faf85df",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ed333f6041f519d651b97a51185d4da0246e5e0785478aad9f05de724faf85df"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 478,
-              "line_sha256": "99335578f76cff987a7c6428d994af4b0e5035791d3f2b4614d8d33eb4d2b4e1",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "99335578f76cff987a7c6428d994af4b0e5035791d3f2b4614d8d33eb4d2b4e1"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 550,
-              "line_sha256": "00febcf98a3f29827e285129ac5554e95871ada6e06c68c3fc585f83fdd9b797",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "00febcf98a3f29827e285129ac5554e95871ada6e06c68c3fc585f83fdd9b797"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 551,
-              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 577,
-              "line_sha256": "49d54a902aed03d2766750bc2c7f8a153290780808415e0caf63ee189088cc17",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "49d54a902aed03d2766750bc2c7f8a153290780808415e0caf63ee189088cc17"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 594,
-              "line_sha256": "23113ec1dc9627bdad3485c602ef39cf5fb9d5f36e44b959f7670461df62cec0",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "23113ec1dc9627bdad3485c602ef39cf5fb9d5f36e44b959f7670461df62cec0"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 691,
-              "line_sha256": "0b4f4abb4f83391d07393ad470e8ce9dfe0d9a7eb101b85f8208aba09e70c933",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0b4f4abb4f83391d07393ad470e8ce9dfe0d9a7eb101b85f8208aba09e70c933"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 695,
-              "line_sha256": "e21837fd24f25d9d830f19aa6703992fe559c5a624e41ec4512cad5df87fc093",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e21837fd24f25d9d830f19aa6703992fe559c5a624e41ec4512cad5df87fc093"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 759,
-              "line_sha256": "bca7d07228c7b9c8e67977128c336de58d1865127f25406f4d82e8cad90c59ee",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "bca7d07228c7b9c8e67977128c336de58d1865127f25406f4d82e8cad90c59ee"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 761,
-              "line_sha256": "58bf3f2014236d2c590c9bbf49b7cd56c12c72d79fa3d17cb71aa0afdf9281bb",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "58bf3f2014236d2c590c9bbf49b7cd56c12c72d79fa3d17cb71aa0afdf9281bb"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 792,
-              "line_sha256": "312720bb20b3ba6e6c22110ad0bd535c2e061173137def0c438c707f07110b88",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "331d5f1e19e3501217bbf8e99061ae88385b7953832cfa29929eb093e5c6c46d"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 793,
-              "line_sha256": "cc0028a9001cd239606941a2eab017e93b572a7c713f84743d590545d985431b",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "705415f3221ea942a82ae4f440d26957dd61ce6e97d2aa5028b71c8fe731cf08"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 798,
-              "line_sha256": "b999b59b0cc96dc3c0036a947f50eafc5980f5c1404a198ac77d44c687e71af2",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "b999b59b0cc96dc3c0036a947f50eafc5980f5c1404a198ac77d44c687e71af2"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 800,
-              "line_sha256": "99cf3715de10acdf5d24772dc5fd701826525faf1003011f226d3fc4be0c9063",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "99cf3715de10acdf5d24772dc5fd701826525faf1003011f226d3fc4be0c9063"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 806,
-              "line_sha256": "32ab84c57dc5fb51db99d04b11cbeb8cfa7b0f5e06063a99d49151f1d531597c",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "32ab84c57dc5fb51db99d04b11cbeb8cfa7b0f5e06063a99d49151f1d531597c"
             },
             {
-              "line": 810,
-              "line_sha256": "f516617ba1c08b8b870bc22fa8f66b08203c6620ed3c5fe233eed4672edf6204",
-              "path": "tests/hook-install.sh"
+              "path": "tests/hook-install.sh",
+              "line": 807,
+              "line_sha256": "1aa8febe1cf6513ccf7fdd2a753b7c58aac23bf5527419f4fbffc29484c92bbf"
             },
             {
-              "line": 816,
-              "line_sha256": "33137fc63189aff973930695eb775eff4f510ac11db14fe80605f1079db6c0da",
-              "path": "tests/hook-install.sh"
+              "path": "tests/hook-install.sh",
+              "line": 813,
+              "line_sha256": "33137fc63189aff973930695eb775eff4f510ac11db14fe80605f1079db6c0da"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 823,
-              "line_sha256": "38dd71e0a7ad5ef2bd88375789650284f60825fef4f63945ff821f8f0c7c70db",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "38dd71e0a7ad5ef2bd88375789650284f60825fef4f63945ff821f8f0c7c70db"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 835,
-              "line_sha256": "234f7e4029b662ba6725f1d1b2912bea857c8d3517e9e27860e9b4951bdacaad",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "234f7e4029b662ba6725f1d1b2912bea857c8d3517e9e27860e9b4951bdacaad"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 837,
-              "line_sha256": "e212db8f3266a2b7c7e9e01fe6d9424a992858ff0a880052d82cf515e083935e",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "e212db8f3266a2b7c7e9e01fe6d9424a992858ff0a880052d82cf515e083935e"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 907,
-              "line_sha256": "00febcf98a3f29827e285129ac5554e95871ada6e06c68c3fc585f83fdd9b797",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "00febcf98a3f29827e285129ac5554e95871ada6e06c68c3fc585f83fdd9b797"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 908,
-              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "2ddedaabc15eb440dc072aa2f2302d3c59db27b1332beac17353cce8ccec9a30"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1035,
-              "line_sha256": "ea4aa55c877709c7c47edc99cebd79fda56b178b0552afa76a3b879e6fc343c6",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "ea4aa55c877709c7c47edc99cebd79fda56b178b0552afa76a3b879e6fc343c6"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1037,
-              "line_sha256": "5f200382075e88d2f6a438ab51a32d5fd975a70b9f10a8154c13daafde503adf",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "5f200382075e88d2f6a438ab51a32d5fd975a70b9f10a8154c13daafde503adf"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1038,
-              "line_sha256": "c2427664790aef583f69a6ae61022d18f05b525bc54a83439679e072bb8c4bba",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "c2427664790aef583f69a6ae61022d18f05b525bc54a83439679e072bb8c4bba"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1196,
-              "line_sha256": "0364752068020c3288c89d82feb260c427a4498c88cf7eb629834eb7fa0a5181",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0364752068020c3288c89d82feb260c427a4498c88cf7eb629834eb7fa0a5181"
             },
             {
+              "path": "tests/hook-install.sh",
               "line": 1741,
-              "line_sha256": "0364752068020c3288c89d82feb260c427a4498c88cf7eb629834eb7fa0a5181",
-              "path": "tests/hook-install.sh"
+              "line_sha256": "0364752068020c3288c89d82feb260c427a4498c88cf7eb629834eb7fa0a5181"
             }
           ],
           "before": [
@@ -10176,5 +10196,113 @@
       "name": "test_model_plan_acceptance"
     }
   ],
-  "schema": 1
+  "schema": 2,
+  "name_map_sha256": "bcee32296e20c81ca4f1c06d9dec80648031b869b492851e4ce73b59fc9616b9",
+  "path_changes": [],
+  "contract_changes": [
+    {
+      "target": "result",
+      "key": "TDD: scripts/sync.sh deploys tdd.md to projects",
+      "before": "\"$(grep -q 'tdd\\.md' scripts/sync.sh 2>/dev/null && echo pass || echo 'scripts/sync.sh does not deploy tdd.md to per-project rule directories')\"",
+      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF 'installed:rule-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')\"",
+      "requirement": "REQ-05",
+      "reason": "Compare deployed TDD rule bytes and the rule-prefixed filename at every declared adapter target."
+    },
+    {
+      "target": "result",
+      "key": "TDD: scripts/setup-new-project.sh deploys tdd.md",
+      "before": "\"$(grep -q 'tdd\\.md' scripts/setup-new-project.sh 2>/dev/null && echo pass || echo 'scripts/setup-new-project.sh does not deploy tdd.md to new projects')\"",
+      "after": "\"$(grep -qF 'link-project --from \"$WORKFLOWS_SRC\" --project \"$PROJECT_DIR\"' scripts/setup-new-project.sh && grep -qxF 'setup:rule-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')\"",
+      "requirement": "REQ-06",
+      "reason": "Verify that the direct project link entry point links the deployed TDD rule to each eligible project adapter."
+    },
+    {
+      "target": "result",
+      "key": "ORCH: $f deploys git-flow.md and orchestration.md",
+      "before": "\"$(grep -q 'git-flow\\.md' \"$f\" 2>/dev/null && grep -q 'orchestration\\.md' \"$f\" 2>/dev/null && echo pass || echo \"$f does not deploy the orchestration rules\")\"",
+      "after": "\"$(grep -qE '(deploy|link-project) --from ' \"$f\" && grep -qxF 'installed:rule-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'installed:rule-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available\")\"",
+      "requirement": "REQ-05",
+      "reason": "Verify deployed bytes and project link targets for both named orchestration rules in the isolated fixture."
+    },
+    {
+      "target": "body",
+      "key": "test_sync_preserves_repository_knowledge_policy",
+      "before": "test_sync_preserves_repository_knowledge_policy() (\n  local fixture project_dir policy output mode\n  fixture=\"$(mktemp -d \"${TMPDIR:-/tmp}/knowledge-policy.XXXXXX\")\" || return 1\n  trap 'rm -rf \"$fixture\"' EXIT\n  policy=\"$(sed -n '/^  # 5\\./,/^  PROJECTS_UPDATED=/p' scripts/sync.sh | sed '$d')\"\n  [ -n \"$policy\" ] || return 1\n  for mode in tracked untracked; do\n    project_dir=\"$fixture/$mode\"\n    mkdir -p \"$project_dir/.ai\" || return 1\n    git -C \"$project_dir\" init -q || return 1\n    printf '%s\\n' 'Knowledge fixture' > \"$project_dir/.ai/README.md\"\n    printf '%s\\n' 'local-cache/' > \"$project_dir/.gitignore\"\n    if [ \"$mode\" = tracked ]; then\n      git -C \"$project_dir\" add -- .ai/README.md || return 1\n    fi\n    output=\"$(eval \"$policy\")\" || return 1\n    if [ \"$mode\" = tracked ]; then\n      cmp -s \"$project_dir/.gitignore\" <(printf '%s\\n' 'local-cache/') || {\n        echo 'Sync changed ignore policy for tracked knowledge'; return 1;\n      }\n      if grep -q 'rm -r --cached' <<< \"$output\"; then\n        echo 'Sync tells a tracked knowledge repository to remove its files'; return 1\n      fi\n    else\n      grep -qxF '.ai/' \"$project_dir/.gitignore\" || {\n        echo 'Sync no longer supplies the ignore default for untracked state'; return 1;\n      }\n    fi\n    eval \"$policy\" >/dev/null || return 1\n    [ \"$(grep -cxF '.ai/' \"$project_dir/.gitignore\")\" -le 1 ] || return 1\n  done\n)",
+      "after": "test_sync_preserves_repository_knowledge_policy() (\n  local fixture project_dir tracked untracked policy output\n  fixture=\"$(mktemp -d \"${TMPDIR:-/tmp}/knowledge-policy.XXXXXX\")\" || return 1\n  trap 'rm -rf \"$fixture\"' EXIT\n  export HOME=\"$fixture/home\" XDG_CONFIG_HOME=\"$fixture/config\" XDG_STATE_HOME=\"$fixture/state\"\n  tracked=\"$fixture/tracked\"\n  untracked=\"$fixture/untracked\"\n  mkdir -p \"$HOME\" \"$XDG_CONFIG_HOME/orchestrail\" \"$fixture/source\"/{workflows,rules,principles,harness} || return 1\n  for project_dir in \"$tracked\" \"$untracked\"; do\n    mkdir -p \"$project_dir/.ai\" || return 1\n    git -C \"$project_dir\" init -q || return 1\n    printf '%s\\n' 'Knowledge fixture' > \"$project_dir/.ai/README.md\"\n    printf '%s\\n' 'local-cache/' > \"$project_dir/.gitignore\"\n  done\n  git -C \"$tracked\" add -- .ai/README.md || return 1\n  printf '%s\\n' \"$tracked\" \"$untracked\" > \"$XDG_CONFIG_HOME/orchestrail/projects\"\n  for _ in first repeat; do\n    output=\"$(python3 -I scripts/deploy-skills.py deploy --from \"$fixture/source\" --hook-result '{}')\" || return 1\n    policy=\"$(cmp -s \"$tracked/.gitignore\" <(printf '%s\\n' 'local-cache/') && echo pass || echo 'Sync changed ignore policy for tracked knowledge')\"\n    if [ \"$policy\" != pass ]; then\n      echo \"$policy\"; return 1\n    fi\n    if grep -q 'rm -r --cached' <<< \"$output\"; then\n      echo 'Sync tells a tracked knowledge repository to remove its files'; return 1\n    fi\n    [ \"$(grep -cxF '.ai/' \"$untracked/.gitignore\")\" = 1 ] || {\n      echo 'Sync must idempotently ignore untracked knowledge'; return 1\n    }\n  done\n)",
+      "requirement": "REQ-09",
+      "reason": "Run the actual registered-project pass twice to verify tracked knowledge preservation and idempotent untracked ignore policy."
+    },
+    {
+      "target": "result",
+      "key": "DEPLOY: scripts/setup-new-project.sh copies $name",
+      "before": "\"$(grep -q \"$name\" scripts/setup-new-project.sh 2>/dev/null && echo pass || echo \"scripts/setup-new-project.sh does not copy rules/$name into .windsurf/rules/ and .devin/rules/\")\"",
+      "after": "\"$(grep -qF 'link-project --from \"$WORKFLOWS_SRC\" --project \"$PROJECT_DIR\"' scripts/setup-new-project.sh && grep -qxF \"setup:rule-$base\" <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"setup must link the deployed rule skill for $rule via the declared project adapter\")\"",
+      "requirement": "REQ-06",
+      "reason": "For each existing rule label, verify its actual link from the new project to the installed rule skill."
+    },
+    {
+      "target": "result",
+      "key": "DEPLOY: scripts/sync.sh refreshes $name in existing projects",
+      "before": "\"$(grep -q \"$name\" scripts/sync.sh 2>/dev/null && echo pass || echo \"scripts/sync.sh per-project loop does not refresh rules/$name\")\"",
+      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF \"refresh:rule-$base\" <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"sync must refresh registered project links to the deployed rule skill for $rule\")\"",
+      "requirement": "REQ-09",
+      "reason": "For each existing rule label, verify that the registered-project pass creates a link to the installed rule skill."
+    },
+    {
+      "target": "result",
+      "key": "DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill",
+      "before": "\"$(awk '/^# \u2500\u2500 3c\\./,/^# \u2500\u2500 4\\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in \"$RULES\"/\\*\\.md' && awk '/^# \u2500\u2500 3c\\./,/^# \u2500\u2500 4\\./' scripts/sync.sh 2>/dev/null | grep -q 'cp \"$file\" ~/.claude/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.claude/skills/rule-<name>/SKILL.md \u2014 every \"load the <rule> rule\" instruction is unreachable in Claude Code')\"",
+      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF 'adapter:claude' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/claude/deploy.env')\"",
+      "requirement": "REQ-05",
+      "reason": "Verify all rule-prefixed filenames and source bytes in the declared adapter target after an actual deployment."
+    },
+    {
+      "target": "result",
+      "key": "DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill",
+      "before": "\"$(awk '/^# \u2500\u2500 4d\\./,/^# \u2500\u2500 5\\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in \"$RULES\"/\\*\\.md' && awk '/^# \u2500\u2500 4d\\./,/^# \u2500\u2500 5\\./' scripts/sync.sh 2>/dev/null | grep -q 'cp \"$file\" ~/.codex/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.codex/skills/rule-<name>/SKILL.md \u2014 every \"load the <rule> rule\" instruction is unreachable in Codex')\"",
+      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF 'adapter:codex' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/codex/deploy.env')\"",
+      "requirement": "REQ-05",
+      "reason": "Verify all rule-prefixed filenames and source bytes in the declared adapter target after an actual deployment."
+    },
+    {
+      "target": "result",
+      "key": "DEPLOY: the $root rule deployment uses the rule- prefix",
+      "before": "\"$(grep -q \"skill_name=\\\"rule-\\${name}\\\"\" scripts/sync.sh 2>/dev/null && grep -q \"mkdir -p ~/.$root/skills/\\$skill_name\" scripts/sync.sh 2>/dev/null && echo pass || echo \"scripts/sync.sh deploys rules into ~/.$root/skills/ without the rule- prefix, which overwrites the five identically-named workflow skills\")\"",
+      "after": "\"$(grep -qxF \"adapter:$root\" <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"rule skills must be distinct from workflow skills at the target declared by harness/$root/deploy.env\")\"",
+      "requirement": "REQ-05",
+      "reason": "Require each named adapter to install every rule below its declared skills directory with the rule prefix and exact source bytes."
+    },
+    {
+      "target": "body",
+      "key": "test_shell_paths_relocated_checkout_preserves_overrides",
+      "before": "test_shell_paths_relocated_checkout_preserves_overrides() (\n  local fixture source_tree alternate script mode target selected output status bad=0\n  fixture=\"$(mktemp -d \"${TMPDIR:-/tmp}/script-paths.XXXXXX\")\" || return 1\n  trap 'rm -rf \"$fixture\"' EXIT\n  source_tree=\"$fixture/checkout with spaces\"\n  alternate=\"$fixture/alternate source\"\n  mkdir -p \"$fixture/home/.claude/skills/example\" \"$fixture/work\"\n  for selected in \"$source_tree\" \"$alternate\"; do\n    mkdir -p \"$selected\"/{workflows,rules,principles,scripts,templates/.ai,templates/.ai-umbrella}\n    cp scripts/sync.sh scripts/log-step.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh scripts/link-skills.sh \"$selected/scripts/\"\n    printf '%s\\n' \"$selected\" > \"$selected/templates/.ai/source-marker\"\n    printf '%s\\n' \"$selected\" > \"$selected/templates/.ai-umbrella/source-marker\"\n    printf '%s\\n' 'Umbrella fixture' > \"$selected/templates/.ai-umbrella/README.md\"\n    # Fail at the real preflight boundary so sync cannot deploy anything.\n    printf '%s\\n' 'printf \"source=%s\\n\" \"$(cd \"$(dirname \"$0\")/..\" && pwd)\"' 'exit 9' > \"$selected/scripts/validate-contracts.sh\"\n  done\n\n  for mode in default empty environment flag equals; do\n    selected=\"$source_tree\"\n    local -a source_env=(-u WORKFLOWS_SOURCE -u AGENTIC_LOG_ROOT -u ORCHESTRAIL_HOME -u ORCHESTRAIL_LOG_ROOT)\n    local -a sync_args=()\n    case \"$mode\" in\n      empty) source_env+=(ORCHESTRAIL_HOME=) ;;\n      environment) source_env+=(ORCHESTRAIL_HOME=\"$alternate\"); selected=\"$alternate\" ;;\n      flag) source_env+=(ORCHESTRAIL_HOME=\"$fixture/missing\"); sync_args=(--from \"$alternate\"); selected=\"$alternate\" ;;\n      equals) source_env+=(ORCHESTRAIL_HOME=\"$fixture/missing\"); sync_args=(\"--from=$alternate\"); selected=\"$alternate\" ;;\n    esac\n    status=0\n    output=\"$(cd \"$fixture/work\" && env \"${source_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/scripts/sync.sh\" \"${sync_args[@]}\" 2>&1)\" || status=$?\n    if [ \"$status\" -ne 1 ] || ! printf '%s\\n' \"$output\" | grep -Fxq \"source=$selected\"; then\n      echo \"scripts/sync.sh ($mode): expected selected source to reach failing preflight\"\n      bad=1\n    fi\n  done\n  if [ -d \"$fixture/home/.codeium\" ] || [ -d \"$fixture/home/.codex\" ] || [ -f \"$fixture/home/.claude/CLAUDE.md\" ]; then\n    echo 'scripts/sync.sh crossed the deployment boundary'; bad=1\n  fi\n\n  for mode in default empty override; do\n    selected=\"$source_tree/logs\"\n    local -a log_env=(-u AGENTIC_LOG_ROOT -u ORCHESTRAIL_LOG_ROOT)\n    case \"$mode\" in\n      empty) log_env+=(ORCHESTRAIL_LOG_ROOT=) ;;\n      override) log_env+=(ORCHESTRAIL_LOG_ROOT=\"$fixture/custom logs\"); selected=\"$fixture/custom logs\" ;;\n    esac\n    output=\"$(cd \"$fixture/work\" && env \"${log_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/scripts/log-step.sh\" path)\"\n    if [ \"$output\" != \"$selected\" ] || [ -e \"$selected\" ]; then\n      echo \"scripts/log-step.sh ($mode): wrong root or read-only path command created a store\"; bad=1\n    fi\n  done\n\n  for script in scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh; do\n    for mode in default empty override relative; do\n      selected=\"$source_tree\"\n      local -a setup_env=(-u WORKFLOWS_SOURCE -u ORCHESTRAIL_HOME)\n      case \"$mode\" in\n        empty) setup_env+=(ORCHESTRAIL_HOME=) ;;\n        override) setup_env+=(ORCHESTRAIL_HOME=\"$alternate\"); selected=\"$alternate\" ;;\n        relative) setup_env+=(ORCHESTRAIL_HOME='../../alternate source'); selected=\"$alternate\" ;;\n      esac\n      target=\"$fixture/$script $mode\"\n      mkdir -p \"$target\"\n      if [ \"$script\" = scripts/setup-all-repos.sh ]; then\n        mkdir -p \"$target/service with spaces/.git\"\n      fi\n      status=0\n      (cd \"$target\" && env \"${setup_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/$script\" </dev/null) > \"$fixture/setup-output\" 2>&1 || status=$?\n      if [ \"$status\" -ne 0 ] || [ \"$(cat \"$target/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n        echo \"$script ($mode): did not initialize from selected source\"; bad=1\n      fi\n      if [ \"$script\" = scripts/setup-all-repos.sh ] && [ \"$(cat \"$target/service with spaces/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n        echo \"$script ($mode): child setup did not use selected source\"; bad=1\n      fi\n      if [ \"$script\" = scripts/setup-umbrella.sh ]; then\n        # Execute the actual suggested command from a child, retaining the caller's overrides.\n        local child_command\n        child_command=\"$(sed -n 's/^  cd <service-dir> && //p' \"$fixture/setup-output\")\"\n        mkdir -p \"$target/service with spaces\"\n        status=0\n        (cd \"$target/service with spaces\" && env \"${setup_env[@]}\" HOME=\"$fixture/home\" bash -c \"${child_command:-exit 1}\" </dev/null) > \"$fixture/child-output\" 2>&1 || status=$?\n        if [ \"$status\" -ne 0 ] || [ \"$(cat \"$target/service with spaces/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n          echo \"$script ($mode): suggested child command did not use selected source\"; bad=1\n        fi\n      fi\n    done\n  done\n\n  # An explicitly selected missing tree must fail instead of seeding from another tree.\n  for script in scripts/sync.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh; do\n    target=\"$fixture/missing source $script\"\n    mkdir -p \"$target\"\n    status=0\n    (cd \"$target\" && env -u WORKFLOWS_SOURCE ORCHESTRAIL_HOME=\"$fixture/missing tree\" HOME=\"$fixture/home\" bash \"$source_tree/$script\" </dev/null) > \"$fixture/missing-output\" 2>&1 || status=$?\n    if [ \"$status\" -eq 0 ] || [ -e \"$target/.ai/source-marker\" ]; then\n      echo \"$script: missing source override did not fail without initialization\"; bad=1\n    fi\n    if [ \"$script\" = scripts/sync.sh ]; then\n      if grep -Fq \"source=$source_tree\" \"$fixture/missing-output\"; then\n        echo 'scripts/sync.sh: missing source override reached fallback preflight'; bad=1\n      fi\n      if ! grep -Fq \"$fixture/missing tree\" \"$fixture/missing-output\" ||\n        ! grep -Eiq 'not found|no such|missing|not a .*tree|cannot|invalid' \"$fixture/missing-output\"; then\n        echo 'scripts/sync.sh: missing source override lacks a source-resolution diagnostic'; bad=1\n      fi\n    fi\n  done\n\n  target=\"$fixture/skill project\"\n  mkdir -p \"$target/.claude/skills\"\n  (cd \"$target\" && env HOME=\"$fixture/home\" bash \"$source_tree/scripts/link-skills.sh\") > \"$fixture/link-output\" 2>&1 || bad=1\n  if [ ! -L \"$target/.claude/skills/example\" ] || [ ! -d \"$target/.claude/skills/example\" ]; then\n    echo 'scripts/link-skills.sh: relocated invocation did not link the configured home skills'; bad=1\n  fi\n  [ \"$bad\" -eq 0 ]\n)",
+      "after": "test_shell_paths_relocated_checkout_preserves_overrides() (\n  local fixture source_tree alternate script mode target selected output status preflight bad=0\n  fixture=\"$(mktemp -d \"${TMPDIR:-/tmp}/script-paths.XXXXXX\")\" || return 1\n  trap 'rm -rf \"$fixture\"' EXIT\n  export XDG_CONFIG_HOME=\"$fixture/config\" XDG_STATE_HOME=\"$fixture/state\"\n  source_tree=\"$fixture/checkout with spaces\"\n  alternate=\"$fixture/alternate source\"\n  mkdir -p \"$fixture/home/.claude/skills/example\" \"$fixture/work\"\n  for selected in \"$source_tree\" \"$alternate\"; do\n    mkdir -p \"$selected\"/{workflows,rules,principles,scripts,templates/.ai,templates/.ai-umbrella}\n    cp scripts/sync.sh scripts/log-step.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh scripts/link-skills.sh \"$selected/scripts/\"\n    cp scripts/deploy-skills.py scripts/report-legacy-artifacts.sh \"$selected/scripts/\"\n    cp -R harness \"$selected/harness\"\n    printf '%s\\n' \"$selected\" > \"$selected/templates/.ai/source-marker\"\n    printf '%s\\n' \"$selected\" > \"$selected/templates/.ai-umbrella/source-marker\"\n    printf '%s\\n' 'Umbrella fixture' > \"$selected/templates/.ai-umbrella/README.md\"\n    # Fail at the real preflight boundary so sync cannot deploy anything.\n    printf '%s\\n' 'printf \"source=%s\\n\" \"$(cd \"$(dirname \"$0\")/..\" && pwd)\"' 'exit 9' > \"$selected/scripts/validate-contracts.sh\"\n  done\n\n  for mode in default empty environment flag equals; do\n    selected=\"$source_tree\"\n    local -a source_env=(-u WORKFLOWS_SOURCE -u AGENTIC_LOG_ROOT -u ORCHESTRAIL_HOME -u ORCHESTRAIL_LOG_ROOT)\n    local -a sync_args=()\n    case \"$mode\" in\n      empty) source_env+=(ORCHESTRAIL_HOME=) ;;\n      environment) source_env+=(ORCHESTRAIL_HOME=\"$alternate\"); selected=\"$alternate\" ;;\n      flag) source_env+=(ORCHESTRAIL_HOME=\"$fixture/missing\"); sync_args=(--from \"$alternate\"); selected=\"$alternate\" ;;\n      equals) source_env+=(ORCHESTRAIL_HOME=\"$fixture/missing\"); sync_args=(\"--from=$alternate\"); selected=\"$alternate\" ;;\n    esac\n    status=0\n    output=\"$(cd \"$fixture/work\" && env \"${source_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/scripts/sync.sh\" \"${sync_args[@]}\" 2>&1)\" || status=$?\n    preflight=\"$([ \"$status\" -eq 1 ] && printf '%s\\n' \"$output\" | grep -Fxq \"source=$selected\" && echo pass)\"\n    if [ \"$preflight\" != pass ]; then\n      echo \"scripts/sync.sh ($mode): expected selected source to reach failing preflight\"\n      bad=1\n    fi\n  done\n  if [ -d \"$fixture/home/.codeium\" ] || [ -d \"$fixture/home/.codex\" ] || [ -f \"$fixture/home/.claude/CLAUDE.md\" ]; then\n    echo 'scripts/sync.sh crossed the deployment boundary'; bad=1\n  fi\n\n  for mode in default empty override; do\n    selected=\"$source_tree/logs\"\n    local -a log_env=(-u AGENTIC_LOG_ROOT -u ORCHESTRAIL_LOG_ROOT)\n    case \"$mode\" in\n      empty) log_env+=(ORCHESTRAIL_LOG_ROOT=) ;;\n      override) log_env+=(ORCHESTRAIL_LOG_ROOT=\"$fixture/custom logs\"); selected=\"$fixture/custom logs\" ;;\n    esac\n    output=\"$(cd \"$fixture/work\" && env \"${log_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/scripts/log-step.sh\" path)\"\n    if [ \"$output\" != \"$selected\" ] || [ -e \"$selected\" ]; then\n      echo \"scripts/log-step.sh ($mode): wrong root or read-only path command created a store\"; bad=1\n    fi\n  done\n\n  for script in scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh; do\n    for mode in default empty override relative; do\n      selected=\"$source_tree\"\n      local -a setup_env=(-u WORKFLOWS_SOURCE -u ORCHESTRAIL_HOME)\n      case \"$mode\" in\n        empty) setup_env+=(ORCHESTRAIL_HOME=) ;;\n        override) setup_env+=(ORCHESTRAIL_HOME=\"$alternate\"); selected=\"$alternate\" ;;\n        relative) setup_env+=(ORCHESTRAIL_HOME='../../alternate source'); selected=\"$alternate\" ;;\n      esac\n      target=\"$fixture/$script $mode\"\n      mkdir -p \"$target\"\n      if [ \"$script\" = scripts/setup-all-repos.sh ]; then\n        mkdir -p \"$target/service with spaces/.git\"\n      fi\n      status=0\n      (cd \"$target\" && env \"${setup_env[@]}\" HOME=\"$fixture/home\" bash \"$source_tree/$script\" </dev/null) > \"$fixture/setup-output\" 2>&1 || status=$?\n      if [ \"$status\" -ne 0 ] || [ \"$(cat \"$target/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n        echo \"$script ($mode): did not initialize from selected source\"; bad=1\n      fi\n      if [ \"$script\" = scripts/setup-all-repos.sh ] && [ \"$(cat \"$target/service with spaces/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n        echo \"$script ($mode): child setup did not use selected source\"; bad=1\n      fi\n      if [ \"$script\" = scripts/setup-umbrella.sh ]; then\n        # Execute the actual suggested command from a child, retaining the caller's overrides.\n        local child_command\n        child_command=\"$(sed -n 's/^  cd <service-dir> && //p' \"$fixture/setup-output\")\"\n        mkdir -p \"$target/service with spaces\"\n        status=0\n        (cd \"$target/service with spaces\" && env \"${setup_env[@]}\" HOME=\"$fixture/home\" bash -c \"${child_command:-exit 1}\" </dev/null) > \"$fixture/child-output\" 2>&1 || status=$?\n        if [ \"$status\" -ne 0 ] || [ \"$(cat \"$target/service with spaces/.ai/source-marker\" 2>/dev/null)\" != \"$selected\" ]; then\n          echo \"$script ($mode): suggested child command did not use selected source\"; bad=1\n        fi\n      fi\n    done\n  done\n\n  # An explicitly selected missing tree must fail instead of seeding from another tree.\n  for script in scripts/sync.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh; do\n    target=\"$fixture/missing source $script\"\n    mkdir -p \"$target\"\n    status=0\n    (cd \"$target\" && env -u WORKFLOWS_SOURCE ORCHESTRAIL_HOME=\"$fixture/missing tree\" HOME=\"$fixture/home\" bash \"$source_tree/$script\" </dev/null) > \"$fixture/missing-output\" 2>&1 || status=$?\n    if [ \"$status\" -eq 0 ] || [ -e \"$target/.ai/source-marker\" ]; then\n      echo \"$script: missing source override did not fail without initialization\"; bad=1\n    fi\n    if [ \"$script\" = scripts/sync.sh ]; then\n      if grep -Fq \"source=$source_tree\" \"$fixture/missing-output\"; then\n        echo 'scripts/sync.sh: missing source override reached fallback preflight'; bad=1\n      fi\n      if ! grep -Fq \"$fixture/missing tree\" \"$fixture/missing-output\" ||\n        ! grep -Eiq 'not found|no such|missing|not a .*tree|cannot|invalid' \"$fixture/missing-output\"; then\n        echo 'scripts/sync.sh: missing source override lacks a source-resolution diagnostic'; bad=1\n      fi\n    fi\n  done\n\n  target=\"$fixture/skill project\"\n  mkdir -p \"$target/.claude/skills\"\n  (cd \"$target\" && env HOME=\"$fixture/home\" bash \"$source_tree/scripts/link-skills.sh\") > \"$fixture/link-output\" 2>&1 || bad=1\n  if [ ! -L \"$target/.claude/skills/example\" ] || [ ! -d \"$target/.claude/skills/example\" ]; then\n    echo 'scripts/link-skills.sh: relocated invocation did not link the configured home skills'; bad=1\n  fi\n  [ \"$bad\" -eq 0 ]\n)",
+      "requirement": "REQ-05",
+      "reason": "Use declared harnesses and selected-source helpers in the existing relocation fixtures while confining registry writes to the fixture."
+    },
+    {
+      "target": "result",
+      "key": "TDD: rules/tdd.md is always_on",
+      "before": "\"$(grep -q 'trigger: always_on' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md missing trigger: always_on')\"",
+      "after": "\"$(rule_loads_always rules/tdd.md && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')\"",
+      "requirement": "REQ-12",
+      "reason": "Require exactly one always-load declaration in the completed rule front matter."
+    },
+    {
+      "target": "result",
+      "key": "ORCH: $f is always_on",
+      "before": "\"$(grep -q 'trigger: always_on' \"$f\" 2>/dev/null && echo pass || echo \"$f missing trigger: always_on\")\"",
+      "after": "\"$(rule_loads_always \"$f\" && echo pass || echo \"$f must declare load: always in its front matter\")\"",
+      "requirement": "REQ-12",
+      "reason": "Require exactly one always-load declaration in the completed rule front matter."
+    },
+    {
+      "target": "result",
+      "key": "LOG: rules/run-log.md is always_on",
+      "before": "\"$(grep -q 'trigger: always_on' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md missing trigger: always_on')\"",
+      "after": "\"$(rule_loads_always rules/run-log.md && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')\"",
+      "requirement": "REQ-12",
+      "reason": "Require exactly one always-load declaration in the completed rule front matter."
+    }
+  ]
 }

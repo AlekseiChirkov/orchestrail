@@ -26,8 +26,8 @@ After every completed task, update `.ai/memory/state.md` and append to
 ## Commands
 
 See `.ai/context/runbook.md → ## Commands`. In short: `bash scripts/validate-contracts.sh` is the
-test suite; `bash scripts/sync.sh` deploys; never edit deployed copies under `~/.claude`,
-`~/.codex`, `~/.codeium`.
+test suite; `bash scripts/sync.sh` deploys; never edit deployed copies under `~/.claude` or
+`~/.codex`.
 
 ## Document placement
 

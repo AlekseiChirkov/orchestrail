@@ -1,5 +1,7 @@
 ---
 description: Suggest a commit message and PR description for the current changes — output is ready to copy
+phase: utility
+step: "-"
 ---
 
 Invocation: `/suggest-commit-pr [--staged | --branch <base>]`

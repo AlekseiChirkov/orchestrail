@@ -1,5 +1,7 @@
 ---
 description: Atomic Validation Step 1 — Final check against DoD, find bugs, determine verdict
+phase: atomic-validation
+step: 1
 ---
 
 Invocation: `/pav-check <path-to-atomic-description>`

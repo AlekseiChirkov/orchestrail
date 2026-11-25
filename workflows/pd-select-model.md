@@ -1,5 +1,7 @@
 ---
 description: Discovery Step 2.5 — Recommend models from an optional local catalog using current capabilities and independent quality evidence
+phase: discovery
+step: 2.5
 ---
 
 Invocation: `/pd-select-model <path-to-atomic-description | task-directory> [--refresh]`

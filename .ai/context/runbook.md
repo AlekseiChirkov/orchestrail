@@ -90,11 +90,11 @@ requires a configured file and fails closed.
 
 ### Deploy a change
 1. `bash scripts/validate-contracts.sh` — must report 0 failed.
-2. `bash scripts/sync.sh` (or `scripts/sync.sh --from <dir>`). It re-runs validation, copies to Windsurf,
-   Claude Code, Codex, then walks every project containing `.devin/`.
-3. Verify: `ls ~/.claude/skills/ | wc -l`, `head ~/.claude/CLAUDE.md`, and in a harness
-   type `/phase-discovery` to confirm autocomplete.
-4. Restart open agent sessions — skills are read at invocation, `CLAUDE.md` at session start.
+2. `bash scripts/sync.sh` (or `scripts/sync.sh --from <dir>`). Sync validates the source,
+   deploys managed files to the declared Claude Code and Codex targets, and refreshes
+   existing skill-link directories in registered projects.
+3. Check the target paths printed by sync and confirm `/phase-discovery` is available.
+4. Restart open sessions to load the refreshed global instructions.
 
 ### Add a workflow
 1. Create `workflows/<name>.md` following `.ai/principles/coding.md → Workflow file shape`.
@@ -112,11 +112,11 @@ requires a configured file and fails closed.
 2. Edit the rule. Keep vocabulary on anchored definition lines.
 3. Grep `workflows/ rules/ docs/ templates/` for every reader of the
    changed text; update them.
-4. If it is always-on essential for Claude Code/Codex, update the summary in
-   `rules/global-claude.md` and `templates/codex-global-AGENTS.md` (both are deployed
-   verbatim).
-5. `scripts/setup-new-project.sh` copies a fixed list of rule files into `.windsurf/rules/` and
-   `.devin/rules/` — add a new rule to that list, and to the count in `docs/USAGE.md → ## 5`.
+4. For an essential policy, update its summary in the applicable harness always-on
+   source. Sync assembles each source with that harness’s capability declaration and
+   hook installation result.
+5. Update the rule inventory in `docs/USAGE.md`. Sync installs top-level rules as
+   prefixed skills and refreshes registered project links through the harness declarations.
 6. Record an ADR if a format, stop, or mode override changed. Deploy.
 
 ### Change a canonical status format
