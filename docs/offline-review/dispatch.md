@@ -1,5 +1,28 @@
 # Dispatch and reconcile offline reviews
 
+## Historical operator procedure
+
+Prepare the cohort and verify rehearsal and isolation. Record the actual model and tools.
+Use matching conditions within each pair and record each original attempt ID and packet
+digest before launch. Start ready reviews and blinded adjudications as slots become
+available. Wait for terminal evidence when capacity is occupied. Reconcile uncertain
+attempts after interruption and keep their original identities.
+
+Close when all work is terminal or record an operator stop and its reason. Preserve first
+reports, mark queued work as `not started`, unresolved launched work as `partial` or its
+observed terminal state, and unfinished adjudication as `incomplete`. Keep late evidence
+separate. Record observed time and spend and use null for unknown measurements.
+Historical dispatch accepts absent formal approvals, locked settings and hard limits.
+
+Use `python3 -IB docs/offline-review/fixtures/dispatch_fixture.py --historical` to
+check a ledger snapshot. Supply the current capacity in `settings.slots` and the
+units and attempt states described below. Omit estimated costs, enforced deadlines
+and reservation amounts. Set `operator_close` to true after recording a stop
+reason in the ledger. The output reports eligible units, occupied slots, uncertain
+attempts and terminal updates. The operator owns launch and storage.
+
+## Bounded synthetic fixture procedure
+
 Use a private, file-based coordinator ledger. The operator validates eligibility,
 records reservations and launches independent sessions through the approved harness.
 Both reviewer variants use the same locked model, tools, time limit, spend limit and

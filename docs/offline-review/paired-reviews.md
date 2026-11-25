@@ -1,8 +1,7 @@
 # Run isolated paired reviews
 
-Use one approved case packet for the two independent sessions. Both sessions receive
-identical packet bytes, the same pinned base review policy and the same model, tool
-access and time and spend limits. Confirm the delivered digest against the coordinator's
+Use one pinned case packet for the two independent sessions. Both sessions receive
+identical packet bytes, the same pinned base review policy and matching model and tool access. Record the configuration actually used. Confirm the delivered digest against the coordinator's
 pinned digest for both sessions before launch. The treatment adds only the due-coverage
 instructions below.
 
@@ -25,8 +24,8 @@ instructions below.
 
 Give the following common instructions to both reviewers.
 
-> Review the approved, pinned composition. Use the task-owned files, tests, approved
-> specification and delivery assignment, sanitized task design, and release-safe upstream
+> Review the pinned composition. Use the task-owned files, tests, contemporaneous
+> specification and reconstructed delivery assignment, sanitized task design, and release-safe upstream
 > contract evidence included in the packet. Inspect readability, architecture, security,
 > edge cases, interface contracts, and test coverage and integrity as the pinned review
 > policy requires. Record each material finding with an anchor, observed behavior,
@@ -41,15 +40,15 @@ For the baseline, stop there. Append this instruction to the treatment only.
 > evidence anchor, `violated` with evidence of the violation, or `undetermined` with a
 > specific evidence gap. For a consequential omission, anchor evidence at the boundary
 > responsible for the behavior, including an unchanged file when the omission lies
-> outside the diff. List the approved future criteria separately. Exclude future criteria
+> outside the diff. List the source-backed future criteria separately. Exclude future criteria
 > from the due count.
 
 Use one treatment coverage object with a `due` list of
 `{criterion, status, evidence}` or `{criterion, status, gap}` rows and a separate
-`future` list of criterion identifiers. The approved roster supplies those identifiers.
+`future` list of criterion identifiers. The source-backed roster supplies those identifiers.
 For example, a three-criterion report can include a passing behavior witnessed in a
 scoped test, a missing call at an unchanged owning boundary, and an unavailable evidence
-source. Put the approved future identifier only in `future`. Giving an unsupported
+source. Put the future identifier only in `future`. Giving an unsupported
 disposition or listing a criterion more than once makes the coverage result invalid.
 
 ## Freeze the first observation
@@ -89,7 +88,7 @@ tool, credential, and storage channel before admission.
 
 The fixture adapter `paired_review.py` exposes the following data operations for
 controlled data. The coordinator runs `freeze ARCHIVE SUBMISSION` on receipt of the first
-report, then `capture ARCHIVE` with the terminal record on standard input. The archive must
+report, then `capture ARCHIVE` with the terminal record on standard input. Use `capture ARCHIVE --historical` to preserve an unknown elapsed time as null. The archive must
 be private to the coordinator. Repeated calls preserve the first report and terminal record.
 Run `coverage` with `{assignment, coverage}` on standard input to check the structural
 coverage against the approved roster. The adjudicator still verifies the evidence and gaps

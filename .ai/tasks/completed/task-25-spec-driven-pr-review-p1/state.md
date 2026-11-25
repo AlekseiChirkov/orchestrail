@@ -1,4 +1,4 @@
-spec_path: .ai/specs/25-spec-driven-pr-review.md
+spec_path: .ai/specs/completed/25-spec-driven-pr-review.md
 contract_version: 0.9.0
 flow: full
 active_phase: 1

@@ -1,5 +1,6 @@
-"""Derive an offline comparison report from frozen synthetic records."""
+"""Derive an offline comparison report from frozen review records."""
 
+import argparse
 from fractions import Fraction
 import json
 import math
@@ -81,7 +82,10 @@ def adjudicated_claims(batch, mapping, cutoff):
         pending[finding] = {"finding_id": finding, "reason": entry["reason"]}
     for finding in sorted(mapping.keys() - findings.keys() - pending.keys()):
         pending[finding] = {"finding_id": finding, "reason": "No independent disposition recorded."}
-    complete = batch["status"] == "complete" and not pending and seconds(batch["frozen_at"]) <= cutoff
+    complete = batch["status"] == "complete" and not pending
+    if complete:
+        frozen_at = seconds(batch["frozen_at"])
+        complete = cutoff is None or frozen_at <= cutoff
     return findings, list(pending.values()), complete
 
 
@@ -188,31 +192,37 @@ def json_seconds(value):
     return float(value)
 
 
-def report(snapshot):
-    settings = snapshot["settings"]
-    if not valid_digest(settings["digest"]):
+def report(snapshot, *, historical=False):
+    settings = snapshot.get("settings", {}) if historical else snapshot["settings"]
+    settings_digest = None if historical else settings["digest"]
+    if not historical and not valid_digest(settings_digest):
         raise ValueError("expected a pinned settings digest")
-    cutoff = seconds(settings["cutoff_seconds"])
-    minimum = count(settings["minimum_pairs"], minimum=1)
-    criteria = {
+    cutoff = None if historical else seconds(settings["cutoff_seconds"])
+    minimum = count(settings.get("minimum_pairs", 1) if historical else settings["minimum_pairs"], minimum=1)
+    criteria = None if historical else {
         "confirmed_defects": count(settings["minimum_incremental_defects"]),
         "false_findings": count(settings["maximum_incremental_false"]),
         "elapsed_seconds": seconds(settings["maximum_incremental_seconds"], signed=True),
         "settled_cost": decimal_amount(settings["maximum_incremental_cost"], signed=True),
     }
-    severity_roster = settings["consequential_severities"]
+    severity_roster = (settings.get("consequential_severities", ["major", "critical"])
+                       if historical else settings["consequential_severities"])
     if not isinstance(severity_roster, list) or not severity_roster or not all(map(identity, severity_roster)):
         raise ValueError("expected a locked consequential severity roster")
     severities = set(severity_roster)
-    unresolved_policy = settings.get("unresolved_policy", "record")
+    unresolved_policy = "record" if historical else settings.get("unresolved_policy", "record")
     if unresolved_policy not in ("record", "insufficient-evidence"):
         raise ValueError("unknown unresolved finding policy")
     extras = {
         "common_cost": decimal_amount(snapshot["common_cost"]),
         "retry_cost": decimal_amount(snapshot["retry_cost"]),
         "unresolved_reservations": sum(map(decimal_amount, snapshot["unresolved_reservations"]), Fraction()),
+    } if not historical else {
+        key: decimal_amount(snapshot[key]) if snapshot.get(key) is not None else None
+        for key in ("common_cost", "retry_cost")
     }
-    spend = sum(extras.values(), Fraction())
+    spend = sum((value for value in extras.values() if value is not None), Fraction())
+    cost_observed = any(value is not None for value in extras.values())
     contaminated = require_boolean(snapshot["cohort_contaminated"])
     totals = {
         arm: {
@@ -242,6 +252,7 @@ def report(snapshot):
             value = observation["settled_cost"]
             if value is not None:
                 spend += decimal_amount(value)
+                cost_observed = True
             elif observation["status"] != "not started":
                 unknown_cost_attempts.append(attempt)
             if record["status"] == "complete":
@@ -253,7 +264,7 @@ def report(snapshot):
             tally_pair(totals, exclusive, case, record, findings, severities)
 
     deltas = {}
-    for metric in criteria:
+    for metric in ("confirmed_defects", "false_findings", "elapsed_seconds", "settled_cost"):
         key = "consequential_defects" if metric == "confirmed_defects" else metric
         baseline, treatment = (totals[arm][key] for arm in ARMS)
         deltas[metric] = None if baseline is None or treatment is None else treatment - baseline
@@ -262,7 +273,9 @@ def report(snapshot):
     unresolved_blocks = unresolved_policy == "insufficient-evidence" and any(
         metrics["unresolved_findings"] for metrics in totals.values()
     )
-    if eligible >= minimum and not missing_measurements and not unresolved_blocks:
+    if historical and eligible:
+        recommendation = "exploratory"
+    elif eligible >= minimum and not missing_measurements and not unresolved_blocks:
         for metric, maximum in criteria.items():
             if metric == "confirmed_defects":
                 failed = deltas[metric] < maximum
@@ -278,15 +291,15 @@ def report(snapshot):
     if eligible < minimum:
         reasons.append("too-few-eligible-pairs")
     if missing_measurements:
-        reasons.append("missing-required-measurements")
+        reasons.append("measurements-unavailable" if historical else "missing-required-measurements")
     if unresolved_blocks:
         reasons.append("unresolved-claims-under-locked-policy")
-    for values in (criteria, deltas, *totals.values()):
+    for values in ((criteria,) if criteria else ()) + (deltas, *totals.values()):
         if values["settled_cost"] is not None:
             values["settled_cost"] = decimal_text(values["settled_cost"])
         values["elapsed_seconds"] = json_seconds(values["elapsed_seconds"])
     return {
-        "settings_digest": settings["digest"],
+        "settings_digest": settings_digest,
         "recommendation": recommendation,
         "enrolled_cases": len(pairs),
         "completed_cases": sum(
@@ -304,15 +317,19 @@ def report(snapshot):
         "per_variant": totals,
         "exclusive_confirmed": exclusive,
         "deltas": deltas,
-        "spend_exposure": decimal_text(spend),
-        "spend_breakdown": {key: decimal_text(value) for key, value in extras.items()},
+        "spend_exposure": None if historical else decimal_text(spend),
+        "spend_breakdown": {key: None if value is None else decimal_text(value) for key, value in extras.items()},
         "unknown_cost_attempts": unknown_cost_attempts,
+        **({"observed_spend": decimal_text(spend) if cost_observed else None} if historical else {}),
     }
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--historical", action="store_true", help="report descriptive historical results")
+    args = parser.parse_args()
     try:
-        result = report(json.load(sys.stdin))
+        result = report(json.load(sys.stdin), historical=args.historical)
     except (AttributeError, KeyError, TypeError, ValueError) as error:
         print(f"Invalid synthetic comparison snapshot: {error}", file=sys.stderr)
         return 2

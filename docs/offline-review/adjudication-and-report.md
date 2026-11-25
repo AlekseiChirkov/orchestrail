@@ -1,6 +1,6 @@
 # Adjudicate and report an offline review comparison
 
-Use the approved case packets, the locked comparison settings, and the coordinator's
+Use the pinned case packets, observed comparison configuration, and the coordinator's
 first-observation archive. Close the comparison under the procedure in
 [bounded dispatch](dispatch.md). Keep preparation, adjudication, and report calculation
 in separate coordinator and adjudicator views.
@@ -32,9 +32,9 @@ the resulting packet, with only the authority needed to decide its claims.
 
 The adjudicator checks expectation, trigger, observed behavior, and material consequence
 against the pinned case. Pool verified historical claims with newly discovered findings.
-Group equivalent claims under a canonical ID using the locked matching policy. Canonical
+Group equivalent claims under a canonical ID using the recorded matching approach. Canonical
 IDs apply to confirmed defects and equivalent refuted claims. Assign severity using the
-locked policy before the private arm map is disclosed. Every confirmed claim for the
+recorded convention before the private arm map is disclosed. Every confirmed claim for the
 same canonical defect in a case uses the same severity. If the frozen batch contains
 conflicting severities, exclude the pair from scoring and record the affected canonical
 IDs as evidence gaps. Preserve both first observations and their charges.
@@ -53,9 +53,8 @@ an independently assessed claim.
 | Severity and rationale | Assigned severity and why the evidence supports the disposition |
 
 Mark a batch complete when every claim has an independent disposition. An independent
-`unresolved` verdict records a gap and counts as a disposition. Apply the unresolved
-policy fixed in the comparison settings when determining whether its evidence permits a
-recommendation. At cutoff freeze an unfinished batch as `incomplete`. Record the finding
+`unresolved` verdict records a gap and counts as a disposition. At closure freeze an
+unfinished batch as `incomplete`. Record the finding
 ID and a specific evidence-gap reason for each pending claim and leave its verdict absent.
 Preserve assessed verdicts, first observations, and costs for excluded pairs too.
 
@@ -70,37 +69,40 @@ Include all enrolled cases in the report. For each pair record the status, exclu
 reasons, first observations and report digests, available costs, batch status, unresolved
 findings, pending claim gaps, and coverage gaps. When exposure is identified, exclude the
 affected cases and related cases that may share the exposure. Invalidate the cohort when
-exposure cannot be bounded. Record approval and packet mismatches explicitly.
+exposure cannot be bounded. Record scope gaps and packet mismatches explicitly.
 
 Score a pair only if both first observations are complete and valid for the same pinned
 packet, the pair is free of known exposure, and all claims have independent dispositions
-in a batch frozen by cutoff. Keep unresolved dispositions separately. Count a canonical
+in a frozen batch. Keep unresolved dispositions separately. Count a canonical
 defect or refuted claim once per case and arm. Historical-only claims help adjudicate and
 match findings. They do not count as detections by either arm unless that arm reported
 them. Count exclusive confirmed defects by comparing the arms' canonical IDs within each
-case. Distinguish all confirmed defects from the consequential subset used in the decision.
+case. Distinguish all confirmed defects from the consequential subset.
 
 Use the signed treatment total minus baseline total for consequential defects, refuted
-claims, elapsed seconds and settled first-attempt charges. Compute separately the run
-spend exposure: all known first-attempt charges, including partial and excluded pairs,
-plus common work, retries, and outstanding maximum reservations. Record any unknown
-charges and the associated reservations, without charging the same liability twice.
+claims and available elapsed seconds and first-attempt charges. Report observed charges
+separately, including partial pairs, excluded pairs, common work and retries.
 
 | Decision report field | Record |
 | --- | --- |
-| Provenance | Settings digest and case, first-observation, and verdict freeze references |
+| Provenance | Actual configuration and case, first-observation, and verdict freeze references |
 | Enrollment | Enrolled count, both-first-observations-completed count, and eligible scored count |
 | Pair status | One complete or incomplete entry per pair, with reasons, evidence gaps, and costs |
 | Outcomes | Each arm's confirmed, consequential, exclusive, refuted and unresolved counts |
-| Measurements | Each arm's elapsed seconds and first-attempt charges, signed deltas and shared spend exposure |
-| Recommendation | `trial`, `no trial`, or `insufficient evidence`, with threshold values and reasons |
+| Measurements | Available per-arm time and charges, signed deltas, observed spend and measurement gaps |
+| Interpretation | Exploratory results or insufficient evidence, with reasons |
 
-Return `insufficient evidence` when the pair count falls short of the locked minimum or a
-required measurement for a scored pair is missing. Apply the locked unresolved policy.
-Otherwise, `trial` requires the minimum incremental consequential defects and compliance
-with every incremental false finding, time, and cost maximum. Each comparison includes
-equality. Return `no trial` when any threshold is breached. Record any proposed standalone
-investment decision separately.
+## Report historical evidence
+
+Use `python3 -IB docs/offline-review/fixtures/paired_report.py --historical` with a normalized
+coordinator snapshot on standard input. Include cases and their two frozen first
+observations, adjudication and contamination evidence. Common and retry costs can be null
+or omitted. The scorer accepts missing settings, deadlines, reservations and measurements.
+It retains valid pairs with unknown time or cost and reports the affected deltas as null.
+Observed spend is a subtotal and total exposure is unknown. An `exploratory` result
+describes observed differences. With zero eligible pairs, the result is `insufficient evidence`.
+Record the model, tools, scope uncertainty, cohort composition and configuration differences
+alongside the output.
 
 ## Verify with controlled fixtures
 
@@ -114,6 +116,10 @@ The fixture verifier `paired_report.py` accepts a synthetic JSON document on sta
 input and emits a report on standard output. Its input is a normalized, coordinator-owned
 snapshot assembled after verification. The tests provide repeatable complete, incomplete,
 and contaminated snapshots.
+
+The bounded fixture evaluates a cutoff, threshold equality, required measurements and
+reserved spend. It returns `trial`, `no trial` or `insufficient evidence` under its
+supplied decision settings.
 
 - Supply `settings` with the pinned `digest`, `cutoff_seconds`, `minimum_pairs`,
   `minimum_incremental_defects`, `maximum_incremental_false`, `maximum_incremental_seconds`,

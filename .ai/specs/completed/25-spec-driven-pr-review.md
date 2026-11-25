@@ -2,8 +2,8 @@
 
 ## Source
 
-- [Edition 5.0 architecture and acceptance contract](review_architecture_spec_v5.md), sections 1–12, supplied for standalone specification authoring on 2026-11-24. Source SHA-256 is `71593fe34d9f1e57c4bf8b47c2e9779acbfefb70e9626c4b02839d7f844ddfda`.
-- The source asks the pilot to “Find distinct, consequential defects before the first useful report on a pinned change” and “Evaluate the behavior promised by the approved feature specification, including behavior entirely absent from the diff.” The pilot must preserve precision, confidentiality, resource ceilings and disclosure of incomplete work. The owner sets numeric acceptance thresholds before pilot evaluation.
+- [Edition 5.0 architecture and acceptance contract](../review_architecture_spec_v5.md), sections 1–12, supplied for standalone specification authoring on 2026-11-24. Source SHA-256 is `71593fe34d9f1e57c4bf8b47c2e9779acbfefb70e9626c4b02839d7f844ddfda`.
+- The source asks the pilot to “Find distinct, consequential defects before the first useful report on a pinned change” and “Evaluate the behavior promised by the approved feature specification, including behavior entirely absent from the diff.” The source proposes resource ceilings and numeric acceptance thresholds for qualification. The Phase 1 change log records the owner's exploratory comparison decision.
 - Owner direction, translated from Russian (2026-11-24 repository conversation): “Update the specification. I need the spec-run implementation to proceed as quickly as possible, in parallel wherever possible. After updating the specification, run /spec-draft --auto-mode on it.” The preceding discussion defines a three-case rehearsal, a 10–15-case paired comparison, and independent review and scoring.
 
 ## Phase 1 — Offline review comparison
@@ -18,7 +18,7 @@ Determine whether adding explicit specification coverage to the current Orchestr
 
 ## Scope
 
-The first `spec-run` task delivers a reproducible offline protocol, local templates, and verification on synthetic fixtures. Its acceptance scope is REQ-45–REQ-50 and AC-45–AC-50. The approved historical comparison is a separate operator run using those deliverables. Its inputs and results are outside the first implementation's completion criteria.
+The first `spec-run` task delivers a reproducible offline protocol, local templates, and verification on synthetic fixtures. Its acceptance scope is REQ-45–REQ-50 and AC-45–AC-50. The exploratory historical comparison is a separate operator run using those deliverables. Its inputs and results are outside the first implementation's completion criteria.
 
 ## Out of Scope
 
@@ -28,26 +28,26 @@ The first `spec-run` task delivers a reproducible offline protocol, local templa
 
 | Actor | Authority |
 |---|---|
-| Project owner or trusted delegate | Approves eligible sources, permitted historical material and comparison settings. |
-| Offline review operator | Prepares approved, pinned packets, dispatches isolated review sessions within agreed limits, and preserves first outputs. |
+| Project owner or trusted delegate | Defines the permitted data boundary and decides whether to pursue the standalone service. |
+| Offline review operator | Reconstructs source-backed packets, dispatches isolated reviews using available capacity, and preserves first outputs. |
 | Offline adjudicator | Scores findings against pinned evidence with variant identity hidden. The operator reveals pairing and variant identities for aggregate comparison after verdicts are fixed. |
 
 ## Terminology
 
-- **Specification** means approved product intent in the pilot. Orchestrail's **spec** is its development task statement (`.ai/principles/domain.md:12–18`).
-- **Due criterion** is an observable obligation grounded in approved specification text and assigned by the approved delivery scope to the tested composition. **Future criteria** are obligations assigned to a later approved delivery.
+- **Specification** means feature intent recorded in contemporaneous source material. Orchestrail's **spec** is its development task statement (`.ai/principles/domain.md:12–18`).
+- **Due criterion** is an observable obligation grounded in contemporaneous source and tied by evidence to the tested composition. **Future criteria** are obligations assigned by evidence to later delivery. Record uncertain assignment as a coverage gap.
 - **Case** is one PR or feature milestone and its pinned input packet. **Pair** means the two variants' first observations for the same case. A **first observation** is the original attempt's terminal status and, when available, the immutable digest of its first submitted report. A **rehearsal** checks the procedure on cases held apart from the main comparison.
 
 ## Requirements
 
 | ID | EARS requirement |
 |---|---|
-| REQ-45 | WHEN an offline case is admitted, THE SYSTEM SHALL pin one approved input packet for both reviews. |
+| REQ-45 | WHEN an offline case is admitted, THE SYSTEM SHALL pin one source-backed input packet for both reviews. |
 | REQ-46 | WHEN a paired review is dispatched, THE SYSTEM SHALL isolate the reviewers from each other's outputs and from historical findings and labels through both terminal first observations. |
 | REQ-47 | WHEN the coverage-enhanced review reports, THE SYSTEM SHALL provide one evidence or gap disposition for each due criterion. |
 | REQ-48 | WHEN the rehearsal is complete, THE SYSTEM SHALL record whether the fixed procedure permits the main comparison to start. |
-| REQ-49 | WHILE the main comparison runs, WHEN a review or adjudication unit is ready, THE SYSTEM SHALL dispatch eligible units as capacity frees up within the locked limits. |
-| REQ-50 | WHEN the comparison closes, THE SYSTEM SHALL produce a paired decision report from frozen first observations and blinded adjudication. |
+| REQ-49 | WHILE the main comparison runs, WHEN a review or adjudication unit is ready, THE SYSTEM SHALL dispatch eligible units as capacity becomes available. |
+| REQ-50 | WHEN the comparison closes, THE SYSTEM SHALL produce a paired evidence report from frozen first observations and blinded adjudication. |
 
 For the offline experiment, operators can execute the protocol with local files and independent sessions. The acceptance checks exercise the local procedure using controlled fixtures.
 
@@ -55,46 +55,46 @@ For the offline experiment, operators can execute the protocol with local files 
 
 | Record | Identity and minimum fields |
 |---|---|
-| Shared reviewer packet | Opaque case ID, readable base and tested tree of a PR with base/head/target identities or of a milestone with the integrated tree, target and constituent revisions, scoped diff and tests, task-owned paths, sanitized task design and upstream contract context, pinned review instructions, approved specification and binding annex contents and digests, and approved delivery assignment version and due/future roster. The coordinator verifies both approvals against the exact versions and pins the packet digest. |
-| Coordinator manifest | Case ID, feature group, cohort, controlled source and approval references, historical labels, dispatch and variant map, first observation identities and resource reservations. Only the coordinator can access the full manifest. The adjudicator receives opaque findings, case evidence and historical claims stripped of variant and dispatch metadata. Reviewers receive only their shared packet and their assigned instructions. |
-| Experiment settings | Revision or digest, eligible cohort and selection rules, reviewer model and tool configuration, per-session time and spend caps, comparison cutoff, shared spend and concurrency caps, severity and finding-matching rules, decision thresholds, and policy authorizing access and retention. Lock before main dispatch. |
+| Shared reviewer packet | Opaque case ID, readable base and tested tree of a PR with base/head/target identities or of a milestone with the integrated tree, target and constituent revisions, scoped diff and tests, task-owned paths, sanitized task design and upstream contract context, pinned review instructions, contemporaneous specification and available binding annex contents and digests, and reconstructed delivery assignment version and due/future roster with traceable sources. The coordinator pins the packet digest. |
+| Coordinator manifest | Case ID, feature group, cohort, controlled source references, historical labels, dispatch and variant map, first observation identities and available resource observations. Only the coordinator can access the full manifest. The adjudicator receives opaque findings, case evidence and historical claims stripped of variant and dispatch metadata. Reviewers receive only their shared packet and their assigned instructions. |
+| Experiment record | Cohort and selection rationale, model and tools used, severity and matching approach, observed configuration changes, access and retention policy, closure reason, and available time and spend observations. |
 | First observation | Case ID, packet digest, variant, attempt ID, terminal status `completed`, `partial`, `failed`, `timed out`, `invalid` or `not started`, digest of any frozen artifact or null, elapsed time from dispatch to freeze or failure or null when not started, settled cost when known, and reason for any non-completed status. Partial or missing output remains visible in pair status. |
 | Adjudication | Case batch identity and status `complete` or `incomplete`. Each assessed finding has an opaque finding ID, case ID, anchor and evidence, canonical defect ID if matched, verdict `confirmed`, `refuted` or `unresolved`, severity and rationale. A pending claim at cutoff has an evidence-gap reason and no independent verdict. Keep variant mapping private until all batches freeze. |
-| Comparison report | Settings digest, enrolled and completed case counts, complete or incomplete pair status, per-variant and exclusive confirmed defects, false and unresolved findings, time and costs, coverage gaps, and a recommendation with its supporting thresholds or reasons for insufficient evidence. |
+| Comparison report | Cohort and actual configuration, enrolled and completed case counts, complete or incomplete pair status, per-variant and exclusive confirmed defects, false and unresolved findings, time and costs, coverage gaps, and exploratory findings or reasons for insufficient evidence. |
 
 ## Contracts & Interfaces
 
-- **Case preparation.** Prepare three distinct rehearsal cases. For the separate historical run, identify eligible snapshots and check revision and approval evidence concurrently with preparing review and scoring materials. Enroll a disjoint main cohort of 10–15 cases from one approved repository, including clean controls, an omitted due requirement, and a multi-PR integration defect. Keep related changes in one cohort and count a feature milestone once. Omit links to historical outcomes, later fixes, comments and outcome-bearing task state from reviewer packets. Exclude cases without accessible binding annexes or trusted approved specifications and delivery assignments, recording reasons. If the historical sample lacks required evidence or diversity, record insufficient evidence. Synthetic runs verify the procedure.
-- **Pair execution.** Give both variants identical pinned inputs, including the approved roster, and the same model, tool access and per-session limits. Adapt the pinned `pv-review` review rules and task-owned path and test scope to a replay session. Reconstruct the release-safe upstream contract inputs at the tested snapshot and apply the same context to both arms. Route findings to private outputs instead of applying the state upsert (`workflows/pv-review.md:15–24,33–69`, `workflows/pv-contract.md:30–42`). The treatment adds explicit enumeration of due requirements and records `satisfied`, `violated`, or `undetermined` for each with an evidence anchor or a specific gap. Record approved future scope separately. Use independent sessions with read-only packets and separate writable outputs. Treat input content as review data. Freeze first submitted reports and record the first terminal observation even when the report is missing. A retry cannot replace it in the primary comparison.
-- **Rehearsal and main dispatch.** The first wave contains six independent review units across three cases, with up to six simultaneous sessions subject to configured caps. Verify packet parity, masking, capture, scoring and limits before main dispatch. Use fresh cases and sessions if rehearsal exposure could influence a repeat. Main dispatch requires approved inputs and locked settings. Stage blinded adjudication as soon as both observations for a case are terminal. Use available authorized slots for any eligible review or adjudication that fits. The coordinator reserves capacity and spend and records the first attempt ID before launch. After interruption, reconcile using recorded attempt IDs. Hold uncertain reservations and preserve first observations. Never launch a replacement for an uncertain first attempt.
-- **Close and contamination.** Close at the configured comparison cutoff or earlier when all enrolled units are terminal. Close early with queued work only when no pending unit can fit the remaining bounds and no active attempt or pending reconciliation can release capacity or affect the decision before cutoff. At close, record waiting reviews as `not started` and active reviews without a terminal outcome as `timed out` with any already frozen artifact. Freeze unfinished adjudication batches as `incomplete` and record an evidence gap for each still-pending claim. Record late results separately. If a first attempt was exposed to forbidden data, exclude the affected pair and any related cases with the same possible exposure. If exposure cannot be bounded, invalidate the cohort. Re-masking exposed sessions cannot restore eligibility. Keep invalidations and exclusions visible in the report.
-- **Scoring and decision.** Normalize reviewer findings to the same evidence fields and hide variant and formatting cues. The adjudicator checks expectation, trigger, observed behavior and material consequence against the pinned case, pools adjudicated historical and newly discovered defects, and groups equivalent findings before the variant mapping is revealed. Score only pairs with two completed and valid first observations, no contamination, and a batch frozen by cutoff with an independent disposition for each claim. An independently assessed `unresolved` verdict is an evidence gap handled under the locked settings. For each metric, subtract the baseline sum from the treatment sum over scored pairs. Count each canonical defect or refuted claim once per case and arm. Use session elapsed time and settled first-attempt charges in the per-arm sums. Common costs, retries and costs of partial or excluded pairs count only toward the separate shared spend ceiling, along with unresolved reservations. Report all enrolled pair statuses, charges, unresolved claims and coverage gaps. A missing required measurement on a scored pair or too few eligible pairs yields `insufficient evidence`. Otherwise return `trial` only when the signed incremental confirmed consequential defect count meets its minimum and the signed incremental false count, time and cost each fit their maxima, inclusive. Return `no trial` when any threshold fails. Record any standalone-service recommendation as a separate investment decision. Qualification belongs to the deferred service phase.
+- **Case preparation.** Prepare three distinct rehearsal cases. Enroll a disjoint historical cohort of 10–15 cases from one permitted repository, including clean controls, an omitted due requirement, and a multi-PR integration defect. Keep related changes together and count each milestone once. Reconstruct criterion assignments from contemporaneous sources, preserve anchors privately, and record uncertainty. Exclude unreadable snapshots or cases without a traceable due roster. Record inaccessible annexes as evidence gaps. Missing formal approvals alone permit admission. Omit historical findings, later fixes, review comments and outcome-bearing state from packets. Record insufficient evidence when the history lacks the required mix.
+- **Pair execution.** Give both arms identical pinned inputs and matching model and tool access. Adapt the pinned review rules and task-owned paths to the snapshot. Use isolated sessions with read-only packets and separate outputs. The treatment records one `satisfied`, `violated`, or `undetermined` row per due criterion with evidence or a named gap. Keep future scope separate. Preserve first reports and terminal observations, including missing reports. Retries remain diagnostic.
+- **Rehearsal and dispatch.** Rehearse six independent reviews across three cases and verify parity, isolation, capture and scoring. Main dispatch requires prepared historical packets and a successful rehearsal. Record the actual model, tools, severity and matching conventions. Start eligible work as capacity becomes available. Record initial attempt identities and reconcile them after interruptions. Preserve uncertain attempts without resubmission. Formal approvals, locked settings and enforceable time or spend limits are optional for this historical procedure.
+- **Close and contamination.** Close when work is terminal or the operator records a stop and its reason. Freeze waiting reviews as `not started`, unresolved launched reviews as `partial` or in their observed terminal state, and unfinished adjudication as `incomplete` with pending gaps. Keep late results separate. Exclude pairs exposed to sibling reports or historical labels, including related cases with the same possible exposure. Invalidate the cohort when exposure cannot be bounded.
+- **Scoring.** Freeze blinded adjudication before unmasking. Score complete, uncontaminated pairs with matching first observations and complete adjudication. Deduplicate confirmed defects and refuted claims per case and arm. Report signed deltas, exclusions, unresolved claims, gaps and actual configuration. Report time and settled charges when observed. Mark unavailable measurements as unknown and label observed spend as a partial subtotal when incomplete. Report eligible results as exploratory and disclose insufficiency when no eligible pairs remain or the required cohort mix is unavailable. Use the outcome for a separate investment decision.
 
 ## Non-Functional Requirements
 
-Verify input and output isolation and reproducibility on fixtures. Use elapsed seconds from comparison start or session dispatch and exact charges in one configured currency unit. Admission counts active review and adjudication sessions against the configured limits and requires settled charges plus active reservations plus unresolved reservations plus the proposed maximum charge to fit the shared ceiling. Keep the maximum charge and slot reserved after an uncertain timeout until termination is verified or the comparison closes. At close, retain the unresolved maximum in spend accounting. Use only capacity with an enforceable session cutoff and bounded maximum charge before launch. Check equality, timeout, an interrupted attempt and an uncertain charge on controlled fixtures.
+Verify input and output isolation and reproducibility on fixtures. Record elapsed seconds and exact charges in one currency when available. Preserve original observations and slot ownership across interruption. Controlled fixtures may still exercise enforceable budgets and threshold-driven decisions.
 
 ## Edge Cases & Failure Modes
 
 | Case | Expected behavior |
 |---|---|
-| Missing approval, mismatched packet digest or ineligible history | Exclude with reason, preserve the shortfall, and keep any synthetic results separate. REQ-45, REQ-50 |
+| Mismatched packet digest, unreadable snapshot or untraceable due roster | Exclude with reason, preserve the shortfall, and keep any synthetic results separate. REQ-45, REQ-50 |
 | Output or label leakage | Exclude affected cases or invalidate the cohort when exposure cannot be bounded. Preserve affected IDs and reasons. REQ-46, REQ-50 |
 | Missing or ambiguous evidence | Mark the due criterion undetermined and name the evidence gap. REQ-47 |
-| Rehearsal failure or unlocked settings | Hold main dispatch and record the unmet precondition. REQ-48 |
-| Capacity exhausted, timeout, failed session or unknown charge | Queue work that can still fit, hold uncertain reservations, and close with terminal statuses by cutoff. REQ-49, REQ-50 |
-| Interrupted coordinator or adjudication pending at cutoff | Resume from recorded attempts and retain existing first observations. At cutoff, freeze unfinished adjudication as incomplete and exclude its pair from scoring while preserving its enrollment and spend. REQ-49, REQ-50 |
+| Rehearsal failure or missing prepared historical packets | Hold main dispatch and record the unmet precondition. REQ-48 |
+| Capacity exhausted, timeout, failed session or unknown charge | Queue ready work, retain uncertain attempts, and mark unavailable measurements as unknown. REQ-49, REQ-50 |
+| Interrupted coordinator or adjudication pending at closure | Resume from recorded attempts and retain existing first observations. At closure, freeze unfinished adjudication as incomplete and exclude its pair from scoring while preserving its enrollment and spend. REQ-49, REQ-50 |
 
 ## Acceptance Criteria
 
 | ID and requirement | Given | When | Then |
 |---|---|---|---|
-| AC-45 / REQ-45 | An eligible approved PR, an approved multi-PR milestone, and a case with missing approval | Packets are prepared | Each eligible pair has identical packet digests across variants, the milestone packet identifies its tested composition, and the missing-approval case is excluded with a recorded reason. |
-| AC-46 / REQ-46 | A labeled fixture seeds identifiable historical labels and the sibling session's report in out-of-packet locations | A session reads via its allowed tools and writes its own report | The session can read the approved packet and write its own output. It cannot read either seeded source through the packet, tool scope, filesystem paths or links. Each terminal observation refers to the first report digest, when present. |
-| AC-47 / REQ-47 | A packet contains positive evidence for one due criterion, evidence of a consequential omission outside the diff for another, a due criterion with missing evidence and an approved future criterion | The treatment report is checked | The three due criteria have exactly one row each. The rows are `satisfied` with the positive evidence, `violated` with omission evidence at the owning boundary outside the diff, and `undetermined` with the named gap, respectively. The future criterion appears separately and is excluded from due counts. |
-| AC-48 / REQ-48 | Three rehearsal cases yield six observations that include a packet mismatch in one fixture and verified exposure to a historical label in another | Readiness is checked | Either defect blocks main dispatch with the affected ID and reason. Fresh, valid rehearsal evidence allows main dispatch only when approved main inputs and locked settings are present. Missing main inputs leave historical execution pending while synthetic verification can pass. |
-| AC-49 / REQ-49 | Two active slots, a slow case, ready later reviews and adjudications, and a shared cap of 10 units | A slot frees, an independent pair becomes terminal, or the coordinator restarts after a timeout with unverified termination | Admit eligible reviews and scoring without waiting for the unrelated slow case. When settled and reserved charges total 7, a bounded 3-unit job fits with a free slot and a 4-unit job queues. With both slots occupied, keep the comparison open while an active job can finish before cutoff. Dispatch queued work once it fits. An unverified timeout keeps its reservation and slot across restart with no resubmission. At cutoff record queued reviews as not started and unfinished adjudications as incomplete. |
-| AC-50 / REQ-50 | A fixture requires one valid pair, at least 1 incremental confirmed defect, at most 1 incremental false finding, 20 incremental seconds and 4 incremental cost units. The baseline records one confirmed defect, no refuted claims, 10 seconds and 2 units. The treatment records the shared defect, one additional confirmed defect, one refuted claim, 30 seconds and 6 units. Common work costs 3 units and a timed-out pair holds a 2-unit reservation. | Blind verdicts close and the decision is derived, then the fixture is rerun with each decision threshold crossed individually | Report signed deltas of 1 defect, 1 false finding, 20 seconds and 4 units, with a separate total run spend exposure of 13 units. Equality yields `trial`. Removing the additional defect or increasing any treatment false count, time or cost past its cap yields `no trial`. Contamination, a missing required measurement or an unfinished adjudication on the only otherwise eligible pair each yields `insufficient evidence`. In the unfinished case, preserve both first reports and charges, record the pending claims as evidence gaps, and count zero eligible pairs. |
+| AC-45 / REQ-45 | A PR and milestone have readable snapshots and sourced rosters without approval records. Another snapshot is unreadable. | Packets are prepared | Each eligible case pins the same digest across both variants. The milestone identifies its composition, and the unreadable case is excluded. |
+| AC-46 / REQ-46 | A labeled fixture seeds identifiable historical labels and the sibling session's report in out-of-packet locations | A session reads via its allowed tools and writes its own report | The session can read the pinned packet and write its own output. It cannot read either seeded source through the packet, tool scope, filesystem paths or links. Each terminal observation refers to the first report digest, when present. |
+| AC-47 / REQ-47 | A packet contains positive evidence for one due criterion, evidence of a consequential omission outside the diff for another, a due criterion with missing evidence and a source-backed future criterion | The treatment report is checked | The three due criteria have exactly one row each. The rows are `satisfied` with the positive evidence, `violated` with omission evidence at the owning boundary outside the diff, and `undetermined` with the named gap, respectively. The future criterion appears separately and is excluded from due counts. |
+| AC-48 / REQ-48 | Three rehearsal cases produce six observations. Separate fixtures inject digest mismatch or historical label exposure. | Readiness is checked | Either fault blocks with the affected case ID. Successful rehearsal and prepared historical packets pass readiness without approvals or locked settings. Missing packets remain pending. |
+| AC-49 / REQ-49 | Ready units contend for available slots and an earlier attempt has uncertain termination. | Capacity changes or the coordinator resumes | Start eligible work when slots become available. Retain the uncertain attempt without resubmission and record unstarted reviews and incomplete adjudications at closure. Historical dispatch accepts absent time and spend limits. |
+| AC-50 / REQ-50 | A complete pair reports one shared defect, one additional treatment defect, and one refuted treatment claim. Some time or cost is unavailable. Another pair has unfinished adjudication. | The blinded comparison closes | Report signed defect and false-finding deltas of one each, unknown time or cost deltas as applicable, and a partial observed spend subtotal. Retain incomplete evidence and report exploratory results, or insufficient evidence when no eligible pairs remain. |
 
 ## Traceability
 
@@ -118,7 +118,7 @@ Each `REQ-NN` maps to the same-numbered `AC-NN`. Each acceptance criterion names
 - A-10 | First implementation boundary | Resolved: Deliver REQ-45–REQ-50 with synthetic verification. Historical comparison is a separate operator run. Retain REQ-01–REQ-44 in the deferred numbered phase | Source: owner direction and preceding discussion, 2026-11-24, and `workflows/phase-discovery.md:63–79` | Reversible: yes
 - A-11 | Review counterfactual | Resolved: Reconstruct the baseline's approved task context and change only the treatment's explicit coverage instructions | Source: `workflows/pv-review.md:33–69`, `workflows/pv-contract.md:30–42` and preceding discussion, 2026-11-24 | Reversible: yes
 - A-12 | Parallel execution mechanism | Resolved: Keep delivery on the existing stack. Parallelize independent tool checks within the current worker. The separate operator run uses independent review sessions under a coordinator and existing authorized capacity | Source: `rules/orchestration.md:7–14`, `workflows/spec-run.md:271–277,480` and smallest reversible choice | Reversible: yes
-- A-13 | Evaluation readiness without historical inputs | Resolved: Close implementation on synthetic verification of the protocol. Record the historical run as pending until its approvals and locked settings exist | Source: smallest reversible choice preserving the owner's direction to start with an offline comparison | Reversible: yes
+- A-13 | Historical admission | Superseded on 2026-11-25 by the owner's exploratory comparison decision. Use source provenance and observed measurements for historical runs.
 
 ## Decisions
 
@@ -134,7 +134,7 @@ The original source brief used auto mode without an interactive clarification se
 
 ## Open Questions
 
-- Q-03 | non-blocker | Which repository and approved historical cases may the offline experiment use, and what incremental defect, false finding, time and cost thresholds and execution caps will the owner commit to? Fixture validation can finish with fixture settings. A historical comparison needs approved inputs and locked settings to start.
+- Q-03 | resolved 2026-11-25 | The owner removed formal case approvals, locked settings, and enforceable time and spend limits from historical admission. The exploratory run still needs a traceable cohort and reviewer isolation.
 
 ## Notes
 
@@ -142,7 +142,7 @@ The original source brief used auto mode without an interactive clarification se
 
 Planning estimate: 2–3 working days for the operator-run comparison once historical inputs and sufficient concurrent capacity are available.
 
-On a fresh `spec-run`, Discovery selects the first numbered phase. Analysis reads the shared preamble and the selected phase (`workflows/spec-run.md:103–105,131–135`, `workflows/phase-discovery.md:63–79`, `workflows/pd-analyze.md:20–26`). Use that boundary for decomposition, validation and reconciliation. Allocate the acceptance clusters below using the smallest coherent leaf set and one shared record format. Pin check inputs during Discovery so independent fixture checks can overlap. Historical approvals and numeric thresholds apply to the later operator run. They do not enter the first task's implementation batch gate.
+On a fresh `spec-run`, Discovery selects the first numbered phase. Analysis reads the shared preamble and the selected phase (`workflows/spec-run.md:103–105,131–135`, `workflows/phase-discovery.md:63–79`, `workflows/pd-analyze.md:20–26`). Use that boundary for decomposition, validation and reconciliation. Allocate the acceptance clusters below using the smallest coherent leaf set and one shared record format. Pin check inputs during Discovery so independent fixture checks can overlap. Historical comparison uses source-backed inputs and exploratory results.
 
 | Work | Prerequisite | Acceptance |
 |---|---|---|
@@ -151,9 +151,9 @@ On a fresh `spec-run`, Discovery selects the first numbered phase. Analysis read
 | Prepare blinded adjudication and the paired report template | Agreed record format | AC-50 |
 | Rehearse the combined process and record readiness | Prepared packets, review and scoring templates | AC-48 and integrated verification of AC-45–AC-50 |
 
-The current runner creates each new leaf branch from the preceding reviewed tip and runs one subtask and one orchestration agent at a time (`workflows/spec-run.md:271–277,380–381,480`, `rules/orchestration.md:7–14`). Inside a worker, batch independent reads and run independent fixture checks concurrently where they have disjoint outputs. Keep test-first and independent validation checkpoints, shared writes and branch handoffs serialized. Use the bounded parallel review sessions for the separate operator-run rehearsal and historical comparison. The [parallel-children contract](23-composite-branch-model-and-parallel-children.md) remains a separate initiative.
+The current runner creates each new leaf branch from the preceding reviewed tip and runs one subtask and one orchestration agent at a time (`workflows/spec-run.md:271–277,380–381,480`, `rules/orchestration.md:7–14`). Inside a worker, batch independent reads and run independent fixture checks concurrently where they have disjoint outputs. Keep test-first and independent validation checkpoints, shared writes and branch handoffs serialized. Use the bounded parallel review sessions for the separate operator-run rehearsal and historical comparison. The [parallel-children contract](../23-composite-branch-model-and-parallel-children.md) remains a separate initiative.
 
-Implementation completion records fixture evidence and the historical comparison's pending status if approvals or settings are absent. When those are available, run the historical comparison using the local protocol and produce the paired decision report. A repeated `spec-run` can select the next numbered phase after the first phase validates. Invoke that next phase only after the owner decides to proceed and refines its scope. Whole-spec completion requires the deferred phase (`workflows/pv-finalize.md:62–67`).
+Implementation completion records fixture evidence. Run the historical comparison when source-backed packets are prepared and the isolation rehearsal passes. A repeated `spec-run` can select the next numbered phase after the first phase validates. Invoke that next phase only after the owner decides to proceed and refines its scope. Whole-spec completion requires the deferred phase (`workflows/pv-finalize.md:62–67`).
 
 ## Readiness Checklist
 
@@ -164,17 +164,21 @@ Implementation completion records fixture evidence and the historical comparison
 | 3 | PASS | Six current-phase requirements retain stable EARS IDs. The 44 deferred requirements retain their original IDs. |
 | 4 | PASS | Every requirement and acceptance criterion links to its same-numbered counterpart. |
 | 5 | PASS | Given/When/Then fixtures establish observable contract outcomes with explicit inputs. |
-| 6 | PASS | Configured hard limits, invariants and locked evaluation rules have verification methods. |
+| 6 | PASS | Isolation, first-observation integrity and historical readiness have observable checks. |
 | 7 | PASS | Proposed records, identities, lifecycle, authority, and success and failure interfaces are defined. |
 | 8 | PASS | Fixtures and failure modes cover invalid and missing inputs, boundaries, concurrency, cutoff and retry. |
 | 9 | PASS | Resolved choices and remaining owner inputs are recorded in Assumptions and Open Questions. |
-| 10 | PASS | Controlled replay and contract implementation can proceed with approved fixture settings. |
+| 10 | PASS | Controlled replay can use fixture settings. Historical replay accepts absent formal settings. |
 | 11 | PASS | Existing workflow and repository behavior are backed by verified path and line citations. |
 | 12 | PASS | The offline phase defines the case, pair, first observation and rehearsal independently of deferred service outcomes. |
 | 13 | PASS | The first delivery contains six acceptance cases and four implementation clusters. Later service work is explicitly deferred. |
 | 14 | PASS | Review: 4 rounds, score 99/100, critic: sub-agent, open: none. The planning estimate was moved to Notes after the scored round. |
 
-**READY FOR DEVELOPMENT — Phase 1.** The offline protocol and synthetic verification can proceed. Historical execution requires approved inputs and locked settings. Phase 2 remains deferred pending the historical comparison and an owner decision.
+**READY FOR DEVELOPMENT — Phase 1.** The offline protocol and synthetic verification can proceed. Historical execution requires traceable packets and an isolation rehearsal. Phase 2 remains deferred pending the historical comparison and an owner decision.
+
+## Change Log
+
+- 2026-11-25 | Owner-authorized exploratory historical comparison | REQ-45, REQ-48–REQ-50 and matching acceptance criteria | Replace formal case and settings gates with traceable input preparation, successful rehearsal, observed capacity and descriptive reporting. Preserve matched inputs, masking, immutable first observations and the standalone service contract.
 
 ## Phase 2 — Deferred standalone service
 
@@ -193,7 +197,7 @@ Review pinned pull requests and feature milestones against approved expected beh
 
 ### Out of Scope
 
-- Changes to Orchestrail workflow execution, state formats, deployment, or existing review commands. The roadmap's workflow evaluation and scoped verification remain separate workstreams ([specifications roadmap](README.md)).
+- Changes to Orchestrail workflow execution, state formats, deployment, or existing review commands. The roadmap's workflow evaluation and scoped verification remain separate workstreams ([specifications roadmap](../README.md)).
 - Distributed workers, learned routing, unrestricted command execution, intrusive testing, and exploit development.
 - Automated merging, remediation, issue creation, specification changes, or owner waivers.
 - Production qualification before held-out evaluation. Any platform-specific merge gate without an atomic full-identity enforcement mechanism is outside the pilot's blocking integration scope.

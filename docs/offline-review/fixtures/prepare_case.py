@@ -1,5 +1,6 @@
-"""Prepare one synthetic offline review case from a JSON record on stdin."""
+"""Prepare one offline review case from a JSON record on stdin."""
 
+import argparse
 import hashlib
 import json
 import sys
@@ -86,8 +87,8 @@ def project_packet(raw: dict[str, Any]) -> dict[str, Any]:
     return packet
 
 
-def prepare_case(source: dict[str, Any]) -> dict[str, Any]:
-    """Project and pin an eligible fixture, or report the reason for exclusion."""
+def prepare_case(source: dict[str, Any], *, historical: bool = False) -> dict[str, Any]:
+    """Project and pin an eligible case, or report the reason for exclusion."""
     raw_packet = source["packet"]
     case_id = raw_packet["case_id"]
     if not populated_string(case_id):
@@ -98,7 +99,8 @@ def prepare_case(source: dict[str, Any]) -> dict[str, Any]:
     def exclude(reason: str) -> dict[str, Any]:
         return {"status": "excluded", "case_id": case_id, "reason": reason}
 
-    for field in ("specification", "assignment"):
+    approval_fields = () if historical else ("specification", "assignment")
+    for field in approval_fields:
         approval = approvals.get(field) if isinstance(approvals, dict) else None
         if not isinstance(approval, dict) or not populated_string(approval.get("reference")):
             return exclude(f"missing-{field}-approval")
@@ -110,7 +112,7 @@ def prepare_case(source: dict[str, Any]) -> dict[str, Any]:
     except (ValueError, TypeError, KeyError):
         return exclude("incomplete-packet")
 
-    for field in ("specification", "assignment"):
+    for field in approval_fields:
         if digest(packet[field]) != approvals[field]["digest"]:
             return exclude(f"{field}-approval-digest-mismatch")
 
@@ -132,10 +134,13 @@ def prepare_case(source: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--historical", action="store_true", help="pin reconstructed historical inputs")
+    args = parser.parse_args()
     try:
-        result = prepare_case(json.load(sys.stdin))
+        result = prepare_case(json.load(sys.stdin), historical=args.historical)
     except (ValueError, TypeError, KeyError):
-        print("Expected one synthetic coordinator record with a case identity.", file=sys.stderr)
+        print("Expected one coordinator record with a case identity.", file=sys.stderr)
         return 2
     json.dump(result, sys.stdout, ensure_ascii=False)
     print()

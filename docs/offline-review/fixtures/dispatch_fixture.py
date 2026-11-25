@@ -1,5 +1,6 @@
-"""Evaluate an offline dispatch ledger snapshot with synthetic data."""
+"""Evaluate an offline dispatch ledger snapshot without launching reviews."""
 
+import argparse
 from fractions import Fraction
 import json
 import re
@@ -40,7 +41,7 @@ def identity(value):
     return value
 
 
-def index_units(units):
+def index_units(units, *, bounded=True):
     """Validate the closed fixture vocabulary and index frozen review observations."""
     unit_ids, attempt_ids, case_slots = set(), set(), set()
     finished_reviews = {}
@@ -57,8 +58,9 @@ def index_units(units):
             raise ValueError("unit identities and case slots must be unique")
         unit_ids.add(unit_id)
         case_slots.add((case, variant))
-        money(item["maximum_cost"])
-        seconds(item["maximum_seconds"])
+        if bounded:
+            money(item["maximum_cost"])
+            seconds(item["maximum_seconds"])
         attempt = item["attempt"]
         if attempt is None:
             continue
@@ -66,8 +68,9 @@ def index_units(units):
         if attempt_id in attempt_ids or attempt["state"] not in ATTEMPT_STATES:
             raise ValueError("first attempt identities must be unique with known states")
         attempt_ids.add(attempt_id)
-        seconds(attempt["deadline"])
-        money(attempt["reserved_cost"])
+        if bounded:
+            seconds(attempt["deadline"])
+            money(attempt["reserved_cost"])
         observation_status = attempt.get("observation_status")
         if observation_status is not None and observation_status not in statuses:
             raise ValueError("first observation must have a known terminal status")
@@ -80,12 +83,14 @@ def index_units(units):
 
 def admission_reason(item, settings, now, slots, exposure, finished_reviews):
     """Give the first applicable reason an otherwise queued unit cannot run now."""
-    cost = money(item["maximum_cost"])
-    duration = item["maximum_seconds"]
     if item["kind"] == "adjudication" and finished_reviews.get(item["case_id"]) != VARIANTS:
         return "pair-not-terminal"
     if not slots:
         return "no-free-slot"
+    if exposure is None:
+        return None
+    cost = money(item["maximum_cost"])
+    duration = item["maximum_seconds"]
     if cost > money(settings["session_spend_limit"]):
         return "session-spend-limit"
     if duration > settings["session_seconds"]:
@@ -97,7 +102,7 @@ def admission_reason(item, settings, now, slots, exposure, finished_reviews):
     return None
 
 
-def closing_updates(units):
+def closing_updates(units, *, historical=False):
     """Project closure statuses while preserving already frozen observations."""
     updates = []
     for item in units:
@@ -109,7 +114,7 @@ def closing_updates(units):
         if item["kind"] == "adjudication":
             status = "incomplete"
         else:
-            status = "timed out" if attempt else "not started"
+            status = ("partial" if historical else "timed out") if attempt else "not started"
         updates.append({
             "id": item["id"],
             "attempt_id": attempt["id"] if attempt else None,
@@ -118,33 +123,41 @@ def closing_updates(units):
     return updates
 
 
-def evaluate(snapshot):
+def evaluate(snapshot, *, historical=False):
     """Evaluate candidates independently and project closure without mutating a ledger."""
     settings = snapshot["settings"]
     slots = seconds(settings["slots"])
-    seconds(settings["session_seconds"])
-    cutoff = seconds(settings["cutoff_seconds"])
-    money(settings["session_spend_limit"])
-    money(settings["spend_limit"])
-    now = seconds(snapshot["elapsed_seconds"], minimum=0)
-    exposure = money(snapshot["settled_cost"])
+    operator_close = False
+    if historical:
+        now, cutoff, exposure = None, None, None
+        operator_close = snapshot.get("operator_close", False)
+        if type(operator_close) is not bool:
+            raise ValueError("operator close must be a boolean")
+    else:
+        seconds(settings["session_seconds"])
+        cutoff = seconds(settings["cutoff_seconds"])
+        money(settings["session_spend_limit"])
+        money(settings["spend_limit"])
+        now = seconds(snapshot["elapsed_seconds"], minimum=0)
+        exposure = money(snapshot["settled_cost"])
     units = snapshot["units"]
     if not isinstance(units, list):
         raise ValueError("units must be an ordered list")
-    finished_reviews = index_units(units)
+    finished_reviews = index_units(units, bounded=not historical)
 
     attempts = [item["attempt"] for item in units if item["attempt"] is not None]
     occupied = [entry for entry in attempts if entry["state"] in {"active", "uncertain"}]
     uncertain = [
         entry["id"] for entry in occupied
-        if entry["state"] == "uncertain" or entry["deadline"] <= now
+        if entry["state"] == "uncertain" or (not historical and entry["deadline"] <= now)
     ]
-    for entry in attempts:
-        if entry["state"] != "terminal":
-            exposure += money(entry["reserved_cost"])
+    if exposure is not None:
+        for entry in attempts:
+            if entry["state"] != "terminal":
+                exposure += money(entry["reserved_cost"])
 
     eligible, waiting = [], {}
-    if now < cutoff:
+    if not operator_close and (cutoff is None or now < cutoff):
         for item in units:
             if item["attempt"] is not None:
                 continue
@@ -157,22 +170,27 @@ def evaluate(snapshot):
                 eligible.append(item["id"])
 
     reconcilable = any(entry["state"] != "terminal" for entry in attempts)
-    updates = closing_updates(units)
-    close = now >= cutoff or not updates or (not eligible and not reconcilable)
+    updates = closing_updates(units, historical=historical)
+    close = not updates or operator_close or (
+        not historical and (now >= cutoff or (not eligible and not reconcilable))
+    )
     return {
         "eligible": eligible,
         "waiting": waiting,
         "occupied_slots": len(occupied),
         "uncertain_attempts": uncertain,
-        "spend_exposure": money_text(exposure),
+        "spend_exposure": None if exposure is None else money_text(exposure),
         "close": close,
         "terminal_updates": updates if close else [],
     }
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--historical", action="store_true", help="evaluate current capacity without hard limits")
+    args = parser.parse_args()
     try:
-        result = evaluate(json.load(sys.stdin))
+        result = evaluate(json.load(sys.stdin), historical=args.historical)
     except (KeyError, TypeError, ValueError) as error:
         print(f"Invalid synthetic dispatch snapshot: {error}", file=sys.stderr)
         return 2

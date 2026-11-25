@@ -1,5 +1,6 @@
 """Exercise the offline review procedure on three fresh synthetic cases."""
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -187,7 +188,7 @@ def adjudicate(directory, packet, reports):
     return frozen, mapping
 
 
-def rehearse(root, fault, approved_main_inputs, locked_settings):
+def rehearse(root, fault, admission_blocks):
     prepared = {case_id: prepare(case_id, fault) for case_id in CASES}
     packets = {case_id: item["packet"] for case_id, item in prepared.items()}
     packet_digests = {
@@ -260,10 +261,7 @@ def rehearse(root, fault, approved_main_inputs, locked_settings):
     if not blocks and (decision["eligible_pairs"] != len(CASES) or decision["recommendation"] != "trial"):
         blocks.append({"case_id": None, "reason": "decision-verification-failed"})
     rehearsal = "failed" if blocks else "passed"
-    if not approved_main_inputs:
-        blocks.append({"case_id": None, "reason": "main-inputs-unapproved"})
-    if not locked_settings:
-        blocks.append({"case_id": None, "reason": "comparison-settings-unlocked"})
+    blocks.extend({"case_id": None, "reason": reason} for reason in admission_blocks)
     return {
         "rehearsal": rehearsal, "historical_execution": "pending" if blocks else "eligible",
         "main_dispatch_permitted": not blocks, "blocks": blocks, "packet_digests": packet_digests,
@@ -274,17 +272,25 @@ def rehearse(root, fault, approved_main_inputs, locked_settings):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--historical", action="store_true", help="exercise historical readiness")
+    args = parser.parse_args()
     try:
         options = json.load(sys.stdin)
         fault = options.get("fault")
-        approvals = options.get("approved_main_inputs", False)
-        locked = options.get("locked_settings", False)
         if fault not in (None, "packet-mismatch", "historical-exposure"):
             raise ValueError("unknown synthetic rehearsal fault")
-        if type(approvals) is not bool or type(locked) is not bool:
-            raise ValueError("synthetic prerequisites must be explicit boolean flags")
+        prerequisites = (
+            {"prepared_main_inputs": "main-inputs-missing"}
+            if args.historical else
+            {"approved_main_inputs": "main-inputs-unapproved", "locked_settings": "comparison-settings-unlocked"}
+        )
+        flags = {name: options.get(name, False) for name in prerequisites}
+        if any(type(value) is not bool for value in flags.values()):
+            raise ValueError("prerequisites must be boolean flags")
+        admission_blocks = [reason for name, reason in prerequisites.items() if not flags[name]]
         with TemporaryDirectory(prefix="offline-review-rehearsal-") as temporary:
-            result = rehearse(Path(temporary), fault, approvals, locked)
+            result = rehearse(Path(temporary), fault, admission_blocks)
     except (AttributeError, KeyError, OSError, TypeError, ValueError, subprocess.TimeoutExpired) as error:
         print(f"Invalid synthetic rehearsal: {error}", file=sys.stderr)
         return 2

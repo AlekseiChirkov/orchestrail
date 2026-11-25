@@ -127,7 +127,7 @@ def populated_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def terminal_record(value: Any) -> dict:
+def terminal_record(value: Any, *, historical: bool = False) -> dict:
     if not isinstance(value, dict) or any(field not in value for field in OBSERVATION_FIELDS):
         raise ValueError("terminal observation is missing required fields")
     record = {field: value[field] for field in OBSERVATION_FIELDS}
@@ -147,7 +147,9 @@ def terminal_record(value: Any) -> dict:
     if record["status"] == "not started":
         if elapsed is not None:
             raise ValueError("a review that was not started has no elapsed time")
-    elif type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0:
+    elif not (historical and elapsed is None) and (
+        type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0
+    ):
         raise ValueError("elapsed seconds must be a finite nonnegative number")
     if record["status"] != "completed" and not populated_string(record["reason"]):
         raise ValueError("an incomplete observation requires a reason")
@@ -162,12 +164,12 @@ def terminal_record(value: Any) -> dict:
     return record
 
 
-def capture(directory: Path, observation: Any) -> dict:
+def capture(directory: Path, observation: Any, *, historical: bool = False) -> dict:
     with locked_archive(directory):
         terminal = directory / OBSERVATION_NAME
         if terminal.exists():
             return json.loads(terminal.read_bytes())
-        record = terminal_record(observation)
+        record = terminal_record(observation, historical=historical)
         record["report_digest"] = report_digest(directory)
         if record["status"] == "not started" and record["report_digest"] is not None:
             raise ValueError("a review that was not started cannot have a frozen report")
@@ -217,6 +219,7 @@ def main() -> int:
     freeze_parser.add_argument("submission", type=Path)
     capture_parser = modes.add_parser("capture")
     capture_parser.add_argument("archive", type=Path)
+    capture_parser.add_argument("--historical", action="store_true", help="preserve unknown elapsed time")
     modes.add_parser("coverage")
     args = parser.parse_args()
     try:
@@ -226,7 +229,7 @@ def main() -> int:
             case "freeze":
                 result = freeze(args.archive, args.submission)
             case "capture":
-                result = capture(args.archive, json.load(sys.stdin))
+                result = capture(args.archive, json.load(sys.stdin), historical=args.historical)
             case "coverage":
                 result = validate_coverage(json.load(sys.stdin))
     except (OSError, TypeError, ValueError, OverflowError, subprocess.TimeoutExpired) as error:
