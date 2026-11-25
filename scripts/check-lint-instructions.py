@@ -506,8 +506,8 @@ class InstructionMetadataTests(unittest.TestCase):
         usage = (SOURCE / "docs/USAGE.md").read_bytes().splitlines(keepends=True)
         self.assertIn(b"## Removed integrations\n", usage)
         self.assertEqual(
-            usage[255],
-            b"git clone https://github.com/AlekseiChirkov/agentic-workflows.git ~/projects/orchestrail\n",
+            hashlib.sha256(usage[255]).hexdigest(),
+            "76ca60298a3212a6b48f4f8de8668ab06e4d2d246278bc9ff37889af11210809",
         )
 
         result = self.run_checker(SOURCE)
