@@ -957,10 +957,10 @@ check "TDD: PIPELINE.md documents the three-step atomic cycle" \
   "$(grep -q 'pae-tests' workflows/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing pae-tests in atomic cycle / child workflow table')"
 
 check "TDD: scripts/sync.sh deploys tdd.md to projects" \
-  "$(grep -q 'tdd\.md' scripts/sync.sh 2>/dev/null && echo pass || echo 'scripts/sync.sh does not deploy tdd.md to per-project rule directories')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f rules/tdd.md ] && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')"
 
 check "TDD: scripts/setup-new-project.sh deploys tdd.md" \
-  "$(grep -q 'tdd\.md' scripts/setup-new-project.sh 2>/dev/null && echo pass || echo 'scripts/setup-new-project.sh does not deploy tdd.md to new projects')"
+  "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -q '^project_skills_link_dir=' harness/*/deploy.env && [ -f rules/tdd.md ] && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')"
 
 check "TDD: pv-create-fixes requires Test Plan for fix-tasks" \
   "$(grep -q '## Test Plan' workflows/pv-create-fixes.md 2>/dev/null && echo pass || echo 'pv-create-fixes.md missing Test Plan requirement for fix-tasks')"
@@ -1180,7 +1180,7 @@ check "ORCH: pd-select-model no longer claims it writes no files" \
 # Deployment
 for f in scripts/sync.sh scripts/setup-new-project.sh; do
   check "ORCH: $f deploys git-flow.md and orchestration.md" \
-    "$(grep -q 'git-flow\.md' "$f" 2>/dev/null && grep -q 'orchestration\.md' "$f" 2>/dev/null && echo pass || echo "$f does not deploy the orchestration rules")"
+    "$(grep -qE '(deploy|link-project) --from ' "$f" && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f rules/git-flow.md ] && [ -f rules/orchestration.md ] && echo pass || echo "$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available")"
 done
 
 check "ORCH: setup-new-project seeds .ai/ into .gitignore" \
@@ -1188,35 +1188,33 @@ check "ORCH: setup-new-project seeds .ai/ into .gitignore" \
 
 # Exercise the real per-project policy block without deploying global skills.
 test_sync_preserves_repository_knowledge_policy() (
-  local fixture project_dir policy output mode
+  local fixture project_dir tracked untracked policy output
   fixture="$(mktemp -d "${TMPDIR:-/tmp}/knowledge-policy.XXXXXX")" || return 1
   trap 'rm -rf "$fixture"' EXIT
-  policy="$(sed -n '/^  # 5\./,/^  PROJECTS_UPDATED=/p' scripts/sync.sh | sed '$d')"
-  [ -n "$policy" ] || return 1
-  for mode in tracked untracked; do
-    project_dir="$fixture/$mode"
+  export HOME="$fixture/home" XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
+  tracked="$fixture/tracked"
+  untracked="$fixture/untracked"
+  mkdir -p "$HOME" "$XDG_CONFIG_HOME/orchestrail" "$fixture/source"/{workflows,rules,principles,harness} || return 1
+  for project_dir in "$tracked" "$untracked"; do
     mkdir -p "$project_dir/.ai" || return 1
     git -C "$project_dir" init -q || return 1
     printf '%s\n' 'Knowledge fixture' > "$project_dir/.ai/README.md"
     printf '%s\n' 'local-cache/' > "$project_dir/.gitignore"
-    if [ "$mode" = tracked ]; then
-      git -C "$project_dir" add -- .ai/README.md || return 1
+  done
+  git -C "$tracked" add -- .ai/README.md || return 1
+  printf '%s\n' "$tracked" "$untracked" > "$XDG_CONFIG_HOME/orchestrail/projects"
+  for _ in first repeat; do
+    output="$(python3 -I scripts/deploy-skills.py deploy --from "$fixture/source" --hook-result '{}')" || return 1
+    policy="$(cmp -s "$tracked/.gitignore" <(printf '%s\n' 'local-cache/') && echo pass || echo 'Sync changed ignore policy for tracked knowledge')"
+    if [ "$policy" != pass ]; then
+      echo "$policy"; return 1
     fi
-    output="$(eval "$policy")" || return 1
-    if [ "$mode" = tracked ]; then
-      cmp -s "$project_dir/.gitignore" <(printf '%s\n' 'local-cache/') || {
-        echo 'Sync changed ignore policy for tracked knowledge'; return 1;
-      }
-      if grep -q 'rm -r --cached' <<< "$output"; then
-        echo 'Sync tells a tracked knowledge repository to remove its files'; return 1
-      fi
-    else
-      grep -qxF '.ai/' "$project_dir/.gitignore" || {
-        echo 'Sync no longer supplies the ignore default for untracked state'; return 1;
-      }
+    if grep -q 'rm -r --cached' <<< "$output"; then
+      echo 'Sync tells a tracked knowledge repository to remove its files'; return 1
     fi
-    eval "$policy" >/dev/null || return 1
-    [ "$(grep -cxF '.ai/' "$project_dir/.gitignore")" -le 1 ] || return 1
+    [ "$(grep -cxF '.ai/' "$untracked/.gitignore")" = 1 ] || {
+      echo 'Sync must idempotently ignore untracked knowledge'; return 1
+    }
   done
 )
 
@@ -1316,23 +1314,23 @@ for rule in rules/*.md 'global-claude.md'; do
     "$([ ! -f "workflows/rule-$base.md" ] && echo pass || echo "workflows/rule-$base.md exists, so the rule skill rule-$base and that workflow skill would deploy to the same path")"
   [ "$name" = "global-claude.md" ] && continue   # deployed as ~/.claude/CLAUDE.md, not as a project rule
   check "DEPLOY: scripts/setup-new-project.sh copies $name" \
-    "$(grep -q "$name" scripts/setup-new-project.sh 2>/dev/null && echo pass || echo "scripts/setup-new-project.sh does not copy rules/$name into .windsurf/rules/ and .devin/rules/")"
+    "$(grep -qF 'link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"' scripts/setup-new-project.sh && grep -q '^project_skills_link_dir=' harness/*/deploy.env && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f "$rule" ] && echo pass || echo "setup must link the deployed rule skill for $rule via the declared project adapter")"
   check "DEPLOY: scripts/sync.sh refreshes $name in existing projects" \
-    "$(grep -q "$name" scripts/sync.sh 2>/dev/null && echo pass || echo "scripts/sync.sh per-project loop does not refresh rules/$name")"
+    "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '        _refresh_projects(' scripts/deploy-skills.py && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && [ -f "$rule" ] && echo pass || echo "sync must refresh registered project links to the deployed rule skill for $rule")"
 done
 
 # Both skill roots must receive *every* rule, not a hand-maintained subset: the deployment loop
 # has to iterate "$RULES"/*.md. Before this, "load the `tdd` rule" pointed at a file that existed
 # in neither Claude Code nor Codex.
 check "DEPLOY: scripts/sync.sh deploys every rule as a Claude Code rule-* skill" \
-  "$(awk '/^# ── 3c\./,/^# ── 4\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in "$RULES"/\*\.md' && awk '/^# ── 3c\./,/^# ── 4\./' scripts/sync.sh 2>/dev/null | grep -q 'cp "$file" ~/.claude/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.claude/skills/rule-<name>/SKILL.md — every "load the <rule> rule" instruction is unreachable in Claude Code')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' harness/claude/deploy.env && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/claude/deploy.env')"
 
 check "DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill" \
-  "$(awk '/^# ── 4d\./,/^# ── 5\./' scripts/sync.sh 2>/dev/null | grep -q 'for file in "$RULES"/\*\.md' && awk '/^# ── 4d\./,/^# ── 5\./' scripts/sync.sh 2>/dev/null | grep -q 'cp "$file" ~/.codex/skills/$skill_name/SKILL.md' && echo pass || echo 'scripts/sync.sh has no step that copies every rules/*.md to ~/.codex/skills/rule-<name>/SKILL.md — every "load the <rule> rule" instruction is unreachable in Codex')"
+  "$(grep -qF 'deploy --from "$ROOT" --hook-result "$HOOK_INSTALL_RESULT"' scripts/sync.sh && grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' harness/codex/deploy.env && echo pass || echo 'sync must deploy rule-prefixed skills to the target declared by harness/codex/deploy.env')"
 
 for root in claude codex; do
   check "DEPLOY: the $root rule deployment uses the rule- prefix" \
-    "$(grep -q "skill_name=\"rule-\${name}\"" scripts/sync.sh 2>/dev/null && grep -q "mkdir -p ~/.$root/skills/\$skill_name" scripts/sync.sh 2>/dev/null && echo pass || echo "scripts/sync.sh deploys rules into ~/.$root/skills/ without the rule- prefix, which overwrites the five identically-named workflow skills")"
+    "$(grep -qF '"rules": "rule-"' scripts/deploy-skills.py && grep -qF 'skills_dir=$HOME/' "harness/$root/deploy.env" && echo pass || echo "rule skills must be distinct from workflow skills at the target declared by harness/$root/deploy.env")"
 done
 
 check "DEPLOY: workflow-globals tells the reader how to resolve a rule reference per agent" \
@@ -2103,15 +2101,18 @@ test_shell_paths_public_defaults_pass_syntax() {
 }
 
 test_shell_paths_relocated_checkout_preserves_overrides() (
-  local fixture source_tree alternate script mode target selected output status bad=0
+  local fixture source_tree alternate script mode target selected output status preflight bad=0
   fixture="$(mktemp -d "${TMPDIR:-/tmp}/script-paths.XXXXXX")" || return 1
   trap 'rm -rf "$fixture"' EXIT
+  export XDG_CONFIG_HOME="$fixture/config" XDG_STATE_HOME="$fixture/state"
   source_tree="$fixture/checkout with spaces"
   alternate="$fixture/alternate source"
   mkdir -p "$fixture/home/.claude/skills/example" "$fixture/work"
   for selected in "$source_tree" "$alternate"; do
     mkdir -p "$selected"/{workflows,rules,principles,scripts,templates/.ai,templates/.ai-umbrella}
     cp scripts/sync.sh scripts/log-step.sh scripts/setup-new-project.sh scripts/setup-umbrella.sh scripts/setup-all-repos.sh scripts/link-skills.sh "$selected/scripts/"
+    cp scripts/deploy-skills.py scripts/report-legacy-artifacts.sh "$selected/scripts/"
+    cp -R harness "$selected/harness"
     printf '%s\n' "$selected" > "$selected/templates/.ai/source-marker"
     printf '%s\n' "$selected" > "$selected/templates/.ai-umbrella/source-marker"
     printf '%s\n' 'Umbrella fixture' > "$selected/templates/.ai-umbrella/README.md"
@@ -2131,7 +2132,8 @@ test_shell_paths_relocated_checkout_preserves_overrides() (
     esac
     status=0
     output="$(cd "$fixture/work" && env "${source_env[@]}" HOME="$fixture/home" bash "$source_tree/scripts/sync.sh" "${sync_args[@]}" 2>&1)" || status=$?
-    if [ "$status" -ne 1 ] || ! printf '%s\n' "$output" | grep -Fxq "source=$selected"; then
+    preflight="$([ "$status" -eq 1 ] && printf '%s\n' "$output" | grep -Fxq "source=$selected" && echo pass)"
+    if [ "$preflight" != pass ]; then
       echo "scripts/sync.sh ($mode): expected selected source to reach failing preflight"
       bad=1
     fi

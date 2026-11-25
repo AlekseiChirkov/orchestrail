@@ -12,8 +12,7 @@ WORKFLOWS_SRC="$(cd -- "$WORKFLOWS_SRC" 2>/dev/null && pwd)" || {
   echo "ERROR: source directory not found: ${ORCHESTRAIL_HOME:-$SCRIPT_DIR/..}" >&2
   exit 1
 }
-PROJECT_DIR="$(pwd)"
-CLAUDE_SKILLS="$HOME/.claude/skills"
+PROJECT_DIR="$PWD"
 
 echo "=== Project: $PROJECT_DIR ==="
 echo ""
@@ -35,7 +34,7 @@ if [ -d "../.ai" ] && [ -f "../.ai/README.md" ]; then
 fi
 
 # ── STEP 1: CLAUDE.md ──────────────────────────────────────────────────
-echo "[1/7] CLAUDE.md"
+echo "[1/4] CLAUDE.md"
 if [ ! -f "CLAUDE.md" ]; then
   if [ -n "$PARENT_AI" ]; then
     # Two-level loading: umbrella first, then local overrides
@@ -82,89 +81,18 @@ else
   echo "  ok: CLAUDE.md already present"
 fi
 
-# ── STEP 2: .windsurf/rules/ ───────────────────────────────────────────
-echo "[2/7] .windsurf/rules/"
-mkdir -p .windsurf/rules
+# Report old deployment directories without modifying them.
+bash "$WORKFLOWS_SRC/scripts/report-legacy-artifacts.sh" project "$PROJECT_DIR"
 
-for rule in workflow-globals.md workflow-reference.md language.md quick-flow.md tdd.md run-log.md git-flow.md orchestration.md \
-            phase-discovery.md phase-execution.md phase-validation.md phase-finalize.md \
-            phase-atomic-execution.md phase-atomic-validation.md; do
-  if [ ! -f ".windsurf/rules/$rule" ]; then
-    if [ -f "$WORKFLOWS_SRC/rules/$rule" ]; then
-      cp "$WORKFLOWS_SRC/rules/$rule" ".windsurf/rules/$rule"
-      echo "  copied: .windsurf/rules/$rule"
-    else
-      echo "  WARNING: $WORKFLOWS_SRC/rules/$rule not found — skipped"
-    fi
-  else
-    echo "  ok: .windsurf/rules/$rule already present"
-  fi
-done
-
-if [ ! -f ".windsurf/rules/language.md" ]; then
-  cat > .windsurf/rules/language.md << 'EOF'
----
-trigger: always_on
----
-# Language Rule (always-on)
-Before creating or modifying ANY file or text artifact, apply this rule first.
-All content written to project files must be in English — source code, comments,
-docstrings, commit messages, config, shell scripts, Terraform/YAML/JSON, Markdown
-docs, README/ADR/state files, test names, and any other generated artifact.
-This rule applies ONLY to generated code and project files.
-# Chat language preference is user-specific.
-# Set this in your personal ~/.claude/CLAUDE.md, not here.
-EOF
-  echo "  created: .windsurf/rules/language.md"
+# Link skills declared by the selected source's harness adapters.
+if python3 -I -c 'import sys; sys.exit(sys.version_info < (3, 11))' >/dev/null 2>&1; then
+  python3 -I "$WORKFLOWS_SRC/scripts/deploy-skills.py" link-project --from "$WORKFLOWS_SRC" --project "$PROJECT_DIR"
+else
+  echo 'WARNING: skill links unavailable: Python 3.11 or newer is required' >&2
 fi
 
-# Devin Desktop: create .devin/rules/ as the preferred location
-echo "  [Devin Desktop] creating .devin/rules/"
-mkdir -p .devin/rules
-for rule in workflow-globals.md workflow-reference.md language.md quick-flow.md tdd.md run-log.md git-flow.md orchestration.md \
-            phase-discovery.md phase-execution.md phase-validation.md phase-finalize.md \
-            phase-atomic-execution.md phase-atomic-validation.md; do
-  if [ ! -f ".devin/rules/$rule" ]; then
-    if [ -f "$WORKFLOWS_SRC/rules/$rule" ]; then
-      cp "$WORKFLOWS_SRC/rules/$rule" ".devin/rules/$rule"
-      echo "  copied: .devin/rules/$rule"
-    fi
-  else
-    echo "  ok: .devin/rules/$rule already present"
-  fi
-done
-
-# ── STEP 3: .windsurf/workflows/ ──────────────────────────────────────
-echo "[3/7] .windsurf/workflows/ — not created"
-echo "  Workflows are global: ~/.codeium/windsurf/global_workflows/"
-echo "  Do NOT create local .windsurf/workflows/ or .devin/workflows/ —"
-echo "  local copies shadow the global ones and go stale between syncs."
-
-# ── STEP 4: .claude/skills/ symlinks ──────────────────────────────────
-echo "[4/7] .claude/skills/ (Claude Code global skills workaround)"
-mkdir -p .claude/skills
-
-# Remove broken symlinks first
-while IFS= read -r -d '' link; do
-  [ -e "$link" ] || { rm "$link"; echo "  removed stale: $(basename "$link")"; }
-done < <(find ".claude/skills" -maxdepth 1 -type l -print0)
-
-LINKED=0
-SKIPPED=0
-for skill in "$CLAUDE_SKILLS"/*/; do
-  name=$(basename "$skill")
-  target=".claude/skills/$name"
-  if [ ! -e "$target" ]; then
-    ln -sf "$skill" "$target"
-    LINKED=$((LINKED + 1))
-  else
-    SKIPPED=$((SKIPPED + 1))
-  fi
-done
-echo "  linked: $LINKED skills, skipped (exist): $SKIPPED"
-
-# ── STEP 5a: .ai/ knowledge base ─────────────────────────────────────
-echo "[5/7] .ai/ knowledge base"
+# ── STEP 2: .ai/ knowledge base ─────────────────────────────────────
+echo "[2/4] .ai/ knowledge base"
 if [ -d "$WORKFLOWS_SRC/templates/.ai" ]; then
   mkdir -p .ai
   # Copy template files only when missing — never overwrite project content.
@@ -185,8 +113,8 @@ else
   echo "  WARNING: $WORKFLOWS_SRC/templates/.ai not found — skipped"
 fi
 
-# ── STEP 5: AGENTS.md (Codex) ─────────────────────────────────────────
-echo "[6/7] AGENTS.md (Codex)"
+# ── STEP 3: AGENTS.md (Codex) ─────────────────────────────────────────
+echo "[3/4] AGENTS.md"
 if [ ! -f "AGENTS.md" ]; then
   if [ -f "$WORKFLOWS_SRC/templates/AGENTS.md" ]; then
     cp "$WORKFLOWS_SRC/templates/AGENTS.md" AGENTS.md
@@ -237,8 +165,8 @@ else
   echo "  ok: AGENTS.md already present"
 fi
 
-# ── STEP 6: .gitignore ────────────────────────────────────────────────
-echo "[7/7] .gitignore"
+# ── STEP 4: .gitignore ────────────────────────────────────────────────
+echo "[4/4] .gitignore"
 if [ ! -f ".gitignore" ]; then
   touch .gitignore
   echo "  created: .gitignore"
@@ -354,6 +282,4 @@ echo "  1. Edit .ai/context/runbook.md → ## Commands with your project's test/
 echo "  2. Edit .ai/principles/coding.md → ## Standards with project-specific overrides (optional)"
 echo "  3. Edit AGENTS.md → ## Project Context with project description and stack"
 echo "  4. Edit AGENTS.md → ## Commands with actual test/lint commands"
-echo "  5. In Windsurf: verify global workflows load with /phase-discovery"
-echo "  6. In Claude Code: verify skills load with /phase-discovery"
-echo "  7. In Codex: AGENTS.md will be read automatically"
+echo "  5. Run /phase-discovery to verify the installed workflows"

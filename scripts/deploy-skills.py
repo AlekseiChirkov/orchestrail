@@ -710,6 +710,37 @@ def _deployment_home() -> tuple[Path, Path]:
     return home, _config_directory(home)
 
 
+def _stage_target(source: Path, target: Path) -> Path:
+    home, config = _deployment_home()
+    state = Path(os.environ.get("XDG_STATE_HOME") or home / ".local/state")
+    live_paths = (source, home / ".codeium", home / ".config", config, state)
+    reserved = set().union(*(_path_addresses(path) for path in live_paths))
+    for adapter in _load_adapters(source, home):
+        for path in (adapter.skills_dir, adapter.always_on_path):
+            # Retain the boundary around each provider's top-level live directory.
+            reserved.update(_path_addresses(home / path.relative_to(home).parts[0]))
+            reserved.update(_path_addresses(path))
+
+    target = target.absolute()
+    physical = Path(os.path.realpath(target))
+    live_home = Path(os.path.realpath(home))
+    if (target != physical or target == live_home or target in live_home.parents
+            or any(_overlap(target, path) for path in reserved)
+            or any(character in str(target) for character in "\r\n")
+            or (target.exists() and (not target.is_dir() or any(target.iterdir())))):
+        raise _DeploymentError(
+            "staging-target-invalid", "staging needs an empty isolated directory outside source and live provider paths",
+        )
+    return target
+
+
+def _print_targets(source: Path) -> None:
+    home, _ = _deployment_home()
+    for adapter in _load_adapters(source, home):
+        print(f"  {adapter.name} skills: {adapter.skills_dir}")
+        print(f"  {adapter.name} always-on: {adapter.always_on_path}")
+
+
 def _source_revision(source: Path) -> str | None:
     environment = os.environ.copy()
     # A caller's Git repository overrides must not redirect the selected source query.
@@ -1300,6 +1331,11 @@ def main() -> int:
     link = commands.add_parser("link-project", allow_abbrev=False)
     link.add_argument("--from", dest="source", type=Path, required=True)
     link.add_argument("--project", type=Path, required=True)
+    stage_target = commands.add_parser("stage-target", allow_abbrev=False)
+    stage_target.add_argument("--from", dest="source", type=Path, required=True)
+    stage_target.add_argument("--stage", dest="target", type=Path, required=True)
+    targets = commands.add_parser("targets", allow_abbrev=False)
+    targets.add_argument("--from", dest="source", type=Path, required=True)
     args = parser.parse_args()
     try:
         if args.command == "deploy":
@@ -1308,8 +1344,12 @@ def main() -> int:
             return _deploy(Path(os.path.realpath(args.source)), args.hook_result, force=args.force)
         elif args.command == "list-projects":
             _list_projects()
-        else:
+        elif args.command == "link-project":
             _link_project(Path(os.path.realpath(args.source)), Path(os.path.abspath(args.project)))
+        elif args.command == "stage-target":
+            print(_stage_target(Path(os.path.realpath(args.source)), args.target))
+        else:
+            _print_targets(Path(os.path.realpath(args.source)))
     except _DeploymentError as error:
         print(error, file=sys.stderr)
         return error.exit_status

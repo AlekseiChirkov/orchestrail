@@ -24,7 +24,7 @@ SPEC.loader.exec_module(ORACLE)
 FROZEN_INVENTORY_SHA256 = "57f7872d3525f608b57b29410792e2e02106542f28456f806319e2e7065557a1"
 
 
-AMENDMENT_SHA256 = "207de59538cbcedb3222c004239a229eddcafe9f45c9b7d9850ad7cac6346cd3"
+AMENDMENT_SHA256 = "b7009774ef474c59007234cf3a17b91cfe6e3b6ed8500f63ef0241928b1b3c78"
 APPROVED_PATHS = frozenset({
     "scripts/model-catalog.py", "scripts/model_selection.py", "tests/model-plan.py",
     "tests/usage-observation-bundle-schema.py", "tests/usage-status-large-authority.py",
@@ -79,7 +79,7 @@ REPOSITORY_PATH = re.compile(
     r"(?:AGENTS\.md|CLAUDE\.md|README\.md|deploy\.env))(?![A-Za-z0-9_./-])"
 )
 HELPER_CALL = re.compile(r"\$\([ \t]*(?!echo\b)[A-Za-z_][A-Za-z0-9_]*\b")
-RESULT_EXPRESSION = re.compile(r'^check "((?:\\.|[^"\\\n])+)"[ \t]+(?:\\\n[ \t]*)?([^\n]+)', re.M)
+RESULT_EXPRESSION = re.compile(r'^[ \t]*check "((?:\\.|[^"\\\n])+)"[ \t]+(?:\\\n[ \t]*)?([^\n]+)', re.M)
 CHECK_LABEL = re.compile(r'^[ \t]*check[ \t]+"((?:\\.|[^"\\\n])+)"', re.M)
 
 

@@ -1456,7 +1456,9 @@ class WorkflowBehavior(FIXTURE.FinalizationChecks):
         self.assertEqual(0, normal.returncode, normal.stdout + normal.stderr)
         self.assertEqual(['validator', *fixture.preflights] * 2, fixture.calls.read_text().splitlines())
         self.assertEqual(stage_bytes, project_bytes(fixture.stage), 'Normal deployment must not mutate staged output')
-        for provider in ('.codeium', '.claude', '.codex'):
+        self.assertFalse((fixture.stage / '.codeium').exists())
+        self.assertFalse((fixture.home / '.codeium').exists())
+        for provider in ('.claude', '.codex'):
             self.assertEqual(project_bytes(fixture.stage / provider), project_bytes(fixture.home / provider), provider)
         for rule in (fixture.source / 'rules').glob('*.md'):
             for provider in ('.claude', '.codex'):
