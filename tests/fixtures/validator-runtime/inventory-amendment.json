@@ -10284,7 +10284,7 @@
       "target": "result",
       "key": "TDD: rules/tdd.md is always_on",
       "before": "\"$(grep -q 'trigger: always_on' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md missing trigger: always_on')\"",
-      "after": "\"$(awk 'NR == 1 { if ($0 != \"---\") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|\"always\") *$/ } END { exit !(closed && loads == 1 && always) }' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')\"",
+      "after": "\"$(rule_loads_always rules/tdd.md && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')\"",
       "requirement": "REQ-12",
       "reason": "Require exactly one always-load declaration in the completed rule front matter."
     },
@@ -10292,7 +10292,7 @@
       "target": "result",
       "key": "ORCH: $f is always_on",
       "before": "\"$(grep -q 'trigger: always_on' \"$f\" 2>/dev/null && echo pass || echo \"$f missing trigger: always_on\")\"",
-      "after": "\"$(awk 'NR == 1 { if ($0 != \"---\") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|\"always\") *$/ } END { exit !(closed && loads == 1 && always) }' \"$f\" 2>/dev/null && echo pass || echo \"$f must declare load: always in its front matter\")\"",
+      "after": "\"$(rule_loads_always \"$f\" && echo pass || echo \"$f must declare load: always in its front matter\")\"",
       "requirement": "REQ-12",
       "reason": "Require exactly one always-load declaration in the completed rule front matter."
     },
@@ -10300,7 +10300,7 @@
       "target": "result",
       "key": "LOG: rules/run-log.md is always_on",
       "before": "\"$(grep -q 'trigger: always_on' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md missing trigger: always_on')\"",
-      "after": "\"$(awk 'NR == 1 { if ($0 != \"---\") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|\"always\") *$/ } END { exit !(closed && loads == 1 && always) }' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')\"",
+      "after": "\"$(rule_loads_always rules/run-log.md && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')\"",
       "requirement": "REQ-12",
       "reason": "Require exactly one always-load declaration in the completed rule front matter."
     }

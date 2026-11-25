@@ -861,8 +861,31 @@ check "M-3: PIPELINE.md documents Type 3 no-integration-validation limitation" \
 check "TDD: rules/tdd.md exists" \
   "$([ -f rules/tdd.md ] && echo pass || echo 'rules/tdd.md not found')"
 
+rule_loads_always() {
+  python3 -I - "$1" <<'PYRULELOAD'
+import json
+from pathlib import Path
+import sys
+
+try:
+    text = Path(sys.argv[1]).read_bytes().decode("utf-8")
+    lines = text.replace("\r\n", "\n").split("\n")
+    if lines[0] != "---":
+        sys.exit(1)
+    end = lines.index("---", 1)
+    loads = [line for line in lines[1:end] if line.startswith("load:")]
+    if len(loads) != 1 or not loads[0].startswith("load: ") or "\t" in loads[0]:
+        sys.exit(1)
+    raw = loads[0].removeprefix("load: ").rstrip(" ")
+    value = json.loads(raw) if raw.startswith('"') else raw
+except (OSError, ValueError):
+    sys.exit(1)
+sys.exit(0 if value == "always" else 1)
+PYRULELOAD
+}
+
 check "TDD: rules/tdd.md is always_on" \
-  "$(awk 'NR == 1 { if ($0 != "---") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|"always") *$/ } END { exit !(closed && loads == 1 && always) }' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')"
+  "$(rule_loads_always rules/tdd.md && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')"
 
 check "TDD: workflows/pae-tests.md exists" \
   "$([ -f workflows/pae-tests.md ] && echo pass || echo 'workflows/pae-tests.md not found')"
@@ -1076,7 +1099,7 @@ done
 
 for f in rules/git-flow.md rules/orchestration.md; do
   check "ORCH: $f is always_on" \
-    "$(awk 'NR == 1 { if ($0 != "---") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|"always") *$/ } END { exit !(closed && loads == 1 && always) }' "$f" 2>/dev/null && echo pass || echo "$f must declare load: always in its front matter")"
+    "$(rule_loads_always "$f" && echo pass || echo "$f must declare load: always in its front matter")"
 done
 
 # base_commit is the single input that makes restack strategy-agnostic.
@@ -1966,7 +1989,7 @@ check "LOG: rules/run-log.md exists" \
   "$([ -f rules/run-log.md ] && echo pass || echo 'rules/run-log.md not found')"
 
 check "LOG: rules/run-log.md is always_on" \
-  "$(awk 'NR == 1 { if ($0 != "---") exit; next } /^---$/ { closed = 1; exit } /^load:/ { loads++; always = /^load: (always|"always") *$/ } END { exit !(closed && loads == 1 && always) }' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')"
+  "$(rule_loads_always rules/run-log.md && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')"
 
 check "LOG: scripts/log-step.sh exists and is executable" \
   "$([ -x scripts/log-step.sh ] && echo pass || echo 'scripts/log-step.sh is missing or not executable — every logging instruction in the pipelines is then unrunnable')"
