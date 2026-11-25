@@ -32,7 +32,9 @@ class IntegratedContracts(unittest.TestCase):
 
     def test_registration_and_wrapper_mutations_are_rejected(self) -> None:
         source = (ROOT / 'scripts/validate-contracts.sh').read_text()
-        frozen = contract.load_frozen_inventory(ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz')
+        inventory_path = ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz'
+        frozen = contract.load_frozen_inventory(inventory_path)
+        amendment = contract.load_pinned_amendment(inventory_path)
         start = source.index('check "test_validator_runtime_identity"')
         end = source.index('\n# ── End public identity smoke checks', start)
         identity = source[start:end]
@@ -49,12 +51,13 @@ class IntegratedContracts(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='validator-integrated-') as temp:
             path = Path(temp) / 'validate-contracts.sh'
             path.write_text(source)
-            self.assertTrue(contract.ORACLE.matches_structure(frozen, contract.ORACLE.inventory(path, include_resources=False)))
+            self.assertTrue(contract.ORACLE.matches_structure(
+                frozen, contract.amended_source_inventory(path, amendment, include_resources=False)))
             for index, candidate in enumerate(candidates):
                 with self.subTest(mutation=index):
                     path.write_text(candidate)
                     try:
-                        actual = contract.ORACLE.inventory(path, include_resources=False)
+                        actual = contract.amended_source_inventory(path, amendment, include_resources=False)
                         accepted = contract.ORACLE.matches_structure(frozen, actual)
                     except ValueError:
                         accepted = False

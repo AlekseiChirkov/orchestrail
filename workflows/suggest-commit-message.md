@@ -1,5 +1,7 @@
 ---
 description: Suggest a commit message for the current changes — output is ready to copy
+phase: utility
+step: "-"
 ---
 
 Invocation: `/suggest-commit-message [--staged | --branch <base>]`

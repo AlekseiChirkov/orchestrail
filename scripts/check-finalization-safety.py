@@ -345,6 +345,7 @@ class StagingChecks(unittest.TestCase):
         self.stage = self.root / 'stage'
         self.calls = self.root / 'calls'
         self.environment = dict(os.environ, HOME=str(self.home), XDG_CONFIG_HOME=str(self.home / '.config'),
+                                XDG_STATE_HOME=str(self.root / 'state'),
                                 ORCHESTRAIL_HOME=str(self.source), FIXTURE_CALLS=str(self.calls))
         self.preflights = ('check-phase-finalize.py', 'check-finalization-safety.py', 'check-finalization-workflow.py')
         validator = self.source / 'scripts/validate-contracts.sh'
@@ -365,15 +366,14 @@ class StagingChecks(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertEqual(before, files(self.home), 'Staging must not deploy or scan/update live projects')
         self.assertEqual(['validator', *self.preflights], self.calls.read_text().splitlines())
+        self.assertFalse((self.stage / '.codeium').exists())
         for source in (self.source / 'workflows').glob('*.md'):
-            for destination in (self.stage / '.codeium/windsurf/global_workflows' / source.name,
-                                self.stage / '.claude/skills' / source.stem / 'SKILL.md',
+            for destination in (self.stage / '.claude/skills' / source.stem / 'SKILL.md',
                                 self.stage / '.codex/skills' / source.stem / 'SKILL.md'):
                 self.assertEqual(source.read_bytes(), destination.read_bytes(), str(destination))
         for folder, prefix in (('rules', 'rule-'), ('principles', 'principle-')):
             for source in (self.source / folder).glob('*.md'):
-                for destination in (self.stage / '.codeium/windsurf/global_rules' / source.name,
-                                    self.stage / '.claude/skills' / (prefix + source.stem) / 'SKILL.md',
+                for destination in (self.stage / '.claude/skills' / (prefix + source.stem) / 'SKILL.md',
                                     self.stage / '.codex/skills' / (prefix + source.stem) / 'SKILL.md'):
                     self.assertEqual(source.read_bytes(), destination.read_bytes())
         for destination in (self.stage / '.claude/CLAUDE.md', self.stage / '.codex/AGENTS.md'):
@@ -405,9 +405,28 @@ class StagingChecks(unittest.TestCase):
                 self.assertEqual(before, files(self.home))
 
     def test_project_setup_and_refresh_lists_include_finalization_context(self) -> None:
-        for name in ('setup-new-project.sh', 'sync.sh'):
-            text = (SOURCE / 'scripts' / name).read_text()
-            self.assertEqual(2, text.count('phase-finalize.md'), name)
+        project = self.home / 'projects/product'
+        sync = ['bash', str(self.source / 'scripts/sync.sh'), '--from', str(self.source)]
+        setup = ['bash', str(self.source / 'scripts/setup-new-project.sh')]
+        (self.source / 'scripts/install-hooks.sh').unlink()
+        skills = (
+            ('phase-finalize', self.source / 'workflows/phase-finalize.md'),
+            ('rule-phase-finalize', self.source / 'rules/phase-finalize.md'),
+        )
+        for command in (sync, setup, sync):
+            result = subprocess.run(command, cwd=project, env=self.environment, input='2\n',
+                                    capture_output=True, text=True, timeout=30)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            if command is setup:
+                for name, source in skills:
+                    link = project / '.claude/skills' / name
+                    self.assertTrue(link.is_symlink())
+                    self.assertEqual(source.read_bytes(), (link / 'SKILL.md').read_bytes())
+                    link.unlink()
+        for name, source in skills:
+            link = project / '.claude/skills' / name
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(source.read_bytes(), (link / 'SKILL.md').read_bytes())
 
 
 if __name__ == '__main__':

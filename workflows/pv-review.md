@@ -1,5 +1,7 @@
 ---
 description: Validation Step 2 — Code review: readability, architecture consistency, security, edge cases
+phase: validation
+step: 2
 ---
 
 Invocation: `/pv-review <task-directory>`

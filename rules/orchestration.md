@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the Orchestrail orchestration rules for workflow execution.
+load: always
 ---
 
 # Orchestration Contract
@@ -64,7 +65,7 @@ It **pauses once, at RED**: after `/pae-tests` it reports the RED digest and the
 wrote, and waits. That pause exists so the orchestrator can create the test-only commit
 `git-flow → ## Commits` requires — the Implementer never runs `git` itself. One message resumes
 it, in the same context, for `/pae-implement` → `/pae-finalize`. Sequence:
-`/spec-run → ## Step 4 → 4.2`.
+`/spec-run → ## Step 4 — Subtask loop`, step 4.2.
 
 Receives: the path to one `T-XX/description.md`, the resolved `WORK_DIR` (in a
 multi-repository run, the leaf's repository — `git-flow → ## Multi-repository runs`), and the
@@ -72,7 +73,7 @@ branch it is on. Loads `.ai/` context itself per the standalone-invocation rule.
 transcript from previous subtasks — the parent `state.md` is the handoff.
 
 The existing RED return may carry the provisional dispatch envelope supplied by
-`/spec-run → ## Step 4 → 4.2`. Return the canonical final marker only for an actual
+`/spec-run → ## Step 4 — Subtask loop`, step 4.2. Return the canonical final marker only for an actual
 RED return, following `run-log → ## Workflow coverage and routing` and its native
 evidence contract. The Orchestrator resolves that checkpoint before its git handoff;
 the worker still owns no producer call. This adds no worker, pause or skill batch.

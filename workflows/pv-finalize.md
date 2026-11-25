@@ -1,5 +1,7 @@
 ---
 description: Validation Step 6 — Finalize validation, update state files, compress context
+phase: validation
+step: 6
 ---
 
 Invocation: `/pv-finalize <task-directory>`

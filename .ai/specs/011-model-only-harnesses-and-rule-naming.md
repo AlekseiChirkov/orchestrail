@@ -1191,8 +1191,9 @@ This does not revise existing authorization, finalization completion or deployme
 the engine; other arguments keep today's behaviour. Steps in order:
 
 1. Source checks (current `:26-34`, with `harness` added to the required directories).
-2. `bash "$ROOT/scripts/validate-contracts.sh"` (unchanged, `:40-45`).
-3. Runtime guard (REQ-56).
+2. Runtime guard (REQ-56). Reject an unsupported Python before running validation,
+   which also uses Python.
+3. `bash "$ROOT/scripts/validate-contracts.sh"` (unchanged, `:40-45`).
 4. Hook installation (unchanged, `:51-56`).
 5. `bash "$ROOT/scripts/report-legacy-artifacts.sh" global`.
 6. For each root printed by `python3 -I "$ROOT/scripts/deploy-skills.py" list-projects`
@@ -2129,6 +2130,11 @@ All three items are adopted by spec 021:
 - 2026-11-25 — applied the existing two-part split without renumbering the specification;
   specified intermediate checker, semantics-record and setup behavior and retained the full
   final criteria. The split and intermediate contracts passed independent review.
+- 2026-11-25 — Phase 1 source and fixtures validated at
+  `06236d4e8a6b188fc235481255ab69af7c2c73d4`. The sync interface now records the Python
+  guard before validator execution, as required by REQ-56. The isolated
+  Python 3.10 case verified the exact diagnostic and write protection. Phase 2 awaits
+  owner integration. The final name table and integrated verdict remain pending.
 
 ## Readiness Checklist
 

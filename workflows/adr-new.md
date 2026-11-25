@@ -1,5 +1,7 @@
 ---
 description: Write an architectural decision record at the moment the decision is made, from a task directory or an explicit decision
+phase: utility
+step: "-"
 ---
 
 Invocation: `/adr-new <source> [--title "<short title>"] [--provisional]`

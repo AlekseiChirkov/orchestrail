@@ -1,5 +1,7 @@
 ---
 description: Governed entry point for a defect — reproduce, freeze the reproduction as a failing test, fix, verify, record
+phase: entry
+step: "-"
 ---
 
 Invocation: `/bugfix "<defect description, URL, or file>" [--auto-mode] [--no-repro]`

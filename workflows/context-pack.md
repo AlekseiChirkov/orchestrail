@@ -1,5 +1,7 @@
 ---
 description: Utility — build or check a manifest-verified cache of shared project context
+phase: utility
+step: "-"
 ---
 
 Invocation: `/context-pack [--refresh] [--check] [--task <task-directory>]`

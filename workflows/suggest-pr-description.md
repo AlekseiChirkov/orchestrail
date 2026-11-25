@@ -1,5 +1,7 @@
 ---
 description: Suggest a PR description for the current changes — output is ready to copy
+phase: utility
+step: "-"
 ---
 
 Invocation: `/suggest-pr-description [--staged | --branch <base>]`

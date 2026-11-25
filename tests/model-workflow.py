@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from typing import Any
 import unittest
@@ -46,19 +47,30 @@ def reachability_errors(root: Path) -> list[str]:
 
 
 def installed_caller_fixtures(directory: Path) -> list[Path]:
-    sync = (ROOT / "scripts/sync.sh").read_text()
-    harnesses = sorted(set(re.findall(
-        r'cp "\$file" ~/(\.(?:claude|codex))/skills/\$(?:name|skill_name)/SKILL\.md', sync)))
-    if harnesses != [".claude", ".codex"]:
-        raise ValueError("fixture requires the actual Claude and Codex skill-copy layout")
+    config = directory.parent / "deployment-config"
+    state = directory.parent / "deployment-state"
+    environment = dict(os.environ, HOME=str(directory), XDG_CONFIG_HOME=str(config),
+                       XDG_STATE_HOME=str(state))
+    result = subprocess.run(
+        [sys.executable, "-I", str(ROOT / "scripts/deploy-skills.py"), "deploy", "--from", str(ROOT),
+         "--hook-result", '{"reason":"fixture","status":"unavailable"}'],
+        cwd=directory.parent, env=environment, text=True, capture_output=True, timeout=15,
+    )
+    if result.returncode:
+        raise ValueError(result.stderr or result.stdout)
+
     installed = []
-    for harness in harnesses:
+    for harness in ("claude", "codex"):
+        manifest = json.loads((config / "orchestrail/deploy" / f"{harness}.json").read_bytes())
+        skills = Path(manifest["skills_dir"]).resolve()
+        if not skills.is_relative_to(directory.resolve()):
+            raise ValueError(f"{harness} deployment escaped the fixture HOME")
         for relative in GUIDE_CALLERS:
             source = ROOT / relative
             name = ("rule-" if relative.startswith("rules/") else "") + source.stem
-            target = directory / harness / "skills" / name / "SKILL.md"
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
+            target = skills / name / "SKILL.md"
+            if target.read_bytes() != source.read_bytes():
+                raise ValueError(f"{harness} deployed different caller bytes for {relative}")
             installed.append(target)
     return installed
 

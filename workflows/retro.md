@@ -1,5 +1,7 @@
 ---
 description: Analyse the run log across projects and report what to change in the workflows themselves — the only reader of the log store
+phase: utility
+step: "-"
 ---
 
 Invocation: `/retro [--since <YYYY-MM-DD>] [--pipeline <name>] [--project <path>] [--limit <N>]`

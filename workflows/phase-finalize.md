@@ -1,5 +1,7 @@
 ---
 description: Finalization — close one validated task after integration with evidence, safe cleanup and lossless archival
+phase: finalization
+step: "-"
 ---
 
 Invocation: `/phase-finalize <task-directory|spec-path> [--dry-run]`

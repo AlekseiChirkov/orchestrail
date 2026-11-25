@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Workflow process reference — load when using any /phase-* or child workflow slash command.
+load: on-demand
 ---
 
 # Workflow Process Reference

@@ -1,5 +1,7 @@
 ---
 description: Atomic Validation Step 3 — Close the task, update parent plan status to reviewed
+phase: atomic-validation
+step: 3
 ---
 
 Invocation: `/pav-close <path-to-atomic-description>`

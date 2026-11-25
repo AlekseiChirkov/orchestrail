@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the Orchestrail Git branching, commit, and pull request contract.
+load: always
 ---
 
 # Git Flow Contract

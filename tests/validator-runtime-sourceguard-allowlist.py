@@ -17,7 +17,9 @@ spec.loader.exec_module(contract)
 class SourceGuardAllowlist(unittest.TestCase):
     def test_registration_is_required_and_immutable(self) -> None:
         source = (ROOT / 'scripts/validate-contracts.sh').read_text()
-        frozen = contract.load_frozen_inventory(ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz')
+        inventory_path = ROOT / 'tests/fixtures/validator-runtime/source-inventory.json.gz'
+        frozen = contract.load_frozen_inventory(inventory_path)
+        amendment = contract.load_pinned_amendment(inventory_path)
         name = 'test_nested_validator_source_guard'
         start = source.index('check "' + name + '"')
         end = source.index('\n', source.index('\n', start) + 1) + 1
@@ -43,7 +45,7 @@ class SourceGuardAllowlist(unittest.TestCase):
                 with self.subTest(case=label):
                     path.write_text(candidate)
                     try:
-                        actual = contract.ORACLE.inventory(path, include_resources=False)
+                        actual = contract.amended_source_inventory(path, amendment, include_resources=False)
                         accepted = contract.ORACLE.matches_structure(frozen, actual)
                     except ValueError:
                         accepted = False

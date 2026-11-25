@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the eligibility and execution rules for Orchestrail quick flows.
+load: always
 ---
 
 # Quick-Flow tier

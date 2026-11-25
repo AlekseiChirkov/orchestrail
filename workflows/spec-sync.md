@@ -1,5 +1,7 @@
 ---
 description: Reconcile implementation against its spec — record verified delivery and approved divergences without weakening requirements
+phase: entry
+step: "-"
 ---
 
 Invocation: `/spec-sync <task-directory> [--auto-mode] [--dry-run]`

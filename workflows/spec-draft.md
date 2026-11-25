@@ -1,5 +1,7 @@
 ---
 description: Standalone SDD authoring — turn a link, text, or file into a development-ready specification; interactive by default, autonomous with --auto-mode
+phase: entry
+step: "-"
 ---
 
 Invocation: `/spec-draft <task-input> [--auto-mode | --brain-storm] [--output <path>]`

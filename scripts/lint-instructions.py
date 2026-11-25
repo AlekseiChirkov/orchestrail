@@ -24,6 +24,9 @@ FORBIDDEN_SEPARATORS = re.compile(r"[\x1c-\x1f]")
 UNSUPPORTED_SCALAR_PREFIXES = ("'", "[", "{", "|", ">", "&", "*", "!", "%", "@", "`")
 ALWAYS_ON_WORD_LIMIT = 1200
 HARNESS_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+DEPLOY_ENV_REQUIRED = frozenset({"skills_dir", "always_on_path"})
+DEPLOY_ENV_FIELDS = DEPLOY_ENV_REQUIRED | {"project_skills_link_dir"}
+DEPLOY_ENV_PATH = re.compile(r"[A-Za-z0-9._/-]+")
 CAPABILITY_HEADING = "## Capability records"
 CAPABILITY_NAME = re.compile(r"name: ([a-z0-9-]+)")
 CAPABILITY_FIELD = re.compile(r"(state|runtime|verified|evidence): (.*)")
@@ -86,31 +89,33 @@ class InstructionLint:
         relative = path.relative_to(self.root).as_posix()
         self.findings.append(f"{code} {relative}:{line} {message}")
 
-    def read_text(self, path: Path) -> str | None:
+    def read_text(self, path: Path, error_code: str = "input-encoding") -> str | None:
         if path not in self.inputs:
-            self.inputs[path] = self.read_input(path)
+            self.inputs[path] = self.read_input(path, error_code)
         return self.inputs[path]
 
-    def read_input(self, path: Path) -> str | None:
+    def read_input(self, path: Path, error_code: str) -> str | None:
         try:
             resolved = path.resolve()
             if not resolved.is_relative_to(self.resolved_root):
-                self.report("input-encoding", path, 0, "Input points outside the source tree.")
+                self.report(error_code, path, 0, "Input points outside the source tree.")
                 return None
-            text = resolved.read_bytes().decode("utf-8")
-        except UnicodeDecodeError:
-            self.report("input-encoding", path, 0, "File must be valid UTF-8.")
+            data = resolved.read_bytes()
+            text = data.decode("utf-8")
+        except UnicodeDecodeError as error:
+            line = data.count(b"\n", 0, error.start) + 1 if error_code == "deploy-env-invalid" else 0
+            self.report(error_code, path, line, "File must be valid UTF-8.")
             return None
         except OSError as error:
-            self.report("input-encoding", path, 0, f"Cannot read input: {error.strerror}.")
+            self.report(error_code, path, 0, f"Cannot read input: {error.strerror}.")
             return None
         except RuntimeError:
-            self.report("input-encoding", path, 0, "Cannot resolve input path.")
+            self.report(error_code, path, 0, "Cannot resolve input path.")
             return None
         separator = FORBIDDEN_SEPARATORS.search(text)
         if separator is not None:
             line = text.count("\n", 0, separator.start()) + 1
-            self.report("input-encoding", path, line, "Forbidden text separator U+001C–U+001F.")
+            self.report(error_code, path, line, "Forbidden text separator U+001C–U+001F.")
             return None
         return text
 
@@ -611,7 +616,7 @@ def check_capability_records(
     return records
 
 
-def check_capabilities(lint: InstructionLint, path: Path, declaration: str, deploy_env: str) -> None:
+def check_capabilities(lint: InstructionLint, path: Path, declaration: str, always_on_path: str) -> None:
     lines = declaration.replace("\r\n", "\n").split("\n")
     headings = [index for index, line in enumerate(lines) if line == CAPABILITY_HEADING]
     if not headings:
@@ -630,14 +635,12 @@ def check_capabilities(lint: InstructionLint, path: Path, declaration: str, depl
         lint.report("capability-schema", path, start, "Canonical capabilities are out of order.")
 
     locations = [(index, line) for index, line in enumerate(lines) if line.startswith("always-on-path:")]
-    declared_paths = [line.removeprefix("always_on_path=") for line in deploy_env.split("\n")
-                      if line.startswith("always_on_path=")]
     if len(locations) != 1:
         lint.report("always-on-path-mismatch", path, 0, "Expected one always-on-path line.")
     else:
         index, line = locations[0]
         label, _, value = line.partition(": ")
-        if not (start <= index < end and label == "always-on-path" and value and declared_paths == [value]):
+        if not (start <= index < end and label == "always-on-path" and value == always_on_path):
             lint.report("always-on-path-mismatch", path, index + 1, "Location must match deploy.env.")
 
     if "hooks" in records:
@@ -655,22 +658,58 @@ def check_always_on(lint: InstructionLint, path: Path, body: str, declaration: s
         lint.report("always-on-size", path, 0, f"Body has {count} words (limit {ALWAYS_ON_WORD_LIMIT}).")
 
 
+def read_deploy_env(lint: InstructionLint, path: Path) -> dict[str, str] | None:
+    text = lint.read_text(path, "deploy-env-invalid")
+    if text is None:
+        return None
+
+    entries: dict[str, str] = {}
+    for number, line in enumerate(text.split("\n"), 1):
+        if "\r" in line or "\0" in line:
+            lint.report("deploy-env-invalid", path, number, "Invalid character in adapter declaration.")
+            return None
+        if not line or line.startswith("#"):
+            continue
+        key, equals, value = line.partition("=")
+        required = key in DEPLOY_ENV_REQUIRED
+        relative = value.removeprefix("$HOME/") if required else value
+        if (not equals or key not in DEPLOY_ENV_FIELDS or key in entries
+                or (required and not value.startswith("$HOME/"))
+                or not DEPLOY_ENV_PATH.fullmatch(relative) or not safe_parts(relative)):
+            lint.report("deploy-env-invalid", path, number, "Invalid adapter assignment.")
+            return None
+        entries[key] = value
+
+    missing = DEPLOY_ENV_REQUIRED - entries.keys()
+    if missing:
+        lint.report("deploy-env-invalid", path, 0, f"Missing required keys: {', '.join(sorted(missing))}.")
+        return None
+    return entries
+
+
 def check_harness_instructions(lint: InstructionLint) -> None:
     for directory in sorted((lint.root / "harness").glob("*")):
+        if not HARNESS_NAME.fullmatch(directory.name) or directory.is_symlink() or not directory.is_dir():
+            continue
         body_path = directory / "always-on.md"
         capability_path = directory / "capabilities.md"
         deploy_path = directory / "deploy.env"
-        body = lint.read_text(body_path) if body_path.exists() or body_path.is_symlink() else None
-        has_deploy = HARNESS_NAME.fullmatch(directory.name) is not None and deploy_path.exists()
-        declaration = None
-        if (body is not None or has_deploy) and (capability_path.exists() or capability_path.is_symlink()):
-            declaration = lint.read_text(capability_path)
+        if not any(path.exists() or path.is_symlink() for path in (deploy_path, capability_path)):
+            continue
+        missing = [path for path in (deploy_path, capability_path, body_path)
+                   if path.is_symlink() or not path.is_file()]
+        if missing:
+            for path in missing:
+                lint.report("adapter-incomplete", path, 0, "Expected a regular adapter file.")
+            continue
+
+        deployment = read_deploy_env(lint, deploy_path)
+        declaration = lint.read_text(capability_path)
+        body = lint.read_text(body_path)
         if body is not None:
             check_always_on(lint, body_path, body, declaration)
-        if has_deploy and declaration is not None:
-            deploy_env = lint.read_text(deploy_path)
-            if deploy_env is not None:
-                check_capabilities(lint, capability_path, declaration, deploy_env)
+        if deployment is not None and declaration is not None:
+            check_capabilities(lint, capability_path, declaration, deployment["always_on_path"])
 
 
 def main() -> int:

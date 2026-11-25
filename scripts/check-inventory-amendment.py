@@ -3,6 +3,7 @@
 
 import copy
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -27,9 +28,21 @@ MAP_ROWS = [
 ]
 ORACLE_CHECK = "OracleContract.test_frozen_source_detects_actual_name_expression_and_order_changes"
 
+sys.dont_write_bytecode = True
+ORACLE_SPEC = importlib.util.spec_from_file_location("inventory_amendment_oracle", ROOT / ORACLE)
+if ORACLE_SPEC is None or ORACLE_SPEC.loader is None:
+    raise ImportError(f"Cannot load the inventory oracle from {ROOT / ORACLE}")
+AMENDMENT_ORACLE = importlib.util.module_from_spec(ORACLE_SPEC)
+ORACLE_SPEC.loader.exec_module(AMENDMENT_ORACLE)
+
 
 class AmendmentContract(unittest.TestCase):
     def setUp(self) -> None:
+        current = AMENDMENT_ORACLE.load_pinned_amendment(ROOT / AMENDMENT)
+        replacements = AMENDMENT_ORACLE.validate_replacements(current, ROOT)
+        source = (ROOT / VALIDATOR).read_bytes().decode("utf-8")
+        self.validator = AMENDMENT_ORACLE.reconstruct_source(source, replacements)
+
         workspace = tempfile.TemporaryDirectory(prefix="inventory-amendment-")
         self.addCleanup(workspace.cleanup)
         self.root = Path(workspace.name)
@@ -44,9 +57,7 @@ class AmendmentContract(unittest.TestCase):
             for child in (ROOT / directory).iterdir():
                 if child.name not in skip:
                     (self.root / directory / child.name).symlink_to(child)
-        self.validator = (ROOT / VALIDATOR).read_text(encoding="utf-8")
         self.original_oracle = (ROOT / ORACLE).read_text(encoding="utf-8")
-        current = json.loads((ROOT / AMENDMENT).read_bytes())
         self.legacy = {k: copy.deepcopy(current[k])
                        for k in ("paths", "removed_results", "resources", "added")}
         self.legacy["schema"] = 1
@@ -107,6 +118,16 @@ class AmendmentContract(unittest.TestCase):
     def rewrite(self, entry: dict) -> str:
         self.assertEqual(self.validator.count(entry["before"]), 1)
         return self.validator.replace(entry["before"], entry["after"], 1)
+
+    def test_synthetic_validator_restores_reviewed_replacements(self) -> None:
+        delivered = json.loads((ROOT / AMENDMENT).read_bytes())
+        replacements = delivered["path_changes"] + delivered["contract_changes"]
+        self.assertTrue(replacements, "Expected reviewed replacements in the delivered amendment")
+        unrestored = [
+            entry["key"] for entry in replacements
+            if self.validator.count(entry["before"]) != 1 or entry["after"] in self.validator
+        ]
+        self.assertEqual(unrestored, [], "Synthetic validator must start with the reviewed before values")
 
     def test_schema_upgrade_preserves_existing_inventory(self) -> None:
         self.accepts(self.legacy, self.validator)

@@ -1,5 +1,7 @@
 ---
 description: Orchestrator — carry one spec from Discovery to review-ready pull requests, one stacked branch per subtask, using context-bounded sub-agents
+phase: orchestrated
+step: "-"
 ---
 
 Invocation: `/spec-run <path-to-spec> [--repo <directory>=<base-branch> ...] [--allow-pr] [--dry-run]`

@@ -1,5 +1,7 @@
 ---
 description: Execution Step 2 — Summary report, update state files, compress context
+phase: execution
+step: 2
 ---
 
 Invocation: `/pe-finalize <task-directory>`

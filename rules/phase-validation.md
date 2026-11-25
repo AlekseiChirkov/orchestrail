@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for validation phase — load when running /phase-validation, /pv-contract, /pv-review, /pv-issues
+load: on-demand
 ---
 
 # Phase: Validation — Context Rules

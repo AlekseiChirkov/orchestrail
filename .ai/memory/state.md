@@ -6,7 +6,7 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
-- [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | phase: discovery | status: complete | note: 17 implementation leaves and two composites planned; model recommendations are preliminary and execution requires a separate eligibility check.
+- [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | phase: validation | status: reviewed | note: 17 implementation leaves, two composites and two validation repairs passed. PRs #139–#157 await owner integration before Phase 2.
 
 Specification references were reviewed against the three-digit mapping; corrections and
 the outstanding parallel-program reconciliation are recorded in [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).

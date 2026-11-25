@@ -804,10 +804,7 @@ class HookInstallation(unittest.TestCase):
             ('rules','.codex/skills','rule-'), ('principles','.codex/skills','principle-')):
             for path in (self.checkout / source_folder).glob('*.md'):
                 self.assertEqual(path.read_bytes(), (self.home / target_folder / (prefix + path.stem) / 'SKILL.md').read_bytes())
-        for folder in ('workflows','rules','principles'):
-            for path in (self.checkout / folder).glob('*.md'):
-                destination = 'global_workflows' if folder == 'workflows' else 'global_rules'
-                self.assertEqual(path.read_bytes(), (self.home / '.codeium/windsurf' / destination / path.name).read_bytes())
+        self.assertFalse((self.home / '.codeium').exists())
         self.assertFalse(self.registry.exists(), 'sync must not register the source or consumers implicitly')
 
     def test_hook_sync_unavailable_installation_still_refreshes_consumer_projects(self) -> None:
@@ -817,16 +814,19 @@ class HookInstallation(unittest.TestCase):
         for folder in ('.devin/rules','.windsurf/rules','.claude/skills','.devin/workflows'):
             (consumer / folder).mkdir(parents=True, exist_ok=True)
         (consumer / '.devin/rules/tdd.md').write_text('stale')
+        (consumer / '.windsurf/rules/tdd.md').write_text('legacy rule')
         (consumer / '.devin/workflows/phase-discovery.md').write_text('stale')
         (consumer / '.devin/workflows/custom.md').write_text('custom')
+        self.registry.parent.mkdir(parents=True, exist_ok=True)
+        self.registry.write_text(str(consumer) + '\n')
         self.sync()
         claude = (self.home / '.claude/CLAUDE.md').read_text()
         self.assertIn('unavailable', claude, 'sync must disclose failed native installation')
         self.assertEqual(self.settings.read_text(), '{malformed')
-        self.assertEqual((consumer / '.devin/rules/tdd.md').read_bytes(), (self.checkout / 'rules/tdd.md').read_bytes())
-        self.assertEqual((consumer / '.windsurf/rules/tdd.md').read_bytes(), (self.checkout / 'rules/tdd.md').read_bytes())
+        self.assertEqual((consumer / '.devin/rules/tdd.md').read_text(), 'stale')
+        self.assertEqual((consumer / '.windsurf/rules/tdd.md').read_text(), 'legacy rule')
         self.assertTrue((consumer / '.claude/skills/pae-tests').is_symlink())
-        self.assertFalse((consumer / '.devin/workflows/phase-discovery.md').exists())
+        self.assertEqual((consumer / '.devin/workflows/phase-discovery.md').read_text(), 'stale')
         self.assertEqual((consumer / '.devin/workflows/custom.md').read_text(), 'custom')
 
     # The git-rails PreToolUse registration shares the installer guarantees of the

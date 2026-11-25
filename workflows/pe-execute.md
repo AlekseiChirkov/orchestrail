@@ -1,5 +1,7 @@
 ---
 description: Execution Step 1 — Execute all pending subtasks via atomic execution → validation cycles
+phase: execution
+step: 1
 ---
 
 Invocation: `/pe-execute <task-directory>`
