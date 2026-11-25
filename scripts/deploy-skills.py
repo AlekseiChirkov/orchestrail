@@ -980,7 +980,11 @@ def _apply_plan(
     for notice in plan.notices:
         if not notice.startswith("keep-nonempty "):
             print(notice)
-    for directory in plan.leftovers:
+    _report_leftovers(plan.leftovers)
+
+
+def _report_leftovers(directories: tuple[Path, ...]) -> None:
+    for directory in directories:
         print(f"leftover {directory} (not removed; review, then remove it manually)")
 
 
@@ -1271,6 +1275,7 @@ def _deploy(source: Path, hook_result: str, *, force: bool) -> int:
             print("deferred: active consumers")
             for project, task in active.items():
                 print(f"active {project} {task}")
+            _report_leftovers(plan.leftovers)
             return 3
 
         _apply_plan(plan, locked_state, always_on_targets=always_on_targets, write_journal=write_journal)
