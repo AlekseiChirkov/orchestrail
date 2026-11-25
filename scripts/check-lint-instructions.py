@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the instruction lint command with isolated source trees."""
 
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -214,6 +215,133 @@ class InstructionMetadataTests(unittest.TestCase):
             with self.subTest(mutation=label):
                 self.write("harness/fixture-second/capabilities.md", declaration + "\n")
                 self.assert_finding(self.run_checker(), code, "harness/fixture-second/capabilities.md")
+
+    def test_reports_legacy_mentions_with_source_lines_and_exclusions(self) -> None:
+        self.write("rules/contract-guide.md", RULE + "\n\nWindsurf integration\n")
+        self.write("scripts/report-legacy-artifacts.sh", "Windsurf integration\n")
+        self.write(
+            "docs/USAGE.md",
+            "# Usage\n\n## Removed integrations\n\nWindsurf\n\n### Notes\nDevin\n"
+            "\n## Setup\nCODEIUM and developing projects\n",
+        )
+
+        result = self.run_checker()
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        locations = {line.split()[1] for line in result.stdout.splitlines() if line.startswith("legacy-mention ")}
+        self.assertEqual(locations, {"rules/contract-guide.md:7", "docs/USAGE.md:11"}, result.stdout)
+
+    def test_rejects_invalid_name_maps_without_hiding_metadata_errors(self) -> None:
+        valid_row = {"kind": "rule", "old": "guide", "new": ["contract-guide"]}
+        invalid_rows = {
+            "missing target": [{**valid_row, "new": []}],
+            "workflow split": [{**valid_row, "kind": "workflow", "new": ["main", "extra"]}],
+            "unknown row field": [{**valid_row, "reason": "Move"}],
+            "malformed name": [{**valid_row, "old": "Guide"}],
+            "unsafe file path": [{"kind": "file", "old": "../README.md", "new": ["docs/Guide.md"]}],
+            "duplicate identity": [valid_row, {**valid_row, "new": ["contract-reference"]}],
+            "duplicate target in a row": [{**valid_row, "new": ["contract-guide", "contract-guide"]}],
+            "duplicate target across rows": [valid_row, {**valid_row, "old": "reference"}],
+            "target is an old name": [valid_row, {**valid_row, "old": "contract-guide", "new": ["main"]}],
+            "unsorted rows": [{**valid_row, "old": "reference", "new": ["contract-reference"]}, valid_row],
+        }
+        invalid_maps = {label: json.dumps({"schema_version": 1, "rows": rows}) for label, rows in invalid_rows.items()}
+        invalid_maps.update({
+            "duplicate JSON key": '{"schema_version": 1, "rows": [], "rows": []}',
+            "incorrect schema version": '{"schema_version": true, "rows": []}',
+            "invalid JSON": "[",
+        })
+        self.write("rules/contract-unrelated.md", RULE.replace("load: on-demand\n", ""))
+
+        for label, document in invalid_maps.items():
+            with self.subTest(mutation=label):
+                self.write("docs/name-map.json", document)
+
+                result = self.run_checker()
+
+                self.assert_finding(result, "metadata-missing-field", "rules/contract-unrelated.md")
+                self.assert_finding(result, "name-map-invalid", "docs/name-map.json")
+
+    def test_requires_the_usage_table_to_list_each_split_target(self) -> None:
+        self.write("docs/name-map.json", json.dumps({
+            "schema_version": 1,
+            "rows": [{"kind": "rule", "old": "guide", "new": ["contract-guide", "contract-guide-extra"]}],
+        }))
+        heading = "## Renamed commands and rules\n\n| Kind | Old | New |\n| --- | --- | --- |\n"
+        row = "| rule | `guide` | `contract-guide`"
+        self.write("docs/USAGE.md", f"{heading}{row} |\n")
+
+        self.assert_finding(self.run_checker(), "usage-map-mismatch", "docs/USAGE.md")
+
+        self.write("docs/USAGE.md", f"{heading}{row}, `contract-guide-extra` |\n")
+        aligned = self.run_checker()
+        self.assertEqual(aligned.returncode, 0, aligned.stdout + aligned.stderr)
+
+    def test_resolves_executable_references_and_section_order(self) -> None:
+        self.write("rules/contract-target.md", RULE + "\n## Guide — Notes\n### Run\n#### Finish\n## End\n")
+        self.write("workflows/run.md", workflow("1", name="run"))
+        examples = (
+            ("Invoke `/run.md --dry-run`.", "reference-md-suffix"),
+            ("Read `contract-target.md → ## Guide`.", "reference-md-suffix"),
+            ("Invoke `/absent --dry-run`.", "reference-missing"),
+            ("Read `no-such-stem → ## Guide`.", "reference-missing"),
+            ("Load `rule-contract-absent`.", "reference-missing"),
+            ("Load `contract-absent` rules.", "reference-missing"),
+            ("Read `rules/contract-absent.md`.", "reference-missing"),
+            ("Read `contract-target → ## End → ### Run`.", "heading-missing"),
+            ("Read `contract-target → ## Absent`.", "heading-missing"),
+            ("Run `/run --dry-run` and read `rules/contract-target.md`.", None),
+            ("Read `/contract-target → ## Guide → ### Run → #### Finish`.", None),
+            ("Read `state.md → ## Guide` and `principles/consumer.md`.", None),
+            ("`` Rule `rule-contract-absent` goes in the example. ``", None),
+            ("~~~md\n`/fenced-example`\n~~~", None),
+        )
+        source = "rules/contract-source.md"
+        self.write(source, RULE + "\n" + "\n".join(example for example, _ in examples) + "\n")
+        expected = {
+            f"{code} {source}:{i}"
+            for i, (_, code) in enumerate(examples, start=6) if code is not None
+        }
+
+        result = self.run_checker()
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual({" ".join(line.split()[:2]) for line in result.stdout.splitlines()}, expected, result.stdout)
+
+    def test_reports_stale_names_with_scan_and_retention_exceptions(self) -> None:
+        self.write("docs/name-map.json", json.dumps({"schema_version": 1, "rows": [
+            {"kind": "file", "old": "workflows/GUIDE.md", "new": ["docs/GUIDE.md"]},
+            {"kind": "rule", "old": "guide", "new": ["contract-guide"]},
+            {"kind": "workflow", "old": "old-command", "new": ["new-command"]},
+        ]}))
+        self.write(
+            "docs/USAGE.md",
+            "## Renamed commands and rules\n\n| Kind | Old | New |\n| --- | --- | --- |\n"
+            "| file | `workflows/GUIDE.md` | `docs/GUIDE.md` |\n"
+            "| rule | `guide` | `contract-guide` |\n"
+            "| workflow | `old-command` | `new-command` |\n",
+        )
+        self.write("README.md", "Use /old-command\nSee docs/GUIDE.md\nSee workflows/GUIDE.md\n")
+        self.write("templates/.ai/example.md", "Load `guide` rule.\nUse my-old-command.\nUse guide.\n")
+        self.write("tests/fixtures/validator-runtime/source.txt", "old-command\n")
+        self.write("scripts/check-lint-instructions.py", "old-command\n")
+        self.write(
+            "scripts/validate-contracts.sh",
+            '  # old-command\ncheck "old-command" "$(old-command)"\nkeep old-command\n',
+        )
+        self.write(
+            "docs/audits/2024-02-29-rule-migration-map.md",
+            "## Retained old names\n\n| Path | Line text | Reason |\n| --- | --- | --- |\n"
+            "| `scripts/validate-contracts.sh` | `keep old-command` | Fixed historical label |\n",
+        )
+
+        result = self.run_checker()
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        locations = {line.split()[1] for line in result.stdout.splitlines() if line.startswith("stale-name ")}
+        self.assertEqual(locations, {
+            "README.md:1", "README.md:3", "templates/.ai/example.md:1", "scripts/validate-contracts.sh:2",
+        }, result.stdout)
 
 
 if __name__ == "__main__":
