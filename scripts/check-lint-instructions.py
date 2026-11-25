@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the instruction lint command with isolated source trees."""
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import unittest
 
 
 CHECKER = Path(__file__).resolve().with_name("lint-instructions.py")
+SOURCE = CHECKER.parents[1]
 RULE = '---\ndescription: Check the contract\nload: on-demand\n---\n'
 CAPABILITY_KEYS = (
     "sub-agents",
@@ -215,6 +217,64 @@ class InstructionMetadataTests(unittest.TestCase):
             with self.subTest(mutation=label):
                 self.write("harness/fixture-second/capabilities.md", declaration + "\n")
                 self.assert_finding(self.run_checker(), code, "harness/fixture-second/capabilities.md")
+
+    def test_delivers_harness_adapter_paths(self) -> None:
+        adapters = {
+            "claude": {
+                "skills_dir": "$HOME/.claude/skills",
+                "always_on_path": "$HOME/.claude/CLAUDE.md",
+                "project_skills_link_dir": ".claude/skills",
+            },
+            "codex": {
+                "skills_dir": "$HOME/.codex/skills",
+                "always_on_path": "$HOME/.codex/AGENTS.md",
+            },
+        }
+        for name, expected in adapters.items():
+            with self.subTest(adapter=name):
+                relative = f"harness/{name}/deploy.env"
+                adapter = SOURCE / relative
+                self.assertTrue(adapter.is_file(), f"Missing delivered adapter declaration: {relative}")
+                lines = adapter.read_bytes().decode("utf-8").split("\n")
+                actual = [line for line in lines if line and not line.startswith("#")]
+                self.assertCountEqual(actual, [f"{key}={value}" for key, value in expected.items()])
+
+    def test_delivered_capabilities_preserve_prior_text_and_validate(self) -> None:
+        # Hash the original prefix to protect existing text without copying it into the fixtures.
+        originals = {
+            "claude": (11057, "c46c9d152c9e62c4a2961c3860e49302fc232ff7509d133f3e0e995c33779f3c", "yes"),
+            "codex": (672, "3c646d8e248e84f846900f785338a58104809201789b47da7279ee2971f16613", "no"),
+        }
+        for name, (length, digest, hooks) in originals.items():
+            with self.subTest(adapter=name):
+                relative = f"harness/{name}/capabilities.md"
+                declaration = (SOURCE / relative).read_bytes()
+                self.assertEqual(hashlib.sha256(declaration[:length]).hexdigest(), digest)
+                lines = declaration[length:].decode("utf-8").lstrip("\n").splitlines()
+                self.assertTrue(lines and lines[0] == "## Capability records", f"Missing records in {relative}")
+                record_names = [line.removeprefix("name: ") for line in lines if line.startswith("name: ")]
+                canonical = [key for key in record_names if key in CAPABILITY_KEYS]
+                self.assertEqual(canonical, list(CAPABILITY_KEYS))
+
+                adapter = f"harness/{name}/deploy.env"
+                self.assertTrue((SOURCE / adapter).is_file(), f"Missing delivered adapter declaration: {adapter}")
+                self.write(adapter, (SOURCE / adapter).read_bytes())
+                self.write(relative, declaration)
+                result = self.run_checker()
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+                text = declaration.decode("utf-8")
+                path_line = next(line for line in lines if line.startswith("always-on-path: "))
+                other_hooks = "no" if hooks == "yes" else "yes"
+                mutations = {
+                    "capability-key-missing": text.replace("\nname: git\n", "\nname: auxiliary-git\n"),
+                    "always-on-path-mismatch": text.replace(path_line, "always-on-path: $HOME/other/instructions.md"),
+                    "hooks-state-mismatch": text.replace(f"\nhooks: {hooks}\n", f"\nhooks: {other_hooks}\n", 1),
+                }
+                for code, invalid in mutations.items():
+                    self.write(relative, invalid)
+                    self.assert_finding(self.run_checker(), code, relative)
+                self.write(relative, declaration)
 
     def test_reports_legacy_mentions_with_source_lines_and_exclusions(self) -> None:
         self.write("rules/contract-guide.md", RULE + "\n\nWindsurf integration\n")
