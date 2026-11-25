@@ -9,6 +9,7 @@ spec_phase_count: 2
 - execution: complete
 - validation: complete
 
+- finalization: complete
 ## Spec Phases
 - phase 1: complete — Offline review comparison — .ai/tasks/todo/task-25-spec-driven-pr-review-p1
 - phase 2: deferred — Deferred standalone service — —

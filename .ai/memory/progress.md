@@ -183,3 +183,5 @@ Defect found while archiving task 08: the archive's Markdown link relocation ski
 ## 2026-11-23 — Finalization evidence compatibility
 
 A consumer dry run reproduced a refusal on a three-column review table. Nine isolated regression tests produced 15 failing assertions before implementation. The reader now binds acceptance criteria by ID, requires unique evidenced matches for shortened review labels, resolves approved fix aliases against reviewed plan and progress records, and validates paired PR numbers and URLs before consulting GitHub. The unchanged consumer task then reached the integration-object check. Its two advertised remote integration commits were absent from their local repositories. No consumer files or refs were changed during diagnosis.
+
+- **2026-11-25 — Offline pilot integration verified and stack branches cleaned up.** GitHub reports PRs #132–#137 merged at `04f2c35`. The clean `main` checkout at `cb7b720` passed 27 offline fixture tests and 23 task checks. Finalization verified a self-contained recovery pack and confirmed removal of six local and six remote stack refs. Historical execution and standalone service work remain pending.
