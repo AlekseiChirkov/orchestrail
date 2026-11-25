@@ -11,6 +11,14 @@ import unittest
 
 CHECKER = Path(__file__).resolve().with_name("lint-instructions.py")
 RULE = '---\ndescription: Check the contract\nload: on-demand\n---\n'
+CAPABILITY_KEYS = (
+    "sub-agents",
+    "concurrent-sub-agents",
+    "agent-messaging",
+    "hooks",
+    "worktrees",
+    "git",
+)
 
 
 def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
@@ -22,6 +30,22 @@ def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
 
 def words(count: int) -> str:
     return " ".join(["word"] * count)
+
+
+def capability_record(name: str, state: str) -> str:
+    fields = f"name: {name}\nstate: {state}"
+    if state != "unknown":
+        fields += "\nruntime: Fixture runtime 1.0\nverified: 2024-02-29\nevidence: docs/example.md"
+    return f"{fields}\n\nLimitations: none known"
+
+
+def capability_declaration(name: str, hooks: str) -> str:
+    states = {"hooks": hooks, "worktrees": "unknown"}
+    records = "\n\n".join(capability_record(key, states.get(key, "yes")) for key in CAPABILITY_KEYS)
+    return (
+        f"# Fixture capabilities\n\nhooks: {hooks}\n\n## Capability records\n\n"
+        f"always-on-path: $HOME/{name}/instructions.md\n\n{records}"
+    )
 
 
 class InstructionMetadataTests(unittest.TestCase):
@@ -146,6 +170,50 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assert_finding(result, "input-encoding", "rules/contract-invalid-utf8.md")
         self.assert_finding(result, "input-encoding", "workflows/invalid-separator.md")
+
+    def test_checks_capability_records_for_each_adapter(self) -> None:
+        first = capability_declaration("fixture-first", "yes").replace(
+            "evidence: docs/example.md", "evidence: docs/example.md\nevidence: docs/another.md", 1,
+        )
+        second = capability_declaration("fixture-second", "no")
+        self.write_adapter("fixture-first", "Fixture instructions", first)
+        self.write_adapter("fixture-second", "Fixture instructions", second)
+
+        baseline = self.run_checker()
+        self.assertEqual(baseline.returncode, 0, baseline.stdout + baseline.stderr)
+
+        disabled_hooks = capability_record("hooks", "no")
+        mutations = {
+            "yes without evidence": (
+                second.replace("\nevidence: docs/example.md", "", 1), "capability-schema",
+            ),
+            "no without evidence": (
+                second.replace(disabled_hooks, disabled_hooks.replace("\nevidence: docs/example.md", "")),
+                "capability-schema",
+            ),
+            "impossible date": (second.replace("2024-02-29", "2023-02-29", 1), "capability-schema"),
+            "duplicate record": (f"{second}\n\n{capability_record('git', 'yes')}", "capability-schema"),
+            "duplicate records section": (
+                f"{second}\n\n## Capability records\n\n{capability_record('extension', 'unknown')}",
+                "capability-schema",
+            ),
+            "invalid state": (second.replace("state: unknown", "state: maybe"), "capability-schema"),
+            "missing limitations": (
+                second.replace("\n\nLimitations: none known", "", 1), "capability-schema",
+            ),
+            "missing canonical record": (
+                second.removesuffix(f"\n\n{capability_record('git', 'yes')}"), "capability-key-missing",
+            ),
+            "different location": (
+                second.replace("always-on-path: $HOME/fixture-second", "always-on-path: $HOME/fixture-first"),
+                "always-on-path-mismatch",
+            ),
+            "different hook state": (second.replace("\nhooks: no\n", "\nhooks: yes\n"), "hooks-state-mismatch"),
+        }
+        for label, (declaration, code) in mutations.items():
+            with self.subTest(mutation=label):
+                self.write("harness/fixture-second/capabilities.md", declaration + "\n")
+                self.assert_finding(self.run_checker(), code, "harness/fixture-second/capabilities.md")
 
 
 if __name__ == "__main__":
