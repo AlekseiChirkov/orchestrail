@@ -6,6 +6,7 @@
 > at Git revision `42325d2`. This specification's sequential capability gate is reconciled;
 > the parallel program retains its own unresolved implementation blockers.
 
+
 ## Source
 
 - **Origin:** the owner's instruction of 2026-09-16 — drop the binding to editors, keep the
