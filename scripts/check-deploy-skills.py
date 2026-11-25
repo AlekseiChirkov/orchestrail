@@ -564,6 +564,41 @@ class DeploymentPlanningTests(unittest.TestCase):
             root.symlink_to(new_root, target_is_directory=True)
             self.plan(fixture, refusal="target-moved")
 
+    def test_rejects_direct_and_resolved_legacy_targets(self) -> None:
+        for target in ("declared paths", "symlinked skill root"):
+            with self.subTest(target=target):
+                fixture = self.fixture()
+                legacy = fixture.home / ".codeium/windsurf"
+                fixture.write(legacy / "skills/current/SKILL.md", b"Retained legacy skill bytes")
+                if target == "declared paths":
+                    fixture.write(legacy / "AGENTS.md", b"Retained legacy instructions")
+                    fixture.adapter().write_bytes(
+                        b"skills_dir=$HOME/.codeium/windsurf/skills\n"
+                        b"always_on_path=$HOME/.codeium/windsurf/AGENTS.md\n",
+                    )
+                else:
+                    root = fixture.skills_dir()
+                    root.parent.mkdir()
+                    root.symlink_to(legacy / "skills", target_is_directory=True)
+
+                self.plan(fixture, refusal="adapter-conflict")
+
+    def test_rejects_target_inside_manifest_namespace(self) -> None:
+        fixture = self.fixture()
+        config = fixture.home / ".config"
+        fixture.environment["XDG_CONFIG_HOME"] = str(config)
+        retained = fixture.skill("current", "dormant")
+        fixture.write(retained, SKILL_BYTES)
+        obj = fixture.manifest_object(retained, SKILL_BYTES, "current")
+        dormant = config / "orchestrail/deploy/dormant.json"
+        fixture.write(dormant, fixture.manifest_bytes(fixture.manifest("dormant", obj)))
+        fixture.adapter().write_bytes(
+            b"skills_dir=$HOME/.alpha/skills\n"
+            b"always_on_path=$HOME/.config/orchestrail/deploy/dormant.json\n",
+        )
+
+        self.plan(fixture, refusal="adapter-conflict")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
