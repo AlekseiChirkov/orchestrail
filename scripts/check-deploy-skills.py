@@ -897,6 +897,61 @@ runpy.run_path(sys.argv[0], run_name="__main__")
 
         self.assert_refused(fixture, "adapter-conflict")
 
+    def assert_prewrite_refusal(self, fixture: PlannerFixture, code: str) -> None:
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertFalse(self.journal_path(fixture).exists(), result.stderr)
+        self.assertEqual(fixture.snapshot(), before)
+        self.assertRegex(result.stderr, rf"^ERROR {code}(?: [^\n]+)?: ")
+
+    def test_deploy_refuses_a_skill_root_at_another_targets_temporary_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        fixture.write(fixture.skill("current"), b"Previous first-harness skill\n")
+        fixture.adapter().write_bytes(
+            b"skills_dir=$HOME/.alpha/skills\nalways_on_path=$HOME/shared/AGENTS.md\n",
+        )
+        capabilities = fixture.adapter().with_name("capabilities.md")
+        capabilities.write_bytes(capabilities.read_bytes().replace(
+            b"$HOME/.alpha/AGENTS.md", b"$HOME/shared/AGENTS.md",
+        ))
+        fixture.adapter("omega").write_bytes(
+            b"skills_dir=$HOME/shared/.AGENTS.md.orchestrail-tmp\n"
+            b"always_on_path=$HOME/.omega/AGENTS.md\n",
+        )
+        root = fixture.home / "shared/.AGENTS.md.orchestrail-tmp"
+        fixture.write(root / "personal.md", b"Unowned bytes in the skill root\n")
+
+        self.assert_prewrite_refusal(fixture, "adapter-conflict")
+
+    def test_deploy_refuses_a_symlink_at_a_pending_replacements_temporary_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        skill = fixture.skill("current", "omega")
+        fixture.write(skill, b"Previous second-harness skill\n")
+        foreign = fixture.home / "personal.md"
+        fixture.write(foreign, b"Unowned bytes behind the link\n")
+        skill.with_name(".SKILL.md.orchestrail-tmp").symlink_to(foreign)
+
+        self.assert_prewrite_refusal(fixture, "unsafe-target")
+
+    def test_deploy_refuses_an_unencodable_journal_path(self) -> None:
+        fixture = self.fixture()
+        fixture.write(self.lock_path(fixture), b"Persistent lock\n")
+        fixture.skills_dir().mkdir(parents=True)
+        entry = {
+            "path": f"{fixture.skills_dir()}/\ud800/SKILL.md",
+            "old_sha256": None,
+            "new_sha256": hashlib.sha256(SKILL_BYTES).hexdigest(),
+        }
+        journal = {"schema_version": 1, "entries": [entry]}
+        fixture.write(self.journal_path(fixture), fixture.manifest_bytes(journal))
+
+        self.assert_refused(fixture, "journal-invalid")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
