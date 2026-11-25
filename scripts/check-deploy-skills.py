@@ -2,6 +2,7 @@
 """Check harness deployment contracts with isolated homes and project fixtures."""
 
 from contextlib import chdir
+import fcntl
 import hashlib
 import json
 import os
@@ -598,6 +599,303 @@ class DeploymentPlanningTests(unittest.TestCase):
         )
 
         self.plan(fixture, refusal="adapter-conflict")
+
+
+class DeploymentTransactionTests(unittest.TestCase):
+    def fixture(self) -> PlannerFixture:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        return PlannerFixture(Path(temporary.name).resolve())
+
+    @staticmethod
+    def lock_path(fixture: PlannerFixture) -> Path:
+        return fixture.config / "orchestrail/deploy.lock"
+
+    @staticmethod
+    def journal_path(fixture: PlannerFixture) -> Path:
+        return fixture.manifest_path("journal")
+
+    def deploy(
+        self, fixture: PlannerFixture, *, interrupt_after: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        launcher = []
+        if interrupt_after is not None:
+            # Kill only the fixture process just after a global atomic replacement completes.
+            launcher = ["-c", """
+import os
+from pathlib import Path
+import runpy
+import sys
+
+interrupt_after = Path(sys.argv[1])
+sys.argv = sys.argv[2:]
+replace = os.replace
+
+def replace_then_interrupt(source, target, **kwargs):
+    replace(source, target, **kwargs)
+    if Path(target).absolute() == interrupt_after:
+        os._exit(73)
+
+os.replace = replace_then_interrupt
+runpy.run_path(sys.argv[0], run_name="__main__")
+""", str(interrupt_after)]
+        return subprocess.run(
+            [sys.executable, "-I", *launcher, str(ENGINE), "deploy", "--from", str(fixture.source),
+             "--hook-result", HOOK_RESULT],
+            cwd=fixture.root,
+            env=fixture.environment,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=15,
+        )
+
+    def assert_no_temporary_files(self, fixture: PlannerFixture) -> None:
+        self.assertEqual(list(fixture.root.rglob(".*.orchestrail-tmp")), [])
+
+    def assert_refused(self, fixture: PlannerFixture, code: str) -> None:
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+        self.assertEqual(fixture.snapshot(), before)
+        self.assert_no_temporary_files(fixture)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertRegex(result.stderr, rf"^ERROR {code}(?: [^\n]+)?: ")
+
+    def assert_deployed(self, fixture: PlannerFixture) -> None:
+        self.assertFalse(self.journal_path(fixture).exists(), "Completed journal still exists")
+        self.assert_no_temporary_files(fixture)
+        for harness in ("alpha", "omega"):
+            with self.subTest(harness=harness):
+                skill = fixture.skill("current", harness)
+                always_on = fixture.always_on(harness)
+                always_on_bytes = fixture.assembled_always_on(harness)
+                self.assertEqual(skill.read_bytes(), SKILL_BYTES)
+                self.assertEqual(always_on.read_bytes(), always_on_bytes)
+                manifest = fixture.manifest(
+                    harness,
+                    fixture.manifest_object(skill, SKILL_BYTES, "current"),
+                    fixture.manifest_object(always_on, always_on_bytes),
+                )
+                self.assertEqual(fixture.manifest_path(harness).read_bytes(),
+                                 fixture.manifest_bytes(manifest))
+
+    def half_applied_journal(self, fixture: PlannerFixture) -> dict:
+        fixture.write(self.lock_path(fixture), b"")
+        old_always_on = b"Previously deployed instructions\n"
+        old_skill = b"Previously deployed skill\n"
+        fixture.write(fixture.always_on(), fixture.assembled_always_on("alpha"))
+        fixture.write(fixture.skill("current"), old_skill)
+        previous_manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(fixture.always_on(), old_always_on),
+            fixture.manifest_object(fixture.skill("current"), old_skill, "current"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(previous_manifest))
+        steady_skill = fixture.skill("current", "omega")
+        steady_always_on = fixture.always_on("omega")
+        steady_always_on_bytes = fixture.assembled_always_on("omega")
+        fixture.write(steady_skill, SKILL_BYTES)
+        fixture.write(steady_always_on, steady_always_on_bytes)
+        steady_manifest = fixture.manifest(
+            "omega",
+            fixture.manifest_object(steady_skill, SKILL_BYTES, "current"),
+            fixture.manifest_object(steady_always_on, steady_always_on_bytes),
+        )
+        fixture.write(fixture.manifest_path("omega"), fixture.manifest_bytes(steady_manifest))
+
+        journal = {
+            "schema_version": 1,
+            "entries": [
+                {"path": str(path), "old_sha256": hashlib.sha256(old).hexdigest(),
+                 "new_sha256": hashlib.sha256(new).hexdigest()}
+                for path, old, new in (
+                    (fixture.always_on(), old_always_on, fixture.assembled_always_on("alpha")),
+                    (fixture.skill("current"), old_skill, SKILL_BYTES),
+                )
+            ],
+        }
+        fixture.write(self.journal_path(fixture), fixture.manifest_bytes(journal))
+        return journal
+
+    def test_first_deploy_installs_and_records_targets_then_leaves_them_untouched(self) -> None:
+        fixture = self.fixture()
+        skill = fixture.skill("current")
+        fixture.write(skill, b"Old non-manifest bytes\n")
+        foreign = skill.parent / "personal.md"
+        unrecorded = fixture.skill("unrecorded")
+        fixture.write(foreign, b"Keep this foreign file\n")
+        fixture.write(unrecorded, b"Earlier unrecorded skill\n")
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(f"adopt {skill}", result.stdout.splitlines())
+        self.assertTrue(self.lock_path(fixture).is_file())
+        self.assert_deployed(fixture)
+        self.assertEqual(foreign.read_bytes(), b"Keep this foreign file\n")
+        self.assertEqual(unrecorded.read_bytes(), b"Earlier unrecorded skill\n")
+
+        before = fixture.snapshot()
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotRegex(result.stdout, r"(?m)^(?:adopt|create|remove|replace) ")
+        self.assertEqual(fixture.snapshot(), before)
+
+    def test_deploy_removes_unmodified_obsolete_skills_and_keeps_other_files(self) -> None:
+        fixture = self.fixture()
+        obsolete = fixture.skill("obsolete")
+        edited = fixture.skill("edited")
+        foreign = fixture.skill("foreign")
+        old = b"Previously deployed skill\n"
+        fixture.write(obsolete, old)
+        fixture.write(edited, b"User-edited skill\n")
+        fixture.write(foreign, b"Unowned skill\n")
+        manifest = fixture.manifest(
+            "alpha",
+            fixture.manifest_object(obsolete, old, "obsolete"),
+            fixture.manifest_object(edited, old, "edited"),
+        )
+        fixture.write(fixture.manifest_path(), fixture.manifest_bytes(manifest))
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(obsolete.parent.exists())
+        self.assertEqual(edited.read_bytes(), b"User-edited skill\n")
+        self.assertEqual(foreign.read_bytes(), b"Unowned skill\n")
+        self.assertIn(f"release-modified {edited}", result.stdout.splitlines())
+        self.assert_deployed(fixture)
+
+    def test_first_deploy_journals_global_changes_before_replacing_targets(self) -> None:
+        fixture = self.fixture()
+        skill = fixture.skill("current")
+        old_skill = b"Old non-manifest bytes\n"
+        fixture.write(skill, old_skill)
+
+        interrupted = self.deploy(fixture, interrupt_after=fixture.always_on())
+
+        self.assertEqual(interrupted.returncode, 73, interrupted.stdout + interrupted.stderr)
+        self.assertFalse(fixture.manifest_path().exists())
+        self.assert_no_temporary_files(fixture)
+        retained = json.loads(self.journal_path(fixture).read_bytes())
+        target_bytes = {
+            skill: SKILL_BYTES,
+            fixture.always_on(): fixture.assembled_always_on("alpha"),
+            fixture.skill("current", "omega"): SKILL_BYTES,
+            fixture.always_on("omega"): fixture.assembled_always_on("omega"),
+        }
+        expected = []
+        for path, payload in sorted(target_bytes.items()):
+            old = old_skill if path == skill else None
+            current = path.read_bytes() if path.exists() else None
+            self.assertIn(current, (old, payload), str(path))
+            expected.append({"path": str(path), "new_sha256": hashlib.sha256(payload).hexdigest(),
+                             "old_sha256": hashlib.sha256(old).hexdigest() if old else None})
+        self.assertEqual(retained, {"schema_version": 1, "entries": expected})
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_with_held_lock_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        lock = self.lock_path(fixture)
+        fixture.write(lock, b"Existing lock contents\n")
+
+        with lock.open("rb") as descriptor:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assert_refused(fixture, "deploy-locked")
+
+    def test_deploy_with_invalid_journal_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        journal = self.half_applied_journal(fixture)
+        applied, pending = journal["entries"]
+        invalid_entries = {
+            "unknown entry key": [applied | {"unknown": False}, pending],
+            "invalid digest": [applied, pending | {"old_sha256": "not-a-digest"}],
+            "relative path": [applied, pending | {"path": "relative/SKILL.md"}],
+            "duplicate path": [applied, applied],
+        }
+        cases = {
+            "invalid JSON": b"{\n",
+            "duplicate schema key": b'{"schema_version": 1, "schema_version": 1, "entries": []}\n',
+        }
+        cases.update({reason: fixture.manifest_bytes(journal | {"entries": entries})
+                      for reason, entries in invalid_entries.items()})
+
+        for reason, payload in cases.items():
+            with self.subTest(reason=reason):
+                fixture.write(self.journal_path(fixture), payload)
+                self.assert_refused(fixture, "journal-invalid")
+
+    def test_deploy_with_edited_recovery_target_exits_without_writes(self) -> None:
+        fixture = self.fixture()
+        self.half_applied_journal(fixture)
+        fixture.write(fixture.always_on(), b"User change after the interruption\n")
+
+        self.assert_refused(fixture, "journal-mismatch")
+
+    def test_deploy_completes_a_half_applied_journal(self) -> None:
+        fixture = self.fixture()
+        self.half_applied_journal(fixture)
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_recovers_again_after_a_second_interruption(self) -> None:
+        fixture = self.fixture()
+        journal = self.half_applied_journal(fixture)
+        previous_manifest = fixture.manifest_path().read_bytes()
+
+        interrupted = self.deploy(fixture, interrupt_after=fixture.skill("current"))
+
+        self.assertEqual(interrupted.returncode, 73, interrupted.stdout + interrupted.stderr)
+        self.assert_no_temporary_files(fixture)
+        self.assertEqual(fixture.manifest_path().read_bytes(), previous_manifest)
+        retained = json.loads(self.journal_path(fixture).read_bytes())
+        for entry in journal["entries"]:
+            self.assertEqual(hashlib.sha256(Path(entry["path"]).read_bytes()).hexdigest(),
+                             entry["new_sha256"])
+            self.assertIn(entry, retained["entries"])
+
+        result = self.deploy(fixture)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assert_deployed(fixture)
+
+    def test_deploy_rejects_reserved_path_collisions_before_writing(self) -> None:
+        paths = (
+            ("always_on_path", ".config/orchestrail/deploy.lock"),
+            ("skills_dir", ".config/orchestrail/deploy.lock/skills"),
+            ("always_on_path", ".config/orchestrail/deploy/journal.json"),
+            ("always_on_path", ".config/orchestrail/deploy/omega.json"),
+        )
+        for key, path in paths:
+            with self.subTest(key=key, path=path):
+                fixture = self.fixture()
+                fixture.environment["XDG_CONFIG_HOME"] = str(fixture.home / ".config")
+                adapter = fixture.adapter()
+                settings = adapter.read_text(encoding="utf-8")
+                updated = re.sub(rf"(?m)^{key}=.*$", f"{key}=$HOME/{path}", settings)
+                adapter.write_text(updated, encoding="utf-8")
+                if key == "always_on_path":
+                    capabilities = adapter.with_name("capabilities.md")
+                    capabilities.write_bytes(capabilities.read_bytes().replace(
+                        b"$HOME/.alpha/AGENTS.md", f"$HOME/{path}".encode(),
+                    ))
+
+                self.assert_refused(fixture, "adapter-conflict")
+
+    def test_deploy_rejects_harness_whose_manifest_path_is_the_journal(self) -> None:
+        fixture = self.fixture()
+        fixture.make_harness("journal")
+
+        self.assert_refused(fixture, "adapter-conflict")
 
 
 if __name__ == "__main__":
