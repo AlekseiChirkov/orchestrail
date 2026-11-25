@@ -10176,5 +10176,8 @@
       "name": "test_model_plan_acceptance"
     }
   ],
-  "schema": 1
+  "schema": 2,
+  "name_map_sha256": null,
+  "path_changes": [],
+  "contract_changes": []
 }

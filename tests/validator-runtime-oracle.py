@@ -24,7 +24,7 @@ SPEC.loader.exec_module(ORACLE)
 FROZEN_INVENTORY_SHA256 = "57f7872d3525f608b57b29410792e2e02106542f28456f806319e2e7065557a1"
 
 
-AMENDMENT_SHA256 = "03e95b03bb0c7d0ccda448fae904e79beb8c294f8d4e8bcc01c3b517792fa627"
+AMENDMENT_SHA256 = "a58a14a1f77a007d324d9dde18499076658c9702f5831f8e62c33888b23851ad"
 APPROVED_PATHS = frozenset({
     "scripts/model-catalog.py", "scripts/model_selection.py", "tests/model-plan.py",
     "tests/usage-observation-bundle-schema.py", "tests/usage-status-large-authority.py",
@@ -59,6 +59,188 @@ ADDED_NAMES = {
     "resources": ["test_state_tool_acceptance"],
 }
 ADDED_RESOURCE_PATHS = frozenset({"scripts/state-tool.py", "tests/state-tool.py"})
+ADDED_ANCHORS_SHA256 = "5d4655f1e170686d5dd0a57674ee59ae4202332355a478fc158b40d03c534227"
+CONTRACT_REQUIREMENTS = frozenset({
+    "REQ-05", "REQ-06", "REQ-09", "REQ-10", "REQ-11", "REQ-12", "REQ-14", "REQ-15",
+    "REQ-23", "REQ-36", "REQ-55", "REQ-66",
+})
+BASE_AMENDMENT_FIELDS = {"schema", "paths", "removed_results", "resources", "added"}
+AMENDMENT_FIELDS = {
+    1: BASE_AMENDMENT_FIELDS,
+    2: BASE_AMENDMENT_FIELDS | {"name_map_sha256", "path_changes", "contract_changes"},
+}
+SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+MAP_PATH = re.compile(r"(?:rules|workflows|templates|harness|docs)/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*")
+GENERIC_PATH = re.compile(r"(?:rules|workflows|principles|harness|templates|docs)/[A-Za-z0-9_./-]+")
+REPOSITORY_PATH = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:(?:\$[A-Za-z_][A-Za-z0-9_]*|\$\{[A-Za-z_][A-Za-z0-9_]*\}|\.)/)?"
+    r"(?:(?:rules|workflows|principles|harness|templates|docs|scripts|tests|"
+    r"hooks|\.ai|\.github|\.agents|\.claude|\.codex)/[A-Za-z0-9_./-]+|"
+    r"(?:AGENTS\.md|CLAUDE\.md|README\.md|deploy\.env))(?![A-Za-z0-9_./-])"
+)
+HELPER_CALL = re.compile(r"\$\([ \t]*(?!echo\b)[A-Za-z_][A-Za-z0-9_]*\b")
+RESULT_EXPRESSION = re.compile(r'^check "((?:\\.|[^"\\\n])+)"[ \t]+(?:\\\n[ \t]*)?([^\n]+)', re.M)
+CHECK_LABEL = re.compile(r'^[ \t]*check[ \t]+"((?:\\.|[^"\\\n])+)"', re.M)
+
+
+def json_object(pairs: list) -> dict:
+    values = dict(pairs)
+    if len(values) != len(pairs):
+        raise ValueError("Duplicate JSON field")
+    return values
+
+
+def amendment_schema(amendment: dict) -> int:
+    schema = amendment.get("schema") if isinstance(amendment, dict) else None
+    if type(schema) is not int or set(amendment) != AMENDMENT_FIELDS.get(schema):
+        raise ValueError("Invalid amendment fields")
+    return schema
+
+
+def load_name_map(path: Path, digest: str | None) -> list:
+    try:
+        data = path.read_bytes()
+    except FileNotFoundError:
+        if digest is not None:
+            raise ValueError("Pinned name map is missing") from None
+        return []
+    except OSError as error:
+        raise ValueError("Cannot read pinned name map") from error
+    if digest != hashlib.sha256(data).hexdigest():
+        raise ValueError("Name map digest differs")
+    document = json.loads(data, object_pairs_hook=json_object)
+    if (not isinstance(document, dict) or set(document) != {"schema_version", "rows"}
+            or type(document["schema_version"]) is not int or document["schema_version"] != 1
+            or not isinstance(document["rows"], list)):
+        raise ValueError("Invalid name map")
+    rows = document["rows"]
+    identities, old_names, new_names = [], set(), set()
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {"kind", "old", "new"}:
+            raise ValueError("Invalid name map row")
+        kind, old, new = row["kind"], row["old"], row["new"]
+        if (kind not in ("rule", "workflow", "file") or not isinstance(new, list)
+                or not new or (kind != "rule" and len(new) != 1)):
+            raise ValueError("Invalid name map kind or targets")
+        pattern = MAP_PATH if kind == "file" else SLUG
+        if any(not isinstance(value, str) or not pattern.fullmatch(value) for value in [old, *new]):
+            raise ValueError("Invalid name map token")
+        if len(set(new)) != len(new) or new_names.intersection(new):
+            raise ValueError("Repeated name map target")
+        identities.append((kind, old))
+        old_names.add(old)
+        new_names.update(new)
+    if identities != sorted(set(identities)) or old_names & new_names:
+        raise ValueError("Repeated, overlapping or unsorted name map rows")
+    return rows
+
+
+def mask_replacements(rows: list) -> tuple[dict, dict]:
+    """Build equivalence classes over shared tokens, keeping path kinds distinct."""
+    classes = []
+    for row in rows:
+        kind = row["kind"]
+        tokens = {row["old"], *row["new"]}
+        if kind == "file":
+            paths, names = {path: "F" for path in tokens}, set()
+        else:
+            directory, marker = ("rules", "R") if kind == "rule" else ("workflows", "W")
+            paths = {f"{directory}/{name}.md": marker for name in tokens}
+            names = tokens | {f"rule-{name}" for name in tokens} if kind == "rule" else tokens
+        shared = set(paths) | names
+        separate = []
+        for group_paths, group_names in classes:
+            if shared.intersection(set(group_paths) | group_names):
+                paths = {**group_paths, **paths}
+                paths.update({path: "F" for path, marker in group_paths.items() if marker == "F"})
+                names |= group_names
+            else:
+                separate.append((group_paths, group_names))
+        classes = [*separate, (paths, names)]
+    return (
+        {path: f"<{marker} {index}>" for index, (paths, _) in enumerate(classes)
+         for path, marker in paths.items()},
+        {name: f"<N {index}>" for index, (_, names) in enumerate(classes) for name in names},
+    )
+
+
+def token_pattern(replacements: dict) -> re.Pattern | None:
+    if not replacements:
+        return None
+    alternatives = "|".join(map(re.escape, sorted(replacements, key=lambda token: (-len(token), token))))
+    return re.compile(r"(?<![A-Za-z0-9_-])(?:" + alternatives + r")(?![A-Za-z0-9_-])")
+
+
+def validate_replacements(amendment: dict, root: Path) -> list:
+    paths, names = mask_replacements(load_name_map(root / "docs/name-map.json", amendment["name_map_sha256"]))
+    path_pattern, name_pattern = token_pattern(paths), token_pattern(names)
+
+    def mask(value: str) -> str:
+        if path_pattern is not None:
+            value = path_pattern.sub(lambda match: paths[match.group()], value)
+        value = GENERIC_PATH.sub("<PATH>", value)
+        if name_pattern is not None:
+            value = name_pattern.sub(lambda match: names[match.group()], value)
+        return value
+
+    replacements, seen = [], set()
+    for section in ("path_changes", "contract_changes"):
+        contract = section == "contract_changes"
+        fields = {"target", "key", "before", "after"} | ({"requirement", "reason"} if contract else set())
+        entries = amendment[section]
+        if not isinstance(entries, list):
+            raise ValueError("Invalid source amendment list")
+        for entry in entries:
+            if not isinstance(entry, dict) or set(entry) != fields:
+                raise ValueError("Invalid source amendment fields")
+            target, key, before, after = (entry[field] for field in ("target", "key", "before", "after"))
+            valid_key = (type(key) is int and 0 <= key < 94 if target == "nonstandard"
+                         else isinstance(key, str) and bool(key))
+            if (target not in ("result", "body", "nonstandard") or not valid_key
+                    or not all(isinstance(value, str) and value for value in (before, after)) or before == after):
+                raise ValueError("Invalid source amendment target or text")
+            if (target, key) in seen:
+                raise ValueError("Repeated source amendment target")
+            seen.add((target, key))
+            if contract:
+                requirement, reason = entry["requirement"], entry["reason"]
+                if (not isinstance(requirement, str) or requirement not in CONTRACT_REQUIREMENTS
+                        or not isinstance(reason, str) or not reason.strip() or reason.splitlines() != [reason]
+                        or after.strip() in ("pass", "$(echo pass)") or "echo pass" not in after
+                        or not (REPOSITORY_PATH.search(after) or HELPER_CALL.search(after))):
+                    raise ValueError("Invalid contract change")
+            elif mask(before) != mask(after):
+                raise ValueError("Source change exceeds the path and name mask")
+            replacements.append(entry)
+    return replacements
+
+
+def reconstruct_source(source: str, replacements: list) -> str:
+    labels = CHECK_LABEL.findall(source)
+    for entry in replacements:
+        after = entry["after"]
+        position = source.find(after)
+        if position < 0 or source.find(after, position + 1) >= 0:
+            raise ValueError("Source amendment text is missing or repeated")
+        source = source[:position] + entry["before"] + source[position + len(after):]
+
+    if CHECK_LABEL.findall(source) != labels:
+        raise ValueError("Source amendment changes a check description")
+    results = RESULT_EXPRESSION.findall(source)
+    nonstandard = [line for line in source.splitlines()
+                   if re.search(r"\bcheck\b", line) and not line.startswith('check "')]
+    for entry in replacements:
+        target, key = entry["target"], entry["key"]
+        if target == "result":
+            matches = [expression for name, expression in results if name == key]
+        elif target == "body":
+            pattern = r"^" + re.escape(key) + r"\(\)[ \t]+(?:\{\n.*?^\}$|\(\n.*?^\)$)"
+            matches = re.findall(pattern, source, re.M | re.S)
+        else:
+            matches = nonstandard[key:key + 1]
+        if matches != [entry["before"]]:
+            raise ValueError("Source amendment key differs from the reconstructed text")
+    return source
 
 
 def add_named_entries(amended: dict, added: dict) -> None:
@@ -82,6 +264,11 @@ def add_named_entries(amended: dict, added: dict) -> None:
             if len(anchors) != 1:
                 raise ValueError("Added entry anchor is missing or repeated")
             target.insert(anchors[0] + 1, copy.deepcopy(item["value"]))
+    # A different existing anchor could reorder the approved registrations.
+    anchors = {section: [item["after"] for item in items] for section, items in added.items()}
+    encoded_anchors = json.dumps(anchors, sort_keys=True, separators=(",", ":")).encode()
+    if hashlib.sha256(encoded_anchors).hexdigest() != ADDED_ANCHORS_SHA256:
+        raise ValueError("Approved addition anchors differ")
     name = ADDED_NAMES["expressions"][0]
     result = next(entry for entry in amended["results"] if entry["name"] == name)
     expression = next(entry for entry in amended["expressions"] if entry["name"] == name)
@@ -98,15 +285,16 @@ def add_named_entries(amended: dict, added: dict) -> None:
 
 def apply_amendment(frozen: dict, amendment: dict) -> dict:
     """Apply exact approved test-resource changes to a copy of the frozen inventory."""
-    if set(amendment) != {"schema", "paths", "removed_results", "resources", "added"}:
-        raise ValueError("Invalid amendment fields")
-    if amendment["schema"] != 1 or amendment["paths"] != sorted(APPROVED_PATHS):
+    if amendment_schema(amendment) == 2:
+        validate_replacements(amendment, ROOT)
+    if amendment["paths"] != sorted(APPROVED_PATHS):
         raise ValueError("Invalid amendment scope")
     amended = copy.deepcopy(frozen)
     removed_results = amendment["removed_results"]
     expected_names = ["pd-analyze references architecture.md",
                       "SAFETY: git-flow defines the Enforcement vocabulary on one anchored line"]
-    if [item.get("name") for item in removed_results] != expected_names:
+    if (not isinstance(removed_results, list) or any(not isinstance(item, dict) for item in removed_results)
+            or [item.get("name") for item in removed_results] != expected_names):
         raise ValueError("Unexpected removed results")
     for removed in removed_results:
         if amended["results"].count(removed) != 1:
@@ -114,18 +302,26 @@ def apply_amendment(frozen: dict, amendment: dict) -> dict:
         amended["results"].remove(removed)
     names = [row["name"] for row in amended["resources"]]
     touched = set()
-    for patch in amendment["resources"]:
-        if set(patch) != {"name", "changes"} or names.count(patch["name"]) != 1 or patch["name"] in touched:
+    patches = amendment["resources"]
+    if not isinstance(patches, list):
+        raise ValueError("Invalid amendment resources")
+    for patch in patches:
+        if (not isinstance(patch, dict) or set(patch) != {"name", "changes"}
+                or names.count(patch["name"]) != 1 or patch["name"] in touched
+                or not isinstance(patch["changes"], list)):
             raise ValueError("Invalid amendment resource")
         touched.add(patch["name"])
         row = amended["resources"][names.index(patch["name"])]
         seen = set()
         for change in patch["changes"]:
-            field, path = change["field"], change["path"]
+            if not isinstance(change, dict):
+                raise ValueError("Invalid resource change")
+            field, path = change.get("field"), change.get("path")
             kind = change.get("kind")
             fields = {"field", "path", "before", "after"} | ({"kind"} if field == "observations" else set())
             key = (field, kind, path)
-            if set(change) != fields or path not in APPROVED_PATHS or key in seen:
+            if (set(change) != fields or not isinstance(field, str) or not isinstance(path, str)
+                    or (kind is not None and not isinstance(kind, str)) or path not in APPROVED_PATHS or key in seen):
                 raise ValueError("Invalid resource change")
             seen.add(key)
             if field == "observations" and kind in row["observations"]:
@@ -135,7 +331,9 @@ def apply_amendment(frozen: dict, amendment: dict) -> dict:
             else:
                 raise ValueError("Invalid resource field")
             before, after = change["before"], change["after"]
-            if any(item.get("path") != path for item in before + after):
+            if (not isinstance(before, list) or not isinstance(after, list)
+                    or any(not isinstance(item, dict) or item.get("path") != path
+                           or type(item.get("line", 0)) is not int for item in before + after)):
                 raise ValueError("Resource path differs")
             if [item for item in items if item["path"] == path] != before:
                 raise ValueError("Frozen resource differs")
@@ -145,13 +343,38 @@ def apply_amendment(frozen: dict, amendment: dict) -> dict:
     return amended
 
 
+def load_pinned_amendment(path: Path) -> dict:
+    data = path.with_name("inventory-amendment.json").read_bytes()
+    if hashlib.sha256(data).hexdigest() != AMENDMENT_SHA256:
+        raise ValueError("Inventory amendment digest differs")
+    return json.loads(data, object_pairs_hook=json_object)
+
+
 def load_frozen_inventory(path: Path) -> dict:
     if hashlib.sha256(path.read_bytes()).hexdigest() != FROZEN_INVENTORY_SHA256:
         raise ValueError("Frozen inventory digest differs")
-    amendment_bytes = path.with_name("inventory-amendment.json").read_bytes()
-    if hashlib.sha256(amendment_bytes).hexdigest() != AMENDMENT_SHA256:
-        raise ValueError("Inventory amendment digest differs")
-    return apply_amendment(ORACLE.load_inventory(path), json.loads(amendment_bytes))
+    return apply_amendment(ORACLE.load_inventory(path), load_pinned_amendment(path))
+
+
+def amended_source_inventory(source: Path, amendment: dict, include_resources=True) -> dict:
+    if amendment_schema(amendment) == 1:
+        return ORACLE.inventory(source, include_resources=include_resources)
+    replacements = validate_replacements(amendment, ROOT)
+    if not replacements:
+        return ORACLE.inventory(source, include_resources=include_resources)
+
+    reconstructed = reconstruct_source(source.read_bytes().decode("utf-8"), replacements)
+    with tempfile.TemporaryDirectory(prefix="oracle-reconstructed-") as temp:
+        root = Path(temp)
+        scripts = root / "scripts"
+        scripts.mkdir()
+        for entry in (ROOT / "scripts").iterdir():
+            if entry.name != "validate-contracts.sh":
+                (scripts / entry.name).symlink_to(entry, target_is_directory=entry.is_dir())
+        (root / "tests").symlink_to(ROOT / "tests", target_is_directory=True)
+        candidate = scripts / "validate-contracts.sh"
+        candidate.write_bytes(reconstructed.encode("utf-8"))
+        return ORACLE.inventory(candidate, include_resources=include_resources)
 
 
 class SecurityContracts(unittest.TestCase):
@@ -232,7 +455,8 @@ def manifest() -> dict:
 class OracleContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.inventory = ORACLE.inventory(ROOT / "scripts/validate-contracts.sh")
+        cls.amendment = load_pinned_amendment(ROOT / "tests/fixtures/validator-runtime/source-inventory.json.gz")
+        cls.inventory = amended_source_inventory(ROOT / "scripts/validate-contracts.sh", cls.amendment)
 
     def test_runtime_checks_registered_once_after_focused_dispatch(self) -> None:
         source = (ROOT / "scripts/validate-contracts.sh").read_text()
@@ -351,11 +575,15 @@ class OracleContract(unittest.TestCase):
             (Path(temp) / "tests").symlink_to(ROOT / "tests", target_is_directory=True)
             candidate = scripts / "validate-contracts.sh"
             candidate.write_text(source)
-            self.assertTrue(ORACLE.matches(frozen, ORACLE.inventory(candidate)))
+            self.assertTrue(ORACLE.matches(frozen, amended_source_inventory(candidate, self.amendment)))
             for changed in changes:
                 with self.subTest(change=changes.index(changed)):
                     candidate.write_text(changed)
-                    self.assertFalse(ORACLE.matches_structure(frozen, ORACLE.inventory(candidate, include_resources=False)))
+                    try:
+                        observed = amended_source_inventory(candidate, self.amendment, include_resources=False)
+                    except ValueError:
+                        continue
+                    self.assertFalse(ORACLE.matches_structure(frozen, observed))
 
     def test_amendment_pins_unrelated_fields_order_and_resource_changes(self) -> None:
         path = ROOT / "tests/fixtures/validator-runtime/source-inventory.json.gz"
@@ -433,7 +661,7 @@ class OracleContract(unittest.TestCase):
                     try:
                         accepted = ORACLE.matches_structure(
                             apply_amendment(raw, amendment),
-                            ORACLE.inventory(candidate, include_resources=False))
+                            amended_source_inventory(candidate, amendment, include_resources=False))
                     except ValueError:
                         accepted = False
                     self.assertFalse(accepted, label)
@@ -478,7 +706,7 @@ class OracleContract(unittest.TestCase):
             candidate = Path(temp) / "validate-contracts.sh"
             candidate.write_text(source + "\n  check unexpected\n")
             with self.assertRaisesRegex(ValueError, "Unapproved check syntax"):
-                ORACLE.inventory(candidate, include_resources=False)
+                amended_source_inventory(candidate, self.amendment, include_resources=False)
 
     def test_inventory_contains_all_source_contracts(self) -> None:
         inventory = self.inventory
