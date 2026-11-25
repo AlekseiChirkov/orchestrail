@@ -1,8 +1,8 @@
 # Orchestrail — USAGE
 
-Source of truth for an AI-assisted SDLC pipeline deployed to three environments:
-Windsurf, Claude Code, and Codex. Markdown orchestrates workflows; local shell and Python
-helpers validate, log, deploy instructions and provide required finalization safety mechanics.
+Orchestrail is an AI-assisted SDLC pipeline for Claude Code and Codex. Markdown defines
+the workflows. Local shell and Python helpers validate and deploy instructions, log runs,
+and provide required finalization safety checks.
 
 ---
 
@@ -15,8 +15,8 @@ with explicit state on disk. The AI assistant is constrained by:
 
 - **Workflows** — slash-command definitions (`/phase-discovery`, `/pae-implement`, …)
   that describe step-by-step what the AI must do.
-- **Rules** — always-on policies (`workflow-globals.md`, `language.md`) loaded into
-  every conversation.
+- **Rules** — shared policies (`workflow-globals.md`, `language.md`) installed as skills.
+  The harness instructions summarize essential policies for every conversation.
 - **Principles** — domain-quality standards (`code-quality.md`, `python-standards.md`,
   `testing-standards.md`, `infra-standards.md`) loaded into every conversation.
 - **Templates** — boilerplate. `AGENTS.md` and the `.ai/` skeleton are copied into a
@@ -31,7 +31,7 @@ with explicit state on disk. The AI assistant is constrained by:
 | Long tasks lose context across sessions              | All progress in `state.md` / `plan.md` on disk    |
 | Phase boundaries get blurred                         | Each phase is a separate slash command, stops at end |
 | Inconsistent quality across projects                 | Always-on principles + per-project `CLAUDE.md`    |
-| Three AI tools, three different config formats       | `scripts/sync.sh` deploys one source to all three         |
+| Two model harnesses with distinct configuration | `scripts/sync.sh` uses the target paths declared by each adapter |
 | Re-running a single step requires guesswork          | Child workflows callable directly; `## Guard` checks |
 | Tests get written after the code, describing what was built instead of what was required | `/pae-tests` writes failing tests from Acceptance Criteria before `/pae-implement`; the RED set is frozen during implementation |
 | One long session runs out of context halfway through a task    | `/spec-run` gives each subtask a fresh, narrowly-scoped agent; a long-lived Arbiter holds the project context the sub-agents deliberately lack |
@@ -42,36 +42,36 @@ with explicit state on disk. The AI assistant is constrained by:
 
 ```
           ┌──────────────────────────────────────────────────┐
-          │  ~/projects/orchestrail/                     │ ← source of truth (edit here)
+          │ ~/projects/orchestrail/                          │ ← source of truth (edit here)
           │                                                  │
-          │  workflows/   rules/                             │
-          │  principles/  templates/                         │
+          │ workflows/  rules/  principles/  templates/      │
+          │ harness/<name>/deploy.env                        │ ← declares harness targets
           └────────────────────────┬─────────────────────────┘
                                    │
                               scripts/sync.sh
                                    │
-            ┌──────────────────────┼──────────────────────┐
-            ▼                      ▼                      ▼
-  ┌──────────────────┐  ┌──────────────────┐  ┌────────────────────┐
-  │ Windsurf         │  │ Claude Code      │  │ Codex              │
-  │ ~/.codeium/      │  │ ~/.claude/       │  │ (per-project       │
-  │   windsurf/      │  │   skills/        │  │   AGENTS.md only — │
-  │   global_*       │  │ ~/.claude/       │  │   no global store) │
-  │                  │  │   CLAUDE.md      │  │                    │
-  └──────────────────┘  └──────────────────┘  └────────────────────┘
-            │                      │                      │
-            └──────────────────────┴──────────────────────┘
+                   ┌───────────────┴───────────────┐
+                   ▼                               ▼
+          ┌─────────────────────┐         ┌─────────────────────┐
+          │ Claude Code         │         │ Codex               │
+          │ ~/.claude/skills/   │         │ ~/.codex/skills/    │
+          │ ~/.claude/CLAUDE.md │         │ ~/.codex/AGENTS.md  │
+          └─────────────────────┘         └─────────────────────┘
+
+                       From a project directory
                                    │
+                                   ▼
+
                           scripts/setup-new-project.sh
                                    │
                                    ▼
                     ┌──────────────────────────────┐
-                    │  <project>/                  │
-                    │    CLAUDE.md   (Claude)      │
-                    │    AGENTS.md   (Codex)       │
-                    │    .windsurf/rules/          │
-                    │    .claude/skills/ (symlinks)│
-                    │    tasks/                    │
+                    │ <project>/                   │
+                    │   CLAUDE.md                  │
+                    │   AGENTS.md                  │
+                    │   .claude/skills/ (links)    │
+                    │   .ai/ (knowledge base)      │
+                    │   .gitignore                 │
                     └──────────────────────────────┘
 ```
 
@@ -84,8 +84,8 @@ with explicit state on disk. The AI assistant is constrained by:
 ├── docs/USAGE.md                    this file
 │
 ├── scripts/                         repository command-line helpers
-│   ├── sync.sh                      deploy source → Windsurf + Claude + ~/.claude/CLAUDE.md
-│   ├── setup-new-project.sh         initialize a project (CLAUDE.md, AGENTS.md, rules, skills)
+│   ├── sync.sh                      validate and deploy sources to declared harness targets
+│   ├── setup-new-project.sh         initialize and register a project
 │   ├── setup-umbrella.sh            initialize a multi-repository umbrella
 │   ├── setup-all-repos.sh           initialize services under an umbrella
 │   ├── link-skills.sh               link global Claude skills into a project
@@ -97,9 +97,9 @@ with explicit state on disk. The AI assistant is constrained by:
 │   ├── validate-contracts.sh        check repository-wide workflow contracts
 │   └── validate-task.sh             check one task directory
 │
-├── rules/                           always-on rules (deployed globally to Windsurf + Claude)
+├── rules/                           policies installed as rule-prefixed skills
 │   ├── workflow-globals.md          phase contract, canonical status formats, flow tiers
-│   ├── workflow-reference.md        extended rationale + examples (model_decision trigger)
+│   ├── workflow-reference.md        process reference and examples (load: on-demand)
 │   ├── tdd.md                       TDD contract: RED→GREEN, test-level gate, frozen test set
 │   ├── git-flow.md                  branch stack, commits, PR policy, git safety rails
 │   ├── orchestration.md             agent roles, context boundaries, class A/B escalation
@@ -107,14 +107,14 @@ with explicit state on disk. The AI assistant is constrained by:
 │   └── language.md                English in every project file (chat language is user-specific)
 ├── harness/                        Claude Code and Codex adapters, each with an always-on source
 │
-├── principles/                      always-on engineering standards (Windsurf global_rules)
+├── principles/                      engineering standards installed as principle-prefixed skills
 │   ├── code-quality.md              clean architecture, SOLID, naming, error handling, DI
 │   ├── python-standards.md          types, Pydantic, async, FastAPI, SQLAlchemy, structlog
 │   ├── testing-standards.md         test style: AAA, InMemory repos, coverage targets
 │   └── infra-standards.md           IaC, Terraform layout, IAM, Docker, observability
 │
-├── workflows/                       slash-command definitions (deployed as Windsurf workflows
-│   │                                  and Claude Code skills)
+├── workflows/                       slash-command definitions
+│   │                                  (installed as skills in Claude Code and Codex)
 │   ├── PIPELINE.md                  reference doc (not executable)
 │   ├── phase-pipeline.md            autonomous Discovery→Execution→Validation
 │   ├── phase-discovery.md           Phase 1 orchestrator
@@ -171,14 +171,14 @@ with explicit state on disk. The AI assistant is constrained by:
 
 ### How each category is deployed
 
-| Source                | Deployed to (Windsurf)                    | Deployed to (Claude Code)            | Deployed to (Codex)       |
-|-----------------------|-------------------------------------------|--------------------------------------|---------------------------|
-| `workflows/*.md`      | `~/.codeium/windsurf/global_workflows/`   | `~/.claude/skills/<name>/SKILL.md`   | `~/.codex/skills/<name>/SKILL.md` |
-| `rules/*.md`          | `~/.codeium/windsurf/global_rules/`       | `~/.claude/skills/rule-<name>/SKILL.md` | `~/.codex/skills/rule-<name>/SKILL.md` |
-| `principles/*.md`     | `~/.codeium/windsurf/global_rules/`       | `~/.claude/skills/principle-*/SKILL.md`   | `~/.codex/skills/principle-*/SKILL.md` |
-| `templates/AGENTS.md` | —                                         | —                                    | `<project>/AGENTS.md`     |
-| `harness/<name>/always-on.md` | — | `~/.claude/CLAUDE.md` from the Claude adapter | `~/.codex/AGENTS.md` from the Codex adapter |
-| `templates/.ai-umbrella/` | —                                        | —                                    | —                         |
+| Source | Claude Code | Codex |
+| --- | --- | --- |
+| `workflows/*.md` | `~/.claude/skills/<name>/SKILL.md` | `~/.codex/skills/<name>/SKILL.md` |
+| `rules/*.md` | `~/.claude/skills/rule-<name>/SKILL.md` | `~/.codex/skills/rule-<name>/SKILL.md` |
+| `principles/*.md` | `~/.claude/skills/principle-<name>/SKILL.md` | `~/.codex/skills/principle-<name>/SKILL.md` |
+| `templates/AGENTS.md` | — | `<project>/AGENTS.md` |
+| `harness/<name>/always-on.md` | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
+| `templates/.ai-umbrella/` | Seeded by `scripts/setup-umbrella.sh` | Seeded by `scripts/setup-umbrella.sh` |
 
 ---
 
@@ -263,33 +263,26 @@ with `git -C ~/projects/orchestrail checkout v0.9.0`. Until then, use the defaul
 `scripts/sync.sh` runs `scripts/validate-contracts.sh` first and refuses to deploy if any check fails.
 It then performs:
 
-1. Copy `workflows/*.md` → `~/.codeium/windsurf/global_workflows/`
-2. Copy `rules/*.md` and `principles/*.md` → `~/.codeium/windsurf/global_rules/`
-3. For each `workflows/<name>.md` → `~/.claude/skills/<name>/SKILL.md`, each
-   `principles/<name>.md` → `~/.claude/skills/principle-<name>/SKILL.md`, and each
-   `rules/<name>.md` → `~/.claude/skills/rule-<name>/SKILL.md`.
-   Also write/refresh `~/.claude/CLAUDE.md` from `harness/claude/always-on.md`.
-   The `rule-` prefix is required: six basenames exist in both `workflows/` and `rules/`, so
+1. Install or verify the Claude Code hooks and report artifacts from removed integrations.
+2. Read each adapter's `deploy.env` and install its workflow, rule, and principle skills.
+   The `rule-` prefix is required. Six basenames exist in both `workflows/` and `rules/`, so
    an unprefixed rule skill would overwrite the workflow skill of the same name.
-4. The same three skill layouts under `~/.codex/skills/`, plus `~/.codex/AGENTS.md` from
-   `harness/codex/always-on.md`.
-5. Walk every project containing a `.devin/` directory: refresh its `.devin/rules/` and
-   `.windsurf/rules/` copies, refresh `.claude/skills/` symlinks, delete local workflow
-   copies that shadow the global ones, and preserve repositories that track `.ai/`.
-   For untracked consumer state, add `.ai/` to `.gitignore` by default.
+3. Refresh `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` with the corresponding adapter's
+   always-on source, capability declaration, and installation record.
+4. Refresh skill links in registered projects through adapter-declared project link paths.
+   Skip active projects unless `--force` is supplied. Preserve the ignore rules in
+   repositories that track `.ai/`. Add `.ai/` to `.gitignore` for untracked consumer state.
 
 Verify deployment:
 
 ```bash
-ls ~/.codeium/windsurf/global_workflows/  | head
-ls ~/.codeium/windsurf/global_rules/      | head
-ls ~/.claude/skills/                      | head
-ls -d ~/.claude/skills/rule-*             | head
-ls -d ~/.codex/skills/rule-*              | head
-cat ~/.claude/CLAUDE.md                   | head
+ls ~/.claude/skills/ | head
+ls ~/.codex/skills/  | head
+head ~/.claude/CLAUDE.md
+head ~/.codex/AGENTS.md
 ```
 
-In Windsurf or Claude Code, typing `/phase-discovery` should now autocomplete.
+The `phase-discovery` skill is now available to both harnesses.
 
 ---
 
@@ -305,11 +298,10 @@ The script (idempotent — safe to re-run):
 | Step | What it creates / modifies                                                                  |
 |------|---------------------------------------------------------------------------------------------|
 | 1    | `CLAUDE.md` — pointer form, or the two-level protocol when an umbrella `../.ai/` is detected |
-| 2    | `.windsurf/rules/` **and** `.devin/rules/`: all project rule files — `workflow-globals`, `workflow-reference`, `language`, `quick-flow`, `tdd`, `git-flow`, `orchestration`, `run-log`, and the six `phase-*` context rules |
-| 3    | Notes about `.windsurf/workflows/` — uses global workflows unless local override exists     |
-| 4    | `.claude/skills/<name>` symlinks pointing at `~/.claude/skills/<name>` (Claude Code workaround) |
-| 5    | `.ai/` knowledge base seeded from `templates/.ai/` (never overwrites existing files), then `AGENTS.md` for Codex from `templates/AGENTS.md` |
-| 6    | `.gitignore` entries, each appended on its own line only when no existing line equals it: `.ai/` (default for new consumer projects; skipped with a message when `git ls-files .ai` lists a tracked file, so a repository that tracks its knowledge base keeps it tracked — section 11), `.claude/skills/`, `!.claude/skills/.gitkeep`, `.env`, `*.pyc`, `__pycache__/`, `.state-tool.lock`, `.state.md.*.tmp` (state tool lock and temporary files, section 11) |
+| 2    | `.claude/skills/<name>` symlinks pointing at `~/.claude/skills/<name>` via the Claude Code adapter |
+| 3    | `.ai/` knowledge base seeded from `templates/.ai/` (preserves existing files), plus `AGENTS.md` for Codex from `templates/AGENTS.md` |
+| 4    | `.gitignore` entries, each appended on its own line only when no existing line equals it: `.ai/` (default for new consumer projects, skipped when `git ls-files .ai` lists a tracked file, see section 11), `.claude/skills/`, `!.claude/skills/.gitkeep`, `.env`, `*.pyc`, `__pycache__/`, `.state-tool.lock`, `.state.md.*.tmp` (state tool lock and temporary files, section 11) |
+| 5    | Project registration under `$XDG_CONFIG_HOME/orchestrail/projects`, or `~/.config/orchestrail/projects` when `XDG_CONFIG_HOME` is unset |
 
 ### Manual steps required after the script runs
 
@@ -697,16 +689,13 @@ $EDITOR ~/projects/orchestrail/principles/python-standards.md   # or any other f
 bash ~/projects/orchestrail/scripts/sync.sh
 ```
 
-`scripts/sync.sh` is idempotent. It re-copies everything; whatever was edited propagates
-to all three environments on the next slash-command invocation:
+`scripts/sync.sh` is idempotent. It refreshes managed files that changed at the adapter's
+declared destinations:
 
-- Windsurf reads from `~/.codeium/windsurf/global_workflows/` and `global_rules/`
-- Claude Code reads from `~/.claude/skills/<name>/SKILL.md` and `~/.claude/CLAUDE.md`
-- Codex reads `AGENTS.md` per project — the template is at
-  `~/projects/orchestrail/templates/AGENTS.md`. To propagate template changes to
-  *existing* projects, re-run `scripts/setup-new-project.sh` in each project (it does
-  NOT overwrite an existing `AGENTS.md`; you must update each project's
-  `AGENTS.md` manually or `rm AGENTS.md` first).
+- Claude Code reads `~/.claude/skills/<name>/SKILL.md` and `~/.claude/CLAUDE.md`.
+- Codex reads `~/.codex/skills/<name>/SKILL.md` and `~/.codex/AGENTS.md`.
+- Projects with their own `AGENTS.md` keep their existing copy. Apply desired changes
+  from `templates/AGENTS.md` directly to the project file.
 
 ### Stage provider artifacts without live installation
 
@@ -721,9 +710,8 @@ required checks blocks staging. See [repository scripts](../scripts/README.md#fo
 
 ### What NOT to do
 
-- Do **not** edit files in `~/.codeium/windsurf/global_workflows/`,
-  `~/.codeium/windsurf/global_rules/`, `~/.claude/skills/`, or `~/.claude/CLAUDE.md`
-  directly — they are overwritten by the next `scripts/sync.sh`.
+- Edit adapter and skill sources in the Orchestrail checkout. Changing a managed
+  installation file outside the checkout causes a conflict at the next sync.
 - Do **not** edit `templates/AGENTS.md` and expect existing projects to update.
   Existing projects keep their own copy.
 
@@ -731,25 +719,17 @@ required checks blocks staging. See [repository scripts](../scripts/README.md#fo
 
 | You edit                                    | Effect after `scripts/sync.sh`                                              |
 |---------------------------------------------|---------------------------------------------------------------------|
-| `workflows/<x>.md`                          | Windsurf workflow `/x` updated, Claude skill `x/SKILL.md` updated   |
+| `workflows/<x>.md`                          | Skill `x/SKILL.md` updated at both declared targets |
 | `harness/<name>/always-on.md`              | The harness global instructions are refreshed with its capability declaration |
-| `rules/workflow-globals.md`                 | Windsurf rule updated; Claude Code and Codex skill `rule-workflow-globals` updated; project copies in `.windsurf/rules/` and `.devin/rules/` refreshed by the per-project pass |
-| `rules/<x>.md` (any other rule)             | Windsurf global rule updated; Claude Code and Codex skill `rule-<x>` updated                |
-| `principles/<x>.md`                         | Windsurf global rule updated; Claude Code and Codex skill `principle-<x>` updated           |
+| `rules/<x>.md`                              | Skill `rule-<x>` updated at both declared targets |
+| `principles/<x>.md`                         | Skill `principle-<x>` updated at both declared targets |
 | `templates/AGENTS.md`                       | New projects get the new template; existing projects unaffected      |
 | `scripts/setup-new-project.sh` / `scripts/sync.sh`          | Effective on next invocation                                        |
 
 ### Propagating rule changes to existing projects
 
-Rules under `.windsurf/rules/` are *copies* (not symlinks). After editing
-`rules/workflow-globals.md`:
-
-```bash
-cd <existing-project>
-cp ~/projects/orchestrail/rules/workflow-globals.md .windsurf/rules/workflow-globals.md
-```
-
-Or re-run `scripts/setup-new-project.sh` after deleting the affected file.
+Run `scripts/sync.sh` after editing an Orchestrail rule. Registered projects use the
+installed rules and receive refreshed links at each adapter's declared project link path.
 
 ---
 
@@ -762,12 +742,12 @@ Or re-run `scripts/setup-new-project.sh` after deleting the affected file.
 | `docs/USAGE.md`            | This document.                                                                    |
 | `docs/SPEC-RUN-QUICKSTART.md` | Operating procedure for `/spec-run`: preflight, the batch gate, what stops the run, the branch stack you get, merging and `/restack`, interruption recovery. |
 | `scripts/validate-contracts.sh`    | Contract checks across the three layers, including optional tracked-file public hygiene. Run by `scripts/sync.sh` before every deploy; any failure blocks deployment. |
-| `scripts/sync.sh`                  | Deploy source → Windsurf workflows + rules, Claude skills, `~/.claude/CLAUDE.md`. Source tree defaults to the repository root (the parent of `scripts/`); `--from <dir>` takes precedence over `ORCHESTRAIL_HOME`. |
+| `scripts/sync.sh`                  | Deploy skills and global instructions to declared harness targets. The source tree defaults to the repository root (the parent of `scripts/`). `--from <dir>` takes precedence over `ORCHESTRAIL_HOME`. |
 | `scripts/validate-task.sh`         | Applies the canonical contracts to ONE task directory's artifacts (`state.md`, `plan.md`, `description.md`) rather than to the workflow definitions. Run by `/pd-finalize` and `/pe-finalize`; exit 1 blocks the phase. |
 | `scripts/state-tool.py`    | Optional reader and editor of one task's `## Subtask Progress` section: structural parser, per-task lock, expected revision, idempotent operation receipts, one JSON result per call. No workflow calls it yet; see section 11. |
 | `scripts/run-log-timing.sh` | Exact offline timing for explicit original run files; source-only Python engine, private validated snapshots and structured coverage. |
 | `scripts/log-step.sh`              | Append-only run log writer. Stamps its own timestamps and derives durations, so no duration is ever model-guessed. Exits 0 on every error path — logging never blocks a pipeline. |
-| `scripts/setup-new-project.sh`     | Initialize a project: `CLAUDE.md`, `AGENTS.md`, `.windsurf/rules/`, skill symlinks, `.gitignore`. |
+| `scripts/setup-new-project.sh`     | Seed project instructions, skill links, the knowledge base and `.gitignore`, then register the project. |
 | `scripts/link-skills.sh`           | Workaround for Claude bug: symlink `~/.claude/skills/` into project `.claude/skills/`. |
 
 Keep private hygiene patterns in a local file outside the repository. Set
@@ -790,15 +770,15 @@ files are clean. Logs and local machine settings stay ignored in this repository
 
 | File                       | Role                                                                              |
 |----------------------------|-----------------------------------------------------------------------------------|
-| `workflow-globals.md`      | Always-on. Phase contract, never-auto-advance, canonical status formats, flow tiers, fix-task format. Decomposition limits and the reference tables live in `workflow-reference.md`. |
-| `workflow-reference.md`    | Model-decision trigger. Extended file-role reference, state-file marker list, status lifecycle. |
-| `language.md`              | Always-on. Every project file in English. Chat language is deliberately NOT set here — it belongs in the user's personal `~/.claude/CLAUDE.md`. |
-| `git-flow.md`              | Always-on. Branch stack, commit granularity, the no-attribution commit rule, PR policy (draft → ready), preflight, and every git safety rail with its Enforcement (what the Claude Code git-rails hook denies, asks the owner about, or allows only with the restack journal), the owner-approval protocol, and the rule never to rephrase a denied command. |
-| `orchestration.md`         | Always-on. Roles (Orchestrator / Arbiter / Implementer / Validator), context boundaries, shared-file discipline, class A/B escalation, the Discovery batch gate. |
-| `tdd.md`                   | Always-on. TDD contract: RED→GREEN cycle, test-level gate (unit/integration/contract/smoke/none), what counts as RED, frozen-test-set rule during GREEN, characterization mode (`pinned`) for behaviour-preserving work, `atomic-tests:` status vocabulary. |
-| `run-log.md`               | Always-on. Run log contract: the central store, the three `scripts/log-step.sh` calls, the field vocabulary, what must never be logged, and the rule that logging never blocks a run. |
-| `quick-flow.md`            | Always-on. Quick vs full tier: four-condition escalation gate, what the quick path skips and still mandates (inline contract + inline TDD step), mid-flight promotion to full. |
-| `phase-discovery.md`, `phase-execution.md`, `phase-validation.md`, `phase-finalize.md`, `phase-atomic-execution.md`, `phase-atomic-validation.md` | Model-decision trigger. Per-phase Context Bootstrap (which `.ai/` files to load, in what order), phase behaviours, and — for atomic execution — the Blocker Reconciliation procedure. Every phase workflow cites these by name. |
+| `workflow-globals.md`      | `load: always`. Phase contract, never-auto-advance, canonical status formats, flow tiers, fix-task format. Decomposition limits and the reference tables live in `workflow-reference.md`. |
+| `workflow-reference.md`    | `load: on-demand`. Extended file-role reference, state-file marker list, status lifecycle. |
+| `language.md`              | `load: always`. Every project file in English. Chat language is deliberately NOT set here — it belongs in the user's personal `~/.claude/CLAUDE.md`. |
+| `git-flow.md`              | `load: always`. Branch stack, commit granularity, the no-attribution commit rule, PR policy (draft → ready), preflight, and every git safety rail with its Enforcement (what the Claude Code git-rails hook denies, asks the owner about, or allows only with the restack journal), the owner-approval protocol, and the rule never to rephrase a denied command. |
+| `orchestration.md`         | `load: always`. Roles (Orchestrator / Arbiter / Implementer / Validator), context boundaries, shared-file discipline, class A/B escalation, the Discovery batch gate. |
+| `tdd.md`                   | `load: always`. TDD contract: RED→GREEN cycle, test-level gate (unit/integration/contract/smoke/none), what counts as RED, frozen-test-set rule during GREEN, characterization mode (`pinned`) for behaviour-preserving work, `atomic-tests:` status vocabulary. |
+| `run-log.md`               | `load: always`. Run log contract: the central store, the three `scripts/log-step.sh` calls, the field vocabulary, what must never be logged, and the rule that logging never blocks a run. |
+| `quick-flow.md`            | `load: always`. Quick vs full tier: four-condition escalation gate, what the quick path skips and still mandates (inline contract + inline TDD step), mid-flight promotion to full. |
+| `phase-discovery.md`, `phase-execution.md`, `phase-validation.md`, `phase-finalize.md`, `phase-atomic-execution.md`, `phase-atomic-validation.md` | `load: on-demand`. Per-phase Context Bootstrap (which `.ai/` files to load, in what order), phase behaviours, and — for atomic execution — the Blocker Reconciliation procedure. Every phase workflow cites these by name. |
 | `harness/<name>/always-on.md` | Source of the global instruction file for each harness. |
 
 ### `principles/`
@@ -1122,7 +1102,7 @@ files.
 
 ## Removed integrations
 
-Orchestrail is retiring its Windsurf and Devin integrations. Files from earlier installations
+Orchestrail retired its Windsurf and Devin integrations. Files from earlier installations
 may still be present in these locations:
 
 - Global Codeium paths `~/.codeium/windsurf/global_workflows` and

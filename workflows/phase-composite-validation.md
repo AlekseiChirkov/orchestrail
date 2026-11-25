@@ -1,5 +1,7 @@
 ---
 description: Integration validation for a composite subtask — runs after all children are individually reviewed
+phase: atomic-validation
+step: "-"
 ---
 
 Invocation: `/phase-composite-validation <path-to-composite-description>`

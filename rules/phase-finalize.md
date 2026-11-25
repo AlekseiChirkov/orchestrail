@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
 description: Context loading rules for separately invoked post-merge finalization — load when running /phase-finalize
+load: on-demand
 ---
 
 # Phase: Finalization — Context Rules

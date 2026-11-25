@@ -1,5 +1,7 @@
 ---
 description: Discovery Step 2 — Decompose task into atomic T-XX subtasks, create directories and files
+phase: discovery
+step: 2
 ---
 
 Invocation: `/pd-decompose <task-directory> [--step-by-step]`

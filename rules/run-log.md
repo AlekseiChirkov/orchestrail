@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the Orchestrail workflow logging and evidence rules.
+load: always
 ---
 
 # Run Log Contract

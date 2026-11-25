@@ -1,5 +1,7 @@
 ---
 description: Validation Step 4 — Create fix-task subtask directories from approved issues
+phase: validation
+step: 4
 ---
 
 Invocation: `/pv-create-fixes <task-directory>`

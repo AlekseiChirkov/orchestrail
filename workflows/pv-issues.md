@@ -1,5 +1,7 @@
 ---
 description: Validation Step 3 — Compile numbered issue list with priorities, present to user, wait for decision
+phase: validation
+step: 3
 ---
 
 Invocation: `/pv-issues <task-directory>`

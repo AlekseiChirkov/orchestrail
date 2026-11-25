@@ -1,5 +1,7 @@
 ---
 description: Discovery Step 4 — Finalize discovery, verify consistency, compress state
+phase: discovery
+step: 4
 ---
 
 Invocation: `/pd-finalize <task-directory> [--step-by-step]`

@@ -1,5 +1,7 @@
 ---
 description: Atomic Validation orchestrator — Validate a single T-XX subtask: check, propose improvements, close
+phase: atomic-validation
+step: "-"
 ---
 
 Invocation: `/phase-atomic-validation <path-to-atomic-description> [--batch]`

@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+description: Load the Orchestrail language convention for repository artifacts.
+load: always
 ---
 
 # Language Rule (always-on)

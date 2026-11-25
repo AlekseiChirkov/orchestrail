@@ -1,5 +1,7 @@
 ---
 description: Atomic Validation Step 2 — Propose improvements, categorize; interactive or batch mode
+phase: atomic-validation
+step: 2
 ---
 
 Invocation: `/pav-propose <path-to-atomic-description> [--batch]`

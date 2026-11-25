@@ -7,7 +7,7 @@ This record starts with support for inventory amendments. Section mappings will 
 
 ## Superseded checks
 
-The amendment records the complete source expressions and helper bodies for these deployment entry point changes. [Inventory amendment](../../tests/fixtures/validator-runtime/inventory-amendment.json)
+The amendment records the complete source expressions and helper bodies for deployment entry point and rule metadata changes. [Inventory amendment](../../tests/fixtures/validator-runtime/inventory-amendment.json)
 
 | Key | Before | After | Requirement | Verdict |
 | --- | --- | --- | --- | --- |
@@ -21,6 +21,9 @@ The amendment records the complete source expressions and helper bodies for thes
 | `DEPLOY: scripts/sync.sh deploys every rule as a Codex rule-* skill` | Hard-coded Codex copy loop | Actual Codex skill target with every prefixed rule and exact bytes | REQ-05 | pass — The Codex adapter's declared skill target contains every expected rule-prefixed file with exact source bytes. |
 | `DEPLOY: the $root rule deployment uses the rule- prefix` | Hard-coded provider-specific rule prefix | Actual rule prefix and source bytes in each named adapter target | REQ-05 | pass — Both named adapter targets contain actual rule-prefixed skills, and an altered installed prefix makes both expanded checks fail. |
 | `test_shell_paths_relocated_checkout_preserves_overrides` | Relocated source with legacy helper dependencies | Relocated sources with declared adapters, engine and reporter | REQ-05 | pass — The isolated fixture exercises default checkout, environment override and command-line precedence using the selected source and declared deployment inputs. |
+| `TDD: rules/tdd.md is always_on` | Search for the former trigger anywhere in the TDD rule | Accept exactly one `load: always` declaration in the TDD rule's delimited front matter | REQ-12 | Pending independent review |
+| `ORCH: $f is always_on` | Search for the former trigger anywhere in each orchestration rule | Accept exactly one `load: always` declaration in the delimited front matter of each of `rules/git-flow.md` and `rules/orchestration.md` | REQ-12 | Pending independent review |
+| `LOG: rules/run-log.md is always_on` | Search for the former trigger anywhere in the run-log rule | Accept exactly one `load: always` declaration in the run-log rule's delimited front matter | REQ-12 | Pending independent review |
 
 ## Retained old names
 
@@ -65,5 +68,17 @@ The amendment records the complete source expressions and helper bodies for thes
 
 | Path:line | Reference | Fix |
 | --- | --- | --- |
+| `rules/orchestration.md:67` | `/spec-run → ## Step 4 → 4.2` | Reference `/spec-run → ## Step 4 — Subtask loop` and keep the step 4.2 locator in prose. |
+| `rules/orchestration.md:75` | `/spec-run → ## Step 4 → 4.2` | Reference `/spec-run → ## Step 4 — Subtask loop` and keep the step 4.2 locator in prose. |
+
+## Phase 1 checker evidence
+
+`python3 -I scripts/lint-instructions.py` exited 1 with empty standard error and this exact standard output:
+
+```text
+usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.
+```
+
+The Phase 2 table `docs/USAGE.md → ## Renamed commands and rules` is still absent. The current `docs/name-map.json` records only the two completed adapter source relocations. The final table must cover the complete map, including the Phase 2 rule and workflow names. Independent review is pending.
 
 Signed: Independent validator 2026-11-25 65e5323888f794a4bb1e439a1911a0e91da4848f

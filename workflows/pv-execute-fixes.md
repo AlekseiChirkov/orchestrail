@@ -1,5 +1,7 @@
 ---
 description: Validation Step 5 — Execute fix-tasks via atomic execution → validation cycles
+phase: validation
+step: 5
 ---
 
 Invocation: `/pv-execute-fixes <task-directory>`

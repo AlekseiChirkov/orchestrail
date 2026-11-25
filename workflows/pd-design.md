@@ -1,5 +1,7 @@
 ---
 description: Discovery Step 3 — Generate 2-3 architectural variants, decide autonomously by default (--step-by-step to choose yourself), record decision
+phase: discovery
+step: 3
 ---
 
 Invocation: `/pd-design <task-directory> [--step-by-step]`

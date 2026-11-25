@@ -1,5 +1,7 @@
 ---
 description: Validation Step 1 — Verify implementation against Invariants, Acceptance Criteria, Off-limits
+phase: validation
+step: 1
 ---
 
 Invocation: `/pv-contract <task-directory>`

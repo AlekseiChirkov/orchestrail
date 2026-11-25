@@ -1,5 +1,7 @@
 ---
 description: Atomic Execution orchestrator — Execute a single T-XX subtask step by step using its description.md
+phase: atomic-execution
+step: "-"
 ---
 
 Invocation: `/phase-atomic-execution <path-to-atomic-description>`
