@@ -35,6 +35,7 @@ _JOURNAL_ENTRY_KEYS = frozenset({"path", "old_sha256", "new_sha256"})
 _TEMPORARY_SUFFIX = ".orchestrail-tmp"
 _JOURNAL_NAME = "journal.json"
 _LOCK_NAME = "deploy.lock"
+_REGISTRY_PATH = Path("orchestrail/projects")
 _LEGACY_PROJECT_DIRS = frozenset({".windsurf", ".devin"})
 _DIRECTORY_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 _NO_NATIVE_HOOK = '{"reason":"no-native-adapter","status":"unavailable"}'
@@ -108,6 +109,8 @@ class _DeploymentPaths:
     lock: Path
     reserved: tuple[Path, ...]
     legacy: set[Path]
+    registry: Path
+    registry_addresses: set[Path]
 
 
 @dataclass(frozen=True)
@@ -299,12 +302,18 @@ def _is_temporary_name(name: str) -> bool:
             and len(name) > len(_TEMPORARY_SUFFIX) + 1)
 
 
-def _state_paths(home: Path, config: Path) -> _DeploymentPaths:
-    home_resolved = Path(os.path.realpath(home))
-    retired = home / ".codeium"
-    legacy_paths = {
-        Path(os.path.abspath(retired)), home_resolved / retired.name, Path(os.path.realpath(retired)),
+def _path_addresses(path: Path) -> set[Path]:
+    return {
+        Path(os.path.abspath(path)),
+        Path(os.path.realpath(path.parent)) / path.name,
+        Path(os.path.realpath(path)),
     }
+
+
+def _state_paths(home: Path, config: Path) -> _DeploymentPaths:
+    legacy_paths = _path_addresses(home / ".codeium")
+    registry = config / _REGISTRY_PATH
+    registry_addresses = _path_addresses(registry)
     manifest_subdirectory = Path("orchestrail/deploy")
     manifest_dir = Path(os.path.realpath(config)) / manifest_subdirectory
     declared_manifest_dir = Path(os.path.abspath(config)) / manifest_subdirectory
@@ -312,8 +321,12 @@ def _state_paths(home: Path, config: Path) -> _DeploymentPaths:
     state_paths = (manifest_dir, declared_manifest_dir, lock, declared_manifest_dir.parent / _LOCK_NAME)
     if any(_overlap(path, legacy) for path in state_paths for legacy in legacy_paths):
         raise _DeploymentError("adapter-conflict", f"deployment state overlaps legacy paths: {manifest_dir}")
+    if any(_overlap(path, address) for path in state_paths for address in registry_addresses):
+        raise _DeploymentError("adapter-conflict", f"deployment state overlaps the project registry: {registry}")
     _require_parent_tree(manifest_dir, "manifest-invalid")
-    return _DeploymentPaths(manifest_dir, lock, state_paths, legacy_paths)
+    return _DeploymentPaths(
+        manifest_dir, lock, (*state_paths, *registry_addresses), legacy_paths, registry, registry_addresses,
+    )
 
 
 def _validate_targets(adapters: list[_Adapter], state: _DeploymentPaths) -> None:
@@ -767,7 +780,9 @@ def _clean_temporaries(directory: int, names: list[str]) -> None:
             continue
 
 
-def _clean_target_temporaries(path: Path, *, visit_children: bool = False) -> None:
+def _clean_target_temporaries(
+    path: Path, *, visit_children: bool = False, preserve: set[str] | None = None,
+) -> None:
     try:
         with _managed_directory(path) as directory:
             names = os.listdir(directory)
@@ -783,19 +798,20 @@ def _clean_target_temporaries(path: Path, *, visit_children: bool = False) -> No
                         _clean_temporaries(child, os.listdir(child))
                     finally:
                         os.close(child)
-            _clean_temporaries(directory, names)
+            _clean_temporaries(directory, names if preserve is None else [name for name in names if name not in preserve])
     except FileNotFoundError:
         return
 
 
-def _clean_deployment_temporaries(adapters: list[_Adapter], manifest_dir: Path) -> None:
+def _clean_deployment_temporaries(adapters: list[_Adapter], state: _DeploymentPaths) -> None:
     for adapter in adapters:
         _clean_target_temporaries(adapter.skills_dir_resolved, visit_children=True)
     for directory in {adapter.always_on_resolved.parent for adapter in adapters}:
-        _clean_target_temporaries(directory)
+        preserve = {path.name for path in state.registry_addresses if path.parent == directory}
+        _clean_target_temporaries(directory, preserve=preserve)
     # An interrupted journal or manifest replacement can leave these exact state temporaries.
     try:
-        with _managed_directory(manifest_dir) as directory:
+        with _managed_directory(state.manifest_dir) as directory:
             names = [_temporary_name(_JOURNAL_NAME)]
             names.extend(_temporary_name(f"{adapter.name}.json") for adapter in adapters)
             _clean_temporaries(directory, names)
@@ -829,7 +845,8 @@ def _validate_pending_temporaries(targets: list[Path]) -> None:
             raise _DeploymentError("unsafe-target", f"{path} must be absent or a regular temporary file")
 
 
-def _apply_plan(plan: _Plan, manifest_dir: Path) -> None:
+def _apply_plan(plan: _Plan, state: _DeploymentPaths) -> None:
+    manifest_dir = state.manifest_dir
     journal_path = manifest_dir / _JOURNAL_NAME
     journal_digest = plan.journal.sha256
     write_journal = bool(plan.actions or (plan.manifests and journal_digest is None))
@@ -842,7 +859,7 @@ def _apply_plan(plan: _Plan, manifest_dir: Path) -> None:
     if write_journal:
         replacements.append(journal_path)
     _validate_pending_temporaries(replacements)
-    _clean_deployment_temporaries(plan.adapters, manifest_dir)
+    _clean_deployment_temporaries(plan.adapters, state)
     if write_journal:
         journal_bytes = _journal_payload(plan)
         _replace_file(journal_path, journal_bytes, journal_digest)
@@ -872,9 +889,8 @@ def _apply_plan(plan: _Plan, manifest_dir: Path) -> None:
             print(notice)
 
 
-def _read_project_registry(config: Path) -> tuple[Path, ...] | None:
+def _read_project_registry(registry: Path) -> tuple[Path, ...] | None:
     """Read the registration format shared with the Git rails hook."""
-    registry = config / "orchestrail/projects"
     try:
         try:
             descriptor = os.open(registry, os.O_RDONLY | os.O_NONBLOCK)
@@ -902,13 +918,15 @@ def _list_projects() -> None:
     if not home and not os.environ.get("XDG_CONFIG_HOME"):
         return
     source = Path(__file__).resolve().parents[1]
-    projects = _read_project_registry(_config_directory(Path(home or "")))
+    projects = _read_project_registry(_config_directory(Path(home or "")) / _REGISTRY_PATH)
     for project in projects or ():
         if project != source and project.is_dir():
             sys.stdout.buffer.write(os.fsencode(project) + b"\0")
 
 
-def _add_project_links(adapter: _Adapter, destination: Path, directory: int) -> int:
+def _add_project_links(
+    adapter: _Adapter, destination: Path, directory: int, registry_addresses: set[Path],
+) -> int:
     try:
         entries = os.scandir(adapter.skills_dir)
     except FileNotFoundError:
@@ -916,6 +934,8 @@ def _add_project_links(adapter: _Adapter, destination: Path, directory: int) -> 
     linked = 0
     with entries:
         for entry in entries:
+            if destination / entry.name in registry_addresses:
+                continue
             try:
                 if not entry.is_dir():
                     continue
@@ -932,12 +952,14 @@ def _add_project_links(adapter: _Adapter, destination: Path, directory: int) -> 
     return linked
 
 
-def _remove_broken_project_links(adapter: _Adapter, destination: Path, directory: int) -> int:
+def _remove_broken_project_links(
+    adapter: _Adapter, destination: Path, directory: int, registry_addresses: set[Path],
+) -> int:
     prefixes = (f"{adapter.skills_dir}/", f"{adapter.skills_dir_resolved}/")
     unlinked = 0
     with os.scandir(directory) as entries:
         for entry in entries:
-            if not entry.is_symlink():
+            if destination / entry.name in registry_addresses or not entry.is_symlink():
                 continue
             try:
                 original = entry.stat(follow_symlinks=False)
@@ -960,12 +982,21 @@ def _remove_broken_project_links(adapter: _Adapter, destination: Path, directory
     return unlinked
 
 
-def _project_links(project: Path, adapter: _Adapter, *, refresh: bool) -> tuple[int, int]:
+def _is_legacy_project_path(path: Path, legacy: set[Path]) -> bool:
+    return bool(_LEGACY_PROJECT_DIRS.intersection(path.parts)) or any(
+        path.is_relative_to(address) for address in legacy
+    )
+
+
+def _project_links(
+    project: Path, adapter: _Adapter, legacy: set[Path], registry_addresses: set[Path], *, refresh: bool,
+) -> tuple[int, int]:
     relative = adapter.project_skills_link_dir
     if relative is None:
         return 0, 0
     destination = project / relative
-    if _LEGACY_PROJECT_DIRS.intersection(destination.parts):
+    if (_is_legacy_project_path(destination, legacy)
+            or any(destination.is_relative_to(address) for address in registry_addresses)):
         return 0, 0
     with ExitStack() as stack:
         try:
@@ -974,16 +1005,18 @@ def _project_links(project: Path, adapter: _Adapter, *, refresh: bool) -> tuple[
             if refresh and error.errno in {errno.ENOENT, errno.ENOTDIR, errno.ELOOP}:
                 return 0, 0
             raise
-        unlinked = _remove_broken_project_links(adapter, destination, directory) if refresh else 0
-        return _add_project_links(adapter, destination, directory), unlinked
+        unlinked = _remove_broken_project_links(adapter, destination, directory, registry_addresses) if refresh else 0
+        return _add_project_links(adapter, destination, directory, registry_addresses), unlinked
 
 
 def _link_project(source: Path, project: Path) -> None:
-    home, _ = _deployment_home()
+    home, config = _deployment_home()
     adapters = _load_adapters(source, home)
+    legacy = _path_addresses(home / ".codeium")
+    registry_addresses = _path_addresses(config / _REGISTRY_PATH)
     with _managed_directory(project):
         for adapter in adapters:
-            _project_links(project, adapter, refresh=False)
+            _project_links(project, adapter, legacy, registry_addresses, refresh=False)
 
 
 def _has_tracked_knowledge(project: Path) -> bool:
@@ -1003,12 +1036,20 @@ def _has_knowledge_ignore(contents: bytes) -> bool:
     return bool({b".ai", b".ai/"}.intersection(contents.split(b"\n")))
 
 
-def _ignore_untracked_knowledge(project: Path) -> None:
-    if (_LEGACY_PROJECT_DIRS.intersection(project.parts) or not (project / ".git").is_dir()
+def _is_registry_file(info: os.stat_result, registry: Path) -> bool:
+    try:
+        return os.path.samestat(info, registry.stat())
+    except FileNotFoundError:
+        return False
+
+
+def _ignore_untracked_knowledge(project: Path, state: _DeploymentPaths) -> None:
+    name = ".gitignore"
+    if (_is_legacy_project_path(project, state.legacy) or project / name in state.registry_addresses
+            or not (project / ".git").is_dir()
             or _has_tracked_knowledge(project)):
         return
     with _managed_directory(project) as directory:
-        name = ".gitignore"
         flags = os.O_RDWR | os.O_APPEND | os.O_NOFOLLOW | os.O_NONBLOCK
         try:
             previous = os.stat(name, dir_fd=directory, follow_symlinks=False)
@@ -1030,13 +1071,15 @@ def _ignore_untracked_knowledge(project: Path) -> None:
                     or (previous is not None and not os.path.samestat(previous, info))):
                 return
             contents = stream.read()
-            if not _has_knowledge_ignore(contents):
+            if not _has_knowledge_ignore(contents) and not _is_registry_file(info, state.registry):
                 _check_directory_identity(project, directory)
                 separator = b"\n" if contents and not contents.endswith(b"\n") else b""
                 stream.write(separator + b".ai/\n")
 
 
-def _refresh_projects(source: Path, projects: tuple[Path, ...] | None, adapters: list[_Adapter]) -> None:
+def _refresh_projects(
+    source: Path, projects: tuple[Path, ...] | None, adapters: list[_Adapter], state: _DeploymentPaths,
+) -> None:
     if projects is None:
         print("registry absent: no projects registered; run scripts/setup-new-project.sh in each project")
         return
@@ -1048,10 +1091,10 @@ def _refresh_projects(source: Path, projects: tuple[Path, ...] | None, adapters:
         else:
             linked = unlinked = 0
             for adapter in adapters:
-                added, removed = _project_links(project, adapter, refresh=True)
+                added, removed = _project_links(project, adapter, state.legacy, state.registry_addresses, refresh=True)
                 linked += added
                 unlinked += removed
-            _ignore_untracked_knowledge(project)
+            _ignore_untracked_knowledge(project, state)
             print(f"project updated {project} (linked {linked}, unlinked {unlinked})")
 
 
@@ -1063,14 +1106,17 @@ def _deploy(source: Path, hook_result: str) -> None:
     if lock_mode is None:
         _validate_targets(_load_adapters(source, home), state)
         # A malformed registry must not create the persistent lock on a first run.
-        _read_project_registry(config)
+        _read_project_registry(state.registry)
     elif not stat.S_ISREG(lock_mode):
         raise _DeploymentError("unsafe-target", f"{state.lock} must be a regular lock file")
     with _deployment_lock(state.lock):
-        projects = _read_project_registry(config)
-        plan = _build_plan(source, hook_result, home, state, recover=True)
-        _apply_plan(plan, state.manifest_dir)
-        _refresh_projects(source, projects, plan.adapters)
+        locked_state = _state_paths(home, config)
+        if locked_state.lock != state.lock:
+            raise _DeploymentError("unsafe-target", f"deployment configuration moved: {config}")
+        projects = _read_project_registry(locked_state.registry)
+        plan = _build_plan(source, hook_result, home, locked_state, recover=True)
+        _apply_plan(plan, locked_state)
+        _refresh_projects(source, projects, plan.adapters, locked_state)
 
 
 def main() -> int:
