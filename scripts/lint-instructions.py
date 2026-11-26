@@ -594,7 +594,7 @@ def check_active_references(lint: InstructionLint, rows: list[NameRow], retained
                     continue
                 line = CHECK_DESCRIPTION.sub(r"\1", line)
             contract_line = contract_lines[number - 1] if contract_lines is not None else line
-            if contract_line == RESOLUTION_LINE:
+            if original_line == contract_line == RESOLUTION_LINE:
                 anchor_count += 1
             if OBSOLETE_RESOLUTION_PHRASE in line.casefold():
                 lint.report("resolution-rule-missing", path, number, "Obsolete wording in a rule reference.")
@@ -667,8 +667,11 @@ def check_phase_contract(
     raw_lines = instructions.get(path, [])
     lines = strip_markdown_comments(raw_lines)
     start, end = phase_section(lines, RULE_REFERENCES_HEADING)
-    if anchor_count != 1 or not any(start < number < end and line == RESOLUTION_LINE
-                                    for number, line in outside_fences(lines)):
+    anchor_in_section = any(
+        start < number < end and raw_lines[number - 1] == line == RESOLUTION_LINE
+        for number, line in outside_fences(lines)
+    )
+    if anchor_count != 1 or not anchor_in_section:
         lint.report("resolution-rule-missing", path, start, "Expected one canonical rule-reference line.")
 
     rules = {file.stem for file in instructions if file.parent == lint.root / "rules"}
