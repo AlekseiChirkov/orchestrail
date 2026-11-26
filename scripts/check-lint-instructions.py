@@ -408,7 +408,8 @@ class InstructionMetadataTests(unittest.TestCase):
                 self.assertCountEqual(actual, [f"{key}={value}" for key, value in expected.items()])
 
     def test_delivered_capabilities_preserve_prior_text_and_validate(self) -> None:
-        for name in ("git-flow", "phase-finalize", "tdd", "workflow-globals"):
+        legacy_rules = ("git-flow", "phase-finalize", "tdd", "workflow-globals")
+        for name in legacy_rules:
             self.write(f"rules/{name}.md", RULE)
         for name in ("pae-tests", "pae-implement", "phase-finalize"):
             self.write(f"workflows/{name}.md", workflow('"-"', name=name))
@@ -436,7 +437,15 @@ class InstructionMetadataTests(unittest.TestCase):
                 self.write(body, (SOURCE / body).read_bytes())
                 self.write(relative, declaration)
                 result = self.run_checker()
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+                self.assertCountEqual(
+                    [" ".join(line.split()[:2]) for line in result.stdout.splitlines() if not line.startswith("info ")],
+                    [
+                        *(f"kind-prefix-invalid rules/{rule}.md:0" for rule in legacy_rules),
+                        "name-collision workflows/phase-finalize.md:0",
+                    ],
+                    result.stdout,
+                )
 
                 text = declaration.decode("utf-8")
                 path_line = next(line for line in lines if line.startswith("always-on-path: "))
@@ -692,15 +701,34 @@ class InstructionMetadataTests(unittest.TestCase):
             prose = " ".join(paragraph.split("`")[::2])
             self.assertIn("4.2", prose)
 
-    def test_intermediate_source_tree_has_only_the_deferred_name_table_finding(self) -> None:
+    def test_delivered_source_tree_has_only_recorded_migration_findings(self) -> None:
+        rules = (
+            "git-flow", "language", "orchestration", "phase-atomic-execution", "phase-atomic-validation",
+            "phase-discovery", "phase-execution", "phase-finalize", "phase-validation", "quick-flow",
+            "run-log", "tdd", "workflow-globals", "workflow-reference",
+        )
+        collisions = (
+            "phase-atomic-execution", "phase-atomic-validation", "phase-discovery", "phase-execution",
+            "phase-finalize", "phase-validation",
+        )
+        usage = ("usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.")
+
         result = self.run_checker(SOURCE)
 
         self.assertEqual(result.stderr, "")
+        findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
         self.assertIn(
-            (result.returncode, result.stdout),
+            (result.returncode, findings),
             (
-                (0, ""),
-                (1, "usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.\n"),
+                (0, []),
+                (1, [usage]),
+                (1, [
+                    *(f"kind-prefix-invalid rules/{name}.md:0 Expected a rule kind and a hyphenated subject."
+                      for name in rules),
+                    *(f"name-collision workflows/{name}.md:0 Stem {name} is also used by rules/{name}.md."
+                      for name in collisions),
+                    usage,
+                ]),
             ),
             result.stdout,
         )
@@ -710,7 +738,8 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write_adapter("demo", "Fixture instructions", capability_declaration("demo", "no"))
         original = (self.root / env_path).read_bytes()
         baseline = self.run_checker()
-        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr), (0, "", ""))
+        info = "info reserved-names-absent demo"
+        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr), (0, info + "\n", ""))
         skills_line = b"skills_dir=$HOME/demo/skills\n"
         marker = self.workspace / "command-executed"
         fixtures = {
@@ -733,6 +762,8 @@ class InstructionMetadataTests(unittest.TestCase):
                 self.assertFalse(marker.exists(), "The checker executed an adapter command.")
                 self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
                 findings = result.stdout.splitlines()
+                self.assertIn(info, findings)
+                findings.remove(info)
                 self.assertEqual(len(findings), 1, result.stdout)
                 prefix = f"deploy-env-invalid {env_path}:"
                 if line is not None:
