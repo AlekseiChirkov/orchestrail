@@ -74,6 +74,8 @@ MAP_PATH = re.compile(r"(rules|workflows|templates|harness|docs)(?:/[A-Za-z0-9_.
 HEADING = re.compile(r" {0,3}(#{1,6})(?:[ \t]+|$)")
 FENCE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)")
 BACKTICKS = re.compile(r"`+")
+COMMENT_OR_CODE = re.compile(r"(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)|(?<!\\)<!--")
+TABLE_PUNCTUATION = re.compile(r"\\.|\|")
 COMMAND = re.compile(r"/([a-z0-9][a-z0-9-]*)(\.md)?(?: .*)?")
 SECTION = re.compile(r"/?([a-z0-9][a-z0-9-]*)(\.md)? → (#{2,3} .+)")
 NEXT_HEADING = re.compile(r" → (?=#{2,4} .)")
@@ -174,6 +176,45 @@ def outside_fences(lines: Iterable[str]) -> Iterator[tuple[int, str]]:
             fence = marker[1]
         else:
             yield number, line
+
+
+def strip_markdown_comments(lines: list[str]) -> list[str]:
+    visible = []
+    fence = ""
+    in_comment = False
+    for line in lines:
+        marker = FENCE.fullmatch(line)
+        if fence:
+            if marker and marker[1].startswith(fence) and not marker[2].strip():
+                fence = ""
+        elif not in_comment and marker and (marker[1][0] == "~" or "`" not in marker[2]):
+            fence = marker[1]
+        elif in_comment or "<!--" in line:
+            line, in_comment = strip_comment_line(line, in_comment)
+        visible.append(line)
+    return visible
+
+
+def strip_comment_line(line: str, in_comment: bool) -> tuple[str, bool]:
+    visible = []
+    cursor = 0
+    while cursor < len(line):
+        if in_comment:
+            close = line.find("-->", cursor)
+            if close == -1:
+                break
+            cursor = close + 3
+            in_comment = False
+            continue
+
+        match = COMMENT_OR_CODE.search(line, cursor)
+        if match is None:
+            visible.append(line[cursor:])
+            break
+        in_comment = match[1] is None
+        visible.append(line[cursor:match.start() if in_comment else match.end()])
+        cursor = match.end()
+    return "".join(visible), in_comment
 
 
 def markdown_sections(lines: list[str], heading: str) -> Iterator[tuple[int, int]]:
@@ -287,20 +328,32 @@ def read_name_map(lint: InstructionLint) -> list[NameRow] | None:
         return None
 
 
-def table_cells(line: str) -> list[str]:
+def table_cells(line: str, *, optional_outer_pipes: bool = False) -> list[str]:
     line = line.strip()
-    if not (line.startswith("|") and line.endswith("|")):
+    if not optional_outer_pipes:
+        if not (line.startswith("|") and line.endswith("|")):
+            return []
+        return [cell.strip() for cell in re.split(r"(?<!\\)\|", line[1:-1])]
+
+    pipes = [match.start() for match in TABLE_PUNCTUATION.finditer(line) if match[0] == "|"]
+    if not pipes:
         return []
-    return [cell.strip() for cell in re.split(r"(?<!\\)\|", line[1:-1])]
+    bounds = [-1, *pipes, len(line)]
+    if pipes[0] == 0:
+        bounds.pop(0)
+    if pipes[-1] == len(line) - 1:
+        bounds.pop()
+    return [line[start + 1:end].strip() for start, end in zip(bounds, bounds[1:])]
 
 
-def is_table_divider(line: str, columns: int) -> bool:
-    cells = table_cells(line)
+def is_table_divider(line: str, columns: int, *, optional_outer_pipes: bool = False) -> bool:
+    cells = table_cells(line, optional_outer_pipes=optional_outer_pipes)
     return len(cells) == columns and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
 
 
 def table_rows(
     lines: list[str], start: int, end: int, header: list[str], *, exact_header: bool = False,
+    optional_outer_pipes: bool = False,
 ) -> list[list[str]] | None:
     visible = {number: line for number, line in outside_fences(lines)}
     headers = [number for number in range(start + 1, end) if table_cells(visible.get(number, "")) == header]
@@ -309,11 +362,12 @@ def table_rows(
     if exact_header and visible[headers[0]] != f"| {' | '.join(header)} |":
         return None
     number = headers[0] + 1
-    if number >= end or not is_table_divider(visible.get(number, ""), len(header)):
+    if number >= end or not is_table_divider(visible.get(number, ""), len(header),
+                                            optional_outer_pipes=optional_outer_pipes):
         return None
     rows = []
     for number in range(number + 1, end):
-        cells = table_cells(visible.get(number, ""))
+        cells = table_cells(visible.get(number, ""), optional_outer_pipes=optional_outer_pipes)
         if not cells:
             break
         rows.append(cells)
@@ -507,6 +561,7 @@ def check_active_references(lint: InstructionLint, rows: list[NameRow], retained
             continue
         lines = input_lines(text)
         excluded = list(markdown_sections(lines, USAGE_HEADING)) if relative == USAGE else []
+        contract_lines = strip_markdown_comments(lines) if path.suffix == ".md" else None
         for number, line in enumerate(lines, 1):
             if any(start <= number < end for start, end in excluded):
                 continue
@@ -515,14 +570,16 @@ def check_active_references(lint: InstructionLint, rows: list[NameRow], retained
                 if line.lstrip().startswith("#"):
                     continue
                 line = CHECK_DESCRIPTION.sub(r"\1", line)
-            if line == RESOLUTION_LINE:
+            contract_line = contract_lines[number - 1] if contract_lines is not None else line
+            if contract_line == RESOLUTION_LINE:
                 anchor_count += 1
             if OBSOLETE_RESOLUTION_PHRASE in line.casefold():
                 lint.report("resolution-rule-missing", path, number, "Obsolete wording in a rule reference.")
-            if "rules file" in line.casefold() and number < len(lines):
-                cells = table_cells(line)
-                if (any(cell.casefold().startswith("rules file") for cell in cells)
-                        and is_table_divider(lines[number], len(cells))):
+            if "rules file" in contract_line.casefold() and number < len(lines):
+                cells = table_cells(contract_line, optional_outer_pipes=True)
+                divider = (contract_lines if contract_lines is not None else lines)[number]
+                if (any(unquote_record_cell(cell).casefold().startswith("rules file") for cell in cells)
+                        and is_table_divider(divider, len(cells), optional_outer_pipes=True)):
                     lint.report("resolution-rule-missing", path, number, "Obsolete rule reference column.")
             if (relative, original_line) not in retained:
                 stale = sorted({old for old, pattern, allowed in names if pattern.search(allowed.sub(" ", line))})
@@ -538,7 +595,8 @@ def phase_section(lines: list[str], heading: str) -> tuple[int, int]:
 
 def check_bootstrap_table(lint: InstructionLint, path: Path, lines: list[str], rule_names: set[str]) -> None:
     start, end = phase_section(lines, BOOTSTRAP_HEADINGS[0])
-    rows = table_rows(lines, start, end, ["Phase", "Skill", "Loaded by"], exact_header=True)
+    rows = table_rows(lines, start, end, ["Phase", "Skill", "Loaded by"],
+                      exact_header=True, optional_outer_pipes=True)
     expected = {(phase.replace("-", " ").title(), f"`rule-bootstrap-{phase}`") for phase in BOOTSTRAP_PHASES}
     skills = {f"bootstrap-{phase}" for phase in BOOTSTRAP_PHASES}
     if (rows is None or len(rows) != len(expected) or not skills <= rule_names
@@ -555,7 +613,8 @@ def check_behaviour_table(
 ) -> None:
     code = "capability-behaviour-table-invalid"
     start, end = phase_section(lines, "## Capabilities")
-    rows = table_rows(lines, start, end, ["Behaviour", "Workflow", "Requires", "Without it"], exact_header=True)
+    rows = table_rows(lines, start, end, ["Behaviour", "Workflow", "Requires", "Without it"],
+                      exact_header=True, optional_outer_pipes=True)
     if rows is None:
         lint.report(code, path, start, "Expected the capability behaviour table.")
         return
@@ -581,7 +640,7 @@ def check_phase_contract(
     lint: InstructionLint, instructions: dict[Path, list[str]], anchor_count: int, adapter_keys: list[set[str]],
 ) -> None:
     path = lint.root / PHASE_CONTRACT
-    lines = instructions.get(path, [])
+    lines = strip_markdown_comments(instructions.get(path, []))
     start, end = phase_section(lines, RULE_REFERENCES_HEADING)
     if anchor_count != 1 or not any(start < number < end and line == RESOLUTION_LINE
                                     for number, line in outside_fences(lines)):
