@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1581,6 +1582,49 @@ class RuleSourceMigration(unittest.TestCase):
             "OracleContract.test_amendment_pins_unrelated_fields_order_and_resource_changes",
         )
         self.assertEqual(oracle.returncode, 0, oracle.stdout + oracle.stderr)
+
+
+class RuleMigrationRepairTests(unittest.TestCase):
+    def test_export_checks_preserved_sections_without_git_metadata(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="rule-migration-source-export-") as name:
+            directory = Path(name)
+            package = directory / "source package"
+            package.mkdir()
+            for relative in ("rules", "workflows", "harness", "docs/audits"):
+                shutil.copytree(SOURCE / relative, package / relative)
+            for relative in ("scripts/check-lint-instructions.py", "docs/name-map.json", "docs/PIPELINE.md"):
+                target = package / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(SOURCE / relative, target)
+            self.assertFalse((package / ".git").exists())
+            environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            environment.update(HOME=name, XDG_CONFIG_HOME=name, XDG_STATE_HOME=name)
+            arguments = [
+                "-B", str(package / "scripts/check-lint-instructions.py"),
+                "RuleSourceMigration.test_every_rule_section_has_its_canonical_owner_and_parent_digest",
+                "RuleSourceMigration.test_protected_body_and_status_stop_lines_survive_rule_migration",
+            ]
+
+            result = subprocess.run([sys.executable, *arguments], cwd=package, env=environment, capture_output=True,
+                                    text=True, check=False, timeout=30)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            target = package / "rules/protocol-subtask-classifier.md"
+            target.write_text(target.read_text().replace("## Decomposition Rules", "## Removed section", 1))
+            invalid = subprocess.run([sys.executable, *arguments], cwd=package, env=environment, capture_output=True,
+                                     text=True, check=False, timeout=30)
+            self.assertEqual(invalid.returncode, 1, invalid.stdout + invalid.stderr)
+            self.assertIn("invalid section owners or digests", invalid.stderr)
+            self.assertNotIn("CalledProcessError", invalid.stderr)
+
+    def test_finalization_capability_frames_the_old_citation_as_historical(self) -> None:
+        receipt = section(current("harness/claude/capabilities.md"), "## Finalization receipt support")
+        framing, printed_record, historical = receipt.partition("The source git-rails core additionally recognizes")
+
+        self.assertTrue(printed_record, receipt)
+        self.assertIn("Canonical policy: `rules/git-flow.md → Finalization Git\nownership`.", historical)
+        self.assertRegex(framing, r"(?i)historical")
+        self.assertIn("`contract-git-flow → ## Finalization Git ownership`", framing)
 
 
 if __name__ == "__main__":
