@@ -4,8 +4,8 @@ phase: atomic-validation
 step: 3
 ---
 
-Invocation: `/pav-close <path-to-atomic-description>`
-Called by: `/phase-atomic-validation` as Step 3. Only runs if verdict is DONE.
+Invocation: `/atomic-validation-close <path-to-atomic-description>`
+Called by: `/atomic-validation` as Step 3. Only runs if verdict is DONE.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
@@ -24,7 +24,7 @@ Parent task directory = one level above.
 
 Read parent `state.md → ## Subtask Progress` block for this T-XX.
 If `atomic-validation: failed` → **stop**: "Cannot close: verdict is NEEDS WORK."
-If `last_action` is not `pav-propose done` → **stop**: "Complete `/pav-propose` before closure."
+If `last_action` is not `pav-propose done` → **stop**: "Complete `/atomic-validation-propose` before closure."
 Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before project writes, including standalone invocation.
 
 ---
@@ -37,7 +37,7 @@ Before updating plan.md in step 2, load `contract-state-files` for the Status Tr
    - Set `atomic-validation: complete`.
    - Update `last_action:` to a one-line summary (DoD status + key outcome).
    - Keep `blocker: none` and preserve `notes:` — including the `tdd:` audit lines.
-   - Preserve `target_files:` as set by `/pae-tests` and `/pae-implement`.
+   - Preserve `target_files:` as set by `/atomic-execution-tests` and `/atomic-execution-implement`.
    - Preserve `atomic-tests:` (`green` or `n-a`). Never remove or downgrade it.
 
 2. Update parent `plan.md`: set the `Status` column for this T-XX row to `reviewed`.
@@ -63,9 +63,9 @@ Before updating plan.md in step 2, load `contract-state-files` for the Status Tr
    c. If ALL siblings have `atomic-validation: complete`:
       - Verify the composite's `description.md` exists (`T-04-<slug>/description.md`) and contains `## Acceptance Criteria`.
       - If already `integration-validation: complete`, preserve the result; do not retrigger.
-      - If yes and validation is not already complete → call `/phase-composite-validation <path-to-composite-description.md>`.
+      - If yes and validation is not already complete → call `/composite-validation <path-to-composite-description.md>`.
         Under `/spec-run`, return shared updates and any new sibling creation as deltas.
-      - If no → **stop**: "Composite T-04 has no description.md or missing ## Acceptance Criteria. Re-run `/pd-decompose` to regenerate."
+      - If no → **stop**: "Composite T-04 has no description.md or missing ## Acceptance Criteria. Re-run `/discovery-decompose` to regenerate."
    d. If NOT all siblings are complete → do not trigger yet; report "Waiting for siblings: T-04c (not yet reviewed)."
 
 

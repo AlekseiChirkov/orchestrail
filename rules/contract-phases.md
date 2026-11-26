@@ -5,7 +5,7 @@ load: always
 
 # Workflow Global Principles
 
-These rules govern ALL phase workflows (`/phase-discovery`, `/phase-execution`, `/phase-validation`, `/phase-finalize` and their atomic counterparts) without exception.
+These rules govern ALL phase workflows (`/discovery`, `/execution`, `/validation`, `/finalization` and their atomic counterparts) without exception.
 
 ## Context Bootstrap
 
@@ -13,12 +13,12 @@ These rules govern ALL phase workflows (`/phase-discovery`, `/phase-execution`, 
 
 | Phase | Skill | Loaded by |
 | --- | --- | --- |
-| Discovery | `rule-bootstrap-discovery` | `/phase-discovery`, `/pd-analyze` |
-| Execution | `rule-bootstrap-execution` | `/phase-execution`, `/pe-execute` |
-| Validation | `rule-bootstrap-validation` | `/phase-validation`, `/pv-contract`, `/pv-review` |
-| Finalization | `rule-bootstrap-finalization` | `/phase-finalize` |
-| Atomic Execution | `rule-bootstrap-atomic-execution` | `/phase-atomic-execution`, `/pae-tests`, `/pae-implement` |
-| Atomic Validation | `rule-bootstrap-atomic-validation` | `/phase-atomic-validation`, `/pav-check` |
+| Discovery | `rule-bootstrap-discovery` | `/discovery`, `/discovery-analyze` |
+| Execution | `rule-bootstrap-execution` | `/execution`, `/execution-execute` |
+| Validation | `rule-bootstrap-validation` | `/validation`, `/validation-contract`, `/validation-review` |
+| Finalization | `rule-bootstrap-finalization` | `/finalization` |
+| Atomic Execution | `rule-bootstrap-atomic-execution` | `/atomic-execution`, `/atomic-execution-tests`, `/atomic-execution-implement` |
+| Atomic Validation | `rule-bootstrap-atomic-validation` | `/atomic-validation`, `/atomic-validation-check` |
 
 ## Rule references
 
@@ -34,7 +34,7 @@ and `harness/codex/always-on.md` (→ `~/.codex/AGENTS.md`), which those agents 
 every session. The `rule-*` skills carry the full contracts those summaries point at.
 
 Rules define the exact load order, what to extract, and phase-specific behaviors.
-**Standalone invocation rule:** when a child workflow runs without its parent orchestrator (e.g., `/pav-check` without `/phase-atomic-validation`), it must run the full bootstrap as if no parent loaded context. Never assume context was pre-loaded. Within one parent invocation, reuse available,
+**Standalone invocation rule:** when a child workflow runs without its parent orchestrator (e.g., `/atomic-validation-check` without `/atomic-validation`), it must run the full bootstrap as if no parent loaded context. Never assume context was pre-loaded. Within one parent invocation, reuse available,
 unchanged context for the same resolved project; load missing sources and recheck changed
 ones. A fresh worker bootstraps independently. This is source reuse, not permission to
 replace required content with an unverified receipt.
@@ -54,7 +54,7 @@ and only `/context-pack` may write to it.
 
 ---
 
-**Never auto-advance between phases.** After completing a phase (`/phase-discovery`, `/phase-execution`, `/phase-validation`, `/phase-finalize`), STOP completely. Do NOT invoke the next phase command. Display the next command as plain text for the user to run manually. Phase transitions are initiated by the user, except `/phase-pipeline` and `/spec-run`, which advance only through the phases authorized by their invocation.
+**Never auto-advance between phases.** After completing a phase (`/discovery`, `/execution`, `/validation`, `/finalization`), STOP completely. Do NOT invoke the next phase command. Display the next command as plain text for the user to run manually. Phase transitions are initiated by the user, except `/pipeline` and `/spec-run`, which advance only through the phases authorized by their invocation.
 
 **Continue, never restart.** Before any workflow, read state files. If progress exists — continue from stopping point. Never restart from scratch.
 
@@ -64,37 +64,37 @@ and only `/context-pack` may write to it.
 
 | Workflow | Autonomous when | Interactive when |
 |---|---|---|
-| `/phase-pipeline` | always | never |
-| `/phase-discovery` (+ `/pd-analyze`, `/pd-decompose`, `/pd-design`, `/pd-finalize`) | default | `--step-by-step` passed |
-| `/pav-propose` | `--batch` passed | default |
+| `/pipeline` | always | never |
+| `/discovery` (+ `/discovery-analyze`, `/discovery-decompose`, `/discovery-design`, `/discovery-finalize`) | default | `--step-by-step` passed |
+| `/atomic-validation-propose` | `--batch` passed | default |
 | `/compress-state` | `--auto` passed | default |
 | `/spec-draft`, `/spec-sync`, `/bugfix` | `--auto-mode` passed | default |
 | `/spec-run` (+ `/restack`) | always, except the Discovery batch gate | never — the batch gate is its only planned stop |
 
-`/phase-pipeline` additionally overrides these named steps, and only these — the full table with
-rationale is `phase-pipeline → ## Pipeline Overrides`, and its `### Declared stops` subsection
+`/pipeline` additionally overrides these named steps, and only these — the full table with
+rationale is `/pipeline → ## Pipeline Overrides`, and its `### Declared stops` subsection
 lists every step it deliberately does **not** override:
 
 | Step | Pipeline behaviour |
 |---|---|
-| `/pv-issues` step 4 — approve/defer prompt | approve `critical` + `important`, defer `optional` |
-| `/pe-finalize` step 5 — batched `Do Now` prompt | choose option 2 (apply now, before validation) and record that the choice was automatic |
-| `/pe-execute`, `/pv-execute-fixes` — "wait for user's choice" on an ambiguity | resolve via the Autonomous Decision Protocol; a *blocker* still stops |
-| `/phase-composite-validation` step 2 — approve/defer prompt on integration failures | approve `critical` + `important`, defer `optional`, and record that the split was automatic |
+| `/validation-issues` step 4 — approve/defer prompt | approve `critical` + `important`, defer `optional` |
+| `/execution-finalize` step 5 — batched `Do Now` prompt | choose option 2 (apply now, before validation) and record that the choice was automatic |
+| `/execution-execute`, `/validation-execute-fixes` — "wait for user's choice" on an ambiguity | resolve via the Autonomous Decision Protocol; a *blocker* still stops |
+| `/composite-validation` step 2 — approve/defer prompt on integration failures | approve `critical` + `important`, defer `optional`, and record that the split was automatic |
 
-`/spec-run` additionally defers the `/pe-finalize` batched proposal decision without
+`/spec-run` additionally defers the `/execution-finalize` batched proposal decision without
 prompting: retain pending proposals and report them at delivery; apply none.
 
-**`--batch` — proposal behavior.** `--batch` is `/pav-propose`'s flag, passed down
-unchanged by `/phase-atomic-validation`, `/pe-execute`, `/pv-execute-fixes`, `/spec-run`, and
-`/phase-pipeline`. It means: **record every proposal, prompt for nothing, apply nothing.** No
+**`--batch` — proposal behavior.** `--batch` is `/atomic-validation-propose`'s flag, passed down
+unchanged by `/atomic-validation`, `/execution-execute`, `/validation-execute-fixes`, `/spec-run`, and
+`/pipeline`. It means: **record every proposal, prompt for nothing, apply nothing.** No
 caller may redefine it — in particular, no autonomous mode may read it as
 apply-without-asking. A workflow that wants the `Do Now` items applied applies them at a step of
-its own and declares that step as an override (`/phase-pipeline` → `/pe-finalize` step 5).
-`/pae-tests --batch` is output-only: suppress duplicate digest display while recording
+its own and declares that step as an override (`/pipeline` → `/execution-finalize` step 5).
+`/atomic-execution-tests --batch` is output-only: suppress duplicate digest display while recording
 the same evidence. It never adds or removes a review gate, skips RED or applies proposals.
 
-Only `/phase-pipeline` and `/spec-run` suspend **Never auto-advance between phases** within their own run. No mode override ever suspends Guard confirmations that would overwrite existing artifacts, or the escalation conditions in the Autonomous Decision Protocol. A mode override does not license silent decisions — it licenses *unblocked* decisions, and every one must be written down.
+Only `/pipeline` and `/spec-run` suspend **Never auto-advance between phases** within their own run. No mode override ever suspends Guard confirmations that would overwrite existing artifacts, or the escalation conditions in the Autonomous Decision Protocol. A mode override does not license silent decisions — it licenses *unblocked* decisions, and every one must be written down.
 
 **Trust mechanism in execution.**
 - Trivial task (clear plan, no dependencies, no ambiguity) → execute autonomously without stopping.
@@ -113,16 +113,16 @@ rails in **`contract-git-flow`**. Orchestrated mode does not suspend the escalat
 Guard confirmations, or the test-first rule below.
 
 **Test-first execution.** Implementation is never the first step of an atomic cycle. Every
-leaf subtask passes through `/pae-tests` (RED) before `/pae-implement` (GREEN) — the failing
+leaf subtask passes through `/atomic-execution-tests` (RED) before `/atomic-execution-implement` (GREEN) — the failing
 tests are written from `## Acceptance Criteria` and become a frozen contract the
 implementation must satisfy rather than edit. The step is additive: it precedes the existing
 cycle and replaces nothing. Work that is genuinely not testable passes an explicit,
 recorded gate rather than skipping silently. Full contract → the **`contract-tdd`** rule; test style →
-`testing-standards`. No autonomous mode — including `/phase-pipeline` — suspends it.
+`testing-standards`. No autonomous mode — including `/pipeline` — suspends it.
 
 **File updates after each phase.** After completing any phase, update relevant state/plan files and run `/compress-state --auto`. Only update files relevant to the completed phase. Current phase status must always be present in `state.md`. Finalization preserves its bound task snapshots and protected history; its helper owns the additive phase marker and mechanical relocation instead of running `/compress-state` on those artifacts.
 
-**Direct child-workflow invocation for partial reruns.** To re-run a specific step, call its child workflow directly (for example `/pd-analyze`, `/pae-implement`). There is no `--step=N` flag. Each child workflow has a `## Guard` section that detects already-completed work and asks for explicit confirmation before overwriting.
+**Direct child-workflow invocation for partial reruns.** To re-run a specific step, call its child workflow directly (for example `/discovery-analyze`, `/atomic-execution-implement`). There is no `--step=N` flag. Each child workflow has a `## Guard` section that detects already-completed work and asks for explicit confirmation before overwriting.
 
 ---
 
@@ -141,12 +141,12 @@ escalation live in the **`contract-quick-flow`** rule. Summary:
   (see `contract-quick-flow → ## Mid-flight escalation (quick → full)`).
   Condition 3 is the one that would have caught the 2026-07-22
   out-of-pipeline macro fix.
-- The quick path SKIPS `/pd-decompose`, `/pd-design`, `/pd-archive`, T-XX subtasks, and the
-  separate `/pv-create-fixes` + `/pv-execute-fixes` cycle. It still MANDATES an inline
+- The quick path SKIPS `/discovery-decompose`, `/discovery-design`, `/discovery-archive`, T-XX subtasks, and the
+  separate `/validation-create-fixes` + `/validation-execute-fixes` cycle. It still MANDATES an inline
   contract in `state.md` (`## Contract (quick)` with `### Off-limits` / `### Invariants` /
   `### Acceptance Criteria`, written before any code), **the TDD step inline** (RED against
   the quick contract's Acceptance Criteria before implementation — see `contract-quick-flow`),
-  `/pv-contract` + `/pv-review`, an ADR on the same trigger as the full path, and a
+  `/validation-contract` + `/validation-review`, an ADR on the same trigger as the full path, and a
   `progress.md` entry.
 - A quick task that breaches any gate condition mid-flight MUST be promoted to `full` and
   the promotion recorded in `state.md` — never silently finished. See `contract-quick-flow`.
@@ -171,7 +171,7 @@ flow: quick | full
 - finalization: not-started | in-progress | complete
 ```
 
-`flow:` is a top-of-file field (alongside `spec_path:`), set during Discovery by `/pd-analyze` and defaulting to `full`. It selects the tier — see `## Flow tiers` below and the `contract-quick-flow` rule. `## Phases` uses the same format in both tiers. Finalization is additive: a missing `finalization:` marker means `not-started` for every reader and never invalidates prior Validation. Multi-phase fields (`active_phase:`, `spec_phase_count:`) keep their existing position after `spec_path:`.
+`flow:` is a top-of-file field (alongside `spec_path:`), set during Discovery by `/discovery-analyze` and defaulting to `full`. It selects the tier — see `## Flow tiers` below and the `contract-quick-flow` rule. `## Phases` uses the same format in both tiers. Finalization is additive: a missing `finalization:` marker means `not-started` for every reader and never invalidates prior Validation. Multi-phase fields (`active_phase:`, `spec_phase_count:`) keep their existing position after `spec_path:`.
 
 **Parent `state.md` → `## Subtask Progress` (one block per T-XX):**
 
@@ -207,7 +207,7 @@ squash-merged.
 cross_repo_dependencies: T-03 (frontend) → T-01 (backend), T-04 (frontend) → T-02 (backend)
 ```
 
-Repository set line: `- repo: <directory name under the project root> | base_branch: <local base branch>` — one line per participating repository, in declaration order; written once by `/phase-discovery` from the set `/spec-run` supplies, never edited by another workflow.
+Repository set line: `- repo: <directory name under the project root> | base_branch: <local base branch>` — one line per participating repository, in declaration order; written once by `/discovery` from the set `/spec-run` supplies, never edited by another workflow.
 
 `cross_repo_dependencies:` lists every `plan.md` dependency whose two leaves belong to
 different repositories, as `<leaf> (<repository>) → <dependency> (<repository>)`, or `none`;
@@ -218,8 +218,8 @@ every reader keeps its existing behaviour for it.
 Status values for atomic-execution / atomic-validation: `not-started` | `in-progress` | `complete` | `blocked` | `skipped` | `failed`.
 
 Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `n-a` | `failed`.
-Written by `/pae-tests` (`red` / `pinned` / `n-a` / `failed`) and `/pae-implement` (`green`);
-preserved by `/pae-finalize`, `/pav-close`, and `/compress-state`. `pinned` is characterization
+Written by `/atomic-execution-tests` (`red` / `pinned` / `n-a` / `failed`) and `/atomic-execution-implement` (`green`);
+preserved by `/atomic-execution-finalize`, `/atomic-validation-close`, and `/compress-state`. `pinned` is characterization
 mode — tests that pin existing behaviour and pass before the change, used for
 behaviour-preserving work; it transitions only to `green`. Semantics → the `contract-tdd` rule.
 
@@ -230,7 +230,7 @@ in-progress` — record `pre-TDD task, TDD step skipped` in `notes:` and continu
 position (first status field, before `atomic-execution:`) is fixed; parsers must key on the
 field name, never on ordinal position.
 
-*Composite block* (a subtask that owns leaf children — written by `pd-decompose` when a subtask is classified as Type 2 or is the product of Type 3 re-slicing):
+*Composite block* (a subtask that owns leaf children — written by `discovery-decompose` when a subtask is classified as Type 2 or is the product of Type 3 re-slicing):
 ```
 [composite] T-XX | <name> | rollup: <status> | integration-validation: <status>
   children: T-XXa, T-XXb, T-XXc
@@ -251,7 +251,7 @@ T-XX subdirectories no longer contain their own `state.md` or `plan.md`. All ato
 - `/compress-state` must NOT remove an empty `notes:` line.
 - `target_files:` is ALWAYS written, even when empty. Example: `target_files:`
 - `/compress-state` must NOT remove an empty `target_files:` line.
-- `atomic-tests:` is ALWAYS written in leaf blocks once `/pae-tests` has run, and is never
+- `atomic-tests:` is ALWAYS written in leaf blocks once `/atomic-execution-tests` has run, and is never
   removed or downgraded by a later workflow.
 - `branch:`, `base_branch:`, `base_commit:`, `commits:`, `pr:` — once written by `/spec-run`,
   never removed, rewritten, or summarized by any workflow other than `/restack`. Losing
@@ -294,7 +294,7 @@ fixes-count: <N>
 Created: T-XX-fix-<slug>, ...
 
 ### Fix Classification
-<table written by /pv-classify-fixes — shared vs dedicated branch per issue, with all
+<table written by /validation-classify-fixes — shared vs dedicated branch per issue, with all
 four quick-flow gate results recorded so the decision can be audited>
 ```
 When no fix-tasks were created: `fixes-count: 0` and `Created: none`, and no
@@ -311,7 +311,7 @@ fix-task progress lives in `## Subtask Progress` like any other leaf.
 | `in-progress` | In progress |
 | `done` | Execution complete, validation not started |
 | `reviewed` | Validation passed, task closed |
-| `deferred` | Postponed by decision after phase-validation |
+| `deferred` | Postponed by decision after validation |
 | `blocked` | External blocker not dependent on code |
 | `not-reached` | Execution finished without reaching this subtask |
 
@@ -319,10 +319,10 @@ Extended examples, file-role rationale → `contract-state-files`.
 
 ## Finalization
 
-`/phase-finalize <task-directory|spec-path> [--dry-run]` is a separately invoked phase.
+`/finalization <task-directory|spec-path> [--dry-run]` is a separately invoked phase.
 Ordinary invocation authorizes mandatory cleanup only for the resolved task's proven
 resources; no repeated cleanup approval, public children or additional flags exist.
-Neither `/phase-pipeline` nor `/spec-run` advances into it. Validation completion retains
+Neither `/pipeline` nor `/spec-run` advances into it. Validation completion retains
 its existing meaning; task closure does not imply whole-product completion or deployment.
 
 Status values for finalization: `not-started` | `in-progress` | `complete`.
@@ -368,8 +368,8 @@ the run actually uses.
 
 | Behaviour | Workflow | Requires | Without it |
 | --- | --- | --- | --- |
-| Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | `sub-agents`, `agent-messaging`, `git` | Stop before Step 0 and use `/phase-pipeline <task-directory>`. |
+| Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | `sub-agents`, `agent-messaging`, `git` | Stop before Step 0 and use `/pipeline <task-directory>`. |
 | Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | Run sequentially and record the reason while parallel support is unavailable. |
 | Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Review inline and record `critic: inline`. |
-| Model-specific worker for a leaf | `phase-atomic-execution`, `pe-execute` | `sub-agents` | Run inline when no explicit switch is required. Stop when the switch is required. |
-| Hook-covered step logging | `phase-discovery`, `phase-execution`, `phase-validation`, `phase-finalize`, `phase-pipeline`, `spec-run`, `retro` | `hooks` | Log from the prompt with `note: approximate`. |
+| Model-specific worker for a leaf | `atomic-execution`, `execution-execute` | `sub-agents` | Run inline when no explicit switch is required. Stop when the switch is required. |
+| Hook-covered step logging | `discovery`, `execution`, `validation`, `finalization`, `pipeline`, `spec-run`, `retro` | `hooks` | Log from the prompt with `note: approximate`. |

@@ -13,7 +13,7 @@ and provide required finalization safety checks.
 A file-based system that turns "do task X" into a deterministic sequence of phases
 with explicit state on disk. The AI assistant is constrained by:
 
-- **Workflows** — slash-command definitions (`/phase-discovery`, `/pae-implement`, …)
+- **Workflows** — slash-command definitions (`/discovery`, `/atomic-execution-implement`, …)
   that describe step-by-step what the AI must do.
 - **Rules** — shared policies (`contract-phases`, `contract-language`) installed as skills.
   The harness instructions summarize essential policies for every conversation.
@@ -27,16 +27,16 @@ with explicit state on disk. The AI assistant is constrained by:
 
 | Problem                                              | Mechanism                                         |
 |------------------------------------------------------|---------------------------------------------------|
-| AI silently invents architecture                     | `/pd-design` forces 2–3 variants + user decision  |
+| AI silently invents architecture                     | `/discovery-design` forces 2–3 variants + user decision  |
 | Long tasks lose context across sessions              | All progress in `state.md` / `plan.md` on disk    |
 | Phase boundaries get blurred                         | Each phase is a separate slash command, stops at end |
 | Inconsistent quality across projects                 | Always-on principles + per-project `CLAUDE.md`    |
 | Two model harnesses with distinct configuration | `scripts/sync.sh` uses the target paths declared by each adapter |
 | Re-running a single step requires guesswork          | Child workflows callable directly; `## Guard` checks |
-| Tests get written after the code, describing what was built instead of what was required | `/pae-tests` writes failing tests from Acceptance Criteria before `/pae-implement`; the RED set is frozen during implementation |
+| Tests get written after the code, describing what was built instead of what was required | `/atomic-execution-tests` writes failing tests from Acceptance Criteria before `/atomic-execution-implement`; the RED set is frozen during implementation |
 | One long session runs out of context halfway through a task    | `/spec-run` gives each subtask a fresh, narrowly-scoped agent; a long-lived Arbiter holds the project context the sub-agents deliberately lack |
 | A finished task lands as one giant unreviewable diff            | One stacked branch and one pull request per subtask, each reviewable on its own |
-| Tasks that should be split into pieces get done as one big mess | `/pd-decompose` enforces 3–15 steps, ≤8 subtasks  |
+| Tasks that should be split into pieces get done as one big mess | `/discovery-decompose` enforces 3–15 steps, ≤8 subtasks  |
 
 ### How the pieces fit together
 
@@ -116,33 +116,33 @@ with explicit state on disk. The AI assistant is constrained by:
 ├── docs/PIPELINE.md                 phase order, command map and status glossary
 ├── workflows/                       slash-command definitions
 │   │                                  (installed as skills in Claude Code and Codex)
-│   ├── phase-pipeline.md            autonomous Discovery→Execution→Validation
-│   ├── phase-discovery.md           Phase 1 orchestrator
-│   ├── phase-execution.md           Phase 2 orchestrator
-│   ├── phase-validation.md          Phase 3 orchestrator
-│   ├── phase-finalize.md            separately invoked post-merge closure
-│   ├── phase-atomic-execution.md    per-T-XX execution orchestrator
-│   ├── phase-atomic-validation.md   per-T-XX validation orchestrator
-│   ├── pd-analyze.md                Discovery step 1
-│   ├── pd-decompose.md              Discovery step 2
-│   ├── pd-design.md                 Discovery step 3
-│   ├── pd-finalize.md               Discovery step 4
-│   ├── pd-archive.md                Discovery step 4b — called by pd-finalize
-│   ├── pd-select-model.md           Discovery step 2.5 — required full-flow model selection
-│   ├── pe-execute.md                Execution step 1
-│   ├── pe-finalize.md               Execution step 2
-│   ├── pv-contract.md               Validation step 1
-│   ├── pv-review.md                 Validation step 2
-│   ├── pv-issues.md                 Validation step 3
-│   ├── pv-create-fixes.md           Validation step 4
-│   ├── pv-execute-fixes.md          Validation step 5
-│   ├── pv-finalize.md               Validation step 6
-│   ├── pae-tests.md                 atomic-execution step 1 — TDD RED
-│   ├── pae-implement.md             atomic-execution step 2 — TDD GREEN
-│   ├── pae-finalize.md              atomic-execution step 3
-│   ├── pav-check.md                 atomic-validation step 1
-│   ├── pav-propose.md               atomic-validation step 2
-│   ├── pav-close.md                 atomic-validation step 3
+│   ├── pipeline.md            autonomous Discovery→Execution→Validation
+│   ├── discovery.md           Phase 1 orchestrator
+│   ├── execution.md           Phase 2 orchestrator
+│   ├── validation.md          Phase 3 orchestrator
+│   ├── finalization.md            separately invoked post-merge closure
+│   ├── atomic-execution.md    per-T-XX execution orchestrator
+│   ├── atomic-validation.md   per-T-XX validation orchestrator
+│   ├── discovery-analyze.md                Discovery step 1
+│   ├── discovery-decompose.md              Discovery step 2
+│   ├── discovery-select-model.md           Discovery step 2.5 — required full-flow model selection
+│   ├── discovery-design.md                 Discovery step 3
+│   ├── discovery-finalize.md               Discovery step 4
+│   ├── discovery-archive.md                Discovery step 4b — called by discovery-finalize
+│   ├── execution-execute.md                Execution step 1
+│   ├── execution-finalize.md               Execution step 2
+│   ├── validation-contract.md               Validation step 1
+│   ├── validation-review.md                 Validation step 2
+│   ├── validation-issues.md                 Validation step 3
+│   ├── validation-create-fixes.md           Validation step 4
+│   ├── validation-execute-fixes.md          Validation step 5
+│   ├── validation-finalize.md               Validation step 6
+│   ├── atomic-execution-tests.md                 atomic-execution step 1 — TDD RED
+│   ├── atomic-execution-implement.md             atomic-execution step 2 — TDD GREEN
+│   ├── atomic-execution-finalize.md              atomic-execution step 3
+│   ├── atomic-validation-check.md                 atomic-validation step 1
+│   ├── atomic-validation-propose.md               atomic-validation step 2
+│   ├── atomic-validation-close.md                 atomic-validation step 3
 │   ├── spec-draft.md                standalone — raw task → development-ready SDD spec
 │   ├── spec-sync.md                 reconcile a shipped implementation back into its spec
 │   ├── bugfix.md                    governed defect path — reproduce → RED → fix → record
@@ -151,8 +151,8 @@ with explicit state on disk. The AI assistant is constrained by:
 │   ├── retro.md                     analyse the run log; report what to change in the workflows
 │   ├── spec-run.md                  orchestrator — spec → stacked branches → PRs
 │   ├── restack.md                   replay the stack after a merge
-│   ├── pv-classify-fixes.md         validation step 4a — fix branch grouping
-│   ├── phase-composite-validation.md integration check for a Type 2 composite
+│   ├── validation-classify-fixes.md         validation step 4a — fix branch grouping
+│   ├── composite-validation.md integration check for a Type 2 composite
 │   ├── onboard-legacy-project.md    one-time .ai/ initialization for a legacy project
 │   ├── suggest-commit-message.md    utility — copy-ready commit message
 │   ├── suggest-pr-description.md    utility — copy-ready PR description
@@ -282,7 +282,7 @@ head ~/.claude/CLAUDE.md
 head ~/.codex/AGENTS.md
 ```
 
-The `phase-discovery` skill is now available to both harnesses.
+The `discovery` skill is now available to both harnesses.
 
 ---
 
@@ -317,7 +317,7 @@ typecheck: mypy src/
 build:     docker build -t app .
 ```
 
-Workflows (e.g. `pae-implement`) look up these by key in
+Workflows (e.g. `atomic-execution-implement`) look up these by key in
 `.ai/context/runbook.md → ## Commands` — not in `CLAUDE.md`. Missing keys are
 tolerated, but lint/test automation will be skipped for whatever is missing.
 
@@ -365,7 +365,7 @@ number, unique across all files in `.ai/specs/`).
 
 Minimum required content:
 - `# H1 title` — required. Used as task title in state.md and ADR.
-- `## Acceptance Criteria` — strongly recommended. If absent, phase-discovery
+- `## Acceptance Criteria` — strongly recommended. If absent, discovery
   derives them in Step 1 and records them under `### Assumptions` (with
   `--step-by-step` it asks for confirmation instead).
 
@@ -375,8 +375,8 @@ acceptance criteria, out-of-scope. A template is available at `templates/spec.md
 ### Step 1 — Discovery
 
 ```
-/phase-discovery .ai/specs/01-task-jwt-auth.md                  # autonomous (default)
-/phase-discovery .ai/specs/01-task-jwt-auth.md --step-by-step   # review each step
+/discovery .ai/specs/01-task-jwt-auth.md                  # autonomous (default)
+/discovery .ai/specs/01-task-jwt-auth.md --step-by-step   # review each step
 ```
 
 By default the whole phase runs end-to-end without stopping: ambiguities are
@@ -390,20 +390,20 @@ Discovery never auto-advances into Execution in either mode.
 
 Sequence inside the phase (each is a callable child workflow):
 
-1. `/pd-analyze` — reads root state files (`.ai/memory/architecture.md`,
+1. `/discovery-analyze` — reads root state files (`.ai/memory/architecture.md`,
    `.ai/memory/state.md`, `.ai/principles/architecture.md`), reads only the codebase parts that are
    not already described in those, resolves ambiguities by research and records each one in
    `### Assumptions` (asks clarifying questions only with `--step-by-step`), sets the `flow:`
    tier, and writes `## Task Analysis` to `state.md`.
-2. `/pd-decompose` — splits the task into 1–8 T-XX subtasks (each with 3–15
+2. `/discovery-decompose` — splits the task into 1–8 T-XX subtasks (each with 3–15
    steps), creates `.ai/tasks/todo/task-01-task-jwt-auth/T-XX-<slug>/description.md` using
    the six-section template defined in the workflow itself (mirrored by
    `templates/subtask-description.md`), and writes the `## Subtasks` table to `plan.md`.
-3. `/pd-design` — generates 2–3 architectural variants with trade-offs and selects one
+3. `/discovery-design` — generates 2–3 architectural variants with trade-offs and selects one
    via the Autonomous Decision Protocol, recording `### Autonomous Decision` alongside
    `## Solution Design → ### Decision` in `state.md`. With `--step-by-step` it presents the
    variants and **waits for the user's choice** instead.
-4. `/pd-finalize` — sanity-checks artifacts, runs `/compress-state`, marks
+4. `/discovery-finalize` — sanity-checks artifacts, runs `/compress-state`, marks
    `discovery: complete`.
 
 **Phase output:**
@@ -416,53 +416,53 @@ Sequence inside the phase (each is a callable child workflow):
 ### Step 2 — Execution
 
 ```
-/phase-execution .ai/tasks/todo/task-01-task-jwt-auth/
+/execution .ai/tasks/todo/task-01-task-jwt-auth/
 ```
 
 For each T-XX in `plan.md` (in dependency order):
 
-1. `/phase-atomic-execution T-XX/description.md`
-   - `/pae-tests` — **TDD RED.** Classifies the test level (`unit` / `integration` /
+1. `/atomic-execution T-XX/description.md`
+   - `/atomic-execution-tests` — **TDD RED.** Classifies the test level (`unit` / `integration` /
      `contract` / `smoke` / `none`), writes tests from `## Acceptance Criteria` following
      `T-XX/description.md → ## Test Plan`, runs them, and verifies each fails for the
      expected reason. Sets `atomic-tests: red`. Writes tests only — no implementation.
-   - `/pae-implement` — **TDD GREEN.** Runs the `## Steps` from `T-XX/description.md` until
+   - `/atomic-execution-implement` — **TDD GREEN.** Runs the `## Steps` from `T-XX/description.md` until
      every RED test passes, then refactors while green. The RED set is frozen: no deleting,
      skipping, or weakening tests to reach green. Updates `## Subtask Progress` in parent
      `state.md`. Stops on ambiguity per the trust mechanism in `contract-phases`.
-   - `/pae-finalize` — sets atomic-execution status to `complete`, updates `plan.md` to
+   - `/atomic-execution-finalize` — sets atomic-execution status to `complete`, updates `plan.md` to
      `done`, rolls up a composite parent if this subtask is one of its children, and
-     compresses state. The lint/test run happens earlier, in `/pae-implement → Final
+     compresses state. The lint/test run happens earlier, in `/atomic-execution-implement → Final
      Verification`, using the commands from `.ai/context/runbook.md → ## Commands`.
-2. `/phase-atomic-validation T-XX/description.md`
-   - `/pav-check` — verifies the implementation against `## Acceptance Criteria`, audits the
+2. `/atomic-validation T-XX/description.md`
+   - `/atomic-validation-check` — verifies the implementation against `## Acceptance Criteria`, audits the
      RED test set, and issues a verdict: `DONE` or `NEEDS WORK`.
-   - `/pav-propose` — proposes optional improvements categorized `Do Now` / `Do Later` /
+   - `/atomic-validation-propose` — proposes optional improvements categorized `Do Now` / `Do Later` /
      `Optional`. Called from the execution loop it runs with `--batch`: proposals are
-     recorded and nothing is applied, and `/pe-finalize` surfaces the `Do Now` items at the
+     recorded and nothing is applied, and `/execution-finalize` surfaces the `Do Now` items at the
      end of the phase. Invoked standalone it **stops and waits for approval**.
-   - `/pav-close` — marks atomic-validation `complete`, parent `plan.md` status `reviewed`.
+   - `/atomic-validation-close` — marks atomic-validation `complete`, parent `plan.md` status `reviewed`.
 
-After all T-XX done: `/pe-finalize` writes `## Execution Report`, marks
+After all T-XX done: `/execution-finalize` writes `## Execution Report`, marks
 `execution: complete`. **Phase stops.**
 
 ### Step 3 — Validation
 
 ```
-/phase-validation .ai/tasks/todo/task-01-task-jwt-auth/
+/validation .ai/tasks/todo/task-01-task-jwt-auth/
 ```
 
-1. `/pv-contract` — checks every `Invariant`, `Acceptance Criterion`, `Off-limits`
+1. `/validation-contract` — checks every `Invariant`, `Acceptance Criterion`, `Off-limits`
    item from `state.md`. Critical failures block validation.
-2. `/pv-review` — code review: readability, architecture consistency vs.
+2. `/validation-review` — code review: readability, architecture consistency vs.
    `principles/code-quality.md`, security, edge cases.
-3. `/pv-issues` — compiles numbered issue list with priorities
+3. `/validation-issues` — compiles numbered issue list with priorities
    (`critical` / `important` / `optional`). **Stops, waits for user approve/defer.**
-4. `/pv-create-fixes` — converts approved issues into `T-XX-fix-<slug>/description.md`
+4. `/validation-create-fixes` — converts approved issues into `T-XX-fix-<slug>/description.md`
    subtasks. Updates `## Fix-Tasks` in `state.md`.
-5. `/pv-execute-fixes` — runs atomic-execution + atomic-validation for each
+5. `/validation-execute-fixes` — runs atomic-execution + atomic-validation for each
    fix-task (same loop as Execution phase).
-6. `/pv-finalize` — writes `## Deferred`, compresses state, marks
+6. `/validation-finalize` — writes `## Deferred`, compresses state, marks
    `validation: complete`.
 
 **Phase output:** clean code, all critical/important issues fixed, deferred
@@ -478,8 +478,8 @@ Once `validation: complete` — commit, push, open PR. The state files
 After the owner merges the delivered branches into their intended integration branches:
 
 ```text
-/phase-finalize .ai/tasks/todo/task-01-task-jwt-auth/ --dry-run
-/phase-finalize .ai/tasks/todo/task-01-task-jwt-auth/
+/finalization .ai/tasks/todo/task-01-task-jwt-auth/ --dry-run
+/finalization .ai/tasks/todo/task-01-task-jwt-auth/
 ```
 
 The single separate phase accepts a task directory or uniquely mapped spec path. Ordinary
@@ -506,7 +506,7 @@ recovery details: [repository scripts](../scripts/README.md#post-merge-finalizat
 ### Alternative — Fully autonomous pipeline
 
 ```
-/phase-pipeline .ai/tasks/todo/task-01-task-jwt-auth/
+/pipeline .ai/tasks/todo/task-01-task-jwt-auth/
 ```
 
 Runs all three delivery phases without phase boundaries. It only suggests separately
@@ -517,7 +517,7 @@ filter, recorded as `### Autonomous Decision` in `state.md`). Pauses only for:
 - Hard blockers (missing secret, unreachable service, missing requirement with
   no reasonable default)
 - Breaking external-API-contract changes
-- Genuinely ambiguous requirements in `pd-analyze`
+- Genuinely ambiguous requirements in `discovery-analyze`
 
 All other ambiguity is resolved autonomously and documented in `notes:`.
 
@@ -532,8 +532,8 @@ restart.
 ## 7. Slash Commands Reference
 
 Path argument syntax:
-- `/phase-discovery`: `<path>` = path to spec file in `.ai/specs/`
-- `/phase-finalize`: `<path>` = exact task directory or uniquely mapped spec path; only optional flag is `--dry-run`
+- `/discovery`: `<path>` = path to spec file in `.ai/specs/`
+- `/finalization`: `<path>` = exact task directory or uniquely mapped spec path; only optional flag is `--dry-run`
 - All other phase and child workflow commands: `<path>` = task directory (`.ai/tasks/todo/task-<NN>-<slug>/`)
 - Atomic child workflows (`pae-*`, `pav-*`, `phase-atomic-*`): `<path>` = `T-XX/description.md`
 
@@ -541,23 +541,23 @@ Path argument syntax:
 
 | Command                       | What it does                                          | Reads                                          | Writes                                                          |
 |-------------------------------|-------------------------------------------------------|------------------------------------------------|-----------------------------------------------------------------|
-| `/phase-discovery <path> [--step-by-step]` | Runs Discovery steps 1–4; autonomous by default, `--step-by-step` pauses for review after each step | `spec (.ai/specs/*.md)`, root state files; creates `state.md` with `spec_path:` | `state.md`, `plan.md`, `T-XX/description.md`                    |
-| `/phase-execution <path>`     | Runs atomic-execution + atomic-validation per T-XX    | `state.md`, `plan.md`, all `T-XX/description.md`| `state.md → ## Subtask Progress`, code changes                  |
-| `/phase-validation <path>`    | Runs Validation steps 1–6                             | `state.md`, `plan.md`, codebase                | `## Contract Check`, `## Code Review`, `## Issue List`, `## Fix-Tasks`, `## Deferred`, fix-task code |
-| `/phase-finalize <task-directory\|spec-path> [--dry-run]` | Close one proven integrated task with mandatory safe cleanup and lossless archival | Original state/spec, delivery and current evidence | Stable journal, recovery, relocated current pointers and archive |
-| `/phase-pipeline <path>`      | All three phases autonomously                         | same as above                                  | same as above + `### Autonomous Decision` blocks                |
-| `/phase-atomic-execution <T>` | Implement one T-XX                                    | `T-XX/description.md`, parent `state.md`       | parent `state.md → ## Subtask Progress`, code                   |
-| `/phase-atomic-validation <T>`| Validate one T-XX                                     | parent `state.md`, code                        | parent `state.md → ## Subtask Progress`, `plan.md` status       |
+| `/discovery <path> [--step-by-step]` | Runs Discovery steps 1–4; autonomous by default, `--step-by-step` pauses for review after each step | `spec (.ai/specs/*.md)`, root state files; creates `state.md` with `spec_path:` | `state.md`, `plan.md`, `T-XX/description.md`                    |
+| `/execution <path>`     | Runs atomic-execution + atomic-validation per T-XX    | `state.md`, `plan.md`, all `T-XX/description.md`| `state.md → ## Subtask Progress`, code changes                  |
+| `/validation <path>`    | Runs Validation steps 1–6                             | `state.md`, `plan.md`, codebase                | `## Contract Check`, `## Code Review`, `## Issue List`, `## Fix-Tasks`, `## Deferred`, fix-task code |
+| `/finalization <task-directory\|spec-path> [--dry-run]` | Close one proven integrated task with mandatory safe cleanup and lossless archival | Original state/spec, delivery and current evidence | Stable journal, recovery, relocated current pointers and archive |
+| `/pipeline <path>`      | All three phases autonomously                         | same as above                                  | same as above + `### Autonomous Decision` blocks                |
+| `/atomic-execution <T>` | Implement one T-XX                                    | `T-XX/description.md`, parent `state.md`       | parent `state.md → ## Subtask Progress`, code                   |
+| `/atomic-validation <T>`| Validate one T-XX                                     | parent `state.md`, code                        | parent `state.md → ## Subtask Progress`, `plan.md` status       |
 
 ### Discovery children
 
 | Command             | Step | What it does                                                                  | Writes                                                |
 |---------------------|------|-------------------------------------------------------------------------------|-------------------------------------------------------|
-| `/pd-analyze <p>`   | 1    | Read spec + root state, minimal code reading, record assumptions, set `flow:` (asks only with `--step-by-step`) | `state.md → ## Task Analysis`, `flow:`  |
-| `/pd-decompose <p>` | 2    | Split into T-XX subtasks (3–15 steps each, ≤8 subtasks total)                 | `plan.md → ## Subtasks`, `T-XX/description.md` files  |
-| `/pd-select-model <description-or-task> [--refresh]` | 2.5 (full flow) | Recommend from the local catalog; explicit `--refresh` authorizes research and validated replacement | Single: chat; bulk: optional `Model (Claude)` / `Model (Codex)` plan columns |
-| `/pd-design <p>`    | 3    | 2–3 variants + trade-offs, decided by the Autonomous Decision Protocol (`--step-by-step` stops for the user) | `state.md → ## Solution Design → ### Decision` |
-| `/pd-finalize <p>`  | 4    | Sanity check, compress, mark `discovery: complete`                            | `state.md → ## Phases`                                |
+| `/discovery-analyze <p>`   | 1    | Read spec + root state, minimal code reading, record assumptions, set `flow:` (asks only with `--step-by-step`) | `state.md → ## Task Analysis`, `flow:`  |
+| `/discovery-decompose <p>` | 2    | Split into T-XX subtasks (3–15 steps each, ≤8 subtasks total)                 | `plan.md → ## Subtasks`, `T-XX/description.md` files  |
+| `/discovery-select-model <description-or-task> [--refresh]` | 2.5 (full flow) | Recommend from the local catalog; explicit `--refresh` authorizes research and validated replacement | Single: chat; bulk: optional `Model (Claude)` / `Model (Codex)` plan columns |
+| `/discovery-design <p>`    | 3    | 2–3 variants + trade-offs, decided by the Autonomous Decision Protocol (`--step-by-step` stops for the user) | `state.md → ## Solution Design → ### Decision` |
+| `/discovery-finalize <p>`  | 4    | Sanity check, compress, mark `discovery: complete`                            | `state.md → ## Phases`                                |
 
 Model selection normally reads the optional local catalog. Use `--refresh` only when
 research and replacement are intended; a rejected refresh retains the prior catalog.
@@ -572,30 +572,30 @@ migration and complete offline helper examples are in [MODEL-CATALOG.md](MODEL-C
 
 | Command            | Step | What it does                                              | Writes                                                  |
 |--------------------|------|-----------------------------------------------------------|---------------------------------------------------------|
-| `/pe-execute <p>`  | 1    | Loop atomic-execution + atomic-validation per T-XX        | code, `## Subtask Progress`                             |
-| `/pe-finalize <p>` | 2    | Summary report, compress                                  | `state.md → ## Execution Report`, `## Phases`           |
+| `/execution-execute <p>`  | 1    | Loop atomic-execution + atomic-validation per T-XX        | code, `## Subtask Progress`                             |
+| `/execution-finalize <p>` | 2    | Summary report, compress                                  | `state.md → ## Execution Report`, `## Phases`           |
 
 ### Validation children
 
 | Command                  | Step | What it does                                                      | Writes                                                |
 |--------------------------|------|-------------------------------------------------------------------|-------------------------------------------------------|
-| `/pv-contract <p>`       | 1    | Check Invariants, Acceptance Criteria, Off-limits                 | `state.md → ## Contract Check`                        |
-| `/pv-review <p>`         | 2    | Code review: readability, architecture, security, edge cases      | `state.md → ## Code Review`                           |
-| `/pv-issues <p>`         | 3    | Numbered issue list with priorities; stop for user approve/defer  | `state.md → ## Issue List`                            |
-| `/pv-create-fixes <p>`   | 4    | Generate `T-XX-fix-<slug>/description.md` subtasks                | `state.md → ## Fix-Tasks`, fix-task directories       |
-| `/pv-execute-fixes <p>`  | 5    | Atomic-execute + atomic-validate each fix-task                    | code, `## Subtask Progress`                           |
-| `/pv-finalize <p>`       | 6    | Compress, list deferred, mark `validation: complete`              | `state.md → ## Deferred`, `## Phases`                 |
+| `/validation-contract <p>`       | 1    | Check Invariants, Acceptance Criteria, Off-limits                 | `state.md → ## Contract Check`                        |
+| `/validation-review <p>`         | 2    | Code review: readability, architecture, security, edge cases      | `state.md → ## Code Review`                           |
+| `/validation-issues <p>`         | 3    | Numbered issue list with priorities; stop for user approve/defer  | `state.md → ## Issue List`                            |
+| `/validation-create-fixes <p>`   | 4    | Generate `T-XX-fix-<slug>/description.md` subtasks                | `state.md → ## Fix-Tasks`, fix-task directories       |
+| `/validation-execute-fixes <p>`  | 5    | Atomic-execute + atomic-validate each fix-task                    | code, `## Subtask Progress`                           |
+| `/validation-finalize <p>`       | 6    | Compress, list deferred, mark `validation: complete`              | `state.md → ## Deferred`, `## Phases`                 |
 
 ### Atomic children
 
 | Command               | Step | What it does                                                       | Writes                                                |
 |-----------------------|------|--------------------------------------------------------------------|-------------------------------------------------------|
-| `/pae-tests <T>`      | 1    | **TDD RED** — test-level gate, write failing tests from `## Acceptance Criteria`, observe them fail | test files, `## Subtask Progress → atomic-tests: red` |
-| `/pae-implement <T>`  | 2    | **TDD GREEN** — execute the `## Steps` until the RED tests pass, then refactor | code, parent `state.md → ## Subtask Progress`         |
-| `/pae-finalize <T>`   | 3    | Set atomic-execution status, update `plan.md`, roll up a composite parent | `## Subtask Progress`, `plan.md` status         |
-| `/pav-check <T>`      | 1    | Verify against `## Acceptance Criteria`, issue verdict             | `## Subtask Progress → notes`                         |
-| `/pav-propose <T>`    | 2    | Propose improvements (Do Now / Do Later / Optional); wait for user | `## Subtask Progress → notes`                         |
-| `/pav-close <T>`      | 3    | Mark atomic-validation complete, `plan.md` status `reviewed`       | `## Subtask Progress`, `plan.md` status               |
+| `/atomic-execution-tests <T>`      | 1    | **TDD RED** — test-level gate, write failing tests from `## Acceptance Criteria`, observe them fail | test files, `## Subtask Progress → atomic-tests: red` |
+| `/atomic-execution-implement <T>`  | 2    | **TDD GREEN** — execute the `## Steps` until the RED tests pass, then refactor | code, parent `state.md → ## Subtask Progress`         |
+| `/atomic-execution-finalize <T>`   | 3    | Set atomic-execution status, update `plan.md`, roll up a composite parent | `## Subtask Progress`, `plan.md` status         |
+| `/atomic-validation-check <T>`      | 1    | Verify against `## Acceptance Criteria`, issue verdict             | `## Subtask Progress → notes`                         |
+| `/atomic-validation-propose <T>`    | 2    | Propose improvements (Do Now / Do Later / Optional); wait for user | `## Subtask Progress → notes`                         |
+| `/atomic-validation-close <T>`      | 3    | Mark atomic-validation complete, `plan.md` status `reviewed`       | `## Subtask Progress`, `plan.md` status               |
 
 ### Utility
 
@@ -607,11 +607,11 @@ migration and complete offline helper examples are in [MODEL-CATALOG.md](MODEL-C
 
 (Defined in `rules/contract-phases.md` — loaded into every conversation.)
 
-- **Never auto-advance between phases** — `/phase-pipeline` and `/spec-run` advance only through their authorized delivery phases; finalization remains separately invoked.
-- **Test-first execution** — every leaf subtask goes through `/pae-tests` (RED) before
-  `/pae-implement` (GREEN). The failing tests are a frozen contract, not a draft. Non-testable
+- **Never auto-advance between phases** — `/pipeline` and `/spec-run` advance only through their authorized delivery phases; finalization remains separately invoked.
+- **Test-first execution** — every leaf subtask goes through `/atomic-execution-tests` (RED) before
+  `/atomic-execution-implement` (GREEN). The failing tests are a frozen contract, not a draft. Non-testable
   work passes an explicit, recorded gate. Contract: `rules/contract-tdd.md`. Not suspended by
-  `/phase-pipeline`.
+  `/pipeline`.
 - **Orchestrated mode** — `/spec-run` runs a whole spec with context-bounded sub-agents, one
   stacked branch per subtask, strictly sequential. Contracts: `rules/contract-orchestration.md`,
   `rules/contract-git-flow.md`. With `--repo <directory>=<base-branch>` flags one shared spec runs
@@ -749,7 +749,7 @@ installed rules and receive refreshed links at each adapter's declared project l
 | `docs/SPEC-RUN-QUICKSTART.md` | Operating procedure for `/spec-run`: preflight, the batch gate, what stops the run, the branch stack you get, merging and `/restack`, interruption recovery. |
 | `scripts/validate-contracts.sh`    | Contract checks across the three layers, including optional tracked-file public hygiene. Run by `scripts/sync.sh` before every deploy; any failure blocks deployment. |
 | `scripts/sync.sh`                  | Deploy skills and global instructions to declared harness targets. The source tree defaults to the repository root (the parent of `scripts/`). `--from <dir>` takes precedence over `ORCHESTRAIL_HOME`. |
-| `scripts/validate-task.sh`         | Applies the canonical contracts to ONE task directory's artifacts (`state.md`, `plan.md`, `description.md`) rather than to the workflow definitions. Run by `/pd-finalize` and `/pe-finalize`; exit 1 blocks the phase. |
+| `scripts/validate-task.sh`         | Applies the canonical contracts to ONE task directory's artifacts (`state.md`, `plan.md`, `description.md`) rather than to the workflow definitions. Run by `/discovery-finalize` and `/execution-finalize`; exit 1 blocks the phase. |
 | `scripts/state-tool.py`    | Optional reader and editor of one task's `## Subtask Progress` section: structural parser, per-task lock, expected revision, idempotent operation receipts, one JSON result per call. No workflow calls it yet; see section 11. |
 | `scripts/run-log-timing.sh` | Exact offline timing for explicit original run files; source-only Python engine, private validated snapshots and structured coverage. |
 | `scripts/log-step.sh`              | Append-only run log writer. Stamps its own timestamps and derives durations, so no duration is ever model-guessed. Exits 0 on every error path — logging never blocks a pipeline. |
@@ -805,43 +805,44 @@ See the [pipeline reference](PIPELINE.md) for phase order, status definitions an
 
 | File                            | Role                                                                              |
 |---------------------------------|-----------------------------------------------------------------------------------|
-| `phase-pipeline.md`             | Autonomous Discovery → Execution → Validation. Includes Deep Architectural Analysis Protocol. |
-| `phase-discovery.md`            | Discovery orchestrator. Sequentially calls `pd-analyze`, `pd-decompose`, `pd-design`, `pd-finalize`. |
-| `phase-execution.md`            | Execution orchestrator. Loops atomic-execution + atomic-validation per T-XX, then `pe-finalize`. |
-| `phase-validation.md`           | Validation orchestrator. Sequentially calls `pv-contract` … `pv-finalize`.        |
-| `phase-finalize.md`             | Separately invoked post-merge task closure; required evidence/recovery, mandatory safe cleanup, knowledge and audited archival. |
-| `phase-atomic-execution.md`     | Single T-XX execution: `pae-tests` → `pae-implement` → `pae-finalize`.            |
-| `phase-atomic-validation.md`    | Single T-XX validation: `pav-check` → `pav-propose` → `pav-close`.                |
-| `pd-analyze.md`                 | Discovery step 1: read spec + root state + minimal code, record assumptions, set the `flow:` tier, write `## Task Analysis`. |
-| `pd-decompose.md`               | Discovery step 2: split into 1–8 T-XX subtasks, create `T-XX/description.md` (six sections, incl. `## Test Plan`), write `plan.md → ## Subtasks`. |
-| `pd-design.md`                  | Discovery step 3: generate 2–3 architectural variants and decide via the Autonomous Decision Protocol (`--step-by-step` waits for the user). |
-| `pd-finalize.md`                | Discovery step 4: sanity check, compress, set `discovery: complete`, invoke `pd-archive`, update root files. |
-| `pd-archive.md`                 | Discovery step 4b: move `## Task Analysis` (except `### Assumptions`), `### Variants` and `### Rejected` into `state-archive.md`, leaving pointer lines. Called by `pd-finalize` — never before `discovery: complete`. |
-| `pd-select-model.md`            | Discovery step 2.5 (full flow): recommend from the cached catalog; `--refresh` authorizes research. Bulk mode writes optional `Model (Claude)` / `Model (Codex)` columns with explicit legacy migration; `/phase-discovery` calls it after decomposition. |
-| `pe-execute.md`                 | Execution step 1: per-T-XX atomic-execution → atomic-validation loop.             |
-| `pe-finalize.md`                | Execution step 2: write `## Execution Report`, mark `execution: complete`.        |
-| `pv-contract.md`                | Validation step 1: verify Invariants, Acceptance Criteria, Off-limits.            |
-| `pv-review.md`                  | Validation step 2: code review (readability, architecture, security, edge cases). |
-| `pv-issues.md`                  | Validation step 3: numbered issue list with priorities, wait for user decision.   |
-| `pv-create-fixes.md`            | Validation step 4: create fix-task directories from approved issues.              |
-| `pv-execute-fixes.md`           | Validation step 5: run atomic cycles for each fix-task.                           |
-| `pv-finalize.md`                | Validation step 6: compress, list deferred, mark `validation: complete`.          |
-| `pae-tests.md`                  | Atomic-execution step 1 (TDD RED): classify test level, write failing tests from `## Acceptance Criteria`, run them, verify they fail for the expected reason. |
-| `pae-implement.md`              | Atomic-execution step 2 (TDD GREEN): run the `## Steps` from `T-XX/description.md` until the RED tests pass, then refactor. |
-| `pae-finalize.md`               | Atomic-execution step 3: update statuses in parent `state.md` + `plan.md`, roll up a composite parent, compress. |
-| `pav-check.md`                  | Atomic-validation step 1: check against Acceptance Criteria, find bugs, issue verdict. |
-| `pav-propose.md`                | Atomic-validation step 2: propose Do Now / Do Later / Optional improvements; wait for user. |
-| `pav-close.md`                  | Atomic-validation step 3: mark complete, parent `plan.md` status `reviewed`.      |
+| `pipeline.md`             | Autonomous Discovery → Execution → Validation. Includes Deep Architectural Analysis Protocol. |
+| `discovery.md`            | Discovery orchestrator. Sequentially calls `discovery-analyze`, `discovery-decompose`, `discovery-design`, `discovery-finalize`. |
+| `execution.md`            | Execution orchestrator. Loops atomic-execution + atomic-validation per T-XX, then `execution-finalize`. |
+| `validation.md`           | Validation orchestrator. Sequentially calls `validation-contract` … `validation-finalize`.        |
+| `finalization.md`             | Separately invoked post-merge task closure; required evidence/recovery, mandatory safe cleanup, knowledge and audited archival. |
+| `atomic-execution.md`     | Single T-XX execution: `atomic-execution-tests` → `atomic-execution-implement` → `atomic-execution-finalize`.            |
+| `atomic-validation.md`    | Single T-XX validation: `atomic-validation-check` → `atomic-validation-propose` → `atomic-validation-close`.                |
+| `discovery-analyze.md`                 | Discovery step 1: read spec + root state + minimal code, record assumptions, set the `flow:` tier, write `## Task Analysis`. |
+| `discovery-decompose.md`               | Discovery step 2: split into 1–8 T-XX subtasks, create `T-XX/description.md` (six sections, incl. `## Test Plan`), write `plan.md → ## Subtasks`. |
+| `discovery-select-model.md`            | Discovery step 2.5 (full flow): recommend from the cached catalog; `--refresh` authorizes research. Bulk mode writes optional `Model (Claude)` / `Model (Codex)` columns with explicit legacy migration; `/discovery` calls it after decomposition. |
+| `discovery-design.md`                  | Discovery step 3: generate 2–3 architectural variants and decide via the Autonomous Decision Protocol (`--step-by-step` waits for the user). |
+| `discovery-finalize.md`                | Discovery step 4: sanity check, compress, set `discovery: complete`, invoke `discovery-archive`, update root files. |
+| `discovery-archive.md`                 | Discovery step 4b: move `## Task Analysis` (except `### Assumptions`), `### Variants` and `### Rejected` into `state-archive.md`, leaving pointer lines. Called by `discovery-finalize` — never before `discovery: complete`. |
+| `execution-execute.md`                 | Execution step 1: per-T-XX atomic-execution → atomic-validation loop.             |
+| `execution-finalize.md`                | Execution step 2: write `## Execution Report`, mark `execution: complete`.        |
+| `validation-contract.md`                | Validation step 1: verify Invariants, Acceptance Criteria, Off-limits.            |
+| `validation-review.md`                  | Validation step 2: code review (readability, architecture, security, edge cases). |
+| `validation-issues.md`                  | Validation step 3: numbered issue list with priorities, wait for user decision.   |
+| `validation-create-fixes.md`            | Validation step 4: create fix-task directories from approved issues.              |
+| `validation-classify-fixes.md`          | Validation step 4a: route approved fixes to shared or dedicated branches.         |
+| `validation-execute-fixes.md`           | Validation step 5: run atomic cycles for each fix-task.                           |
+| `validation-finalize.md`                | Validation step 6: compress, list deferred, mark `validation: complete`.          |
+| `atomic-execution-tests.md`                  | Atomic-execution step 1 (TDD RED): classify test level, write failing tests from `## Acceptance Criteria`, run them, verify they fail for the expected reason. |
+| `atomic-execution-implement.md`              | Atomic-execution step 2 (TDD GREEN): run the `## Steps` from `T-XX/description.md` until the RED tests pass, then refactor. |
+| `atomic-execution-finalize.md`               | Atomic-execution step 3: update statuses in parent `state.md` + `plan.md`, roll up a composite parent, compress. |
+| `atomic-validation-check.md`                  | Atomic-validation step 1: check against Acceptance Criteria, find bugs, issue verdict. |
+| `atomic-validation-propose.md`                | Atomic-validation step 2: propose Do Now / Do Later / Optional improvements; wait for user. |
+| `atomic-validation-close.md`                  | Atomic-validation step 3: mark complete, parent `plan.md` status `reviewed`.      |
 | `spec-draft.md`                 | Standalone SDD authoring: a raw task (link, text, or file) → one development-ready spec in `.ai/specs/`. Interactive by default, autonomous with `--auto-mode`. A separate Devil's Advocate critic reviews the draft for at most 10 rounds; ready for development needs 95/100 with no open critical or major finding. Isolated — creates no task directory and starts no pipeline. |
-| `spec-sync.md`                  | Reconcile a finished task's implementation back into its spec. Owns requirement-content reconciliation after Discovery starts; every edit cites the recorded divergence. Finalization may only relocate the spec and journal mechanical links. Called by `/pv-finalize`, runnable standalone. |
+| `spec-sync.md`                  | Reconcile a finished task's implementation back into its spec. Owns requirement-content reconciliation after Discovery starts; every edit cites the recorded divergence. Finalization may only relocate the spec and journal mechanical links. Called by `/validation-finalize`, runnable standalone. |
 | `bugfix.md`                     | Governed entry point for a defect: reproduce → freeze the reproduction as a failing test → fix → verify → record. Runs the quick tier; hands over to the full path when the quick gate returns `full`. |
-| `adr-new.md`                    | Write an ADR at the moment the decision exists, from a task directory or a bare decision. `--provisional` records a Discovery decision before the task finishes; `/pv-finalize` promotes it instead of writing a second record. |
+| `adr-new.md`                    | Write an ADR at the moment the decision exists, from a task directory or a bare decision. `--provisional` records a Discovery decision before the task finishes; `/validation-finalize` promotes it instead of writing a second record. |
 | `context-pack.md`               | Assemble bootstrap sources 1–7 into one manifest-verified `.ai/context-pack.md`. A step may read it instead of the seven files, only after confirming freshness. |
 | `retro.md`                      | The only reader of the run log. Aggregates runs across projects and reports what to change in the workflows, with the evidence each finding rests on. |
 | `spec-run.md`                   | Orchestrator: one spec → stacked branch per subtask → review-ready PRs, via context-bounded sub-agents. |
 | `restack.md`                    | Replay the branch stack after the human merges part of it — works with merge, rebase, or squash. |
-| `pv-classify-fixes.md`          | Validation step 4a: classify fixes into shared vs dedicated branches using the quick-flow gate. |
-| `phase-composite-validation.md` | Integration validation for a Type 2 composite, after every child is individually reviewed. Triggered by `pav-close` when the last child closes. |
+| `validation-classify-fixes.md`          | Validation step 4a: classify fixes into shared vs dedicated branches using the quick-flow gate. |
+| `composite-validation.md` | Integration validation for a Type 2 composite, after every child is individually reviewed. Triggered by `atomic-validation-close` when the last child closes. |
 | `onboard-legacy-project.md`     | One-time: analyze an existing codebase and fill every `.ai/` file so later phases start from context instead of re-reading the code. Run after `scripts/setup-new-project.sh`. |
 | `suggest-commit-message.md`     | Utility: copy-ready commit message for the current changes (session context by default, git with a flag). |
 | `suggest-pr-description.md`     | Utility: copy-ready PR description — summary, how it works, how to test. |
@@ -1145,3 +1146,32 @@ printed in its report line.
 | rule | `tdd` | `contract-tdd` |
 | rule | `workflow-globals` | `contract-phases` |
 | rule | `workflow-reference` | `contract-state-files`, `protocol-autonomous-decision`, `protocol-subtask-classifier` |
+| workflow | `pae-finalize` | `atomic-execution-finalize` |
+| workflow | `pae-implement` | `atomic-execution-implement` |
+| workflow | `pae-tests` | `atomic-execution-tests` |
+| workflow | `pav-check` | `atomic-validation-check` |
+| workflow | `pav-close` | `atomic-validation-close` |
+| workflow | `pav-propose` | `atomic-validation-propose` |
+| workflow | `pd-analyze` | `discovery-analyze` |
+| workflow | `pd-archive` | `discovery-archive` |
+| workflow | `pd-decompose` | `discovery-decompose` |
+| workflow | `pd-design` | `discovery-design` |
+| workflow | `pd-finalize` | `discovery-finalize` |
+| workflow | `pd-select-model` | `discovery-select-model` |
+| workflow | `pe-execute` | `execution-execute` |
+| workflow | `pe-finalize` | `execution-finalize` |
+| workflow | `phase-atomic-execution` | `atomic-execution` |
+| workflow | `phase-atomic-validation` | `atomic-validation` |
+| workflow | `phase-composite-validation` | `composite-validation` |
+| workflow | `phase-discovery` | `discovery` |
+| workflow | `phase-execution` | `execution` |
+| workflow | `phase-finalize` | `finalization` |
+| workflow | `phase-pipeline` | `pipeline` |
+| workflow | `phase-validation` | `validation` |
+| workflow | `pv-classify-fixes` | `validation-classify-fixes` |
+| workflow | `pv-contract` | `validation-contract` |
+| workflow | `pv-create-fixes` | `validation-create-fixes` |
+| workflow | `pv-execute-fixes` | `validation-execute-fixes` |
+| workflow | `pv-finalize` | `validation-finalize` |
+| workflow | `pv-issues` | `validation-issues` |
+| workflow | `pv-review` | `validation-review` |

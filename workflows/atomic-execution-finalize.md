@@ -4,8 +4,8 @@ phase: atomic-execution
 step: 3
 ---
 
-Invocation: `/pae-finalize <path-to-atomic-description>`
-Called by: `/phase-atomic-execution` as Step 3.
+Invocation: `/atomic-execution-finalize <path-to-atomic-description>`
+Called by: `/atomic-execution` as Step 3.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
@@ -15,9 +15,9 @@ Parent task directory = one level above.
 ## Guard
 
 Read the description and parent progress block before writing. `atomic-execution: complete`
-is the expected successful input from `/pae-implement`, not evidence that finalization ran.
+is the expected successful input from `/atomic-execution-implement`, not evidence that finalization ran.
 Missing state, execution not complete, or `blocker:` other than `none` → **stop**:
-"Complete `/pae-implement` successfully before finalizing."
+"Complete `/atomic-execution-implement` successfully before finalizing."
 
 `atomic-tests:` must be `green` or justified `n-a`; absent is allowed only with the recorded
 pre-TDD exemption. Any other value → **stop**: "Implementation has not reached GREEN."
@@ -39,7 +39,7 @@ Under `/spec-run`, write only this leaf's progress block; return all plan, archi
 composite, and compression changes as deltas under `contract-orchestration → ## Shared-file discipline`.
 
 1. Preserve the successful leaf block: `atomic-execution: complete`, `blocker: none`.
-   Preserve `atomic-tests:` as set by `/pae-tests` / `/pae-implement` (`green` or `n-a`).
+   Preserve `atomic-tests:` as set by `/atomic-execution-tests` / `/atomic-execution-implement` (`green` or `n-a`).
    Never remove or downgrade it. Preserve cumulative `target_files:` and all `notes:` /
    `tdd:` evidence and git fields. Never create atomic `state.md` or `plan.md` files.
 
@@ -66,5 +66,5 @@ composite, and compression changes as deltas under `contract-orchestration → #
    `last_action: pae-finalize done — <implementation summary>` in this leaf's block.
 
 6. Report execution, TDD mode/level, verification, and which updates were applied or
-   returned as deltas. Display `/phase-atomic-validation <path>` as the next atomic step.
+   returned as deltas. Display `/atomic-validation <path>` as the next atomic step.
    This is a progress marker for an active caller, not a handoff.

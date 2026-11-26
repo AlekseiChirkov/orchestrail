@@ -174,8 +174,8 @@ test command, evidence limitations, unknown fields and confirmed security findin
 present an unexamined area as zero findings. Give manual next steps:
 
 1. Review generated knowledge and resolve unknowns.
-2. Establish `test:` in the runbook before execution if unknown; `/pae-tests` requires it.
+2. Establish `test:` in the runbook before execution if unknown; `/atomic-execution-tests` requires it.
 3. Review confirmed security findings with the project owner.
-4. Create a spec and run `/phase-discovery <spec>` when ready.
+4. Create a spec and run `/discovery <spec>` when ready.
 
 Then **stop**; invoke no next phase.

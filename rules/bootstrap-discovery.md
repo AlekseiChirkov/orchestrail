@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for discovery phase — load when running /phase-discovery, /pd-analyze, /pd-decompose, /pd-design, /pd-finalize
+description: Context loading rules for discovery phase — load when running /discovery, /discovery-analyze, /discovery-decompose, /discovery-design, /discovery-finalize
 load: on-demand
 ---
 

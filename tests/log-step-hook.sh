@@ -87,11 +87,11 @@ class HookContract(unittest.TestCase):
         return result
 
     def start(self) -> str:
-        run = self.producer('run-start', '--pipeline', 'phase-execution')
+        run = self.producer('run-start', '--pipeline', 'execution')
         self.assertRegex(run, r'^[a-f0-9]{8}$')
         return run
 
-    def dispatch(self, run: str | None = None, boundary: str = 'subagent', skill: str | None = 'pae-tests', actor: str | None = None, extra: tuple[str, ...] = ()) -> tuple[Record, str]:
+    def dispatch(self, run: str | None = None, boundary: str = 'subagent', skill: str | None = 'atomic-execution-tests', actor: str | None = None, extra: tuple[str, ...] = ()) -> tuple[Record, str]:
         run = run or self.start()
         actor = actor or (self.env['CLAUDE_CODE_SESSION_ID'] if boundary == 'session' else 'actor-' + uuid.uuid4().hex)
         args = ['dispatch', '--run', run, '--agent-id', actor, '--boundary', boundary]
@@ -127,7 +127,7 @@ class HookContract(unittest.TestCase):
     def report(self, identity: Record, **fields: object) -> str:
         return 'ORCHESTRAIL_REPORT_V1 ' + compact(dict(identity, outcome='ok', **fields))
 
-    def transcript(self, dispatch: str, skills: tuple[str, ...] = ('pae-tests',), input_record: bool = True) -> Path:
+    def transcript(self, dispatch: str, skills: tuple[str, ...] = ('atomic-execution-tests',), input_record: bool = True) -> Path:
         path = self.root / ('transcript-' + uuid.uuid4().hex + '.jsonl')
         records = [{'type': 'user' if input_record else 'assistant',
                     'message': {'role': 'user' if input_record else 'assistant', 'content': dispatch}}]
@@ -137,7 +137,7 @@ class HookContract(unittest.TestCase):
         path.write_text(''.join(compact(r) + '\n' for r in records))
         return path
 
-    def payload(self, identity: Record, dispatch: str, boundary: str = 'subagent', skills: tuple[str, ...] = ('pae-tests',), report: str | None = None) -> Record:
+    def payload(self, identity: Record, dispatch: str, boundary: str = 'subagent', skills: tuple[str, ...] = ('atomic-execution-tests',), report: str | None = None) -> Record:
         transcript = self.transcript(dispatch, skills)
         data = {'hook_event_name':'SubagentStop' if boundary == 'subagent' else 'Stop',
                 'session_id':identity['session_id'], 'cwd':str(self.project),
@@ -176,10 +176,10 @@ class HookContract(unittest.TestCase):
 
     def test_hook_interleaved_runs_preserve_exact_identity(self) -> None:
         first, line_a = self.dispatch()
-        second, line_b = self.dispatch(boundary='session', skill='pae-implement')
-        self.deliver(self.payload(second, line_b, 'session', ('pae-implement',), self.report(second, tests='green')))
+        second, line_b = self.dispatch(boundary='session', skill='atomic-execution-implement')
+        self.deliver(self.payload(second, line_b, 'session', ('atomic-execution-implement',), self.report(second, tests='green')))
         self.deliver(self.payload(first, line_a))
-        for identity, skill in [(first, 'pae-tests'), (second, 'pae-implement')]:
+        for identity, skill in [(first, 'atomic-execution-tests'), (second, 'atomic-execution-implement')]:
             steps = [event for event in self.events(identity['run_id']) if event['event'] == 'step']
             self.assertEqual(len(steps), 1)
             for key in ('run_id', 'session_id', 'agent_id', 'checkpoint_id'):
@@ -245,8 +245,8 @@ class HookContract(unittest.TestCase):
         self.deliver(self.payload(identity, line, 'session', ()))
         self.assertEqual(self.events(identity['run_id'])[-1]['step'], 'unknown')
         second, line_b = self.dispatch(boundary='session', skill=None)
-        self.deliver(self.payload(second, line_b, 'session', ('pd-analyze',)))
-        self.assertEqual(self.events(second['run_id'])[-1]['step'], 'pd-analyze')
+        self.deliver(self.payload(second, line_b, 'session', ('discovery-analyze',)))
+        self.assertEqual(self.events(second['run_id'])[-1]['step'], 'discovery-analyze')
         third, line_c = self.dispatch(skill=None)
         self.rejected(third, self.payload(third, line_c, skills=()))
 
@@ -289,12 +289,12 @@ class HookContract(unittest.TestCase):
         self.assertEqual(receipt['kind'], 'accepted')
         self.assertGreater(receipt['seq'], 0)
         before = self.snapshot()
-        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok')
+        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok')
         self.assertEqual(before, self.snapshot())
 
     def test_hook_fallback_first_owns_route_even_when_legacy_write_fails(self) -> None:
         identity, line = self.dispatch()
-        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok', '--tests', 'red')
+        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok', '--tests', 'red')
         self.assertEqual(self.status(identity)['state'], 'fallback-attempted')
         steps = [e for e in self.events(identity['run_id']) if e['event'] == 'step']
         self.assertEqual(len(steps), 1)
@@ -302,11 +302,11 @@ class HookContract(unittest.TestCase):
         self.assertNotIn('timing_source', steps[0])
         before = self.snapshot()
         self.deliver(self.payload(identity, line))
-        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok')
+        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok')
         self.assertEqual(before, self.snapshot())
         failed, failed_line = self.dispatch()
         self.helper.write_text('#!/usr/bin/env bash\nexit 0\n')
-        self.call('fallback', '--checkpoint', failed['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok')
+        self.call('fallback', '--checkpoint', failed['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok')
         self.assertEqual(self.status(failed)['state'], 'fallback-attempted')
         self.assertNotIn('receipt', self.status(failed))
 
@@ -326,7 +326,7 @@ INNER
         self.env['HOOK_TEST_CAPTURE'] = str(captures)
         self.deliver(payload)
         self.assertEqual(self.status(identity)['state'], 'delivering')
-        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok')
+        self.call('fallback', '--checkpoint', identity['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok')
         self.deliver(payload)
         calls = [json.loads(s) for s in captures.read_text().splitlines()]
         self.assertEqual(len(calls), 2, 'fallback cannot attempt the ordinary route after delivery starts')
@@ -344,7 +344,7 @@ INNER
         cases = [canonical + '\n' + canonical, '```\n' + canonical + '\n```', ' ' + canonical,
                  'ORCHESTRAIL_REPORT_V1 ' + json.dumps(dict(identity, outcome='ok')),
                  'ORCHESTRAIL_REPORT_V1 ' + body[:-1] + ',"outcome":"ok"}',
-                 'ORCHESTRAIL_REPORT_V1 ' + compact(dict(identity, outcome='ok', step='pae-tests')),
+                 'ORCHESTRAIL_REPORT_V1 ' + compact(dict(identity, outcome='ok', step='atomic-execution-tests')),
                  'ORCHESTRAIL_REPORT_V1 ' + compact(dict(identity, outcome='success')),
                  'successfully completed all tests']
         for key in ('run_id','session_id','agent_id','checkpoint_id'):
@@ -365,11 +365,11 @@ INNER
                         [{'type':'user','debug':line,'message':{'content':'unrelated'}}]]:
             path.write_text(''.join(compact(r) + '\n' for r in records))
             self.rejected(identity, original)
-        wrong = self.transcript('unrelated', ('pae-tests',))
+        wrong = self.transcript('unrelated', ('atomic-execution-tests',))
         original['transcript_path'] = str(self.transcript(line))
         original['agent_transcript_path'] = str(wrong)
         self.rejected(identity, original)
-        for skills in [('pae-tests','pae-tests'), ('pae-tests','pae-implement'), ('pd-analyze',)]:
+        for skills in [('atomic-execution-tests','atomic-execution-tests'), ('atomic-execution-tests','atomic-execution-implement'), ('discovery-analyze',)]:
             self.rejected(identity, self.payload(identity, line, skills=skills))
         original = self.payload(identity, line)
         path = Path(original['agent_transcript_path'])
@@ -382,7 +382,7 @@ INNER
         path = Path(data['agent_transcript_path'])
         rows = path.read_text().splitlines()
         changed = json.loads(rows[-1])
-        changed['message']['content'][0]['input']['skill'] = 'pd-analyze'
+        changed['message']['content'][0]['input']['skill'] = 'discovery-analyze'
         path.write_text('\n'.join(rows + [compact(changed)]) + '\n')
         self.rejected(conflicting, data)
 
@@ -411,11 +411,11 @@ INNER
     def test_hook_invalid_fallback_arguments_leave_pending_and_unmutated(self) -> None:
         identity, line = self.dispatch()
         before = self.snapshot()
-        variants = [('--step','pae-tests','--outcome','success'),
-                    ('--step','pae-tests','--outcome','ok','--gate','unknown'),
-                    ('--step','pae-tests','--outcome','ok','--tests',''),
-                    ('--step','pae-tests','--outcome','ok','--outcome','failed'),
-                    ('--step','pae-tests','--outcome','ok','--note','arbitrary')]
+        variants = [('--step','atomic-execution-tests','--outcome','success'),
+                    ('--step','atomic-execution-tests','--outcome','ok','--gate','unknown'),
+                    ('--step','atomic-execution-tests','--outcome','ok','--tests',''),
+                    ('--step','atomic-execution-tests','--outcome','ok','--outcome','failed'),
+                    ('--step','atomic-execution-tests','--outcome','ok','--note','arbitrary')]
         for args in variants:
             result = self.call('fallback','--checkpoint',identity['checkpoint_id'],*args)
             self.assertIn('coverage', result.stderr)
@@ -430,7 +430,7 @@ INNER
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             a = pool.submit(self.deliver, data)
             b = pool.submit(self.call, 'fallback','--checkpoint',identity['checkpoint_id'],
-                            '--step','pae-tests','--outcome','ok')
+                            '--step','atomic-execution-tests','--outcome','ok')
             a.result()
             b.result()
         status = self.status(identity)
@@ -573,7 +573,7 @@ printf 'called\\n' >> "$HOOK_TEST_CAPTURE"
 
     def test_hook_skill_name_suffix_is_rejected_without_normalization(self) -> None:
         identity, line = self.dispatch()
-        self.rejected(identity, self.payload(identity, line, skills=('pae-tests\n',)))
+        self.rejected(identity, self.payload(identity, line, skills=('atomic-execution-tests\n',)))
 
     def test_hook_corrupted_frozen_payload_or_receipt_never_changes_run_attribution(self) -> None:
         identity, line = self.dispatch()
@@ -590,7 +590,7 @@ printf 'called\\n' >> "$HOOK_TEST_CAPTURE"
         alterations = [('run_id',other), ('session_id','different'), ('agent_id','different'),
                        ('checkpoint_id','different'), ('span_start_ms',0), ('span_end_ms',-1),
                        ('boundary','session'), ('span_kind','waiting'), ('parent_checkpoint_id','different'),
-                       ('outcome','success'), ('tests','invalid'), ('gate','invalid'), ('step','pd-analyze')]
+                       ('outcome','success'), ('tests','invalid'), ('gate','invalid'), ('step','discovery-analyze')]
         for field, value in alterations:
             metadata = json.loads(compact(frozen))
             metadata['payload'][field] = value

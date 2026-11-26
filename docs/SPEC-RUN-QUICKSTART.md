@@ -82,11 +82,11 @@ Without `--allow-pr`, no `git push` and no `gh` command runs at any point.
 | Step | What happens |
 |---|---|
 | 0 | Preflight; if the task directory exists, work out the resume point and reconcile recorded branches against the actual repository |
-| 1 | Discovery (`pd-analyze` → `pd-decompose` → `pd-design` → `pd-finalize`), autonomous. The Arbiter is spawned here and kept alive for the whole run. **→ the batch gate, see below** |
-| 2 | `/pd-select-model` in bulk mode recommends from the local catalog and updates optional `Model (Claude)` / `Model (Codex)` columns in `plan.md` |
+| 1 | Discovery (`discovery-analyze` → `discovery-decompose` → `discovery-design` → `discovery-finalize`), autonomous. The Arbiter is spawned here and kept alive for the whole run. **→ the batch gate, see below** |
+| 2 | `/discovery-select-model` in bulk mode recommends from the local catalog and updates optional `Model (Claude)` / `Model (Codex)` columns in `plan.md` |
 | 3 | Resolve execution order and print the branch stack before touching anything |
 | 4 | Per subtask: cut the branch → Implementer writes RED tests → **orchestrator commits `test:`** → same agent implements GREEN → orchestrator commits `feat:` → a **separate** Validator reviews → draft PR |
-| 5 | Task-level validation on the stack tip (`/phase-validation`) |
+| 5 | Task-level validation on the stack tip (`/validation`) |
 | 6 | Fix-tasks, if the review produced any — grouped into shared or dedicated branches |
 | 7 | All draft PRs promoted to ready for review, in stack order |
 | 8 | Final report: branches, commits, tests, PRs, merge order |
@@ -136,7 +136,7 @@ Execution would invalidate every branch already stacked on top of the wrong assu
 
 Not planned stops — each means something needs your decision:
 
-- A violated invariant or an Off-limits breach (`/pv-contract` critical-failure gate).
+- A violated invariant or an Off-limits breach (`/validation-contract` critical-failure gate).
 - `atomic-tests: failed` — RED was never established.
 - A validator verdict of NEEDS WORK: the subtask does not close and the run stops there,
   because nothing above it can be built on a failing base.
@@ -232,8 +232,8 @@ justifications, test amendments, and every class-A resolution with its cited sou
 After the owner merges the delivered branches into their intended integration bases, run:
 
 ```text
-/phase-finalize .ai/tasks/todo/task-add-oauth/ --dry-run
-/phase-finalize .ai/tasks/todo/task-add-oauth/
+/finalization .ai/tasks/todo/task-add-oauth/ --dry-run
+/finalization .ai/tasks/todo/task-add-oauth/
 ```
 
 The separate phase verifies original commit/PR evidence for every recorded repository,

@@ -45,7 +45,7 @@ initializes consumer repositories and creates declared skill links.
 | `ORCHESTRAIL_LOG_ROOT` | `scripts/log-step.sh`, `/retro` | `<repo>/logs` | store is gitignored |
 | `ORCHESTRAIL_HOME` helper resolution | `rules/contract-run-log.md`, orchestrator workflows, artifact checks | unset: skip optional logging | Configure one shared checkout; required artifact checks need a configured source |
 | `$HOME/.claude`, `$HOME/.codex` | `scripts/sync.sh`, `scripts/setup-new-project.sh` | — | declared harness locations |
-| `.ai/context/runbook.md → ## Commands` (per consumer project) | `pae-implement`, `pae-tests`, `bugfix` | — | `test:` required for TDD |
+| `.ai/context/runbook.md → ## Commands` (per consumer project) | `atomic-execution-implement`, `atomic-execution-tests`, `bugfix` | — | `test:` required for TDD |
 
 Local configuration belongs under `~/.config/orchestrail/`. Keep machine settings
 outside the checkout; configure `ORCHESTRAIL_HOME` with the checkout location and

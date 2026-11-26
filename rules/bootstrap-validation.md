@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for validation phase — load when running /phase-validation, /pv-contract, /pv-review, /pv-issues
+description: Context loading rules for validation phase — load when running /validation, /validation-contract, /validation-review, /validation-issues
 load: on-demand
 ---
 

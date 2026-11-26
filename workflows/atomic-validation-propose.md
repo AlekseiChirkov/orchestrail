@@ -4,15 +4,15 @@ phase: atomic-validation
 step: 2
 ---
 
-Invocation: `/pav-propose <path-to-atomic-description> [--batch]`
-Called by: `/phase-atomic-validation` as Step 2. Only runs if verdict is DONE.
+Invocation: `/atomic-validation-propose <path-to-atomic-description> [--batch]`
+Called by: `/atomic-validation` as Step 2. Only runs if verdict is DONE.
 
 **Modes:**
 - **Interactive** (default, no flag): prompt user for "Do Now" items before applying.
-- **Batch** (`--batch`): record all proposals to `state.md` without prompting or applying. "Do Now" items are tagged for post-execution review by `/pe-finalize`.
+- **Batch** (`--batch`): record all proposals to `state.md` without prompting or applying. "Do Now" items are tagged for post-execution review by `/execution-finalize`.
 
 Canonical proposal semantics: `contract-phases → ## Context Pack`.
-`--batch` means record every proposal, prompt for nothing, apply nothing. `/pe-finalize`
+`--batch` means record every proposal, prompt for nothing, apply nothing. `/execution-finalize`
 step 5 owns later application when selected; no caller may reinterpret the flag.
 
 Atomic task directory = parent directory of the provided `description.md`.
@@ -33,7 +33,7 @@ Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before code
 
 Read parent `state.md → ## Subtask Progress` block for this T-XX.
 If `atomic-validation: failed` → **stop**: "Verdict is NEEDS WORK. Fix issues first."
-If `last_action` is not `pav-check DONE` → **stop**: "Run `/pav-check` successfully before proposing improvements."
+If `last_action` is not `pav-check DONE` → **stop**: "Run `/atomic-validation-check` successfully before proposing improvements."
 
 ---
 
@@ -49,7 +49,7 @@ writes it. Your own leaf block remains writable.
    - **Performance**: with justification (what, where, why slow).
    - **Readability**: renaming, condition simplification.
    - **Robustness**: opportunities beyond the satisfied contract.
-   A newly discovered correctness defect returns to `/pav-check` as NEEDS WORK; do not
+   A newly discovered correctness defect returns to `/atomic-validation-check` as NEEDS WORK; do not
    disguise it as a discretionary improvement.
 
 3. Categorize:
@@ -86,10 +86,10 @@ writes it. Your own leaf block remains writable.
    - **Batch:** do NOT prompt and do NOT apply. Report the count recorded for later review.
 
 6. Update the parent `state.md → ## Subtask Progress` block for this T-XX: set
-   `last_action: pav-propose done`, mirroring the `pav-check DONE` marker `/pav-check` writes.
+   `last_action: pav-propose done`, mirroring the `pav-check DONE` marker `/atomic-validation-check` writes.
    Preserve the cumulative `target_files:`, `atomic-tests:`, and all existing/TDD notes.
 
    **Write this line in every mode**, including zero proposals, only after all approved
-   work and checks finish. It is the resume marker `/phase-atomic-validation` reads.
+   work and checks finish. It is the resume marker `/atomic-validation` reads.
 
-7. Report: "Step 2 (Improvements) complete." This is a progress marker for `/pav-close`.
+7. Report: "Step 2 (Improvements) complete." This is a progress marker for `/atomic-validation-close`.

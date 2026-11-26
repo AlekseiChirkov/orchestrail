@@ -5,8 +5,8 @@ description: Reference documentation — pipeline map and command index; not an 
 # AI-Assisted SDLC Pipeline
 
 Discovery → Execution → Validation. Run phases manually, or authorize automatic
-transitions through Validation with `/phase-pipeline` or `/spec-run`. After owner integration,
-invoke `/phase-finalize` separately. This file is a navigation reference;
+transitions through Validation with `/pipeline` or `/spec-run`. After owner integration,
+invoke `/finalization` separately. This file is a navigation reference;
 workflow headers own invocations, rules own contracts. Do not load the entire reference
 as a prerequisite for an individual child.
 
@@ -20,7 +20,7 @@ as a prerequisite for an individual child.
 | Composite validation | Composite `description.md` path |
 | Finalization | Exact task directory or uniquely mapped spec path; only `--dry-run` is optional |
 
-`phase-discovery` owns task naming, multi-phase selection and prefix collision checks.
+`discovery` owns task naming, multi-phase selection and prefix collision checks.
 Resolve `working_dir:` before file operations; umbrella context is relative to the
 resolved project. See each command for supported flags.
 
@@ -66,7 +66,7 @@ never rewrites requirements to hide a failure.
 
 ## Phase 1 — Discovery
 
-`/phase-discovery <spec-path> [--step-by-step] [--phase N]`
+`/discovery <spec-path> [--step-by-step] [--phase N]`
 
 Autonomous by default, with research-backed assumptions and scored design decisions.
 `--step-by-step` enables review pauses. Orchestrated mode reserves class-B intent
@@ -76,7 +76,7 @@ Outputs: contract and phase markers in state, plus plan and descriptions for ful
 
 ## Phase 2 — Execution
 
-`/phase-execution <task-directory>`
+`/execution <task-directory>`
 
 Require Discovery complete. For each ready leaf run atomic execution, then independent
 atomic validation; resume `done` leaves at validation. Composite containers run no
@@ -85,7 +85,7 @@ marking the phase complete. Quick tasks use inline TDD against their quick contr
 
 ## Phase 3 — Validation
 
-`/phase-validation <task-directory>`
+`/validation <task-directory>`
 
 Require Execution complete. Verify contract → review code → decide issues → create and
 execute approved fixes → finalize, record qualifying decisions and reconcile the spec.
@@ -94,7 +94,7 @@ Off-limits always stop. A deferred item remains visible; it is never reported as
 
 ## Finalization — after owner integration
 
-`/phase-finalize <task-directory|spec-path> [--dry-run]`
+`/finalization <task-directory|spec-path> [--dry-run]`
 
 Close one independently validated task after every original recorded branch/stack is
 proven integrated. Ordinary invocation authorizes mandatory task-scoped safe cleanup;
@@ -113,10 +113,10 @@ no output files, state, Git data or telemetry. Existing parents only suggest thi
 ## Atomic Workflows
 
 ```text
-/phase-atomic-execution <leaf-description>
-  /pae-tests → /pae-implement → /pae-finalize
-/phase-atomic-validation <leaf-description>
-  /pav-check → /pav-propose → /pav-close
+/atomic-execution <leaf-description>
+  /atomic-execution-tests → /atomic-execution-implement → /atomic-execution-finalize
+/atomic-validation <leaf-description>
+  /atomic-validation-check → /atomic-validation-propose → /atomic-validation-close
 ```
 
 Test-first execution: establish RED before GREEN, or admitted characterization (`pinned`)
@@ -150,22 +150,22 @@ has loaded context. Their Guards detect completed work before overwrite.
 
 | Group | Commands in execution order |
 |---|---|
-| Discovery | `/pd-analyze`, `/pd-decompose`, `/pd-design`, `/pd-finalize`, `/pd-archive` |
-| Full-flow model choice | `/pd-select-model <description-or-task> [--refresh]` (cached selection; bulk writes optional provider columns; called by `/phase-discovery`) |
-| Execution | `/pe-execute`, `/pe-finalize` |
-| Atomic execution | `/pae-tests`, `/pae-implement`, `/pae-finalize` |
-| Atomic validation | `/pav-check`, `/pav-propose`, `/pav-close` |
-| Composite integration | `/phase-composite-validation` |
-| Validation | `/pv-contract`, `/pv-review`, `/pv-issues`, `/pv-create-fixes`, `/pv-execute-fixes`, `/pv-finalize` |
-| Fix branch grouping | `/pv-classify-fixes` (called by fix creation in orchestrated mode) |
-| Automatic phases | `/phase-pipeline` |
+| Discovery | `/discovery-analyze`, `/discovery-decompose`, `/discovery-select-model` (full flow), `/discovery-design`, `/discovery-finalize`, `/discovery-archive` |
+| Execution | `/execution-execute`, `/execution-finalize` |
+| Atomic execution | `/atomic-execution-tests`, `/atomic-execution-implement`, `/atomic-execution-finalize` |
+| Atomic validation | `/atomic-validation-check`, `/atomic-validation-propose`, `/atomic-validation-close` |
+| Composite integration | `/composite-validation` |
+| Validation | `/validation-contract`, `/validation-review`, `/validation-issues`, `/validation-create-fixes`, `/validation-classify-fixes` (called by fix creation in orchestrated mode), `/validation-execute-fixes`, `/validation-finalize` |
+| Automatic phases | `/pipeline` |
 | Context-bounded delivery | `/spec-run`, `/restack` |
 | Entry points | `/spec-draft`, `/bugfix`, `/onboard-legacy-project` |
 | Knowledge utilities | `/context-pack`, `/compress-state`, `/adr-new`, `/spec-sync`, `/retro` |
 | Suggested delivery text | `/suggest-commit-message`, `/suggest-pr-description`, `/suggest-commit-pr` |
 
-Model choice uses an optional local catalog; only `--refresh` authorizes research and
-validated replacement. Missing or unusable evidence preserves the session default.
+`/discovery-select-model <path-to-atomic-description | task-directory> [--refresh]`
+uses an optional local catalog. Bulk selection writes optional provider columns, and
+only `--refresh` authorizes research and validated replacement. Missing or unusable
+evidence preserves the session default.
 Executors resolve active provider cells, legacy `Model` or missing columns against
 current invocation support before requesting a model. Unsupported explicit requests
 need an authorized eligible fallback or stop; actual execution identity remains
@@ -203,16 +203,16 @@ run-log reader and recommends workflow changes without applying them.
 ## Full Cycle Example
 
 ```text
-/phase-discovery .ai/specs/01-add-oauth.md
-/phase-execution .ai/tasks/todo/task-01-add-oauth/
-/phase-validation .ai/tasks/todo/task-01-add-oauth/
+/discovery .ai/specs/01-add-oauth.md
+/execution .ai/tasks/todo/task-01-add-oauth/
+/validation .ai/tasks/todo/task-01-add-oauth/
 ```
 
 ## Quick Start
 
 Create a spec with H1 and acceptance criteria. Configure real verification commands in
 the runbook before testable execution. Run the manual cycle above or authorize the
-three delivery phases with `/phase-pipeline <spec-path>`. Finalization remains separately
+three delivery phases with `/pipeline <spec-path>`. Finalization remains separately
 invoked after owner integration. Quick eligibility and promotion are
 owned by `contract-quick-flow`; a small diff alone does not qualify.
 

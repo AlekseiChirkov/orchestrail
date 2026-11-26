@@ -4,10 +4,10 @@ phase: atomic-validation
 step: "-"
 ---
 
-Invocation: `/phase-composite-validation <path-to-composite-description>`
-Example: `/phase-composite-validation .ai/tasks/todo/task-01-feature/T-04-component/description.md`
+Invocation: `/composite-validation <path-to-composite-description>`
+Example: `/composite-validation .ai/tasks/todo/task-01-feature/T-04-component/description.md`
 
-Called by: `/pav-close` (automatically, when the last child of a composite is reviewed) or manually.
+Called by: `/atomic-validation-close` (automatically, when the last child of a composite is reviewed) or manually.
 
 If path is not provided — ask the user and do not continue.
 Composite task directory = parent directory of the provided `description.md`.
@@ -33,10 +33,10 @@ block exemption never covers its composite. In other modes apply the edits below
 Step 0 — Prerequisites
 
 1. Read the composite `description.md`. Verify `## Context` contains `type: composite` and `children:` list.
-   If not → **stop**: "This is not a composite description.md. Use `/phase-atomic-validation` for leaf subtasks."
+   If not → **stop**: "This is not a composite description.md. Use `/atomic-validation` for leaf subtasks."
 
 2. Read parent `state.md`. Locate the composite block `[composite] T-XX | …` in `## Subtask Progress`.
-   If block is missing → **stop**: "No composite block found for T-XX in state.md. Run `/pd-decompose` first."
+   If block is missing → **stop**: "No composite block found for T-XX in state.md. Run `/discovery-decompose` first."
 
 3. Check `integration-validation` field in the composite block:
    - If `integration-validation: complete` → **stop**: "Integration validation already complete. Re-running will overwrite. Confirm? (yes/no)" Wait for explicit confirmation.
@@ -98,7 +98,7 @@ reproduction, affected files, and `critical` / `important` / `optional` severity
 
 2. **Present failures and record approve/defer decisions** before creating any fix work.
 
-   a. Compile the integration failures as a numbered list, in the same shape `/pv-issues` uses:
+   a. Compile the integration failures as a numbered list, in the same shape `/validation-issues` uses:
       ```
       [N]. <what failed>
            Problem: <unmet integration criterion, interface mismatch, or seam failure>
@@ -107,7 +107,7 @@ reproduction, affected files, and `critical` / `important` / `optional` severity
       ```
    b. **Interactive mode (default):** present the list and **wait for the user's decision** —
       which failures to fix now, which to defer.
-   c. **Autonomous mode** (`/phase-pipeline`, `/spec-run`): do not wait. Approve every
+   c. **Autonomous mode** (`/pipeline`, `/spec-run`): do not wait. Approve every
       `critical` and `important` failure, defer every `optional` one. Record the automatic split.
    d. Write the decision to the parent `state.md` before creating any directory:
       ```
@@ -125,7 +125,7 @@ reproduction, affected files, and `critical` / `important` / `optional` severity
 
 3. **D8 — Create a fix sibling:** for each item under `### Approved` in step 2d, determine the next available sibling letter after the highest existing child letter. In orchestrated mode this whole step is returned as a delta, not performed — see the clause above; the orchestrator creates the directory and writes the rows:
    - Existing children T-04a, T-04b, T-04c → next letter is `d`.
-   - Create directory `T-04d-fix-<slug>/` with a `description.md` following the standard six-section template (Goal, Context, Scope, Steps, Acceptance Criteria, Test Plan). The fix targets the integration failure. Its `## Test Plan` scenarios are derived from the integration failure itself — the test that reproduces the failure is the RED test `/pae-tests` will write.
+   - Create directory `T-04d-fix-<slug>/` with a `description.md` following the standard six-section template (Goal, Context, Scope, Steps, Acceptance Criteria, Test Plan). The fix targets the integration failure. Its `## Test Plan` scenarios are derived from the integration failure itself — the test that reproduces the failure is the RED test `/atomic-execution-tests` will write.
    - Reuse an existing sibling already assigned to this approved issue on resume.
    - Add T-04d to the composite's `children:` list in the composite block and description;
      preserve matching lists as the source of membership.
@@ -138,7 +138,7 @@ reproduction, affected files, and `critical` / `important` / `optional` severity
 4. Report failures, approved/deferred counts, and actual sibling paths (or "none").
    State who made the decision and whether writes were applied or returned as deltas.
    In an active execution loop, return new sibling work to the caller; standalone, display
-   `/phase-atomic-execution <fix-description>` followed by the integration recheck.
+   `/atomic-execution <fix-description>` followed by the integration recheck.
    Do not claim a sibling was created when all failures were deferred.
 
 **Stop. Do not auto-advance.** Return to an active caller as a progress marker; the caller

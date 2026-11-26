@@ -55,8 +55,8 @@ If a command is not defined — note it and continue without error.
 3. **Write the tests first, and run them to watch them fail.** Derive them from the task's
    Acceptance Criteria. A test assumed to fail is not a failing test — run it. If a new test
    passes before you implement anything, the behaviour already exists or the test asserts
-   nothing; stop and say so. (See Testing Standards below; when the `/phase-*` pipeline is in
-   use this step is the `/pae-tests` workflow.)
+   nothing; stop and say so. (See Testing Standards below; when the Orchestrail pipeline is in
+   use this step is the `/atomic-execution-tests` workflow.)
 4. Implement to make those tests pass — then refactor while they stay green.
    The tests written in step 3 are frozen: do not delete, skip, or weaken them to get green.
    Correct a test only when the *test* is wrong, and say so explicitly when you do.

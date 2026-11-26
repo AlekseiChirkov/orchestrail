@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for atomic-validation — load when running /phase-atomic-validation or /pav-check standalone (without parent /phase-validation)
+description: Context loading rules for atomic-validation — load when running /atomic-validation or /atomic-validation-check standalone (without parent /validation)
 load: on-demand
 ---
 

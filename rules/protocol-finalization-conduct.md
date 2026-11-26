@@ -12,7 +12,7 @@ Git authority: `contract-git-flow → ## Finalization Git ownership`. Preservati
 `contract-state-files → ## Protected Sections Contract`. Logging remains best effort;
 its failure cannot become a successful test or deployment measurement.
 
-Run the single `phase-finalize` workflow through its own Guard; no automatic entry from
+Run the single `finalization` workflow through its own Guard; no automatic entry from
 Validation or its parents. Ordinary invocation already authorizes mandatory proven cleanup.
 Retain independent review and shared-file ownership. Reconcile every rerun against current
 facts; report prior validation, integration, cleanup, archival and deployment separately.

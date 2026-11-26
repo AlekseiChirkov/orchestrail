@@ -4,17 +4,17 @@ phase: atomic-validation
 step: "-"
 ---
 
-Invocation: `/phase-atomic-validation <path-to-atomic-description> [--batch]`
-Example: `/phase-atomic-validation .ai/tasks/todo/task_foo/T-01-slug/description.md`
+Invocation: `/atomic-validation <path-to-atomic-description> [--batch]`
+Example: `/atomic-validation .ai/tasks/todo/task_foo/T-01-slug/description.md`
 
 If path is not provided — ask the user and do not continue.
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
 
-`--batch` flag: when present, pass it through to `/pav-propose` so improvement proposals are recorded without blocking for user input. Use this flag when called from `/pe-execute` (batch execution loop). When called standalone — omit the flag to preserve interactive behaviour.
+`--batch` flag: when present, pass it through to `/atomic-validation-propose` so improvement proposals are recorded without blocking for user input. Use this flag when called from `/execution-execute` (batch execution loop). When called standalone — omit the flag to preserve interactive behaviour.
 
 To run a single step directly, call the child workflow:
-`/pav-check`, `/pav-propose`, `/pav-close`.
+`/atomic-validation-check`, `/atomic-validation-propose`, `/atomic-validation-close`.
 
 ---
 
@@ -45,25 +45,25 @@ Read parent `state.md`. Locate the `## Subtask Progress` block for this T-XX.
 **Input for validation:**
 - `T-XX/description.md → ## Acceptance Criteria` — source of truth for what "done" means.
 - The subtask's tests (from `target_files:`) plus `atomic-tests:` — the executable form of
-  those criteria. `/pav-check` audits both that they pass and that they were not weakened.
+  those criteria. `/atomic-validation-check` audits both that they pass and that they were not weakened.
 - Parent `state.md → ## Subtask Progress → T-XX` block — context on what was done (`last_action`, `target_files:`, `notes`).
 - Parent `state.md → ## Solution Design` — `### Invariants`, `### Off-limits`.
 
 Checks:
-- If `T-XX/description.md` is missing or has no `## Acceptance Criteria` → **stop**: "description.md is incomplete. Run `/pd-decompose` + `/pd-finalize`."
-- If the `## Subtask Progress` block for this T-XX is missing → **stop**: "No execution record for T-XX. Run `/phase-atomic-execution` first."
-- If `atomic-execution` is not `complete` → **stop**: "Atomic execution not complete. Run `/phase-atomic-execution` first."
+- If `T-XX/description.md` is missing or has no `## Acceptance Criteria` → **stop**: "description.md is incomplete. Run `/discovery-decompose` + `/discovery-finalize`."
+- If the `## Subtask Progress` block for this T-XX is missing → **stop**: "No execution record for T-XX. Run `/atomic-execution` first."
+- If `atomic-execution` is not `complete` → **stop**: "Atomic execution not complete. Run `/atomic-execution` first."
 - If `atomic-validation: complete` → **stop**: "Atomic validation already complete."
 - If `atomic-validation: in-progress` → resume from the step the recorded `last_action:` marker
   names. Every resume point below is a value some workflow actually writes:
 
   | `last_action:` in the block | Resume at |
   |---|---|
-  | `pav-check DONE` (written by `/pav-check`) | step 2 — `/pav-propose` |
-  | `pav-propose done` (written by `/pav-propose` step 6, in every mode) | step 3 — `/pav-close` |
-  | anything else, or absent | step 1 — `/pav-check`; it re-derives the verdict from the criteria and its own Guard handles the repeat |
+  | `pav-check DONE` (written by `/atomic-validation-check`) | step 2 — `/atomic-validation-propose` |
+  | `pav-propose done` (written by `/atomic-validation-propose` step 6, in every mode) | step 3 — `/atomic-validation-close` |
+  | anything else, or absent | step 1 — `/atomic-validation-check`; it re-derives the verdict from the criteria and its own Guard handles the repeat |
 
-  Do not infer the resume point from `## Improvement Proposals (T-XX)`: `/pav-propose` writes
+  Do not infer the resume point from `## Improvement Proposals (T-XX)`: `/atomic-validation-propose` writes
   that section only when proposals are non-empty, so its absence does not mean step 2 was
   skipped.
 - If `atomic-validation: not-started` (or field absent) → start from Step 1.
@@ -75,14 +75,14 @@ Checks:
 Update parent `state.md → ## Subtask Progress` block for this T-XX: set `atomic-validation: in-progress`.
 
 Run child workflows in order, skipping completed steps:
-1. Call `/pav-check <path-to-atomic-description>` — Final check against `## Acceptance Criteria` + verdict (DONE / NEEDS WORK).
-2. Call `/pav-propose <path-to-atomic-description> [--batch if --batch was passed to this workflow]` — Improvement proposals (only if DONE).
-3. Call `/pav-close <path-to-atomic-description>` — Close task (only if DONE).
+1. Call `/atomic-validation-check <path-to-atomic-description>` — Final check against `## Acceptance Criteria` + verdict (DONE / NEEDS WORK).
+2. Call `/atomic-validation-propose <path-to-atomic-description> [--batch if --batch was passed to this workflow]` — Improvement proposals (only if DONE).
+3. Call `/atomic-validation-close <path-to-atomic-description>` — Close task (only if DONE).
 
-After each call, re-read its result. `/pav-check` owns `failed`; `/pav-close` owns `complete`.
+After each call, re-read its result. `/atomic-validation-check` owns `failed`; `/atomic-validation-close` owns `complete`.
 A failed/stopped check ends this cycle immediately; do not run proposals or closure and do
 not overwrite the failure with completion. Surface findings before creating fix-tasks.
-A resumed `failed` record requires repaired implementation and a fresh `/pav-check`.
+A resumed `failed` record requires repaired implementation and a fresh `/atomic-validation-check`.
 
 After completion, report final verdict and updated status.
 

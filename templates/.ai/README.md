@@ -34,7 +34,7 @@ file first, every time. It changes only when the structure of `.ai/` changes.
 
 ### File Map
 
-- `specs/` — task spec files (one per task; consumed by phase-discovery)
+- `specs/` — task spec files (one per task; consumed by discovery)
 - `memory/state.md` — current task-level state, active tasks, statuses
 - `memory/architecture.md` — system architecture snapshot
 - `memory/progress.md` — chronological progress log
@@ -50,7 +50,7 @@ file first, every time. It changes only when the structure of `.ai/` changes.
 
 ## Post-merge finalization
 
-Invoke `/phase-finalize <task-directory|spec-path> [--dry-run]` separately after integration.
+Invoke `/finalization <task-directory|spec-path> [--dry-run]` separately after integration.
 Its stable `.ai/context/finalization/` journal preserves original snapshots, immutable
 command attempts, operation checkpoints, recovery and old-path resolution while moving
 the task and only an eligible whole spec. Unfinished phases retain the active spec.

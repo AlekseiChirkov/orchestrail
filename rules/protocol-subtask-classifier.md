@@ -7,7 +7,7 @@ load: on-demand
 
 ## Autonomous Subtask Classifier
 
-Called by `pd-decompose` after producing the initial candidate list. The AI decides whether each candidate becomes a leaf, a composite (Type 2), or part of a vertical re-slice (Type 3). **No user prompt is issued for this decision.** The rationale is recorded in `plan.md → ## Decomposition Decisions`.
+Called by `discovery-decompose` after producing the initial candidate list. The AI decides whether each candidate becomes a leaf, a composite (Type 2), or part of a vertical re-slice (Type 3). **No user prompt is issued for this decision.** The rationale is recorded in `plan.md → ## Decomposition Decisions`.
 
 ### Signals (compute per candidate subtask)
 
@@ -50,7 +50,7 @@ component/criteria groupings before classification. Apply these steps in order:
 
 ### Runtime self-correction (tripwire)
 
-During atomic execution of a leaf (`pae-implement`), if any of these conditions arise:
+During atomic execution of a leaf (`atomic-execution-implement`), if any of these conditions arise:
 - Steps balloon: more implementation steps are discovered than originally listed, crossing the leaf-health boundary.
 - A second independently-testable component appears that was not anticipated during decomposition.
 - Acceptance Criteria actually split into two or more independent verifiable clusters.
@@ -98,6 +98,6 @@ Decomposition limits:
   constraints cannot both hold, stop and report that conflict for an explicit decision.
   Never pad steps or merge independent components solely to reach the minimum.
 
-These rules apply strictly during `/pd-decompose` and must be enforced before `/pd-finalize` runs.
+These rules apply strictly during `/discovery-decompose` and must be enforced before `/discovery-finalize` runs.
 
 ---

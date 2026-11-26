@@ -69,8 +69,8 @@ considered — unit, integration, contract, or smoke — and why each is inappli
 test", "no framework", "small change", "will add tests later", and "existing tests cover it"
 are not exemptions.
 
-In projects using the `/phase-*` pipeline, this is enforced by `/pae-tests` before
-`/pae-implement`; the full contract is the `contract-tdd` rule and test style is `testing-standards`.
+In projects using the `/phase-*` pipeline, this is enforced by `/atomic-execution-tests` before
+`/atomic-execution-implement`; the full contract is the `contract-tdd` rule and test style is `testing-standards`.
 
 ## Context Loading Protocol
 
@@ -125,7 +125,7 @@ replace unless explicitly stated. Local principles must note what they override 
 
 ## Post-merge task closure
 
-Use `/phase-finalize <task-directory|spec-path> [--dry-run]` only by separate invocation
+Use `/finalization <task-directory|spec-path> [--dry-run]` only by separate invocation
 after owner integration. Ordinary invocation authorizes mandatory proven task cleanup;
 load `rule-bootstrap-finalization`, `rule-contract-phases` and `rule-contract-git-flow` before operations.
 Required finalization helpers fail closed on missing evidence; dry-run writes nothing.

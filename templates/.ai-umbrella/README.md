@@ -53,12 +53,12 @@ Its subtasks (T-XX) each declare `working_dir:` pointing to the target service r
 **Workflow:**
 ```
 cd acme-platform/
-/phase-discovery .ai/specs/01-auth-feature.md
+/discovery .ai/specs/01-auth-feature.md
 # → creates .ai/tasks/todo/task-01-auth-feature/ with T-XX dirs
 # → each T-XX/description.md has working_dir: ../../../../../service-api (or similar)
 # → plan.md shows Repo column: service-api | service-worker | (umbrella)
 
-/phase-execution .ai/tasks/todo/task-01-auth-feature/
+/execution .ai/tasks/todo/task-01-auth-feature/
 # → for each T-XX: resolves working_dir, executes inside that service repo
 # → reads principles from that service's .ai/principles/ (+ umbrella override chain)
 # → runs lint/test from that service's .ai/context/runbook.md
@@ -73,7 +73,7 @@ Example: task at `.ai/tasks/todo/task-01/T-01/description.md`
 **Single-service tasks** still run inside the service repo directly:
 ```
 cd acme-platform/service-api/
-/phase-discovery .ai/specs/02-local-feature.md
+/discovery .ai/specs/02-local-feature.md
 ```
 Prefer this when a feature is entirely contained within one service.
 
@@ -94,7 +94,7 @@ Prefer this when a feature is entirely contained within one service.
 
 ## Post-merge finalization
 
-Invoke `/phase-finalize <task-directory|spec-path> [--dry-run]` separately after integration.
+Invoke `/finalization <task-directory|spec-path> [--dry-run]` separately after integration.
 Its stable `.ai/context/finalization/` journal preserves original snapshots, immutable
 command attempts, operation checkpoints, recovery and old-path resolution while moving
 the task and only an eligible whole spec. Unfinished phases retain the active spec.

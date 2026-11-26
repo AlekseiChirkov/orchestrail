@@ -15,7 +15,7 @@ load: on-demand
 ## Decision Protocol
 
 Discovery runs **autonomously by default**; `--step-by-step` switches it to
-manual review. See `/phase-discovery → ## Execution Modes` (the workflow, not this rules file).
+manual review. See `/discovery → ## Execution Modes` (the workflow, not this rules file).
 
 **Autonomous mode (default):**
 - Task requirements unclear → resolve by research in this order: `.ai/principles/*`

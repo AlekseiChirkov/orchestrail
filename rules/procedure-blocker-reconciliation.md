@@ -7,12 +7,12 @@ load: on-demand
 
 ## Blocker Reconciliation
 
-Applies whenever a leaf's `atomic-execution: blocked` is encountered on entry (orchestrator Step 0, or a standalone `/pae-implement` that reads the block). Do **not** immediately ask the user "Is it resolved?". First classify the `blocker:` text:
+Applies whenever a leaf's `atomic-execution: blocked` is encountered on entry (orchestrator Step 0, or a standalone `/atomic-execution-implement` that reads the block). Do **not** immediately ask the user "Is it resolved?". First classify the `blocker:` text:
 
 **1. Dependency/status blocker** — the blocker cites only prerequisite subtasks (their approval, preconditions, or completion) and no other condition. Reconcile automatically:
 
 - Determine the prerequisites: this T-XX's declared `Depends On` entries from parent `plan.md → ## Subtasks`, unioned with any `T-YY` explicitly named in the `blocker:` text.
-- A prerequisite is **satisfied** when its `plan.md` status is `done` or `reviewed` (the same readiness rule `/pe-execute` uses). A composite prerequisite is satisfied when its block shows `rollup: done` **and** `integration-validation: complete`.
+- A prerequisite is **satisfied** when its `plan.md` status is `done` or `reviewed` (the same readiness rule `/execution-execute` uses). A composite prerequisite is satisfied when its block shows `rollup: done` **and** `integration-validation: complete`.
 - If **every** prerequisite is satisfied → auto-reconcile without asking:
   - Set `blocker: none`.
   - Set `atomic-execution: in-progress` if `last_action` shows work already began, otherwise `not-started`.

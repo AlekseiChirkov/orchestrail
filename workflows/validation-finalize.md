@@ -4,8 +4,8 @@ phase: validation
 step: 6
 ---
 
-Invocation: `/pv-finalize <task-directory>`
-Called by: `/phase-validation` as Step 6.
+Invocation: `/validation-finalize <task-directory>`
+Called by: `/validation` as Step 6.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -51,7 +51,7 @@ Keep `validation: in-progress` until finalization succeeds; do not announce comp
      never rewrite principles to make a deviation pass.
 
 2. Confirm final evidence covers the changed surface after the last fix. If not, rerun
-   `/pv-contract` and `/pv-review`; preserve issue decisions and resolution history. A new
+   `/validation-contract` and `/validation-review`; preserve issue decisions and resolution history. A new
    finding returns to its decision/fix cycle. Do not recreate completed fix directories.
    Preserve a `## Final Verification` record with the date, independent verifier, actual
    command/results, source revisions, changed-surface coverage and reuse/runtime limits.
@@ -190,7 +190,7 @@ Keep `validation: in-progress` until finalization succeeds; do not announce comp
    `| NNNN | <decision title> | Accepted | YYYY-MM-DD | [<adr-file-name>.md](<adr-file-name>.md) |`
 
 4. **Reconcile the spec.** Run `/spec-sync <task-directory>` (add `--auto-mode` under
-   `/phase-pipeline` or `/spec-run`). Supply the verified finalization context: all validation
+   `/pipeline` or `/spec-run`). Supply the verified finalization context: all validation
    prerequisites above have passed, and final completion status has not yet been written.
    Legacy task without `spec_path:` → skip. Failed criterion → **stop** and repair it in a
    fix-task; never weaken the spec. Unavailable/erroring reconciliation → record it outstanding,
@@ -213,10 +213,10 @@ Keep `validation: in-progress` until finalization succeeds; do not announce comp
    Report validation evidence, fix count, outstanding scope, spec reconciliation, and each
    ADR path/index update or the reason no ADR was needed.
    For `active_phase: N` with a later phase listed in `## Spec Phases`, display the next
-   actual phase number K and `/phase-discovery <spec_path> --phase K`; do not invoke it.
+   actual phase number K and `/discovery <spec_path> --phase K`; do not invoke it.
 
 Return to the active caller; completion is a progress marker, not an extra handoff.
 
 After the owner merges the delivered branches into their intended integration branches,
-suggest `/phase-finalize <task-directory>` for separately invoked evidence-backed closure.
+suggest `/finalization <task-directory>` for separately invoked evidence-backed closure.
 Do not invoke it, perform its cleanup or change this workflow's Validation/delivery endpoint.

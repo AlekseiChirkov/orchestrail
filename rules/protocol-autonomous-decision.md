@@ -8,7 +8,7 @@ load: on-demand
 ## Autonomous Decision Protocol
 
 Canonical definition. Used by any workflow running in autonomous mode
-(`/phase-pipeline` at all times; `/phase-discovery` unless `--step-by-step`
+(`/pipeline` at all times; `/discovery` unless `--step-by-step`
 is passed) whenever an architectural or design choice is required. It replaces
 "present options, wait for user" at that decision point.
 

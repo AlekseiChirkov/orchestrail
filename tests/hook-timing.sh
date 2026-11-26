@@ -692,7 +692,7 @@ class HookTiming(unittest.TestCase):
     def envelope(self, run: str, boundary: str = 'subagent') -> tuple[Record, str]:
         actor = self.env['CLAUDE_CODE_SESSION_ID'] if boundary == 'session' else 'worker-' + uuid.uuid4().hex
         line = self.public('hooks/log-step-hook.sh', ['dispatch', '--run', run, '--agent-id', actor,
-                           '--boundary', boundary, '--expected-skill', 'pae-tests'])
+                           '--boundary', boundary, '--expected-skill', 'atomic-execution-tests'])
         self.assertTrue(line.startswith('ORCHESTRAIL_DISPATCH_V1 '))
         return json.loads(line.split(' ', 1)[1]), line
 
@@ -701,7 +701,7 @@ class HookTiming(unittest.TestCase):
         transcript = self.root / ('native-' + uuid.uuid4().hex + '.jsonl')
         transcript.write_text(compact(dict(type='user', message=dict(role='user', content=line))) + '\n' +
                               compact(dict(type='assistant', message=dict(role='assistant', content=[dict(
-                                  type='tool_use', id='tool-'+uuid.uuid4().hex, name='Skill', input=dict(skill='pae-tests'))]))) + '\n')
+                                  type='tool_use', id='tool-'+uuid.uuid4().hex, name='Skill', input=dict(skill='atomic-execution-tests'))]))) + '\n')
         payload = dict(hook_event_name='SubagentStop' if boundary == 'subagent' else 'Stop',
                        session_id=identity['session_id'], cwd=str(self.project), transcript_path=str(transcript),
                        last_assistant_message='ORCHESTRAIL_REPORT_V1 ' + compact(dict(identity, outcome='ok', tests='red')))
@@ -718,7 +718,7 @@ class HookTiming(unittest.TestCase):
 
     def test_timing_two_run_lifecycle_preserves_attribution_fallback_and_owned_settings(self) -> None:
         settings = self.prepare_lifecycle()
-        runs = [self.public('scripts/log-step.sh', ['run-start', '--pipeline', 'phase-execution']) for _ in range(2)]
+        runs = [self.public('scripts/log-step.sh', ['run-start', '--pipeline', 'execution']) for _ in range(2)]
         first, line_a = self.envelope(runs[0])
         second, line_b = self.envelope(runs[1], 'session')
         fallback, _ = self.envelope(runs[0])
@@ -728,7 +728,7 @@ class HookTiming(unittest.TestCase):
         self.deliver(payload_a)
         self.assertEqual(self.status(first)['state'], 'accepted')
         self.assertEqual(self.status(second)['state'], 'accepted')
-        self.public('hooks/log-step-hook.sh', ['fallback', '--checkpoint', fallback['checkpoint_id'], '--step', 'pae-tests', '--outcome', 'ok'])
+        self.public('hooks/log-step-hook.sh', ['fallback', '--checkpoint', fallback['checkpoint_id'], '--step', 'atomic-execution-tests', '--outcome', 'ok'])
         self.assertEqual(self.status(fallback)['state'], 'fallback-attempted')
         paths = self.close_runs(runs)
         data = self.analyze(paths)

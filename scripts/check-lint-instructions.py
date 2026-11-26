@@ -794,7 +794,7 @@ class InstructionMetadataTests(unittest.TestCase):
         for name in ("contract-git-flow", "contract-tdd", "contract-phases"):
             self.write(f"rules/{name}.md", RULE)
         self.write("rules/bootstrap-finalization.md", sized_bootstrap(100))
-        for name in ("pae-tests", "pae-implement", "phase-finalize"):
+        for name in ("atomic-execution-tests", "atomic-execution-implement", "finalization", "phase-finalize"):
             self.write(f"workflows/{name}.md", workflow('"-"', name=name))
 
         # Hash the original prefix to protect existing text without copying it into the fixtures.
@@ -1025,31 +1025,9 @@ class InstructionMetadataTests(unittest.TestCase):
                     self.assertIn(f"load: {load}", metadata)
 
     def test_delivered_workflow_metadata_preserves_workflow_names_and_step_order(self) -> None:
-        phases = {
-            "discovery": {
-                "phase-discovery": '"-"', "pd-analyze": "1", "pd-decompose": "2", "pd-select-model": "2.5",
-                "pd-design": "3", "pd-finalize": "4", "pd-archive": "4b",
-            },
-            "execution": {"phase-execution": '"-"', "pe-execute": "1", "pe-finalize": "2"},
-            "validation": {
-                "phase-validation": '"-"', "pv-contract": "1", "pv-review": "2", "pv-issues": "3",
-                "pv-create-fixes": "4", "pv-classify-fixes": "4a", "pv-execute-fixes": "5", "pv-finalize": "6",
-            },
-            "atomic-execution": {
-                "phase-atomic-execution": '"-"', "pae-tests": "1", "pae-implement": "2", "pae-finalize": "3",
-            },
-            "atomic-validation": {
-                "phase-atomic-validation": '"-"', "phase-composite-validation": '"-"',
-                "pav-check": "1", "pav-propose": "2", "pav-close": "3",
-            },
-            "finalization": {"phase-finalize": '"-"'},
-            "orchestrated": dict.fromkeys(("phase-pipeline", "spec-run"), '"-"'),
-            "entry": dict.fromkeys(("spec-draft", "spec-sync", "bugfix", "onboard-legacy-project"), '"-"'),
-            "utility": dict.fromkeys((
-                "adr-new", "context-pack", "retro", "restack", "compress-state", "suggest-commit-message",
-                "suggest-commit-pr", "suggest-pr-description",
-            ), '"-"'),
-        }
+        phases = {phase: dict.fromkeys(names, '"-"') for phase, names in UNCHANGED_WORKFLOWS.items()}
+        for _, new, phase, step, _ in COMMANDS:
+            phases.setdefault(phase, {})[new] = step
         self.assertCountEqual(
             [path.stem for path in (SOURCE / "workflows").glob("*.md")],
             [name for workflows in phases.values() for name in workflows],
@@ -1374,6 +1352,7 @@ def normalized(text: str, rows: list[dict]) -> str:
             text = re.sub(r"/" + re.escape(old) + r"(?![\w-])", f"/{new}", text)
             text = text.replace(str(source(old, "workflows")), str(source(new, "workflows")))
             text = re.sub(r"`" + re.escape(old) + r"(?= → )", f"`/{new}", text)
+            text = re.sub(r"(?<![\w-])" + re.escape(old) + r"(?![\w-]| DONE\b| done\b)", new, text)
         else:
             for title, owner in STATE_SPLITS.items() if old == STATE_RULE else ():
                 text = text.replace(f"`{old} → {title}", f"`{owner} → {title}")
@@ -1536,6 +1515,10 @@ class RuleSourceMigration(unittest.TestCase):
         expected_lines = protected_lines(["\n".join(lines) for lines in migration_baseline()["protected_lines"].values()])
         actual_lines = protected_lines([current(path) for path in delivered])
         self.assertFalse(expected_lines - actual_lines, f"Changed protected lines: {expected_lines - actual_lines}")
+        if any(row["kind"] == "workflow" for row in rows):
+            preflight = section(current("workflows/spec-run.md"), "## Guard")
+            self.assertEqual(actual_lines - expected_lines, protected_lines([preflight]),
+                             "The capability refusal is the only additional protected line")
 
     def test_isolated_deployment_installs_canonical_rules_and_omits_the_reference(self) -> None:
         with tempfile.TemporaryDirectory(prefix="rule-source-installation-") as directory:
@@ -1748,7 +1731,7 @@ class CanonicalWorkflowMigration(unittest.TestCase):
         order = ("sub-agents", "agent-messaging", "git")
         mentions = re.findall(r"`(sub-agents|agent-messaging|git)`", guard)
         self.assertEqual(tuple(dict.fromkeys(mentions)), order)
-        self.assertRegex(guard, r"(?i)first (?:required )?(?:unavailable|failing|failure|key)")
+        self.assertRegex(guard, r"(?i)first\s+(?:required\s+)?(?:unavailable|failing|failure|key)")
         self.assertIn("always-on", guard)
         stop = [line for line in guard.splitlines() if "**stop**" in line]
         message = ("spec-run requires capability <key> (declared: <yes|no|unknown|absent>; "
@@ -1868,19 +1851,29 @@ class CanonicalWorkflowMigration(unittest.TestCase):
         self.assertIsNotNone(step, logging)
         self.assertEqual((pipeline[1], step[1]), (canonical, canonical), logging)
 
-        def log(*arguments: str) -> str:
+        current_producer = SOURCE / "scripts/log-step.sh"
+        old_source = case.root / "pre-migration source"
+        old_producer = old_source / "scripts/log-step.sh"
+        old_producer.parent.mkdir(parents=True)
+        old_workflow = old_source / source(old, "workflows")
+        old_workflow.parent.mkdir()
+        old_workflow.write_text(workflow('"-"', phase=canonical, name=old))
+        shutil.copyfile(current_producer, old_producer)
+
+        def log(*arguments: str, producer: Path = current_producer) -> str:
             result = subprocess.run(
-                ["bash", str(SOURCE / "scripts/log-step.sh"), *arguments], cwd=case.root,
-                env={**case.environment(), "ORCHESTRAIL_LOG_ROOT": str(case.root / "telemetry")},
+                ["bash", str(producer), *arguments], cwd=case.root,
+                env={**case.environment(), "ORCHESTRAIL_HOME": str(producer.parents[1]),
+                     "ORCHESTRAIL_LOG_ROOT": str(case.root / "telemetry")},
                 capture_output=True, text=True, check=False, timeout=10,
             )
             self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
             return result.stdout.strip()
 
-        history = log("run-start", "--pipeline", old)
+        history = log("run-start", "--pipeline", old, producer=old_producer)
         history_file = Path(log("path", "--run", history))
-        log("step", "--run", history, "--step", old, "--outcome", "ok")
-        log("run-end", "--run", history, "--outcome", "completed")
+        log("step", "--run", history, "--step", old, "--outcome", "ok", producer=old_producer)
+        log("run-end", "--run", history, "--outcome", "completed", producer=old_producer)
         history_bytes = history_file.read_bytes()
 
         current_run = log("run-start", "--pipeline", pipeline[1])

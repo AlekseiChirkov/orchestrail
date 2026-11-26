@@ -825,7 +825,7 @@ class HookInstallation(unittest.TestCase):
         self.assertEqual(self.settings.read_text(), '{malformed')
         self.assertEqual((consumer / '.devin/rules/tdd.md').read_text(), 'stale')
         self.assertEqual((consumer / '.windsurf/rules/tdd.md').read_text(), 'legacy rule')
-        self.assertTrue((consumer / '.claude/skills/pae-tests').is_symlink())
+        self.assertTrue((consumer / '.claude/skills/atomic-execution-tests').is_symlink())
         self.assertEqual((consumer / '.devin/workflows/phase-discovery.md').read_text(), 'stale')
         self.assertEqual((consumer / '.devin/workflows/custom.md').read_text(), 'custom')
 

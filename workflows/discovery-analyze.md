@@ -4,8 +4,8 @@ phase: discovery
 step: 1
 ---
 
-Invocation: `/pd-analyze <task-directory> [--step-by-step]`
-Called by: `/phase-discovery` as Step 1.
+Invocation: `/discovery-analyze <task-directory> [--step-by-step]`
+Called by: `/discovery` as Step 1.
 
 Resolve paths inside the task directory (trailing slash optional). Default is
 autonomous; `--step-by-step` waits for requirement clarification. Reuse parent context.
@@ -13,7 +13,7 @@ autonomous; `--step-by-step` waits for requirement clarification. Reuse parent c
 ## Guard
 
 1. Read task `state.md`. Missing/unreadable state → **stop** and request the task
-   directory created by `/phase-discovery`.
+   directory created by `/discovery`.
 2. `discovery: complete` → **stop** for explicit overwrite confirmation unless
    that exact rerun is already confirmed by the parent. Preserve unrelated state.
 

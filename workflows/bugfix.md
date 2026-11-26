@@ -99,7 +99,7 @@ verdict: quick | full
 A defect fix often changes shipped behavior and therefore fails condition 3. When any
 condition fails, set `flow: full`; this workflow **stops** and hands over. Preserve the
 reproduction and diagnosis, and print `/spec-draft "<defect>" --auto-mode` followed by
-`/phase-discovery <resulting-spec>`. Run neither command automatically.
+`/discovery <resulting-spec>`. Run neither command automatically.
 
 Only with all four passes, set `flow: quick` and `discovery: complete`, then
 `execution: in-progress`. Recheck the gate when scope grows; on breach follow
@@ -131,13 +131,13 @@ Set `execution: complete` only after verification passes, then `validation: in-p
 1. Re-run the reproduction command unless its skip was justified. Record the observed
    expected outcome; for non-runtime work inspect the corrected artifact instead.
 2. Run applicable lint/build commands from the runbook.
-3. Run `/pv-contract <task-directory>` and `/pv-review <task-directory>` against the inline
+3. Run `/validation-contract <task-directory>` and `/validation-review <task-directory>` against the inline
    contract. Honor their stops. Present findings and record repair/defer choices before
    repair; `--auto-mode` may approve in-scope critical/important repairs and defer optional
    items, recording its rationale. Repair approved items inline within the quick gate
    and rerun affected checks. Unresolved failed criteria or critical/important findings prevent
    completion; do not silently treat them as deferred.
-4. Apply the ADR trigger in `pv-finalize → ## Instructions`, step 3. If triggered, record
+4. Apply the ADR trigger in `/validation-finalize → ## Instructions`, step 3. If triggered, record
    the explicit decision in state and run `/adr-new <task-directory>`.
 5. Set `validation: complete`. Update the project-memory entry using
    `contract-state-files → ## .ai/memory/state.md Entry Format` and append one progress entry

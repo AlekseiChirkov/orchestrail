@@ -4,8 +4,8 @@ phase: validation
 step: 3
 ---
 
-Invocation: `/pv-issues <task-directory>`
-Called by: `/phase-validation` as Step 3.
+Invocation: `/validation-issues <task-directory>`
+Called by: `/validation` as Step 3.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -15,7 +15,7 @@ Task directory = provided argument (trailing slash optional).
 
 1. Read `state.md` in the task directory.
 2. Check `## Phases → validation`. If `complete` → **stop**: "Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
-3. Check `## Code Review` present in `state.md`. If missing → **stop**: "Step 2 (/pv-review) must be completed first. Run /pv-review <path>."
+3. Check `## Code Review` present in `state.md`. If missing → **stop**: "Step 2 (/validation-review) must be completed first. Run /validation-review <path>."
 4. Otherwise → continue.
 
 ---
@@ -39,7 +39,7 @@ Code-review severity maps directly to issue priority: `critical`, `important`, `
 
 3. Present the full list to the user.
 4. **Wait for user's response**: which tasks to fix now, which to defer.
-   Under `/phase-pipeline` or `/spec-run`, use their declared override: approve critical /
+   Under `/pipeline` or `/spec-run`, use their declared override: approve critical /
    important, defer optional, and record that the split was automatic. An empty issue list
    needs no decision: write `None` to both subsections and continue.
 5. Upsert in `state.md`, preserving prior resolved decisions:

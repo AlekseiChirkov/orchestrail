@@ -676,25 +676,25 @@ class InstructionContractTests(unittest.TestCase):
         self.contains("`repo:`", protected)
 
     def test_discovery_routes_each_leaf_to_one_repository(self) -> None:
-        self.contains("## Repositories", self.read("workflows/phase-discovery.md"))
-        flat = " ".join(self.read("workflows/pd-decompose.md").split())
+        self.contains("## Repositories", self.read("workflows/discovery.md"))
+        flat = " ".join(self.read("workflows/discovery-decompose.md").split())
         self.contains("When task `state.md` carries `## Repositories`", flat)
         self.contains("one leaf per repository", flat)
         self.contains("Cross-repository dependencies:", flat)
 
     def test_fixes_and_restack_stay_inside_one_repository(self) -> None:
         self.contains("never group fixes from different repositories",
-                      " ".join(self.read("workflows/pv-classify-fixes.md").split()))
+                      " ".join(self.read("workflows/validation-classify-fixes.md").split()))
         self.contains("extend the stack of their own repository",
-                      " ".join(self.read("workflows/pv-create-fixes.md").split()))
+                      " ".join(self.read("workflows/validation-create-fixes.md").split()))
         self.contains("--repo <directory>", self.read("workflows/restack.md"))
 
     def test_workers_fall_back_to_the_shared_runbook_when_a_repository_has_none(self) -> None:
         rule = " ".join(self.read("rules/bootstrap-atomic-execution.md").split())
         self.contains("otherwise the umbrella's `context/runbook.md`", rule)
         self.contains("from the umbrella root `<WORK_DIR>/..`", rule)
-        for reader in ("rules/bootstrap-atomic-validation.md", "workflows/pae-tests.md",
-                       "workflows/pae-implement.md", "workflows/pav-check.md"):
+        for reader in ("rules/bootstrap-atomic-validation.md", "workflows/atomic-execution-tests.md",
+                       "workflows/atomic-execution-implement.md", "workflows/atomic-validation-check.md"):
             self.contains("`bootstrap-atomic-execution → ## Context Bootstrap`",
                           " ".join(self.read(reader).split()))
 

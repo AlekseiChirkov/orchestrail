@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for separately invoked post-merge finalization — load when running /phase-finalize
+description: Context loading rules for separately invoked post-merge finalization — load when running /finalization
 load: on-demand
 ---
 

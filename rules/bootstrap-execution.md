@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for execution phase — load when running /phase-execution, /pe-execute, /pae-implement, /pae-finalize
+description: Context loading rules for execution phase — load when running /execution, /execution-execute, /atomic-execution-implement, /atomic-execution-finalize
 load: on-demand
 ---
 
@@ -26,7 +26,7 @@ After loading: state which principles and constraints apply to the current subta
 ## Phase Behaviors
 
 - `principles/coding.md` must be loaded before writing any code. If missing → note in `notes:` and proceed cautiously.
-- `context/runbook.md` is required for Final Verification in `pae-implement`. If missing → write "No runbook — test/lint skipped" to `notes:`.
+- `context/runbook.md` is required for Final Verification in `atomic-execution-implement`. If missing → write "No runbook — test/lint skipped" to `notes:`.
 - Scope adherence: never implement beyond `T-XX/description.md → ## Scope → In scope`.
 - Update parent `## Subtask Progress` after EVERY completed step — not only at the end.
 - Out-of-scope discovery during a step → stop, report, wait for user decision.

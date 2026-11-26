@@ -4,8 +4,8 @@ phase: finalization
 step: "-"
 ---
 
-Invocation: `/phase-finalize <task-directory|spec-path> [--dry-run]`
-Example: `/phase-finalize .ai/tasks/todo/task-add-oauth/ --dry-run`
+Invocation: `/finalization <task-directory|spec-path> [--dry-run]`
+Example: `/finalization .ai/tasks/todo/task-add-oauth/ --dry-run`
 
 Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
@@ -64,13 +64,13 @@ inherited `RUN_ID`. Otherwise open an owned run through the configured logging h
 LOG_HELPER="${ORCHESTRAIL_HOME:+$ORCHESTRAIL_HOME/scripts/log-step.sh}"
 PHASE_OWNS_RUN=false
 if [ -z "${RUN_ID:-}" ] && [ -x "$LOG_HELPER" ]; then
-  RUN_ID=$("$LOG_HELPER" run-start --pipeline phase-finalize \
+  RUN_ID=$("$LOG_HELPER" run-start --pipeline finalization \
     --project <physical-project-root> --task <resolved-task-directory> --flow <quick|full>) || RUN_ID=""
   [ -z "$RUN_ID" ] || PHASE_OWNS_RUN=true
 fi
 ```
 
-Log `step --run <RUN_ID> --step phase-finalize --outcome ok|blocked|failed --note approximate`
+Log `step --run <RUN_ID> --step finalization --outcome ok|blocked|failed --note approximate`
 after each internal boundary, following receipt-confirmed suppression in `contract-run-log`.
 Only when `PHASE_OWNS_RUN=true`, close with `run-end --outcome completed|stopped|failed`.
 An inherited run stays open for its owner. Missing or failing logging never blocks, retries,
@@ -214,4 +214,4 @@ cleanup per ref, recovery, knowledge, verification coverage/reuse/errors, archiv
 and deployment independently. State fresh versus reused evidence and optional tooling/logging
 limitations. Announce complete only after helper `finish` returns `complete: true` and the
 persisted `finalization: complete` marker verifies. Otherwise name the blocker, preserved
-resources, exact recovery commands and `/phase-finalize <same-target>` rerun. Then **stop**.
+resources, exact recovery commands and `/finalization <same-target>` rerun. Then **stop**.

@@ -410,7 +410,7 @@ class StagingChecks(unittest.TestCase):
         setup = ['bash', str(self.source / 'scripts/setup-new-project.sh')]
         (self.source / 'scripts/install-hooks.sh').unlink()
         skills = (
-            ('phase-finalize', self.source / 'workflows/phase-finalize.md'),
+            ('finalization', self.source / 'workflows/finalization.md'),
             ('rule-bootstrap-finalization', self.source / 'rules/bootstrap-finalization.md'),
         )
         for command in (sync, setup, sync):

@@ -11,7 +11,7 @@ project root; use that project's `.ai/`. Write decision records, their index and
 ## Schema — single source
 
 Load the ADR trigger, body template, numbering, filename and index schema from
-`pv-finalize → ## Instructions`, step 3. Use that schema unchanged, except for the status
+`/validation-finalize → ## Instructions`, step 3. Use that schema unchanged, except for the status
 and supersession handling below. Read only its ADR instructions; do not execute finalization.
 
 ## Guard
@@ -58,7 +58,7 @@ Use `Provisional` with `--provisional` or whenever implementation/verification i
 Use `Accepted` only for a decided, implemented and verified outcome. A flag never supplies
 missing verification. Store status as the content under `## Status`, not in its heading.
 
-`/pv-finalize` promotes a task's provisional ADR in place after validation. Do not reject
+`/validation-finalize` promotes a task's provisional ADR in place after validation. Do not reject
 or remove abandoned-task records during this workflow unless abandonment was explicitly
 recorded; then retain the record with its reason and date.
 
@@ -75,4 +75,4 @@ recorded; then retain the record with its reason and date.
 ## Step 5 — Report
 
 Report path, status, decision, limitations and supersession. For a provisional task ADR,
-name `/pv-finalize` as its promotion step. Then **stop**.
+name `/validation-finalize` as its promotion step. Then **stop**.

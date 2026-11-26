@@ -282,4 +282,4 @@ echo "  1. Edit .ai/context/runbook.md → ## Commands with your project's test/
 echo "  2. Edit .ai/principles/coding.md → ## Standards with project-specific overrides (optional)"
 echo "  3. Edit AGENTS.md → ## Project Context with project description and stack"
 echo "  4. Edit AGENTS.md → ## Commands with actual test/lint commands"
-echo "  5. Run /phase-discovery to verify the installed workflows"
+echo "  5. Run /discovery to verify the installed workflows"

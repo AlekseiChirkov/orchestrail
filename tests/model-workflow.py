@@ -18,12 +18,12 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = "docs/MODEL-CATALOG.md"
 REFERENCE = "contract-state-files → ### Model columns and resolution"
-EXECUTORS = ("spec-run", "pe-execute", "phase-atomic-execution")
-PRESERVERS = ("pd-decompose", "pd-design", "pd-finalize")
+EXECUTORS = ("spec-run", "execution-execute", "atomic-execution")
+PRESERVERS = ("discovery-decompose", "discovery-design", "discovery-finalize")
 DERIVED = ("docs/USAGE.md", "docs/SPEC-RUN-QUICKSTART.md", "docs/README.md",
            "docs/PIPELINE.md")
 HELPERS = ("model-catalog.py", "model_selection.py", "model_plan.py")
-GUIDE_CALLERS = ("workflows/pd-select-model.md", *(f"workflows/{name}.md" for name in EXECUTORS),
+GUIDE_CALLERS = ("workflows/discovery-select-model.md", *(f"workflows/{name}.md" for name in EXECUTORS),
                 "rules/contract-state-files.md")
 
 
@@ -35,7 +35,7 @@ def reachability_errors(root: Path) -> list[str]:
     canonical = root / "rules/contract-state-files.md"
     if not canonical.is_file() or "### Model columns and resolution" not in canonical.read_text():
         errors.append("missing canonical model resolution section")
-    for reader in (*EXECUTORS, *PRESERVERS, "pd-select-model"):
+    for reader in (*EXECUTORS, *PRESERVERS, "discovery-select-model"):
         path = root / f"workflows/{reader}.md"
         if not path.is_file() or REFERENCE not in path.read_text():
             errors.append(f"unreachable resolution contract: {reader}")
@@ -158,11 +158,11 @@ class WorkflowContractTests(unittest.TestCase):
                               capture_output=True, text=True, check=False, timeout=10)
 
     def test_discovery_requires_verified_model_selection_and_recovery(self) -> None:
-        discovery = self.read("workflows/phase-discovery.md")
-        selector = self.read("workflows/pd-select-model.md")
-        finalizer = self.read("workflows/pd-finalize.md")
+        discovery = self.read("workflows/discovery.md")
+        selector = self.read("workflows/discovery-select-model.md")
+        finalizer = self.read("workflows/discovery-finalize.md")
         guide = self.read("docs/MODEL-CATALOG.md")
-        self.patterns(discovery, (r"pd-decompose.*pd-select-model.*pd-design",
+        self.patterns(discovery, (r"discovery-decompose.*discovery-select-model.*discovery-design",
                                   r"selection.*incomplete.*stop", r"resume.*selection"))
         self.patterns(selector, (r"selection: complete", r"selection: incomplete",
                                  r"empty.*not.*(?:evidence|recommendation)",
@@ -171,8 +171,8 @@ class WorkflowContractTests(unittest.TestCase):
         self.patterns(guide, (r"export ORCHESTRAIL_HOME", r"--refresh", r"independent.*evidence"))
 
     def test_selection_recommends_supported_reasoning_for_each_leaf(self) -> None:
-        selector = self.read("workflows/pd-select-model.md")
-        finalizer = self.read("workflows/pd-finalize.md")
+        selector = self.read("workflows/discovery-select-model.md")
+        finalizer = self.read("workflows/discovery-finalize.md")
         reference = self.canonical()
         self.patterns(selector, (r"reasoning.*(?:effort|level)", r"(?:current|actual).*supported.*(?:level|effort)",
                                  r"each leaf.*reasoning", r"reasoning.*(?:unavailable|unknown)",
@@ -181,7 +181,7 @@ class WorkflowContractTests(unittest.TestCase):
         self.patterns(reference, (r"reasoning.*(?:recommendation|level)", r"reasoning.*(?:actual|observed)"))
 
     def test_selector_contains_the_selection_rubric_and_input_contract(self) -> None:
-        selector = self.read("workflows/pd-select-model.md")
+        selector = self.read("workflows/discovery-select-model.md")
         self.patterns(selector, (r"0\.25\s*\*?\s*C.*0\.20\s*\*?\s*A",
                                  r"Score.*complexity.*ambiguity.*context.*verification",
                                  r"round half up.*RW.*Ver.*clamp",
@@ -192,14 +192,14 @@ class WorkflowContractTests(unittest.TestCase):
                                  r"reasoning.*support.*incomplete"))
 
     def test_selector_does_not_require_the_companion_guide(self) -> None:
-        selector = self.read("workflows/pd-select-model.md")
+        selector = self.read("workflows/discovery-select-model.md")
         preflight = selector.split("### Step 0", 1)[1].split("Catalog:", 1)[0]
         self.patterns(preflight, (r"self-contained", r"optional companion.*not a prerequisite",
                                   r"scripts/model-catalog\.py.*scripts/model_selection\.py.*scripts/model_plan\.py"))
         self.assertNotIn("missing helper/siblings/guide/schema/rubric", preflight)
 
     def test_selector_preflight_succeeds_without_guide_and_rejects_missing_helper(self) -> None:
-        selector = self.read("workflows/pd-select-model.md")
+        selector = self.read("workflows/discovery-select-model.md")
         section = selector.split("### Step 0", 1)[1].split("Catalog:", 1)[0]
         script = re.search(r"```bash\n(.*?)\n```", section, re.S)
         self.assertIsNotNone(script)
@@ -216,7 +216,7 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertIn("selection unavailable", result.stderr)
 
     def test_selector_rubric_matches_catalog_guide(self) -> None:
-        selector = self.read("workflows/pd-select-model.md")
+        selector = self.read("workflows/discovery-select-model.md")
         guide = self.read(GUIDE)
         header = "| Score | C complexity"
         def table(text: str) -> str:
@@ -224,7 +224,7 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(table(selector), table(guide), "selection rubrics must not drift")
 
     def test_selector_cached_single_bulk_contract_is_compact_and_reachable(self) -> None:
-        text = self.read("workflows/pd-select-model.md")
+        text = self.read("workflows/discovery-select-model.md")
         self.assertLessEqual(len(text.split()), 3000, "selector exceeds its invocation context budget")
         self.patterns(text, (r"Invocation:.*path-to-atomic-description.*task-directory.*--refresh",
                              r"Single.*chat", r"Bulk.*plan\.md", r"model-catalog\.py",
@@ -235,20 +235,20 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertNotIn(obsolete, text.lower())
 
     def test_selector_explicit_refresh_research_preserves_failed_install(self) -> None:
-        text = self.read("workflows/pd-select-model.md")
+        text = self.read("workflows/discovery-select-model.md")
         self.patterns(text, (r"only.*--refresh.*(?:research|brows)",
                              r"workflow.*(?:research|brows)", r"--refresh\s+(?:CANDIDATE|<candidate>)",
                              r"helper.*(?:never|does not).*brows", r"complete.*candidate",
                              r"validat.*atomic", r"fail.*(?:preserv|retain).*prior.*catalog"))
 
     def test_selector_unavailable_dependencies_preserve_session_without_eligibility_bypass(self) -> None:
-        text = self.read("workflows/pd-select-model.md")
+        text = self.read("workflows/discovery-select-model.md")
         self.patterns(text, (r"Python.*3\.11", r"missing.*helper", r"selection unavailable",
                              r"preserv.*session", r"explicit.*request.*(?:eligib|verif)",
                              r"(?:must not|never|do not).*bypass", r"(?:no|never).*historical.*(?:log|store)"))
 
     def test_selector_explicit_refresh_recovers_catalog_before_selection_availability_guard(self) -> None:
-        text = self.read("workflows/pd-select-model.md")
+        text = self.read("workflows/discovery-select-model.md")
         dependency_guard = text.split("### Step 0", 1)[1].split("Catalog:", 1)[0]
         self.assertNotIn("invalid catalog", dependency_guard,
                          "invalid catalog must not return before explicitly authorized repair")
@@ -393,11 +393,11 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(reader=reader):
                 self.assertTrue(REFERENCE in self.read(f"workflows/{reader}.md"),
                                 f"{reader} must reach the canonical model contract")
-        self.patterns(self.read("workflows/pd-decompose.md"),
+        self.patterns(self.read("workflows/discovery-decompose.md"),
                       (r"preserv.*(?:optional|model).*column", r"composite.*(?:blank|empty)"))
-        self.patterns(self.read("workflows/pd-design.md"),
+        self.patterns(self.read("workflows/discovery-design.md"),
                       (r"(?:either|any).*provider.*(?:cell|column)", r"stale", r"bulk"))
-        self.patterns(self.read("workflows/pd-finalize.md"),
+        self.patterns(self.read("workflows/discovery-finalize.md"),
                       (r"(?:optional|provider).*model.*column", r"legacy"))
         quickstart = self.read("docs/SPEC-RUN-QUICKSTART.md")
         self.patterns(quickstart, (r"Model \(Claude\)", r"Model \(Codex\)", r"legacy", r"actual.*unknown"))
@@ -507,7 +507,7 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(reachability_errors(ROOT), [])
         paths = (GUIDE, "rules/contract-state-files.md", *DERIVED,
                  *(f"scripts/{helper}" for helper in HELPERS),
-                 *(f"workflows/{reader}.md" for reader in (*EXECUTORS, *PRESERVERS, "pd-select-model")))
+                 *(f"workflows/{reader}.md" for reader in (*EXECUTORS, *PRESERVERS, "discovery-select-model")))
         with tempfile.TemporaryDirectory(prefix="workflow-drift-") as temporary:
             directory = Path(temporary)
             for relative in paths:
@@ -518,14 +518,14 @@ class WorkflowContractTests(unittest.TestCase):
             (directory / "scripts/model_plan.py").unlink()
             canonical = directory / "rules/contract-state-files.md"
             canonical.write_text(canonical.read_text().replace("### Model columns and resolution", "### Removed"))
-            reader = directory / "workflows/pe-execute.md"
+            reader = directory / "workflows/execution-execute.md"
             reader.write_text(reader.read_text().replace(REFERENCE, "removed reference"))
             guide = directory / "docs/USAGE.md"
             guide.write_text(guide.read_text().replace("MODEL-CATALOG.md", "REMOVED.md"))
             errors = reachability_errors(directory)
         self.assertIn("missing scripts/model_plan.py", errors)
         self.assertIn("missing canonical model resolution section", errors)
-        self.assertIn("unreachable resolution contract: pe-execute", errors)
+        self.assertIn("unreachable resolution contract: execution-execute", errors)
         self.assertIn("unreachable catalog guide: docs/USAGE.md", errors)
 
 

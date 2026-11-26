@@ -4,8 +4,8 @@ phase: atomic-validation
 step: 1
 ---
 
-Invocation: `/pav-check <path-to-atomic-description>`
-Called by: `/phase-atomic-validation` as Step 1.
+Invocation: `/atomic-validation-check <path-to-atomic-description>`
+Called by: `/atomic-validation` as Step 1.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
@@ -16,7 +16,7 @@ Parent task directory = one level above.
 
 1. Read parent `state.md`. Locate the `## Subtask Progress` block for this T-XX.
 2. If block has `atomic-validation: complete` → **stop**: "Atomic validation already complete. Re-running will overwrite the parent block. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
-3. If `atomic-execution` is not `complete` in the block → **stop**: "Atomic execution must be completed first. Run /phase-atomic-execution <path>."
+3. If `atomic-execution` is not `complete` in the block → **stop**: "Atomic execution must be completed first. Run /atomic-execution <path>."
 4. Otherwise → continue.
 
 ---
@@ -64,7 +64,7 @@ Read `atomic-tests:` from the leaf block.
      criterion is an `important` finding, even when the criterion is met by inspection.
      This test-mapping requirement does not apply to justified `n-a` or legacy exemptions.
   2. **No weakening** — compare the test set against the `tdd: red digest` line in `notes:`
-     (written by `/pae-tests`; if it is absent, record an `important` finding; the integrity audit is incomplete). A missing
+     (written by `/atomic-execution-tests`; if it is absent, record an `important` finding; the integrity audit is incomplete). A missing
      test, a reduced test count with no additions, an introduced `skip`/`xfail`, or a
      vacuous assertion is a **`critical`** finding. Every test amendment must have its
      `tdd: test amended — …` line in `notes:` with a reason that blames the test, not the
@@ -74,7 +74,7 @@ Read `atomic-tests:` from the leaf block.
      assertion, no order dependence. Violations are `important` findings.
 
 - `pinned` reaching validation is itself a finding: characterization tests pin behaviour
-  *before* a change and become `green` when `/pae-implement` completes it. A subtask that
+  *before* a change and become `green` when `/atomic-execution-implement` completes it. A subtask that
   arrives here still `pinned` means the change was never finished or the status was never
   updated — an `important` finding, and the audit below is run regardless. For a subtask that
   went `pinned` → `green`, use `tdd: red digest` for the frozen test identities and the
@@ -105,7 +105,7 @@ For each bug: file, description, reproducible scenario, severity (`critical` / `
 
 Record the verdict in the parent `state.md → ## Subtask Progress` block for this T-XX:
 
-- On **DONE**: do NOT mark `atomic-validation: complete` yet (that happens in `/pav-close`). Update `last_action: pav-check DONE` and preserve `notes`.
+- On **DONE**: do NOT mark `atomic-validation: complete` yet (that happens in `/atomic-validation-close`). Update `last_action: pav-check DONE` and preserve `notes`.
 - On **NEEDS WORK**: set `atomic-validation: failed`, and in `notes:` list the specific Acceptance Criteria that were not met, plus `critical` / `important` bug summary. Do NOT create fix-tasks automatically — surface findings to the user first.
 
 **If NEEDS WORK** → present the list of unmet criteria and bugs to the user. **Stop.** Do not proceed to Step 2.

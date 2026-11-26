@@ -57,14 +57,14 @@ override a Guard, or decide that a test-level gate returns `none`.
 ### Implementer
 
 One agent per subtask, running the full atomic execution cycle for that subtask:
-`/pae-tests` → `/pae-implement` → `/pae-finalize`. Tests and implementation live in the same
+`/atomic-execution-tests` → `/atomic-execution-implement` → `/atomic-execution-finalize`. Tests and implementation live in the same
 agent because the GREEN step must read the RED set it is satisfying, and splitting them would
 pay the `.ai/` context bootstrap twice for no isolation gain.
 
-It **pauses once, at RED**: after `/pae-tests` it reports the RED digest and the test files it
+It **pauses once, at RED**: after `/atomic-execution-tests` it reports the RED digest and the test files it
 wrote, and waits. That pause exists so the orchestrator can create the test-only commit
 `contract-git-flow → ## Commits` requires — the Implementer never runs `git` itself. One message resumes
-it, in the same context, for `/pae-implement` → `/pae-finalize`. Sequence:
+it, in the same context, for `/atomic-execution-implement` → `/atomic-execution-finalize`. Sequence:
 `/spec-run → ## Step 4 — Subtask loop`, step 4.2.
 
 Receives: the path to one `T-XX/description.md`, the resolved `WORK_DIR` (in a
@@ -82,14 +82,14 @@ Apply the same canonical rule to GREEN and validation returns and to Arbiter wor
 ### Validator
 
 A **separate agent** with no memory of how the implementation was produced. Runs
-`/pav-check` → `/pav-propose --batch` → `/pav-close`.
+`/atomic-validation-check` → `/atomic-validation-propose --batch` → `/atomic-validation-close`.
 
 Receives: the path to the same `T-XX/description.md`, the test files, and the diff for the
 subtask. Does **not** receive the Implementer's reasoning, its intermediate steps, or its
 self-assessment. The point is an independent reading of whether the code satisfies the
 criteria — an agent that watched the code being written cannot supply that.
 
-This separation is what makes the TDD test-set audit in `/pav-check` meaningful: the
+This separation is what makes the TDD test-set audit in `/atomic-validation-check` meaningful: the
 Validator compares the tests against the RED digest without having been present when either
 was written.
 
@@ -111,19 +111,19 @@ shared file, always. Every such case in the pipeline today:
 
 | Shared file | Instructed by | What the sub-agent returns instead |
 |---|---|---|
-| `.ai/memory/architecture.md` | `/pae-finalize` step 1b (Implementer) | the module entries to add or update |
+| `.ai/memory/architecture.md` | `/atomic-execution-finalize` step 1b (Implementer) | the module entries to add or update |
 | `.ai/memory/state.md`, `.ai/project_state.md` | the finalize workflows | the entry line, in the format `contract-state-files` defines |
-| `plan.md` | `/pae-finalize` step 2 (Implementer: `Status` → `done`) and `/pav-close` step 2 (Validator: `Status` → `reviewed`) | the T-XX row and its new `Status` value |
-| `plan.md`, the `[composite]` block, `## Integration Issues (T-XX)`, and any D8 fix-sibling directory + row | `/phase-composite-validation` steps 2 and 3, reached from `/pav-close` step 5 inside the **Validator** | the composite row's new `Status`, the composite block's new field values, the approve/defer list, and — for a D8 sibling — the directory to create with its `description.md`, its `plan.md` row, and its leaf block |
+| `plan.md` | `/atomic-execution-finalize` step 2 (Implementer: `Status` → `done`) and `/atomic-validation-close` step 2 (Validator: `Status` → `reviewed`) | the T-XX row and its new `Status` value |
+| `plan.md`, the `[composite]` block, `## Integration Issues (T-XX)`, and any D8 fix-sibling directory + row | `/composite-validation` steps 2 and 3, reached from `/atomic-validation-close` step 5 inside the **Validator** | the composite row's new `Status`, the composite block's new field values, the approve/defer list, and — for a D8 sibling — the directory to create with its `description.md`, its `plan.md` row, and its leaf block |
 
 `plan.md` is named here explicitly, not left to inference: setting the subtask's `Status` is the
-whole job of `/pae-finalize` step 2 and `/pav-close` step 2, so without the delta-return route a
+whole job of `/atomic-execution-finalize` step 2 and `/atomic-validation-close` step 2, so without the delta-return route a
 sub-agent would be instructed to do the thing this section forbids. The carve-out for "its own
 `## Subtask Progress` block" does **not** extend to `plan.md` — a composite's rollup row is not
 any single sub-agent's own row.
 
-`/phase-composite-validation` is the third row for the same reason, and it is the widest case:
-the Validator reaches it through `/pav-close` step 5 when the last child of a composite closes,
+`/composite-validation` is the third row for the same reason, and it is the widest case:
+the Validator reaches it through `/atomic-validation-close` step 5 when the last child of a composite closes,
 and every artifact it produces is shared — the composite's own block, `plan.md`, a task-level
 section, and, on a NEEDS WORK verdict, a whole new sibling subtask. None of that is the
 Validator's own row, so none of it is written by the Validator. It returns the deltas; the
@@ -160,7 +160,7 @@ harvested *before* execution begins, not discovered during it.
 
 ### Where class B is harvested — the Discovery batch gate
 
-During Discovery, `/pd-analyze` collects every class-B ambiguity into
+During Discovery, `/discovery-analyze` collects every class-B ambiguity into
 `state.md → ## Open Questions (batch)` instead of resolving it. Class A ambiguities continue
 to be resolved autonomously and recorded in `### Assumptions` with their source, unchanged.
 
@@ -181,9 +181,9 @@ top of it, and in a stack it invalidates every branch above it too.
 
 ### Conditions that always stop the run, regardless of class
 
-- A violated invariant or Off-limits breach (`/pv-contract` critical-failure gate).
+- A violated invariant or Off-limits breach (`/validation-contract` critical-failure gate).
 - `atomic-tests: failed` — RED was never established (see `contract-tdd`).
-- A composite-promotion tripwire firing in `/pae-implement`.
+- A composite-promotion tripwire firing in `/atomic-execution-implement`.
 - Any `## Guard` that would overwrite existing artifacts.
 - A preflight or git-rail violation (see `contract-git-flow`).
 - A sub-agent reporting a blocker it could not resolve.
@@ -193,7 +193,7 @@ decisions the pipeline has deliberately reserved for a human.
 
 ## Finalization ownership
 
-`/phase-finalize` is invoked separately after owner integration and requires independent
+`/finalization` is invoked separately after owner integration and requires independent
 review of delivery evidence, recovery, knowledge and archival. It retains original Git/TDD
 field ownership; its helper owns only the additive finalization marker, current spec location
 and journaled mechanical relocation. Canonical contract: `contract-phases → ## Finalization`.

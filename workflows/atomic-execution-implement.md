@@ -4,13 +4,13 @@ phase: atomic-execution
 step: 2
 ---
 
-Invocation: `/pae-implement <path-to-atomic-description>`
-Called by: `/phase-atomic-execution` as Step 2, after `/pae-tests`.
+Invocation: `/atomic-execution-implement <path-to-atomic-description>`
+Called by: `/atomic-execution` as Step 2, after `/atomic-execution-tests`.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
 
-This is the GREEN step. The RED test set produced by `/pae-tests` is a frozen contract —
+This is the GREEN step. The RED test set produced by `/atomic-execution-tests` is a frozen contract —
 see the `contract-tdd` rule, `## GREEN — what implementation may and may not do`.
 
 ---
@@ -19,20 +19,20 @@ see the `contract-tdd` rule, `## GREEN — what implementation may and may not d
 
 1. Read parent `state.md` (one level above atomic task directory). Locate the `## Subtask Progress` block for this T-XX.
 2. If the block has `atomic-execution: complete` → **stop**: "Atomic execution phase is already complete. Re-running will overwrite the parent `## Subtask Progress` block for this T-XX. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
-3. Check `T-XX/description.md` exists and contains `## Steps` and `## Acceptance Criteria`. If missing → **stop**: "description.md is incomplete. Run `/pd-decompose` + `/pd-finalize` in the parent task."
+3. Check `T-XX/description.md` exists and contains `## Steps` and `## Acceptance Criteria`. If missing → **stop**: "description.md is incomplete. Run `/discovery-decompose` + `/discovery-finalize` in the parent task."
 4. **TDD gate.** Read `atomic-tests:` from the same block:
    - `red` → RED established. Continue.
    - `pinned` → characterization mode: the tests pin existing behaviour and already pass.
      Continue. The GREEN check below becomes a **preservation check** — the pinned set must
      still pass, unchanged, after the work. A pinned test that turns red is a defect in the
      change, never in the test (`contract-tdd → ## Characterization mode — behaviour-preserving work`).
-   - `n-a` → test-level gate returned `none` with a justification in `notes:`. Continue; the Final Verification test step degrades to running the existing suite for regressions. If no justification line is present in `notes:` → **stop**: "`atomic-tests: n-a` without a recorded justification. Run `/pae-tests` to classify this subtask."
+   - `n-a` → test-level gate returned `none` with a justification in `notes:`. Continue; the Final Verification test step degrades to running the existing suite for regressions. If no justification line is present in `notes:` → **stop**: "`atomic-tests: n-a` without a recorded justification. Run `/atomic-execution-tests` to classify this subtask."
    - `green` → tests already pass. This is a re-run; confirm before overwriting work.
    - `failed` → **stop**: "RED was never reached for T-XX: <reason from notes>. Resolve before implementing — implementing against a test set that never failed proves nothing."
-   - `not-started` → **stop**: "No tests written for T-XX. Run `/pae-tests <path>` first — implementation precedes tests only on pre-TDD tasks."
+   - `not-started` → **stop**: "No tests written for T-XX. Run `/atomic-execution-tests <path>` first — implementation precedes tests only on pre-TDD tasks."
    - Field absent and execution already `in-progress` → pre-TDD task. Append
      `pre-TDD task, TDD step skipped` once to `notes:` and continue.
-   - Field absent on an unstarted task → **stop**: "Run `/pae-tests <path>` first."
+   - Field absent on an unstarted task → **stop**: "Run `/atomic-execution-tests <path>` first."
 5. Otherwise → continue.
 
 ---
@@ -65,9 +65,9 @@ see the `contract-tdd` rule, `## GREEN — what implementation may and may not d
    - Target files: files expected to be created or modified
 
    If `## Scope` section is absent in description.md → **stop**:
-   "T-XX/description.md is missing `## Scope` section. Run `/pd-decompose` to regenerate subtask descriptions." Do not continue.
+   "T-XX/description.md is missing `## Scope` section. Run `/discovery-decompose` to regenerate subtask descriptions." Do not continue.
 2b. **Load the RED test set.** Read the test files recorded in the leaf block's
-   `target_files:` by `/pae-tests`. These tests define what "done" means for this subtask in
+   `target_files:` by `/atomic-execution-tests`. These tests define what "done" means for this subtask in
    executable form — read them before writing any implementation code. Note the mapping
    between Acceptance Criteria and test names recorded in `notes:`.
    If `atomic-tests: n-a` or a recorded legacy exemption applies → skip this sub-step.
@@ -147,9 +147,9 @@ the caller. Do not execute the first child until the declared tripwire decision 
 observation. Redistribute tests, `target_files:`, AC mapping/digest, and test-mode notes to
 matching children. Inherit `red` for an observed RED set or `pinned` for characterization;
 never relabel pins as RED or discard tests already passing after partial work. Reuse this
-recorded evidence; new uncovered child criteria must pass `/pae-tests` before more code.
-A child with no inherited evidence enters `/pae-tests` normally. Composite integration
-criteria remain owned by `/phase-composite-validation`.
+recorded evidence; new uncovered child criteria must pass `/atomic-execution-tests` before more code.
+A child with no inherited evidence enters `/atomic-execution-tests` normally. Composite integration
+criteria remain owned by `/composite-validation`.
 
 If no tripwire condition is observed → continue execution normally without any change.
 
@@ -198,4 +198,4 @@ exemption; do not invent a GREEN status/digest for tests that were never establi
 If out-of-scope observations were found during execution, capture them in the `notes:` field (one short line, or a reference to a separate section in parent `state.md`).
 
 Report: "Step 2 (Implementation) complete. Verification: <results>."
-This is a progress marker; return to `/pae-finalize` through the active caller.
+This is a progress marker; return to `/atomic-execution-finalize` through the active caller.

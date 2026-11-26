@@ -1887,7 +1887,7 @@ class DeploymentEntrypointTests(unittest.TestCase):
         "demo": ("demo/commands", "demo/config/instructions.md"),
     }
     skill_sources = {
-        "phase-discovery": "workflows/phase-discovery.md",
+        "discovery": "workflows/discovery.md",
         "rule-tdd": "rules/tdd.md",
         "principle-testing": "principles/testing.md",
     }
@@ -2079,16 +2079,16 @@ esac
     def assert_setup_discovery(self, result: subprocess.CompletedProcess[str]) -> None:
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         next_steps = result.stdout.partition("\nNext steps:\n")[2]
-        self.assertIn("/phase-discovery", next_steps)
+        self.assertIn("/discovery", next_steps)
         self.assertNotRegex(next_steps, r"(?i)\b(?:Windsurf|Devin|Claude Code|Codex)\b")
-        self.assertNotRegex(next_steps, r"(?<![\w-])/discovery\b")
+        self.assertNotRegex(next_steps, r"(?<![\w-])/phase-discovery\b")
 
     def test_normal_sync_uses_selected_source_and_installs_every_adapter(self) -> None:
         result = self.sync()
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.calls.read_text().splitlines(), ["validator", *self.preflights, "installer"])
-        self.assertTrue((self.home / "demo/commands/phase-discovery/SKILL.md").is_file(),
+        self.assertTrue((self.home / "demo/commands/discovery/SKILL.md").is_file(),
                         result.stdout + result.stderr)
         self.assertFalse((self.home / ".codeium").exists())
         self.assert_rendered(self.home, self.installed_hook)
@@ -2114,7 +2114,7 @@ esac
         self.assertEqual(self.snapshot(*protected), before)
 
     def test_setup_preserves_legacy_and_links_adapter_skills(self) -> None:
-        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        self.write(self.home / "demo/commands/discovery/SKILL.md", SKILL_BYTES)
         project = self.root / "selected 'project"
         legacy = self.project_legacy(project)
         before = self.snapshot(*legacy)
@@ -2124,9 +2124,9 @@ esac
         self.legacy_lines(result, *legacy)
         self.assertEqual(self.snapshot(*legacy), before)
         self.assert_setup_discovery(result)
-        link = project / ".demo/skill-links/phase-discovery"
+        link = project / ".demo/skill-links/discovery"
         self.assertTrue(link.is_symlink())
-        self.assertEqual(link.resolve(), self.home / "demo/commands/phase-discovery")
+        self.assertEqual(link.resolve(), self.home / "demo/commands/discovery")
         self.assertIn(os.fsencode(project) + b"\n", self.registry.read_bytes())
 
     def test_umbrella_setup_reports_legacy_and_omits_it_in_fresh_services(self) -> None:
@@ -2160,7 +2160,7 @@ esac
 
     def test_setup_python_310_warns_and_continues(self) -> None:
         self.python_310()
-        self.write(self.home / "demo/commands/phase-discovery/SKILL.md", SKILL_BYTES)
+        self.write(self.home / "demo/commands/discovery/SKILL.md", SKILL_BYTES)
         project = self.root / "fresh project"
         project.mkdir()
 

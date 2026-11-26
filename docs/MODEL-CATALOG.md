@@ -2,7 +2,7 @@
 
 The selector uses a user-owned local catalog and current invocation evidence. It never
 executes a model. Ordinary lookup, recommendation and plan resolution are offline;
-only explicit workflow `/pd-select-model INPUT --refresh` authorizes source research.
+only explicit workflow `/discovery-select-model INPUT --refresh` authorizes source research.
 The workflow researches; helper `--refresh CANDIDATE` only validates and installs an
 already complete candidate. It never browses or builds a partial catalog.
 
@@ -27,12 +27,12 @@ python3 --version
 ```
 
 Verify Python 3.11+ and the guidance preflight below. If the catalog is missing or lacks
-independent capability evidence, run `/pd-select-model <task-directory> --refresh` after
+independent capability evidence, run `/discovery-select-model <task-directory> --refresh` after
 decomposition. This explicitly authorizes source research and candidate validation; provide
 independent dated evidence and current invocation support from the actual tool. Unknown
 evidence stays null and cannot qualify a model. If evidence or support is unavailable, a configured fallback gives a preliminary recommendation
 with the missing evidence disclosed. Configure the owner-chosen fallback as documented in
-`pd-select-model`; without a valid permitted fallback, selection remains incomplete. Do not
+`discovery-select-model`; without a valid permitted fallback, selection remains incomplete. Do not
 populate a catalog with invented scores or confuse plan recommendations with observed execution.
 Persist the export in the user's shell configuration if desired, then restart the agent session.
 

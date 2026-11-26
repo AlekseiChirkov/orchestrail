@@ -1485,11 +1485,11 @@ class WorkflowBehavior(FIXTURE.FinalizationChecks):
 
 class InstructionContracts(unittest.TestCase):
     def test_public_interface_is_one_explicit_finalization_phase(self) -> None:
-        path = SOURCE / 'workflows/phase-finalize.md'
+        path = SOURCE / 'workflows/finalization.md'
         self.assertTrue(path.is_file(), 'The public finalization workflow must be installed')
         workflow = path.read_text()
         invocation = next(line for line in workflow.splitlines() if line.startswith('Invocation:'))
-        self.assertEqual('Invocation: `/phase-finalize <task-directory|spec-path> [--dry-run]`', invocation)
+        self.assertEqual('Invocation: `/finalization <task-directory|spec-path> [--dry-run]`', invocation)
         for needed in ('## Guard', '## Context Bootstrap', '## Run Logging', '## Execution', '**stop**',
                        'Finalization Git ownership', 'expected-revision', 'command_attempt', 'operations',
                        'source_tips', 'run-end', 'PHASE_OWNS_RUN', '--note approximate'):
@@ -1500,10 +1500,10 @@ class InstructionContracts(unittest.TestCase):
     def test_finalization_is_registered_in_canonical_contracts_and_bootstrap(self) -> None:
         expected = {'rules/contract-phases.md': ('rule-bootstrap-finalization', '- finalization: not-started', 'pending', 'preserved'),
                     'rules/contract-state-files.md': ('Finalization', 'current-location', 'original snapshots'),
-                    'rules/contract-orchestration.md': ('/phase-finalize',),
-                    'rules/contract-run-log.md': ('/phase-finalize',),
-                    'harness/claude/always-on.md': ('/phase-finalize',),
-                    'harness/codex/always-on.md': ('/phase-finalize',),
+                    'rules/contract-orchestration.md': ('/finalization',),
+                    'rules/contract-run-log.md': ('/finalization',),
+                    'harness/claude/always-on.md': ('/finalization',),
+                    'harness/codex/always-on.md': ('/finalization',),
                     'templates/.ai/memory/state.md': ('finalization',),
                     'templates/.ai-umbrella/memory/state.md': ('finalization',)}
         for path, tokens in expected.items():
@@ -1518,13 +1518,13 @@ class InstructionContracts(unittest.TestCase):
             self.assertIn(token, bootstrap + conduct)
 
     def test_delivery_endpoints_only_suggest_finalization_after_owner_merge(self) -> None:
-        for path in ('workflows/spec-run.md', 'workflows/phase-pipeline.md', 'workflows/pv-finalize.md'):
+        for path in ('workflows/spec-run.md', 'workflows/pipeline.md', 'workflows/validation-finalize.md'):
             text = (SOURCE / path).read_text()
-            self.assertIn('/phase-finalize', text, path)
+            self.assertIn('/finalization', text, path)
             self.assertIn('owner merges', text, path)
         for path in ('docs/PIPELINE.md', 'docs/USAGE.md', 'docs/SPEC-RUN-QUICKSTART.md',
                      'scripts/README.md', 'README.md'):
-            self.assertIn('phase-finalize', (SOURCE / path).read_text(), path)
+            self.assertIn('/finalization', (SOURCE / path).read_text(), path)
 
     def validate_fixture(self, phase: str | None) -> subprocess.CompletedProcess:
         import tempfile
