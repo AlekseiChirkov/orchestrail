@@ -316,16 +316,16 @@ migration parent or the audit's earlier snapshot where it records the same defec
 | --- | --- | --- |
 | `rules/orchestration.md:67` | `/spec-run → ## Step 4 → 4.2` | Reference `/spec-run → ## Step 4 — Subtask loop` and keep the step 4.2 locator in prose. |
 | `rules/orchestration.md:75` | `/spec-run → ## Step 4 → 4.2` | Reference `/spec-run → ## Step 4 — Subtask loop` and keep the step 4.2 locator in prose. |
-| `rules/git-flow.md:5` | `` `workflow-reference → Protected Sections Contract` `` | `` `contract-state-files → ## Protected Sections Contract` `` |
+| `rules/git-flow.md:308` | `` `workflow-reference → Protected Sections Contract` `` | `` `contract-state-files → ## Protected Sections Contract` `` |
 | `workflows/pae-implement.md:143` | `` `workflow-reference → Autonomous Subtask Classifier → Runtime self-correction` `` | `` `protocol-subtask-classifier → ## Autonomous Subtask Classifier → ### Runtime self-correction (tripwire)` `` |
 | `workflows/pd-decompose.md:157` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `workflows/pd-design.md:72` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `workflows/pd-finalize.md:41` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
-| `workflows/pd-select-model.md:43` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
+| `workflows/pd-select-model.md:43–44` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `workflows/pd-select-model.md:262` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `workflows/pe-execute.md:44` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `workflows/phase-atomic-execution.md:79` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
-| `workflows/phase-discovery.md:25` | `` `workflow-reference → ## Autonomous Decision Protocol` `` | `` `protocol-autonomous-decision → ## Autonomous Decision Protocol` `` |
+| `workflows/phase-discovery.md:25–26` | `` `workflow-reference → ## Autonomous Decision Protocol` `` | `` `protocol-autonomous-decision → ## Autonomous Decision Protocol` `` |
 | `workflows/spec-run.md:175` | `` `workflow-reference → ### Model columns and resolution` `` | `contract-state-files → ### Model columns and resolution` |
 | `rules/git-flow.md:279` | `workflow-globals → Canonical Status Formats` | `contract-phases → ## Canonical Status Formats` |
 | `rules/git-flow.md:280` | `workflow-reference → Protected Sections Contract` | `contract-state-files → ## Protected Sections Contract` |

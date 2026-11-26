@@ -963,7 +963,7 @@ def main(argv=None):
     manifest = Path(__file__).with_name("source_guard_exceptions.json")
     try:
         data = manifest.read_bytes()
-        if hashlib.sha256(data).hexdigest() != "07dd7e0c599079099c1db8270079e30cf8a466ab766281d3beaf7042c1e6a441":
+        if hashlib.sha256(data).hexdigest() != "2dbb973d1bd5c2f9e1e7e7df21573347b880b9700f96f754c40e0a7befc90d29":
             raise ValueError("classified reference manifest digest differs")
         exceptions = json.loads(data)
         if not isinstance(exceptions, list):

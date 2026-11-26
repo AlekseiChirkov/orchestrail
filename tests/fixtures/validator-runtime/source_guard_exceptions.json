@@ -3579,7 +3579,7 @@
     "inventory_sha256": "ec3819da94d56f50ca35bf14d2c5fe2105f504e4b612fbb4844ada78b7516ee8",
     "dependencies": {
       "docs/MODEL-CATALOG.md": "1632062e291cfe5cbcfdafd5660dec4827575ffefaeebc9fc6f6c90a2bdd496c",
-      "rules/contract-state-files.md": "ce65e6f0f961b9794cea098dedcf4ca08f4347f74ddcac8d9447a890f534357b",
+      "rules/contract-state-files.md": "00f33c4407cf78c9b25a2667ddcf02c5f330c37d684abd3f8e02a7c1a81fcfce",
       "scripts/model-catalog.py": "dfe20c5cac2eefa8f03b4dbc90dbc107abd3635104102ec0e24e7ad5109d6bd4",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff",
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
@@ -3601,7 +3601,7 @@
     "inventory_sha256": "ec3819da94d56f50ca35bf14d2c5fe2105f504e4b612fbb4844ada78b7516ee8",
     "dependencies": {
       "docs/MODEL-CATALOG.md": "1632062e291cfe5cbcfdafd5660dec4827575ffefaeebc9fc6f6c90a2bdd496c",
-      "rules/contract-state-files.md": "ce65e6f0f961b9794cea098dedcf4ca08f4347f74ddcac8d9447a890f534357b",
+      "rules/contract-state-files.md": "00f33c4407cf78c9b25a2667ddcf02c5f330c37d684abd3f8e02a7c1a81fcfce",
       "scripts/model-catalog.py": "dfe20c5cac2eefa8f03b4dbc90dbc107abd3635104102ec0e24e7ad5109d6bd4",
       "scripts/model_plan.py": "283c7d1d0a4c37fd9f1f2405eb269cfa7e5bb32b8dd898c0b49e9b16d32231ff",
       "scripts/model_selection.py": "fc70143323c6ca7c98c943a67183865d202ecc4b57f8d22b2e7b600b4a719ece",
