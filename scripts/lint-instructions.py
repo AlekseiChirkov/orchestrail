@@ -6,12 +6,18 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date
 import json
+import os
 from pathlib import Path
 import re
+import stat
 
 
 RULE_FIELDS = ("description", "load")
 WORKFLOW_FIELDS = ("description", "phase", "step")
+RULE_KINDS = frozenset({"bootstrap", "contract", "protocol", "procedure"})
+SKILL_PREFIXES = {"rules": "rule-", "workflows": "", "principles": "principle-"}
+BOOTSTRAP_HEADINGS = ["## Context Bootstrap", "## Phase Behaviors"]
+BOOTSTRAP_WORD_LIMIT = 300
 PHASES = frozenset({
     "discovery", "execution", "validation", "atomic-execution", "atomic-validation",
     "finalization", "orchestrated", "entry", "utility",
@@ -47,6 +53,11 @@ USAGE_HEADING = "## Renamed commands and rules"
 REMOVED_HEADING = "## Removed integrations"
 NAME_STEM = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 REFERENCE_STEM = re.compile(r"[a-z0-9][a-z0-9-]*")
+RESERVED_HEADER = re.compile(
+    r"runtime: \S[^\r\n]*\n"
+    r"verified: ([0-9]{4}-[0-9]{2}-[0-9]{2})\n"
+    r"evidence: [A-Za-z][A-Za-z0-9+.-]*://[^\s/#?]+(?:[/?#]\S*)?\n\n"
+)
 MAP_PATH = re.compile(r"(rules|workflows|templates|harness|docs)(?:/[A-Za-z0-9_.-]+)+")
 HEADING = re.compile(r" {0,3}(#{1,6})(?:[ \t]+|$)")
 FENCE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)")
@@ -58,7 +69,7 @@ RULE_SKILL = re.compile(r"rule-([a-z0-9-]+)")
 RULE_SUFFIX = re.compile(r" rules?\b")
 REPOSITORY_PATH = re.compile(r"(?:rules|workflows|harness|templates)/[A-Za-z0-9_./-]+")
 CHECK_DESCRIPTION = re.compile(r'(^[ \t]*check[ \t]+|(?<=[;&|])[ \t]*check[ \t]+)"(?:[^"\\]|\\.)*"')
-RETAINED_NAME_RECORD = "docs/audits/*-rule-migration-map.md"
+MIGRATION_RECORD = "docs/audits/*-rule-migration-map.md"
 FROZEN_FIXTURES = "tests/fixtures/validator-runtime/"
 REFERENCE_EXCLUSIONS = frozenset({"scripts/check-lint-instructions.py", "scripts/check-deploy-skills.py"})
 # Keep exact retired spellings out of the executable source scanned for them.
@@ -83,24 +94,31 @@ class InstructionLint:
         self.root = root
         self.resolved_root = root.resolve()
         self.findings: list[str] = []
-        self.inputs: dict[Path, str | None] = {}
+        self.information: list[str] = []
+        self.inputs: dict[tuple[Path, bool], str | None] = {}
 
     def report(self, code: str, path: Path, line: int, message: str) -> None:
         relative = path.relative_to(self.root).as_posix()
         self.findings.append(f"{code} {relative}:{line} {message}")
 
-    def read_text(self, path: Path, error_code: str = "input-encoding") -> str | None:
-        if path not in self.inputs:
-            self.inputs[path] = self.read_input(path, error_code)
-        return self.inputs[path]
+    def read_text(self, path: Path, error_code: str = "input-encoding", *, regular: bool = False) -> str | None:
+        if not regular and (path, True) in self.inputs:
+            return self.inputs[path, True]
+        key = (path, regular)
+        if key not in self.inputs:
+            self.inputs[key] = self.read_input(path, error_code, regular=regular)
+        return self.inputs[key]
 
-    def read_input(self, path: Path, error_code: str) -> str | None:
+    def read_input(self, path: Path, error_code: str, *, regular: bool) -> str | None:
         try:
             resolved = path.resolve()
             if not resolved.is_relative_to(self.resolved_root):
                 self.report(error_code, path, 0, "Input points outside the source tree.")
                 return None
-            data = resolved.read_bytes()
+            data = read_regular_bytes(path) if regular else resolved.read_bytes()
+            if data is None:
+                self.report(error_code, path, 0, "Expected a regular file.")
+                return None
             text = data.decode("utf-8")
         except UnicodeDecodeError as error:
             line = data.count(b"\n", 0, error.start) + 1 if error_code == "deploy-env-invalid" else 0
@@ -118,6 +136,19 @@ class InstructionLint:
             self.report(error_code, path, line, "Forbidden text separator U+001C–U+001F.")
             return None
         return text
+
+
+def read_regular_bytes(path: Path) -> bytes | None:
+    if not stat.S_ISREG(path.lstat().st_mode):
+        return None
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            return None
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            return stream.read()
+    finally:
+        os.close(descriptor)
 
 
 def outside_fences(lines: Iterable[str]) -> Iterator[tuple[int, str]]:
@@ -160,6 +191,12 @@ def source_paths(root: Path, patterns: Iterable[str]) -> Iterator[Path]:
     for path in sorted({path for pattern in patterns for path in root.glob(pattern)}):
         if ("__pycache__" not in path.relative_to(root).parts and path.is_file()
                 and path.resolve().is_relative_to(root_path)):
+            yield path
+
+
+def installed_source_paths(root: Path, directories: Iterable[str]) -> Iterator[Path]:
+    for path in source_paths(root, (f"{directory}/*.md" for directory in directories)):
+        if not path.is_symlink():
             yield path
 
 
@@ -347,9 +384,16 @@ def reference_findings(
 
 
 def check_executable_references(lint: InstructionLint) -> None:
-    sources = {path: text for path in source_paths(lint.root, (
-        "rules/*.md", "workflows/*.md", "harness/*/always-on.md",
-    )) if (text := lint.read_text(path)) is not None}
+    sources = {
+        path: text
+        for path in source_paths(lint.root, ("harness/*/always-on.md",))
+        if (text := lint.read_text(path)) is not None
+    }
+    sources.update({
+        path: text
+        for path in installed_source_paths(lint.root, ("rules", "workflows"))
+        if (text := lint.read_text(path, regular=True)) is not None
+    })
     visible = {path: list(outside_fences(input_lines(text))) for path, text in sources.items()}
 
     def by_stem(directory: str) -> dict[str, list[str]]:
@@ -391,20 +435,25 @@ def successor_paths(row: NameRow) -> re.Pattern[str]:
     return re.compile(whole_token("|".join(re.escape(path) for path in paths)))
 
 
-def read_retained_names(lint: InstructionLint) -> set[tuple[str, str]]:
-    records = list(source_paths(lint.root, (RETAINED_NAME_RECORD,)))
+def read_migration_record(lint: InstructionLint) -> list[str]:
+    records = list(source_paths(lint.root, (MIGRATION_RECORD,)))
     if len(records) != 1:
         if records:
             lint.report("semantics-record-ambiguous", records[0], 0, "Expected at most one migration record.")
-        return set()
+        return []
     text = lint.read_text(records[0])
-    if text is None:
-        return set()
-    lines = input_lines(text)
-    sections = list(markdown_sections(lines, "## Retained old names"))
-    entries = table_rows(lines, *sections[0], ["Path", "Line text", "Reason"]) if len(sections) == 1 else None
+    return input_lines(text) if text is not None else []
+
+
+def migration_table(lines: list[str], heading: str, header: list[str]) -> list[list[str]]:
+    sections = list(markdown_sections(lines, heading))
+    entries = table_rows(lines, *sections[0], header) if len(sections) == 1 else None
+    return entries or []
+
+
+def retained_names(lines: list[str]) -> set[tuple[str, str]]:
     retained = set()
-    for entry in entries or []:
+    for entry in migration_table(lines, "## Retained old names", ["Path", "Line text", "Reason"]):
         if len(entry) != 3 or not entry[2]:
             continue
         path, line = (unquote_record_cell(cell) for cell in entry[:2])
@@ -421,8 +470,7 @@ def unquote_record_cell(cell: str) -> str:
     return cell.replace(r"\|", "|")
 
 
-def check_stale_names(lint: InstructionLint, rows: list[NameRow]) -> None:
-    retained = read_retained_names(lint)
+def check_stale_names(lint: InstructionLint, rows: list[NameRow], retained: set[tuple[str, str]]) -> None:
     if not rows:
         return
     names = [(row.old, stale_pattern(row), successor_paths(row)) for row in rows]
@@ -474,15 +522,15 @@ def field_is_valid(key: str, value: str, raw: str) -> bool:
     return False
 
 
-def check_metadata(lint: InstructionLint, path: Path, lines: list[str], fields: tuple[str, ...]) -> None:
+def check_metadata(lint: InstructionLint, path: Path, lines: list[str], fields: tuple[str, ...]) -> int | None:
     if lines[0] != "---":
         lint.report("metadata-syntax", path, 1, "Expected an opening front matter delimiter.")
-        return
+        return None
     try:
         end = lines.index("---", 1)
     except ValueError:
         lint.report("metadata-syntax", path, 0, "Missing closing front matter delimiter.")
-        return
+        return None
 
     seen: set[str] = set()
     for number, line in enumerate(lines[1:end], 2):
@@ -514,6 +562,7 @@ def check_metadata(lint: InstructionLint, path: Path, lines: list[str], fields: 
     for key in fields:
         if key not in seen:
             lint.report("metadata-missing-field", path, 0, f"Missing field {key}.")
+    return end + 1
 
 
 def check_invocation(lint: InstructionLint, path: Path, lines: list[str]) -> None:
@@ -524,19 +573,82 @@ def check_invocation(lint: InstructionLint, path: Path, lines: list[str]) -> Non
         lint.report("invocation-duplicate", path, number, "Repeated Invocation line.")
 
 
-def check_source_metadata(lint: InstructionLint) -> None:
+def bootstrap_size_exceptions(lines: list[str]) -> dict[str, int | None]:
+    counts: dict[str, int | None] = {}
+    for entry in migration_table(lines, "## Bootstrap size exceptions", ["Rule", "Words", "Reason"]):
+        if len(entry) != 3:
+            continue
+        name = unquote_record_cell(entry[0])
+        if name.startswith("rules/") and name.endswith(".md"):
+            name = name.removeprefix("rules/").removesuffix(".md")
+        if not name.startswith("bootstrap-") or NAME_STEM.fullmatch(name) is None:
+            continue
+        count, reason = entry[1:]
+        try:
+            allowed = int(count) if re.fullmatch(r"[1-9][0-9]*", count) else 0
+        except ValueError:
+            allowed = 0
+        counts[name] = allowed if allowed > BOOTSTRAP_WORD_LIMIT and reason and name not in counts else None
+    return counts
+
+
+def check_bootstrap(
+    lint: InstructionLint, path: Path, text: str, body: list[str], exception_count: int | None,
+) -> None:
+    headings = [
+        (len(marker[1]), line) for _, line in outside_fences(body)
+        if (marker := HEADING.match(line)) and len(marker[1]) <= 2
+    ]
+    if headings and headings[0][0] == 1:
+        headings = headings[1:]
+    if [line for _, line in headings] != BOOTSTRAP_HEADINGS:
+        lint.report("bootstrap-sections", path, 0, "Expected Context Bootstrap then Phase Behaviors as the only sections.")
+    count = len(text.split())
+    if exception_count is not None and count != exception_count:
+        lint.report("bootstrap-size", path, 0, f"Expected the audited count of {exception_count} words, found {count}.")
+    elif exception_count is None and count > BOOTSTRAP_WORD_LIMIT:
+        lint.report("bootstrap-size", path, 0, f"Expected at most {BOOTSTRAP_WORD_LIMIT} words, found {count}.")
+
+
+def check_installed_names(lint: InstructionLint) -> None:
+    rules = {path.stem: path for path in installed_source_paths(lint.root, ("rules",))}
+    for path in installed_source_paths(lint.root, ("workflows",)):
+        if rule := rules.get(path.stem):
+            lint.report("name-collision", path, 0, f"Stem {path.stem} is also used by {rule.relative_to(lint.root)}.")
+
+    installed: dict[str, Path] = {}
+    for path in installed_source_paths(lint.root, SKILL_PREFIXES):
+        name = SKILL_PREFIXES[path.parent.name] + path.stem
+        identity = name.casefold()
+        previous = installed.setdefault(identity, path)
+        if previous != path:
+            lint.report(
+                "installed-name-collision", path, 0,
+                f"Installed name {name} collides with the name from {previous.relative_to(lint.root)}.",
+            )
+
+
+def check_source_metadata(lint: InstructionLint, exceptions: dict[str, int | None]) -> None:
     for directory, fields in (("rules", RULE_FIELDS), ("workflows", WORKFLOW_FIELDS)):
         for path in sorted((lint.root / directory).glob("*.md")):
             # This navigation reference remains under workflows until it moves to docs.
             if path == lint.root / "workflows" / "PIPELINE.md":
                 continue
-            text = lint.read_text(path)
+            if path.is_dir() and not path.is_symlink():
+                continue
+            kind, _, subject = path.stem.partition("-")
+            valid_kind = kind in RULE_KINDS and bool(subject) and NAME_STEM.fullmatch(path.stem) is not None
+            if directory == "rules" and not valid_kind:
+                lint.report("kind-prefix-invalid", path, 0, "Expected a rule kind and a hyphenated subject.")
+            text = lint.read_text(path, regular=True)
             if text is None:
                 continue
-            lines = text.replace("\r\n", "\n").split("\n")
-            check_metadata(lint, path, lines, fields)
+            lines = input_lines(text)
+            body_start = check_metadata(lint, path, lines, fields)
             if directory == "workflows":
                 check_invocation(lint, path, lines)
+            elif kind == "bootstrap" and valid_kind and body_start is not None:
+                check_bootstrap(lint, path, text, lines[body_start:], exceptions.get(path.stem))
 
 
 def valid_capability_field(key: str, value: str) -> bool:
@@ -687,7 +799,34 @@ def read_deploy_env(lint: InstructionLint, path: Path) -> dict[str, str] | None:
     return entries
 
 
-def check_harness_instructions(lint: InstructionLint) -> None:
+def check_reserved_names(lint: InstructionLint, directory: Path, commands: set[str]) -> None:
+    path = directory / "reserved-names.txt"
+    if not path.exists() and not path.is_symlink():
+        lint.information.append(f"info reserved-names-absent {directory.name}")
+        return
+    text = lint.read_text(path, regular=True)
+    if text is None:
+        return
+    text = text.replace("\r\n", "\n")
+    header = RESERVED_HEADER.match(text)
+    if header is None or not valid_capability_field("verified", header[1]):
+        return
+    entries = [
+        (number, name)
+        for number, name in enumerate(text[header.end():].removesuffix("\n").split("\n"), 5)
+        if name and not name.startswith("#")
+    ]
+    if any(REFERENCE_STEM.fullmatch(name) is None for _, name in entries):
+        return
+    for number, name in entries:
+        if name in commands:
+            lint.report(
+                "reserved-name-collision", path, number,
+                f"Workflow {name} is reserved by {directory.name}. Use orchestrail-{name} in the name map.",
+            )
+
+
+def check_harness_instructions(lint: InstructionLint, commands: set[str]) -> None:
     for directory in sorted((lint.root / "harness").glob("*")):
         if not HARNESS_NAME.fullmatch(directory.name) or directory.is_symlink() or not directory.is_dir():
             continue
@@ -703,6 +842,7 @@ def check_harness_instructions(lint: InstructionLint) -> None:
                 lint.report("adapter-incomplete", path, 0, "Expected a regular adapter file.")
             continue
 
+        check_reserved_names(lint, directory, commands)
         deployment = read_deploy_env(lint, deploy_path)
         declaration = lint.read_text(capability_path)
         body = lint.read_text(body_path)
@@ -722,16 +862,19 @@ def main() -> int:
         parser.error(f"unreadable root {args.root}: {error.strerror}")
 
     lint = InstructionLint(args.root)
-    check_source_metadata(lint)
-    check_harness_instructions(lint)
+    record = read_migration_record(lint)
+    rows = read_name_map(lint)
+    commands = {name for row in rows or [] if row.kind == "workflow" for name in row.new}
+    check_source_metadata(lint, bootstrap_size_exceptions(record))
+    check_installed_names(lint)
+    check_harness_instructions(lint, commands)
     check_legacy_mentions(lint)
     check_executable_references(lint)
-    rows = read_name_map(lint)
     if rows is not None:
         check_usage_map(lint, rows)
-    check_stale_names(lint, rows or [])
-    for finding in lint.findings:
-        print(finding)
+    check_stale_names(lint, rows or [], retained_names(record))
+    for line in (*lint.findings, *lint.information):
+        print(line)
     return int(bool(lint.findings))
 
 
