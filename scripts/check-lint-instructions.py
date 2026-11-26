@@ -27,6 +27,30 @@ ALWAYS_ON_RELOCATIONS = (
     ("rules/global-claude.md", "harness/claude/always-on.md"),
     ("templates/codex-global-AGENTS.md", "harness/codex/always-on.md"),
 )
+PHASE_CONTRACT = "rules/contract-phases.md"
+RESOLUTION_LINE = "A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness."
+BOOTSTRAP_HEADER = "| Phase | Skill | Loaded by |"
+BOOTSTRAP_ROWS = (
+    "| Discovery | `rule-bootstrap-discovery` | `/discovery`, `/discovery-analyze` |",
+    "| Execution | `rule-bootstrap-execution` | `/execution`, `/execution-execute` |",
+    "| Validation | `rule-bootstrap-validation` | `/validation`, `/validation-contract`, `/validation-review` |",
+    "| Finalization | `rule-bootstrap-finalization` | `/finalization` |",
+    "| Atomic Execution | `rule-bootstrap-atomic-execution` | `/atomic-execution`, "
+    "`/atomic-execution-tests`, `/atomic-execution-implement` |",
+    "| Atomic Validation | `rule-bootstrap-atomic-validation` | `/atomic-validation`, `/atomic-validation-check` |",
+)
+BEHAVIOUR_HEADER = "| Behaviour | Workflow | Requires | Without it |"
+BEHAVIOUR_ROWS = (
+    "| Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | "
+    "`sub-agents`, `agent-messaging`, `git` | Stop before Step 0; use `/pipeline <task-directory>` |",
+    "| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | "
+    "Sequential path with a reason until parallel support is established |",
+    "| Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Inline review, `critic: inline` |",
+    "| Model-specific worker for a leaf | `atomic-execution`, `execution-execute` | `sub-agents` | "
+    "Run inline when no explicit switch is required, otherwise stop |",
+    "| Hook-covered step logging | `discovery`, `execution`, `validation`, `finalization`, `pipeline`, "
+    "`spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |",
+)
 
 
 def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
@@ -162,6 +186,167 @@ class InstructionMetadataTests(unittest.TestCase):
         )
         self.write(f"{directory}/capabilities.md", capabilities + "\n")
         self.write(f"{directory}/always-on.md", body)
+
+    def write_phase_contract_fixture(self) -> str:
+        bootstrap_phases = ("discovery", "execution", "validation", "finalization", "atomic-execution", "atomic-validation")
+        for phase in bootstrap_phases:
+            self.write(f"rules/bootstrap-{phase}.md", sized_bootstrap(30))
+            self.write(f"workflows/{phase}.md", workflow('"-"', phase, phase))
+        for name, phase in (
+            ("discovery-analyze", "discovery"), ("execution-execute", "execution"),
+            ("validation-contract", "validation"), ("validation-review", "validation"),
+            ("atomic-execution-tests", "atomic-execution"), ("atomic-execution-implement", "atomic-execution"),
+            ("atomic-validation-check", "atomic-validation"), ("pipeline", "orchestrated"),
+            ("spec-run", "orchestrated"), ("spec-draft", "entry"), ("retro", "utility"),
+        ):
+            self.write(f"workflows/{name}.md", workflow('"-"', phase, name))
+        for name, hooks in (("fixture-first", "yes"), ("fixture-second", "no")):
+            self.write_adapter(name, "Fixture instructions", capability_declaration(name, hooks))
+
+        contract = "\n".join((
+            RULE, "# Phase contracts", "", "## Rule references", "", RESOLUTION_LINE, "",
+            "## Context Bootstrap", "", BOOTSTRAP_HEADER, "| --- | --- | --- |", *BOOTSTRAP_ROWS, "",
+            "## Capabilities", "",
+            "Read the always-on records. No, unknown and absent capabilities are unavailable.",
+            "A yes still requires tool access and permission. Supply new evidence when a record changes.", "",
+            BEHAVIOUR_HEADER, "| --- | --- | --- | --- |", *BEHAVIOUR_ROWS, "",
+        ))
+        self.write(PHASE_CONTRACT, contract)
+        return contract
+
+    def test_rule_resolution_requires_one_canonical_anchor_in_the_scan_set(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        self.write("docs/audits/historical-example.md", RESOLUTION_LINE + "\n")
+        self.write("README.md", "# Guide\n")
+
+        with self.subTest(anchor="canonical, with a historical copy"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "missing": contract.replace(RESOLUTION_LINE, ""),
+            "embedded in prose": contract.replace(RESOLUTION_LINE, f"As a reminder, {RESOLUTION_LINE}"),
+            "outside the section": contract.replace(RESOLUTION_LINE, "") + f"\n## History\n\n{RESOLUTION_LINE}\n",
+            "fenced": contract.replace(RESOLUTION_LINE, f"```text\n{RESOLUTION_LINE}\n```"),
+            "repeated in the section": contract.replace(RESOLUTION_LINE, f"{RESOLUTION_LINE}\n\n{RESOLUTION_LINE}"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(anchor=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        for label, extra in {
+            "second active copy": RESOLUTION_LINE,
+            "obsolete wording": "The rule uses a bare basename.",
+            "obsolete column": "| Phase | Rules file (on disk) |\n| --- | --- |\n| Discovery | Bootstrap |",
+        }.items():
+            with self.subTest(anchor=label):
+                self.write("README.md", f"# Guide\n\n{extra}\n")
+                result = self.run_checker()
+                self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+                self.assertTrue(
+                    any(line.startswith("resolution-rule-missing ") for line in result.stdout.splitlines()),
+                    result.stdout,
+                )
+
+    def test_phase_contract_requires_the_canonical_source(self) -> None:
+        self.write_phase_contract_fixture()
+        (self.root / PHASE_CONTRACT).rename(self.root / "rules/workflow-globals.md")
+
+        result = self.run_checker()
+
+        for code in ("resolution-rule-missing", "bootstrap-table-invalid", "capability-behaviour-table-invalid"):
+            with self.subTest(diagnostic=code):
+                self.assert_finding(result, code, PHASE_CONTRACT)
+
+    def test_bootstrap_table_requires_exact_phases_and_existing_skills(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        first_bootstrap = BOOTSTRAP_ROWS[0]
+        with self.subTest(table="six canonical rows"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "wrong header": contract.replace(BOOTSTRAP_HEADER, "| Phase | Skill name | Loaded by |"),
+            "missing row": contract.replace(first_bootstrap + "\n", ""),
+            "seventh row": contract.replace(BOOTSTRAP_ROWS[-1], f"{BOOTSTRAP_ROWS[-1]}\n{first_bootstrap}"),
+            "duplicate phase": contract.replace("| Execution |", "| Discovery |"),
+            "skill for another phase": contract.replace("`rule-bootstrap-discovery`", "`rule-bootstrap-execution`"),
+            "legacy skill": contract.replace("`rule-bootstrap-discovery`", "`rule-phase-discovery`"),
+            "extra cell": contract.replace(first_bootstrap, first_bootstrap + " Additional |"),
+            "wrong section": contract.replace("## Context Bootstrap", "## Example Bootstrap"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        (self.root / "rules/bootstrap-discovery.md").unlink()
+        with self.subTest(table="referenced rule is missing"):
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_behaviour_table_requires_behaviours_workflows_and_fallbacks(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        with self.subTest(table="five canonical behaviours"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "wrong header": contract.replace(BEHAVIOUR_HEADER, "| Behavior | Workflow | Requires | Without it |"),
+            "missing behaviour": contract.replace(BEHAVIOUR_ROWS[1] + "\n", ""),
+            "changed behaviour label": contract.replace("| Parallel children |", "| Parallel work |"),
+            "duplicate behaviour": contract.replace(BEHAVIOUR_ROWS[1], f"{BEHAVIOUR_ROWS[1]}\n{BEHAVIOUR_ROWS[1]}"),
+            "wrong capability key": contract.replace("`sub-agents`", "`subagents`", 1),
+            "wrong canonical capability": contract.replace("| `hooks` |", "| `git` |"),
+            "unknown workflow": contract.replace("`retro`", "`missing-command`"),
+            "path instead of workflow name": contract.replace("`retro`", "`workflows/retro.md`"),
+            "missing fallback": contract.replace("Inline review, `critic: inline`", ""),
+            "wrong section": contract.replace("## Capabilities", "## Capability Examples"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        (self.root / "workflows/retro.md").unlink()
+        self.write("workflows/archive.md", workflow('"-"', "utility", "archive"))
+        (self.root / "workflows/retro.md").symlink_to("archive.md")
+        with self.subTest(table="named workflow is a symlink"):
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_behaviour_extension_requires_a_record_in_every_harness(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        extension = "| Set worker effort | `spec-run` | `sub-agent-effort` | Use the default effort |\n"
+        self.write(PHASE_CONTRACT, contract + extension)
+        declarations = {
+            "fixture-first": capability_declaration("fixture-first", "yes"),
+            "fixture-second": capability_declaration("fixture-second", "no"),
+        }
+        for name, declaration in declarations.items():
+            record = capability_record("sub-agent-effort", "unknown" if name == "fixture-first" else "yes")
+            self.write(f"harness/{name}/capabilities.md", f"{declaration}\n\n{record}\n")
+
+        with self.subTest(extension="declared by both adapters, including an unknown state"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(extension="misspelled"):
+            self.write(PHASE_CONTRACT, contract + extension.replace("sub-agent-effort", "subagent-effort"))
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract + extension)
+        second = declarations["fixture-second"]
+        with self.subTest(extension="absent from the second adapter"):
+            self.write("harness/fixture-second/capabilities.md", second + "\n")
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        with self.subTest(extension="named outside the record section"):
+            record = capability_record("sub-agent-effort", "yes")
+            self.write("harness/fixture-second/capabilities.md", f"{second}\n\n## Example\n\n{record}\n")
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
 
     def test_counts_only_the_always_on_body_at_the_size_limit(self) -> None:
         capabilities = words(1607)
