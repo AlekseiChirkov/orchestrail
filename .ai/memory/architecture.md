@@ -111,6 +111,10 @@ registers canonical roots under a dedicated lock. Both deployment and the hook a
 the registry. Deployment refreshes owned links in eligible roots and preserves existing
 knowledge tracking. Each manifest lives at `<config>/orchestrail/deploy/<harness>.json`.
 
+### Planned — golden-run framework (in-flight, not implemented)
+
+Discovery of 2026-11-26 planned `scripts/golden-eval.py` as a dispatcher over standard-library stage modules `scripts/golden_*.py` that exchange canonical JSON documents on disk, the standalone offline suite `python3 -I tests/golden-runs.py` (not registered in `scripts/validate-contracts.sh`), fixtures under `tests/golden/` and reviewed expected results under `tests/expected/` (ADR-0030, Provisional). None of these files exists yet.
+
 ### Executable acceptance checks
 
 `tests/log-step.sh` copies the helper, canonical contract and workflows into a disposable checkout and runs the focused producer, lint, retrospective and drift checks in separate Bash processes. Explicit temporary log/workflow roots and per-operation checksums isolate fixtures from real logs; exit and signal traps clean up the temporary tree.

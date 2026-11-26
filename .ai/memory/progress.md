@@ -247,3 +247,7 @@ Compared task state pointers with all specification files and aligned eleven tas
 ## 2026-11-25 — Archive implemented specifications
 
 Archived the rules and workflows audit and task finalization specifications after reviewing their completed validation and integration evidence. The audit identity-ledger row and current task pointers now name the archived paths; the finalization task itself remains unarchived and deployment remains unverified. The archived review-pilot specification still contains an explicitly deferred second phase and is not evidence of whole-spec delivery.
+
+## 2026-11-26 — Golden-run specification refinement and Discovery
+
+Ran `/spec-draft --auto-mode` on the golden-run specification in a separate worktree while another session runs spec 011: reconciled the former spec 23 references with spec 027, recorded spec 011's rule and workflow renames (A-31, A-34), re-verified 95 citations against `c7e986f` (62 corrected), and added REQ-55/AC-45/AC-46, A-31–A-34 and Q-08–Q-09; an independent critic scored 84, 93 and 98/100 (READY FOR DEVELOPMENT). `/phase-discovery` then produced `task-012-golden-run-tests` with 26 leaves in 8 composites, preliminary fallback model recommendations (the owner fallback names only an OpenAI model and no catalog quality evidence exists), the stage-module design (ADR-0030, Provisional; number chosen after ADR-0029 used by the in-flight spec 011 work), and a resolution of the N-08/DM-10 conflict in favour of REQ-19. No implementation was started.

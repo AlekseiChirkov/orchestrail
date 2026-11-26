@@ -38,3 +38,4 @@ so that a contributor can find the *why* without reading every rule. ADR-0007 an
 | 0026 | Three-digit specification numbers across active and completed records | Accepted; integration pending | 2026-11-25 | [0026-task-unknown-specification-number-format.md](0026-task-unknown-specification-number-format.md) |
 | 0027 | Evidence-bound knowledge relocations | Accepted | 2026-11-25 | [0027-task-011-evidence-bound-relocations.md](0027-task-011-evidence-bound-relocations.md) |
 | 0028 | Harness deployment engine | Accepted | 2026-11-25 | [0028-task-011-harness-deployment-engine.md](0028-task-011-harness-deployment-engine.md) |
+| 0030 | Golden-run framework: stage modules behind one dispatcher, standalone offline suite, per-change guard re-pin, normalization errors are technically incomplete | Provisional | 2026-11-26 | [0030-task-012-golden-run-stage-modules.md](0030-task-012-golden-run-stage-modules.md) |

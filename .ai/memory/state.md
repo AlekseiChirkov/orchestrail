@@ -17,6 +17,7 @@ read-only recovery remains unresolved. See [the reference review](../../docs/ana
 
 - [Parallel execution direction](../specs/027-parallel-execution-program.md) | status: planning | note: owner requested automatic parallel execution across the task graph in both execution entry points and parallel-aware Discovery, retaining stacked PRs; program-level specification and delivery map prepared, with Git materialization, capability enforcement and recovery contracts still blocking implementation; former spec 23 consolidated; specs 020 and 024 retain separate scope and require review. No runtime implementation started.
 
+- [task-012-golden-run-tests](../tasks/todo/task-012-golden-run-tests/state.md) | phase: discovery | status: complete | note: plan ready, 34 subtasks (26 leaves in 8 composites); specification refined to READY FOR DEVELOPMENT on 2026-11-26 (3 independent review rounds, 98/100); model recommendations are preliminary fallbacks only; execution should follow integration of spec 011's naming stage or apply spec A-34; ADR-0030 Provisional.
 
 
 The ordered roadmap and prerequisites are in `specs/README.md`. ADR-0026 records
