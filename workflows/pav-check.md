@@ -23,7 +23,7 @@ Parent task directory = one level above.
 
 ## Context Bootstrap
 
-Load the `phase-atomic-validation` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -47,14 +47,14 @@ Keep task-artifact paths absolute; run code reads, writes, and commands in `WORK
    Without reliable ownership evidence → **stop**: "Identify this subtask's changed files before validation."
 
 5. Run the applicable `test:` and `lint:` commands from the resolved runbook in `WORK_DIR`
-   (from the umbrella root for an umbrella runbook; `phase-atomic-execution → ## Context Bootstrap`).
+   (from the umbrella root for an umbrella runbook; `bootstrap-atomic-execution → ## Context Bootstrap`).
    Missing commands, unavailable dependencies, or incomplete runs are reported as evidence
    gaps; do not claim a passing verification that did not run.
 
 **Check completeness:**
 - Each Acceptance Criterion from `T-XX/description.md`: met / not met / partial. Mark `[INCOMPLETE]` if not fully met.
 
-**TDD check** (load the `tdd` rule for the contract being enforced):
+**TDD check** (load the `contract-tdd` rule for the contract being enforced):
 
 Read `atomic-tests:` from the leaf block.
 
@@ -79,7 +79,7 @@ Read `atomic-tests:` from the leaf block.
   updated — an `important` finding, and the audit below is run regardless. For a subtask that
   went `pinned` → `green`, use `tdd: red digest` for the frozen test identities and the
   `tdd: characterize` note for the preserved behaviour, and a pinned test that was amended must carry
-  both its amendment record and the accepted behaviour change (`tdd → ## Characterization
+  both its amendment record and the accepted behaviour change (`contract-tdd → ## Characterization
   mode`). An amended pinned test with no recorded behaviour change is a **`critical`**
   finding: it means a refactor changed behaviour and the test was edited to hide it.
 - `n-a` → verify the justification line in `notes:` names which of unit/integration/contract/

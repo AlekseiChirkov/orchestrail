@@ -1712,7 +1712,7 @@
             {
               "path": "tests/state-tool.py",
               "provenance": "direct lexical reference",
-              "sha256": "1fc838fdaadeff0dea69ea4ab23a6263339959a2b4300e072298cc19dff2f195"
+              "sha256": "bee5c461482e6ea81c50f9b58c171cf2a12531e0faa02d2e3ac175bab7ca6f0c"
             }
           ],
           "transitive_status": "unresolved"
@@ -1768,6 +1768,7 @@
     "tests/git-rails.sh",
     "tests/hook-install.sh",
     "tests/hook-shell-quality.sh",
+    "tests/hook-workflow-contract.sh",
     "tests/log-step-hook.sh",
     "tests/model-plan.py",
     "tests/model-selection.py",
@@ -1793,7 +1794,8 @@
     "tests/usage-stream-revisions.py",
     "tests/usage-usage-publication.py",
     "tests/usage-usage-receipt-schema.py",
-    "tests/usage-warning-delivery-boundary.py"
+    "tests/usage-warning-delivery-boundary.py",
+    "tests/workflow-instructions.py"
   ],
   "removed_results": [
     {
@@ -4325,7 +4327,7 @@
           "after": [
             {
               "path": "tests/model-workflow.py",
-              "sha256": "e38e39b6bbf14bf418f80f28cac9d155c1c2abfe330a738029505e16daaeac1a",
+              "sha256": "162cac0899101ef918e7c181ba6d07f102dd28595e6dc3a0c780ee6df3d67e84",
               "provenance": "direct lexical reference"
             }
           ],
@@ -4758,7 +4760,7 @@
             {
               "path": "tests/log-step-hook.sh",
               "provenance": "direct lexical reference",
-              "sha256": "d5eaad55cc076411a0f30c482b9fa2beb1bbcaad4f271c44034c0d423a3f8664"
+              "sha256": "dc01f3979062614fe151f7f1d6dc6ed25f5b7e524e86d39d2f497b6139122e80"
             }
           ],
           "before": [
@@ -5483,7 +5485,7 @@
             {
               "path": "tests/git-rails.sh",
               "provenance": "direct lexical reference",
-              "sha256": "ba531c5a22ad387c11f0930e236e38192bddb5922afb4909a79443c2a49628d9"
+              "sha256": "d4a3241e8b7e47fd738c9686c8ef04bfccf4f24c4479113f8ea1d92f2dac978c"
             }
           ],
           "before": [
@@ -8171,7 +8173,7 @@
           "after": [
             {
               "path": "tests/hook-install.sh",
-              "sha256": "8353be25eea7e4c1dd9cb82a94d95e4d1f947966784bc8d2dc76ff0c14d47628",
+              "sha256": "669ba198664ee26148629315713456d7f858ee5be2c9cb6137d2d7d51379f9e6",
               "provenance": "direct lexical reference"
             }
           ],
@@ -10194,17 +10196,886 @@
         }
       ],
       "name": "test_model_plan_acceptance"
+    },
+    {
+      "changes": [
+        {
+          "after": [
+            {
+              "path": "tests/workflow-instructions.py",
+              "provenance": "direct lexical reference",
+              "sha256": "55f9627efcc141762b9b3c063843e0ceb358da9d4ae013e518e97d34ccc583ae"
+            }
+          ],
+          "before": [
+            {
+              "path": "tests/workflow-instructions.py",
+              "provenance": "direct lexical reference",
+              "sha256": "7557be978cc2eec9c90e4980572d1f1906441502f4b8a69780542a0072b2781b"
+            }
+          ],
+          "field": "source_references",
+          "path": "tests/workflow-instructions.py"
+        }
+      ],
+      "name": "test_workflow_instruction_contracts"
+    },
+    {
+      "changes": [
+        {
+          "after": [
+            {
+              "path": "tests/hook-workflow-contract.sh",
+              "provenance": "direct lexical reference",
+              "sha256": "36566b7c7105eb0e9ca3a43ccd4d0cc6ad6e95331c21ca3edf46555ccaabbe8c"
+            }
+          ],
+          "before": [
+            {
+              "path": "tests/hook-workflow-contract.sh",
+              "provenance": "direct lexical reference",
+              "sha256": "952a5ab0204c6a11e0bee9b77f6f78cf2eecff6496c9377accf396d46b16f829"
+            }
+          ],
+          "field": "source_references",
+          "path": "tests/hook-workflow-contract.sh"
+        }
+      ],
+      "name": "test_workflow_hook_coverage_acceptance"
     }
   ],
   "schema": 2,
-  "name_map_sha256": "bcee32296e20c81ca4f1c06d9dec80648031b869b492851e4ce73b59fc9616b9",
-  "path_changes": [],
+  "name_map_sha256": "722351a2d76295f06a38f680f11e2451a48e446a315ce079ee1ebe7e01d5f3f0",
+  "path_changes": [
+    {
+      "after": "\"$(grep -q 'Decomposition Decisions' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing Decomposition Decisions format')\"",
+      "before": "\"$(grep -q 'Decomposition Decisions' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing Decomposition Decisions format')\"",
+      "key": "## Decomposition Decisions in workflow-reference",
+      "target": "result"
+    },
+    {
+      "after": "\"$(awk '/^## Protected Sections Contract/,/^## Multi-Phase Spec Rules/' rules/contract-state-files.md 2>/dev/null | grep -qF '## Integration Issues' && echo pass || echo 'contract-state-files Protected Sections Contract does not protect ## Integration Issues (T-XX) \u2014 /compress-state may delete the approve/defer decision before the D8 step reads it')\"",
+      "before": "\"$(awk '/^## Protected Sections Contract/,/^## Multi-Phase Spec Rules/' rules/workflow-reference.md 2>/dev/null | grep -qF '## Integration Issues' && echo pass || echo 'workflow-reference Protected Sections Contract does not protect ## Integration Issues (T-XX) \u2014 /compress-state may delete the approve/defer decision before the D8 step reads it')\"",
+      "key": "APPROVE: the recorded decision section is compression-protected",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$ATOMIC_STATUS_LINE\" | grep -q \"\\`$status\\`\" && echo pass || echo \"contract-phases.md atomic status vocabulary is missing: $status\")\"",
+      "before": "\"$(printf '%s' \"$ATOMIC_STATUS_LINE\" | grep -q \"\\`$status\\`\" && echo pass || echo \"workflow-globals.md atomic status vocabulary is missing: $status\")\"",
+      "key": "Atomic status '$status' defined in workflow-globals vocabulary line",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ -n \"$ATOMIC_STATUS_LINE\" ] && echo pass || echo 'contract-phases.md has no atomic-status vocabulary definition line')\"",
+      "before": "\"$([ -n \"$ATOMIC_STATUS_LINE\" ] && echo pass || echo 'workflow-globals.md has no atomic-status vocabulary definition line')\"",
+      "key": "Atomic status vocabulary line present in workflow-globals",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -rniE '\\-\\-batch[^.]{0,80}(auto-?apply|apply automatically)|(auto-?apply|apply automatically)[^.]{0,80}--batch' workflows/ rules/ 2>/dev/null | grep -qv 'may not reinterpret' && echo 'a workflow still couples --batch with auto-applying Do Now items, contradicting its definition in contract-phases' || echo pass)\"",
+      "before": "\"$(grep -rniE '\\-\\-batch[^.]{0,80}(auto-?apply|apply automatically)|(auto-?apply|apply automatically)[^.]{0,80}--batch' workflows/ rules/ 2>/dev/null | grep -qv 'may not reinterpret' && echo 'a workflow still couples --batch with auto-applying Do Now items, contradicting its definition in workflow-globals' || echo pass)\"",
+      "key": "BATCH: no caller reads --batch as apply-without-asking",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-phases.md 2>/dev/null | tr -s ' ' | grep -q 'record every proposal, prompt for nothing, apply nothing' && echo pass || echo 'contract-phases does not define --batch, so each caller is free to invent its own meaning')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/workflow-globals.md 2>/dev/null | tr -s ' ' | grep -q 'record every proposal, prompt for nothing, apply nothing' && echo pass || echo 'workflow-globals does not define --batch, so each caller is free to invent its own meaning')\"",
+      "key": "BATCH: workflow-globals fixes the single meaning of --batch",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep 'Vertical re-sliced' docs/PIPELINE.md 2>/dev/null | grep -q 'producer' && echo pass || echo 'PIPELINE.md Type 3 row missing producer role \u2014 may have regressed to client/server')\"",
+      "before": "\"$(grep 'Vertical re-sliced' workflows/PIPELINE.md 2>/dev/null | grep -q 'producer' && echo pass || echo 'PIPELINE.md Type 3 row missing producer role \u2014 may have regressed to client/server')\"",
+      "key": "C-1: PIPELINE.md Type 3 description uses producer not client",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -A5 'When Type 3 applies' rules/protocol-subtask-classifier.md 2>/dev/null | grep -q 'producer' && echo pass || echo 'protocol-subtask-classifier.md Type 3 rule missing producer role \u2014 may have regressed to client/server')\"",
+      "before": "\"$(grep -A5 'When Type 3 applies' rules/workflow-reference.md 2>/dev/null | grep -q 'producer' && echo pass || echo 'workflow-reference.md Type 3 rule missing producer role \u2014 may have regressed to client/server')\"",
+      "key": "C-1: workflow-reference Type 3 rule uses producer not client/server",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -l 'downward' workflows/pd-decompose.md rules/protocol-subtask-classifier.md 2>/dev/null | grep -q '.' && echo 'collision rule contains wrong-direction shift (downward) \u2014 behavioral regression' || echo pass)\"",
+      "before": "\"$(grep -l 'downward' workflows/pd-decompose.md rules/workflow-reference.md 2>/dev/null | grep -q '.' && echo 'collision rule contains wrong-direction shift (downward) \u2014 behavioral regression' || echo pass)\"",
+      "key": "C-2: neither collision-rule source uses wrong-direction shift ('downward')",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'collid' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing collision-safety rule for Type 3 IDs')\"",
+      "before": "\"$(grep -qi 'collid' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing collision-safety rule for Type 3 IDs')\"",
+      "key": "C-2: workflow-reference Type 3 rule has collision-safety",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'until.*free' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md collision rule missing loop termination condition (until...free)')\"",
+      "before": "\"$(grep -q 'until.*free' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md collision rule missing loop termination condition (until...free)')\"",
+      "key": "C-2: workflow-reference collision rule has loop termination ('until...free')",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'upward by 1' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md collision rule missing required shift quantum (upward by 1)')\"",
+      "before": "\"$(grep -q 'upward by 1' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md collision rule missing required shift quantum (upward by 1)')\"",
+      "key": "C-2: workflow-reference collision rule specifies shift quantum 'upward by 1'",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'defect in the change' rules/contract-tdd.md 2>/dev/null && echo pass || echo 'rules/contract-tdd.md no longer states that a failing pinned test is a defect in the change \u2014 editing the test would become the path of least resistance')\"",
+      "before": "\"$(grep -qi 'defect in the change' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md no longer states that a failing pinned test is a defect in the change \u2014 editing the test would become the path of least resistance')\"",
+      "key": "CHAR: a pinned test that turns red blames the change, not the test",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q '## Characterization mode' rules/contract-tdd.md 2>/dev/null && echo pass || echo 'rules/contract-tdd.md has no characterization mode section, although pae-tests offers --characterize')\"",
+      "before": "\"$(grep -q '## Characterization mode' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md has no characterization mode section, although pae-tests offers --characterize')\"",
+      "key": "CHAR: tdd defines characterization mode",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE 'Status values for .atomic-tests.:.*[|] .pinned. [|]' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases atomic-tests vocabulary line does not list pinned \u2014 the status pae-tests writes would be undefined')\"",
+      "before": "\"$(grep -qE 'Status values for .atomic-tests.:.*[|] .pinned. [|]' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals atomic-tests vocabulary line does not list pinned \u2014 the status pae-tests writes would be undefined')\"",
+      "key": "CHAR: workflow-globals lists pinned in the atomic-tests vocabulary",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE 'Status values for .atomic-tests.:.*[|] .pinned. [|]' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'contract-state-files atomic-tests vocabulary line does not list pinned')\"",
+      "before": "\"$(grep -qE 'Status values for .atomic-tests.:.*[|] .pinned. [|]' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference atomic-tests vocabulary line does not list pinned')\"",
+      "key": "CHAR: workflow-reference lists pinned in the atomic-tests vocabulary",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE '^[|] .red. / .pinned. / .n-a.' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'the Status Translation Table has no row covering pinned \u2014 pae-finalize could not map it to a plan.md status')\"",
+      "before": "\"$(grep -qE '^[|] .red. / .pinned. / .n-a.' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'the Status Translation Table has no row covering pinned \u2014 pae-finalize could not map it to a plan.md status')\"",
+      "key": "CHAR: workflow-reference translates pinned to a plan.md status",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'composite-stalled' docs/PIPELINE.md 2>/dev/null && grep -q 'composite-stalled' workflows/pe-finalize.md 2>/dev/null && echo pass || echo 'composite-stalled is written by pe-execute but not defined in PIPELINE.md or consumed by pe-finalize')\"",
+      "before": "\"$(grep -q 'composite-stalled' workflows/PIPELINE.md 2>/dev/null && grep -q 'composite-stalled' workflows/pe-finalize.md 2>/dev/null && echo pass || echo 'composite-stalled is written by pe-execute but not defined in PIPELINE.md or consumed by pe-finalize')\"",
+      "key": "COMPOSITE: composite-stalled is a documented Execution Report value",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'confirmed the pack fresh' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases allows reading the context pack without requiring a freshness check \u2014 a stale pack would let an agent work against a superseded principle')\"",
+      "before": "\"$(grep -qi 'confirmed the pack fresh' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals allows reading the context pack without requiring a freshness check \u2014 a stale pack would let an agent work against a superseded principle')\"",
+      "key": "CTXPACK: workflow-globals permits the substitution only when fresh",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-phases.md 2>/dev/null | tr -s ' ' | grep -q 'A skill is model-invoked, not always-on' && echo pass || echo 'contract-phases does not record that deploying an always_on rule as a skill changes its trigger semantics \u2014 the reason the always-on essentials stay in global-claude/AGENTS.md')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/workflow-globals.md 2>/dev/null | tr -s ' ' | grep -q 'A skill is model-invoked, not always-on' && echo pass || echo 'workflow-globals does not record that deploying an always_on rule as a skill changes its trigger semantics \u2014 the reason the always-on essentials stay in global-claude/AGENTS.md')\"",
+      "key": "DEPLOY: workflow-globals states that a skill is model-invoked, not always-on",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q \"$name\" docs/PIPELINE.md 2>/dev/null && echo pass || echo \"PIPELINE.md does not list /$name\")\"",
+      "before": "\"$(grep -q \"$name\" workflows/PIPELINE.md 2>/dev/null && echo pass || echo \"PIPELINE.md does not list /$name\")\"",
+      "key": "DOC: $name appears in the PIPELINE reference",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE '^Created: T-XX-fix-<slug>' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases ## Fix-Tasks Created: format no longer uses the T-XX-fix-<slug> shape that pv-execute-fixes globs for')\"",
+      "before": "\"$(grep -qE '^Created: T-XX-fix-<slug>' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals ## Fix-Tasks Created: format no longer uses the T-XX-fix-<slug> shape that pv-execute-fixes globs for')\"",
+      "key": "FIXNAME: workflow-globals Created: format uses the same shape",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-quick-flow.md 2>/dev/null | tr -s ' ' | grep -qE 'a fourth file fails the condition.*Mid-flight escalation' && echo pass || echo 'quick-flow condition 1 does not cross-reference ## Mid-flight escalation, so the exact bound reads as a trap rather than as the gate working')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/quick-flow.md 2>/dev/null | tr -s ' ' | grep -qE 'a fourth file fails the condition.*Mid-flight escalation' && echo pass || echo 'quick-flow condition 1 does not cross-reference ## Mid-flight escalation, so the exact bound reads as a trap rather than as the gate working')\"",
+      "key": "GATE: condition 1 points at the promotion path",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'checklist, not a judgement call' rules/contract-quick-flow.md 2>/dev/null && echo pass || echo 'quick-flow no longer states that the gate is a checklist \u2014 the exact bound in condition 1 loses the rule it serves')\"",
+      "before": "\"$(grep -q 'checklist, not a judgement call' rules/quick-flow.md 2>/dev/null && echo pass || echo 'quick-flow no longer states that the gate is a checklist \u2014 the exact bound in condition 1 loses the rule it serves')\"",
+      "key": "GATE: quick-flow still calls the gate a checklist",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'sole reader is .\\?/retro' rules/contract-run-log.md 2>/dev/null && echo pass || echo 'rules/contract-run-log.md no longer states that /retro is the only reader \u2014 a pipeline reading its own telemetry mid-run would make behaviour depend on history')\"",
+      "before": "\"$(grep -qi 'sole reader is .\\?/retro' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md no longer states that /retro is the only reader \u2014 a pipeline reading its own telemetry mid-run would make behaviour depend on history')\"",
+      "key": "LOG: retro is the only declared reader",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ -f rules/contract-run-log.md ] && echo pass || echo 'rules/contract-run-log.md not found')\"",
+      "before": "\"$([ -f rules/run-log.md ] && echo pass || echo 'rules/run-log.md not found')\"",
+      "key": "LOG: rules/run-log.md exists",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'never hand-write' rules/contract-run-log.md 2>/dev/null && echo pass || echo 'rules/contract-run-log.md no longer forbids hand-written log lines \u2014 durations would become model guesses and the metrics store worthless')\"",
+      "before": "\"$(grep -qi 'never hand-write' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md no longer forbids hand-written log lines \u2014 durations would become model guesses and the metrics store worthless')\"",
+      "key": "LOG: run-log forbids model-written log lines",
+      "target": "result"
+    },
+    {
+      "after": "\"$(for c in run-start step run-end; do grep -q \"scripts/log-step.sh $c\" rules/contract-run-log.md || exit 1; done && echo pass || echo 'rules/contract-run-log.md does not document all three of run-start / step / run-end')\"",
+      "before": "\"$(for c in run-start step run-end; do grep -q \"scripts/log-step.sh $c\" rules/run-log.md || exit 1; done && echo pass || echo 'rules/run-log.md does not document all three of run-start / step / run-end')\"",
+      "key": "LOG: run-log names the three helper calls",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'never blocks' rules/contract-run-log.md 2>/dev/null && echo pass || echo 'rules/contract-run-log.md no longer carries the never-blocks rule, which is the precondition for logging from inside every pipeline')\"",
+      "before": "\"$(grep -qi 'never blocks' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md no longer carries the never-blocks rule, which is the precondition for logging from inside every pipeline')\"",
+      "key": "LOG: run-log states that logging never blocks a run",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < workflows/spec-run.md 2>/dev/null | tr -s ' ' | grep -qi 'sub-agent never calls' && echo pass || echo 'spec-run.md does not reserve scripts/log-step.sh for the Orchestrator, contradicting the shared-file discipline in contract-orchestration')\"",
+      "before": "\"$(tr '\\n' ' ' < workflows/spec-run.md 2>/dev/null | tr -s ' ' | grep -qi 'sub-agent never calls' && echo pass || echo 'spec-run.md does not reserve scripts/log-step.sh for the Orchestrator, contradicting the shared-file discipline in orchestration')\"",
+      "key": "LOG: spec-run keeps log calls with the Orchestrator",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'cross-cutting\\|shared.*all capabilities\\|all capabilities.*shared' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing cross-cutting work rule for Type 3')\"",
+      "before": "\"$(grep -qi 'cross-cutting\\|shared.*all capabilities\\|all capabilities.*shared' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing cross-cutting work rule for Type 3')\"",
+      "key": "M-1: workflow-reference Type 3 rule has cross-cutting work rule",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'contract-phases.*Protected Sections' workflows/compress-state.md 2>/dev/null && echo 'compress-state.md still references contract-phases for Protected Sections \u2014 regression' || echo pass)\"",
+      "before": "\"$(grep -q 'workflow-globals.*Protected Sections' workflows/compress-state.md 2>/dev/null && echo 'compress-state.md still references workflow-globals for Protected Sections \u2014 regression' || echo pass)\"",
+      "key": "M-2: compress-state does not reference workflow-globals for Protected Sections",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'contract-state-files.*Protected Sections\\|contract-state-files \u2192 ## Protected' workflows/compress-state.md 2>/dev/null && echo pass || echo 'compress-state.md does not reference contract-state-files for Protected Sections Contract')\"",
+      "before": "\"$(grep -q 'workflow-reference.*Protected Sections\\|workflow-reference \u2192 ## Protected' workflows/compress-state.md 2>/dev/null && echo pass || echo 'compress-state.md does not reference workflow-reference for Protected Sections Contract')\"",
+      "key": "M-2: compress-state references workflow-reference for Protected Sections",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'Known Limitations\\|no.*whole-group\\|no automatic.*integration' docs/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing Type 3 integration-validation limitation documentation')\"",
+      "before": "\"$(grep -qi 'Known Limitations\\|no.*whole-group\\|no automatic.*integration' workflows/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing Type 3 integration-validation limitation documentation')\"",
+      "key": "M-3: PIPELINE.md documents Type 3 no-integration-validation limitation",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Co-Authored-By' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must name Co-Authored-By trailers as forbidden')\"",
+      "before": "\"$(grep -q 'Co-Authored-By' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must name Co-Authored-By trailers as forbidden')\"",
+      "key": "ORCH: Co-Authored-By named as forbidden",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Fix Classification' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md ## Fix-Tasks format does not permit the ### Fix Classification subsection')\"",
+      "before": "\"$(grep -q 'Fix Classification' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md ## Fix-Tasks format does not permit the ### Fix Classification subsection')\"",
+      "key": "ORCH: Fix Classification subsection permitted in workflow-globals",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Open Questions (batch)' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'contract-state-files.md missing ## Open Questions (batch) marker')\"",
+      "before": "\"$(grep -q 'Open Questions (batch)' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing ## Open Questions (batch) marker')\"",
+      "key": "ORCH: Open Questions (batch) marker registered",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'named by branch, never by subtask identifier' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md PR stack-position line must name predecessors by branch name')\"",
+      "before": "\"$(grep -qi 'named by branch, never by subtask identifier' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md PR stack-position line must name predecessors by branch name')\"",
+      "key": "ORCH: PR stack line names predecessors by branch",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-git-flow.md 2>/dev/null | tr -s ' ' | grep -qE 'State during the run\\*\\* = draft' && echo pass || echo 'contract-git-flow.md no longer states that a PR is a draft for the duration of the run \u2014 the stack could shift under the run while later subtasks are still being built')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/git-flow.md 2>/dev/null | tr -s ' ' | grep -qE 'State during the run\\*\\* = draft' && echo pass || echo 'git-flow.md no longer states that a PR is a draft for the duration of the run \u2014 the stack could shift under the run while later subtasks are still being built')\"",
+      "key": "ORCH: PRs are draft during the run",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'ready for review' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing ready-for-review promotion step')\"",
+      "before": "\"$(grep -qi 'ready for review' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing ready-for-review promotion step')\"",
+      "key": "ORCH: PRs are promoted to ready after validation",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE '^\\| .test: ' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing the separate RED commit row \u2014 the evidence tests came first')\"",
+      "before": "\"$(grep -qE '^\\| .test: ' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing the separate RED commit row \u2014 the evidence tests came first')\"",
+      "key": "ORCH: RED gets its own commit",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'without a citation is not an answer' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md missing the arbiter citation rule')\"",
+      "before": "\"$(grep -qi 'without a citation is not an answer' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md missing the arbiter citation rule')\"",
+      "key": "ORCH: arbiter answers require a citation",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'never encodes the subtask identifier' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md branch naming must be feature-based and exclude subtask/spec identifiers')\"",
+      "before": "\"$(grep -q 'never encodes the subtask identifier' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md branch naming must be feature-based and exclude subtask/spec identifiers')\"",
+      "key": "ORCH: branch names are feature-based, not identifier-based",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Class A' rules/contract-orchestration.md 2>/dev/null && grep -q 'Class B' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md missing class A/B escalation protocol')\"",
+      "before": "\"$(grep -q 'Class A' rules/orchestration.md 2>/dev/null && grep -q 'Class B' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md missing class A/B escalation protocol')\"",
+      "key": "ORCH: class A/B escalation protocol defined",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'never a subtask, spec, or task identifier' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must forbid work-item ids as commit scope')\"",
+      "before": "\"$(grep -qi 'never a subtask, spec, or task identifier' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must forbid work-item ids as commit scope')\"",
+      "key": "ORCH: commit scope is a feature name, never a work-item id",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'No authorship attribution' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing the no-attribution commit rule')\"",
+      "before": "\"$(grep -q 'No authorship attribution' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing the no-attribution commit rule')\"",
+      "key": "ORCH: commits carry no AI authorship attribution",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'strictly sequential' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md must declare execution strictly sequential \u2014 Subtask Progress has no locking')\"",
+      "before": "\"$(grep -qi 'strictly sequential' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md must declare execution strictly sequential \u2014 Subtask Progress has no locking')\"",
+      "key": "ORCH: execution is declared strictly sequential",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'force-with-lease' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing --force-with-lease restriction')\"",
+      "before": "\"$(grep -q 'force-with-lease' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing --force-with-lease restriction')\"",
+      "key": "ORCH: force-push restricted to --force-with-lease",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -iE 'git add -A' rules/contract-git-flow.md 2>/dev/null | grep -qi 'forbidden' && echo pass || echo 'contract-git-flow.md must state git add -A is FORBIDDEN \u2014 only intentional, authorized paths may be staged')\"",
+      "before": "\"$(grep -iE 'git add -A' rules/git-flow.md 2>/dev/null | grep -qi 'forbidden' && echo pass || echo 'git-flow.md must state git add -A is FORBIDDEN \u2014 only intentional, authorized paths may be staged')\"",
+      "key": "ORCH: git add -A forbidden in git-flow",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Pipeline identifiers stay out of the repository' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing the section forbidding T-XX / spec / ADR / .ai references in committed content')\"",
+      "before": "\"$(grep -q 'Pipeline identifiers stay out of the repository' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing the section forbidding T-XX / spec / ADR / .ai references in committed content')\"",
+      "key": "ORCH: git-flow forbids pipeline identifiers in the repository",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'Forbidden, always' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md missing absolute prohibitions table')\"",
+      "before": "\"$(grep -qi 'Forbidden, always' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md missing absolute prohibitions table')\"",
+      "key": "ORCH: git-flow forbids pushing to the base branch",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE '^base_commit:' rules/contract-git-flow.md 2>/dev/null && grep -qi 'never\\*\\* recomputed\\|never recomputed' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must both record base_commit in the state block and state it is never recomputed')\"",
+      "before": "\"$(grep -qE '^base_commit:' rules/git-flow.md 2>/dev/null && grep -qi 'never\\*\\* recomputed\\|never recomputed' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must both record base_commit in the state block and state it is never recomputed')\"",
+      "key": "ORCH: git-flow records base_commit and forbids recomputing it",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE 'task/<NN>|/T-XX-' rules/contract-git-flow.md 2>/dev/null && echo 'contract-git-flow.md still shows an identifier-based branch template \u2014 regression' || echo pass)\"",
+      "before": "\"$(grep -qE 'task/<NN>|/T-XX-' rules/git-flow.md 2>/dev/null && echo 'git-flow.md still shows an identifier-based branch template \u2014 regression' || echo pass)\"",
+      "key": "ORCH: no T-XX-shaped branch template survives in git-flow",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'overrides any tool default' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must state the no-attribution rule overrides harness defaults that append a trailer')\"",
+      "before": "\"$(grep -qi 'overrides any tool default' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must state the no-attribution rule overrides harness defaults that append a trailer')\"",
+      "key": "ORCH: no-attribution rule overrides harness defaults",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Implementer' rules/contract-orchestration.md 2>/dev/null && grep -q 'Validator' rules/contract-orchestration.md 2>/dev/null && grep -q 'Arbiter' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md missing role definitions')\"",
+      "before": "\"$(grep -q 'Implementer' rules/orchestration.md 2>/dev/null && grep -q 'Validator' rules/orchestration.md 2>/dev/null && grep -q 'Arbiter' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md missing role definitions')\"",
+      "key": "ORCH: orchestration defines the four roles",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qF 'Tracked knowledge and state are accepted' rules/contract-git-flow.md 2>/dev/null && grep -qF 'Keep untracked consumer state excluded' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must accept tracked knowledge while keeping untracked consumer state local by default')\"",
+      "before": "\"$(grep -qF 'Tracked knowledge and state are accepted' rules/git-flow.md 2>/dev/null && grep -qF 'Keep untracked consumer state excluded' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must accept tracked knowledge while keeping untracked consumer state local by default')\"",
+      "key": "ORCH: preflight accepts repository-owned tracked knowledge",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'dangling reference\\|file that does not exist in the repository' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must explain why product content cannot depend on internal planning references')\"",
+      "before": "\"$(grep -qi 'dangling reference\\|file that does not exist in the repository' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must explain why product content cannot depend on internal planning references')\"",
+      "key": "ORCH: product content remains independent of planning records",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'cannot be merged into' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must state plainly that a PR cannot be merged without its predecessors')\"",
+      "before": "\"$(grep -qi 'cannot be merged into' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must state plainly that a PR cannot be merged without its predecessors')\"",
+      "key": "ORCH: stack merge dependency is stated, not hidden",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'Shared-file discipline' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md missing shared-file discipline section')\"",
+      "before": "\"$(grep -qi 'Shared-file discipline' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md missing shared-file discipline section')\"",
+      "key": "ORCH: sub-agents do not write shared files",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'tip of branch N-1\\|tip of subtask N-1' rules/contract-git-flow.md 2>/dev/null && echo pass || echo 'contract-git-flow.md must define branches as cut from the previous subtask tip')\"",
+      "before": "\"$(grep -qi 'tip of branch N-1\\|tip of subtask N-1' rules/git-flow.md 2>/dev/null && echo pass || echo 'git-flow.md must define branches as cut from the previous subtask tip')\"",
+      "key": "ORCH: subtask branches stack on the previous subtask",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$SPECRUN_FLAT_GATE\" | grep -q 'Then \\*\\*stop and wait\\*\\*' && echo pass || echo 'spec-run.md batch gate no longer stops and waits \u2014 class-B questions are reserved for the human by contract-orchestration and no agent, arbiter included, may answer them')\"",
+      "before": "\"$(printf '%s' \"$SPECRUN_FLAT_GATE\" | grep -q 'Then \\*\\*stop and wait\\*\\*' && echo pass || echo 'spec-run.md batch gate no longer stops and waits \u2014 class-B questions are reserved for the human by orchestration and no agent, arbiter included, may answer them')\"",
+      "key": "ORCH: the batch gate actually stops and waits for the human",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'separate agent' rules/contract-orchestration.md 2>/dev/null && echo pass || echo 'contract-orchestration.md must require a separate Validator agent \u2014 A-prime collapsed into A')\"",
+      "before": "\"$(grep -q 'separate agent' rules/orchestration.md 2>/dev/null && echo pass || echo 'orchestration.md must require a separate Validator agent \u2014 A-prime collapsed into A')\"",
+      "key": "ORCH: validator is a separate agent from the implementer",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'spec-run' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md does not register /spec-run')\"",
+      "before": "\"$(grep -q 'spec-run' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md does not register /spec-run')\"",
+      "key": "ORCH: workflow-globals registers orchestrated mode",
+      "target": "result"
+    },
+    {
+      "after": "\"$(awk '/^## Protected Sections Contract/,/^## .ai\\/memory\\/state.md Entry Format/' rules/contract-state-files.md 2>/dev/null | grep -qF \"$sec\" && echo pass || echo \"contract-state-files.md Protected Sections Contract does not protect $sec \u2014 /compress-state may delete it before its reader runs\")\"",
+      "before": "\"$(awk '/^## Protected Sections Contract/,/^## .ai\\/memory\\/state.md Entry Format/' rules/workflow-reference.md 2>/dev/null | grep -qF \"$sec\" && echo pass || echo \"workflow-reference.md Protected Sections Contract does not protect $sec \u2014 /compress-state may delete it before its reader runs\")\"",
+      "key": "PROT: '$sec' is in the Protected Sections Contract",
+      "target": "result"
+    },
+    {
+      "after": "\"$(awk '/^## Protected Sections Contract/,/^## Multi-Phase Spec Rules/' rules/contract-state-files.md 2>/dev/null | grep -qE '^- `state_receipts:` lines' && echo pass || echo 'contract-state-files.md Protected Sections Contract does not protect state_receipts: lines \u2014 /compress-state could drop the receipts that make a repeated state-tool write idempotent')\"",
+      "before": "\"$(awk '/^## Protected Sections Contract/,/^## Multi-Phase Spec Rules/' rules/workflow-reference.md 2>/dev/null | grep -qE '^- `state_receipts:` lines' && echo pass || echo 'workflow-reference.md Protected Sections Contract does not protect state_receipts: lines \u2014 /compress-state could drop the receipts that make a repeated state-tool write idempotent')\"",
+      "key": "RECEIPTS: the Protected Sections Contract protects state_receipts: lines",
+      "target": "result"
+    },
+    {
+      "after": "\"$(state_tool_vocabulary_matches_rules && echo pass || echo 'scripts/state-tool.py vocabulary constants must list the values of their anchored lines in rules/contract-phases.md, in the same order')\"",
+      "before": "\"$(state_tool_vocabulary_matches_rules && echo pass || echo 'scripts/state-tool.py vocabulary constants must list the values of their anchored lines in rules/workflow-globals.md, in the same order')\"",
+      "key": "RECEIPTS: the state tool vocabulary constants equal the anchored status lines",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ \"$(grep -cxF 'Tool-managed field state_receipts: <operation_id>#<16-hex digest>, \u2026 \u2014 at most 20 entries, oldest first; written only by scripts/state-tool.py; never edited or removed by hand or by /compress-state.' rules/contract-phases.md 2>/dev/null)\" = 1 ] && grep -qF 'a block without a `state_receipts:` line is valid' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md must define state_receipts: on exactly one anchored line and state that a block without it is valid \u2014 otherwise the tool-managed field has no canonical definition')\"",
+      "before": "\"$([ \"$(grep -cxF 'Tool-managed field state_receipts: <operation_id>#<16-hex digest>, \u2026 \u2014 at most 20 entries, oldest first; written only by scripts/state-tool.py; never edited or removed by hand or by /compress-state.' rules/workflow-globals.md 2>/dev/null)\" = 1 ] && grep -qF 'a block without a `state_receipts:` line is valid' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md must define state_receipts: on exactly one anchored line and state that a block without it is valid \u2014 otherwise the tool-managed field has no canonical definition')\"",
+      "key": "RECEIPTS: workflow-globals defines state_receipts: on one anchored line and keeps blocks without it valid",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -rn 'contract-phases' rules/*.md workflows/*.md principles/*.md docs/USAGE.md 2>/dev/null | grep -q \"$section\" && echo \"a file cites 'contract-phases' for '$section', which lives in contract-state-files \u2014 the reference does not resolve\" || echo pass)\"",
+      "before": "\"$(grep -rn 'workflow-globals' rules/*.md workflows/*.md principles/*.md docs/USAGE.md 2>/dev/null | grep -q \"$section\" && echo \"a file cites 'workflow-globals' for '$section', which lives in workflow-reference \u2014 the reference does not resolve\" || echo pass)\"",
+      "key": "REF: '$section' is not cited as living in workflow-globals",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Status Translation Table in contract-state-files' workflows/pae-finalize.md 2>/dev/null && echo pass || echo 'pae-finalize.md must cite contract-state-files for the Status Translation Table')\"",
+      "before": "\"$(grep -q 'Status Translation Table in workflow-reference' workflows/pae-finalize.md 2>/dev/null && echo pass || echo 'pae-finalize.md must cite workflow-reference for the Status Translation Table')\"",
+      "key": "REF: pae-finalize cites workflow-reference for the translation table",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Status Translation Table in contract-state-files' workflows/pav-close.md 2>/dev/null && echo pass || echo 'pav-close.md must cite contract-state-files for the Status Translation Table')\"",
+      "before": "\"$(grep -q 'Status Translation Table in workflow-reference' workflows/pav-close.md 2>/dev/null && echo pass || echo 'pav-close.md must cite workflow-reference for the Status Translation Table')\"",
+      "key": "REF: pav-close cites workflow-reference for the translation table",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'See .protocol-discovery-conduct.md \u2192 ## Execution Modes' rules/protocol-discovery-conduct.md 2>/dev/null && echo 'rules/protocol-discovery-conduct.md points at itself for ## Execution Modes \u2014 that section lives in the workflow' || echo pass)\"",
+      "before": "\"$(grep -q 'See .phase-discovery.md \u2192 ## Execution Modes' rules/phase-discovery.md 2>/dev/null && echo 'rules/phase-discovery.md points at itself for ## Execution Modes \u2014 that section lives in the workflow' || echo pass)\"",
+      "key": "REF: rules/phase-discovery does not point at itself for ## Execution Modes",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ \"$(grep -cF 'Never wrap or rephrase a denied command to evade the check.' \"$SAFETY_RAILS_RULE\" 2>/dev/null)\" = 1 ] && safety_rails_section | grep -qF 'Never wrap or rephrase a denied command to evade the check.' && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails must state once: 'Never wrap or rephrase a denied command to evade the check.'\")\"",
+      "before": "\"$([ \"$(grep -cF 'Never wrap or rephrase a denied command to evade the check.' \"$SAFETY_RAILS_RULE\" 2>/dev/null)\" = 1 ] && safety_rails_section | grep -qF 'Never wrap or rephrase a denied command to evade the check.' && echo pass || echo \"git-flow.md \u2192 ## Safety rails must state once: 'Never wrap or rephrase a denied command to evade the check.'\")\"",
+      "key": "SAFETY: a denied command is never wrapped or rephrased to evade the check",
+      "target": "result"
+    },
+    {
+      "after": "\"$(row=\"$(safety_rail_row 'to an unprotected `<base>`')\"; printf '%s' \"$row\" | grep -qF '**Forbidden, always**' && [ \"$(safety_rail_enforced_as 'to an unprotected `<base>`' '`text only`')\" = pass ] && ! safety_rail_row 'any protected branch' | grep -qF '`<base>`' && echo pass || echo \"contract-git-flow.md must record a push to an unprotected <base> as Forbidden, always with text only, and keep <base> off the protected push row\")\"",
+      "before": "\"$(row=\"$(safety_rail_row 'to an unprotected `<base>`')\"; printf '%s' \"$row\" | grep -qF '**Forbidden, always**' && [ \"$(safety_rail_enforced_as 'to an unprotected `<base>`' '`text only`')\" = pass ] && ! safety_rail_row 'any protected branch' | grep -qF '`<base>`' && echo pass || echo \"git-flow.md must record a push to an unprotected <base> as Forbidden, always with text only, and keep <base> off the protected push row\")\"",
+      "key": "SAFETY: a push to an unprotected base is recorded as a textual rail",
+      "target": "result"
+    },
+    {
+      "after": "\"$(owner_approval_protocol_has 'A `hook: ask` row grants no right' && echo pass || echo \"contract-git-flow.md \u2192 ### Owner approval protocol must state that a hook: ask row grants no right beyond its Policy\")\"",
+      "before": "\"$(owner_approval_protocol_has 'A `hook: ask` row grants no right' && echo pass || echo \"git-flow.md \u2192 ### Owner approval protocol must state that a hook: ask row grants no right beyond its Policy\")\"",
+      "key": "SAFETY: an Enforcement of hook: ask grants no right beyond the Policy column",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_has 'a rule that needs the protected set denies with `default-branch-unknown`' && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails must say a rule that needs the protected set denies with default-branch-unknown when the target remote's default branch is unknown\")\"",
+      "before": "\"$(safety_rails_has 'a rule that needs the protected set denies with `default-branch-unknown`' && echo pass || echo \"git-flow.md \u2192 ## Safety rails must say a rule that needs the protected set denies with default-branch-unknown when the target remote's default branch is unknown\")\"",
+      "key": "SAFETY: an unknown default branch of the target remote denies every rule that needs the protected set",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F 'Branch deletion' | head -n 1 | grep -qiF 'owner approval required; a verified temporary child-branch exception is planned' && ! grep -rqiE '\\bspecs? #?[0-9]+' rules/ 2>/dev/null && ! safety_rails_section | grep -qE -- \"$PIPELINE_IDENTIFIER_RE\" && echo pass || echo \"contract-git-flow.md branch-deletion row must read 'owner approval required; a verified temporary child-branch exception is planned', and no rule file or Safety rails text may name a spec, subtask or decision record\")\"",
+      "before": "\"$(safety_rails_rows | grep -F 'Branch deletion' | head -n 1 | grep -qiF 'owner approval required; a verified temporary child-branch exception is planned' && ! grep -rqiE '\\bspecs? #?[0-9]+' rules/ 2>/dev/null && ! safety_rails_section | grep -qE -- \"$PIPELINE_IDENTIFIER_RE\" && echo pass || echo \"git-flow.md branch-deletion row must read 'owner approval required; a verified temporary child-branch exception is planned', and no rule file or Safety rails text may name a spec, subtask or decision record\")\"",
+      "key": "SAFETY: branch deletion needs owner approval, and no rule file names a spec by number",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_enforcement_complete && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails needs the header '$SAFETY_RAILS_HEADER' and one vocabulary value per row; offending rows: $(safety_rails_offending_rows | head -n 3 | tr '\\n' ' ')\")\"",
+      "before": "\"$(safety_rails_enforcement_complete && echo pass || echo \"git-flow.md \u2192 ## Safety rails needs the header '$SAFETY_RAILS_HEADER' and one vocabulary value per row; offending rows: $(safety_rails_offending_rows | head -n 3 | tr '\\n' ' ')\")\"",
+      "key": "SAFETY: every Safety rails row has exactly one Enforcement value from the vocabulary",
+      "target": "result"
+    },
+    {
+      "after": "\"$(protected_rows_point_at_set && echo pass || echo \"every contract-git-flow.md safety-rail row naming a protected branch must point at the protected set: $(safety_rails_rows | grep -E '\\bprotected branch' | grep -vF 'protected set' | cut -c1-60 | tr '\\n' ';')\")\"",
+      "before": "\"$(protected_rows_point_at_set && echo pass || echo \"every git-flow.md safety-rail row naming a protected branch must point at the protected set: $(safety_rails_rows | grep -E '\\bprotected branch' | grep -vF 'protected set' | cut -c1-60 | tr '\\n' ';')\")\"",
+      "key": "SAFETY: every row that names a protected branch points at the protected set",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rail_row \"$REWRITE_ROW\" | grep -qF '`git reset --soft`/`--mixed`/`--keep`/`--merge` on any branch, protected ones included' && echo pass || echo \"contract-git-flow.md '$REWRITE_ROW' row must name git reset --soft/--mixed/--keep/--merge on any branch, protected ones included\")\"",
+      "before": "\"$(safety_rail_row \"$REWRITE_ROW\" | grep -qF '`git reset --soft`/`--mixed`/`--keep`/`--merge` on any branch, protected ones included' && echo pass || echo \"git-flow.md '$REWRITE_ROW' row must name git reset --soft/--mixed/--keep/--merge on any branch, protected ones included\")\"",
+      "key": "SAFETY: git reset other than --hard is recorded as unchecked on every branch",
+      "target": "result"
+    },
+    {
+      "after": "\"$(protected_set_defined && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails must define, on one line starting '$PROTECTED_SET_PREFIX', the target remote's default branch, main, master, release/* and the git config orchestrail.protectedBranch patterns\")\"",
+      "before": "\"$(protected_set_defined && echo pass || echo \"git-flow.md \u2192 ## Safety rails must define, on one line starting '$PROTECTED_SET_PREFIX', the target remote's default branch, main, master, release/* and the git config orchestrail.protectedBranch patterns\")\"",
+      "key": "SAFETY: git-flow defines the protected branch set on one anchored line",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F '`hook: ask` |' | grep -qiE 'rewrit[a-z]* a commit already pushed' && echo \"contract-git-flow.md records rewriting a pushed commit in general as hook: ask, but the hook asks only for an amend of a published commit and for a rebase\" || echo pass)\"",
+      "before": "\"$(safety_rails_rows | grep -F '`hook: ask` |' | grep -qiE 'rewrit[a-z]* a commit already pushed' && echo \"git-flow.md records rewriting a pushed commit in general as hook: ask, but the hook asks only for an amend of a published commit and for a rebase\" || echo pass)\"",
+      "key": "SAFETY: no hook: ask row claims every rewrite of a pushed commit",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F '`hook: ask` |' | grep -qiF 'resetting a protected branch' && echo \"contract-git-flow.md records resetting a protected branch as hook: ask, but git reset other than --hard is allowed on every branch\" || echo pass)\"",
+      "before": "\"$(safety_rails_rows | grep -F '`hook: ask` |' | grep -qiF 'resetting a protected branch' && echo \"git-flow.md records resetting a protected branch as hook: ask, but git reset other than --hard is allowed on every branch\" || echo pass)\"",
+      "key": "SAFETY: no hook: ask row claims resetting a protected branch",
+      "target": "result"
+    },
+    {
+      "after": "\"$(local_rewrite_row_documented && echo pass || echo \"contract-git-flow.md needs a '$REWRITE_ROW' row naming git reset --soft, git branch -f <b> <rev>, git checkout -B <b> <rev> and git pull --rebase, Policy only inside /restack with publication gated by the forced push, Enforcement text only\")\"",
+      "before": "\"$(local_rewrite_row_documented && echo pass || echo \"git-flow.md needs a '$REWRITE_ROW' row naming git reset --soft, git branch -f <b> <rev>, git checkout -B <b> <rev> and git pull --rebase, Policy only inside /restack with publication gated by the forced push, Enforcement text only\")\"",
+      "key": "SAFETY: other local rewrites of a pushed branch are recorded as a textual rail",
+      "target": "result"
+    },
+    {
+      "after": "\"$(owner_approval_protocol_has 'Approval covers that one execution only' 'A rejection is final for that operation' 'do not retry or rephrase the command' && echo pass || echo \"contract-git-flow.md \u2192 ### Owner approval protocol must limit approval to one execution and make a rejection final without retry or rephrasing\")\"",
+      "before": "\"$(owner_approval_protocol_has 'Approval covers that one execution only' 'A rejection is final for that operation' 'do not retry or rephrase the command' && echo pass || echo \"git-flow.md \u2192 ### Owner approval protocol must limit approval to one execution and make a rejection final without retry or rephrasing\")\"",
+      "key": "SAFETY: owner approval covers one execution and a rejection is final",
+      "target": "result"
+    },
+    {
+      "after": "\"$(owner_approval_protocol_has 'explain in chat: the exact command, which rail it crosses, why it is needed, what can be lost, and how to undo it' && echo pass || echo \"contract-git-flow.md \u2192 ### Owner approval protocol must require the exact command, the rail, the reason, the possible loss and the undo before an ask operation\")\"",
+      "before": "\"$(owner_approval_protocol_has 'explain in chat: the exact command, which rail it crosses, why it is needed, what can be lost, and how to undo it' && echo pass || echo \"git-flow.md \u2192 ### Owner approval protocol must require the exact command, the rail, the reason, the possible loss and the undo before an ask operation\")\"",
+      "key": "SAFETY: owner approval starts with an explanation in chat before the command",
+      "target": "result"
+    },
+    {
+      "after": "\"$(owner_approval_protocol_has '`owner-approval-unavailable`' 'give the owner the explanation and the exact command' '`! <command>`' 'or gives other instructions' && echo pass || echo \"contract-git-flow.md \u2192 ### Owner approval protocol must stop on owner-approval-unavailable and let the owner run the command outside the agent or give other instructions\")\"",
+      "before": "\"$(owner_approval_protocol_has '`owner-approval-unavailable`' 'give the owner the explanation and the exact command' '`! <command>`' 'or gives other instructions' && echo pass || echo \"git-flow.md \u2192 ### Owner approval protocol must stop on owner-approval-unavailable and let the owner run the command outside the agent or give other instructions\")\"",
+      "key": "SAFETY: owner approval unavailable stops and hands the command to the owner",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_has 'or denies it with `owner-approval-unavailable` where no person can be prompted' && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails intro must say hook: ask denies with owner-approval-unavailable where no person can be prompted\")\"",
+      "before": "\"$(safety_rails_has 'or denies it with `owner-approval-unavailable` where no person can be prompted' && echo pass || echo \"git-flow.md \u2192 ## Safety rails intro must say hook: ask denies with owner-approval-unavailable where no person can be prompted\")\"",
+      "key": "SAFETY: the Enforcement intro says a hook ask denies where no person can be prompted",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rail_row 'Branch deletion' | grep -qF '`git branch -d`' && safety_rail_row 'Branch deletion' | grep -qF 'harness capability record' && echo pass || echo \"contract-git-flow.md branch-deletion row must name the git forms the hook asks about and point gh deletions at the harness capability record\")\"",
+      "before": "\"$(safety_rail_row 'Branch deletion' | grep -qF '`git branch -d`' && safety_rail_row 'Branch deletion' | grep -qF 'harness capability record' && echo pass || echo \"git-flow.md branch-deletion row must name the git forms the hook asks about and point gh deletions at the harness capability record\")\"",
+      "key": "SAFETY: the branch-deletion row is limited to git and points gh deletions at the capability record",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rail_row '`git push --force`' | grep -qF 'a dry run (`--dry-run` or `-n`) of any forced push is allowed' && echo pass || echo \"contract-git-flow.md force-push row must note that a dry run of any forced push is allowed\")\"",
+      "before": "\"$(safety_rail_row '`git push --force`' | grep -qF 'a dry run (`--dry-run` or `-n`) of any forced push is allowed' && echo pass || echo \"git-flow.md force-push row must note that a dry run of any forced push is allowed\")\"",
+      "key": "SAFETY: the force-push row notes that dry-run forced pushes are allowed",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F \"\\`$RESTACK_PUSH_FORM\\`\" | head -n 1 | grep -qF 'the restack journal verifies for every destination' && echo pass || echo \"contract-git-flow.md lease row allowed with the restack journal must say the journal verifies every destination, not only the form /restack uses\")\"",
+      "before": "\"$(safety_rails_rows | grep -F \"\\`$RESTACK_PUSH_FORM\\`\" | head -n 1 | grep -qF 'the restack journal verifies for every destination' && echo pass || echo \"git-flow.md lease row allowed with the restack journal must say the journal verifies every destination, not only the form /restack uses\")\"",
+      "key": "SAFETY: the journal-verified lease row covers every destination the journal verifies",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F '`+` refspec' | head -n 1 | grep -qF 'the restack journal does not verify' && ! grep -qF 'Any other lease form' \"$SAFETY_RAILS_RULE\" && echo pass || echo \"contract-git-flow.md must record as hook: ask the forced pushes the restack journal does not verify, not 'any other lease form'\")\"",
+      "before": "\"$(safety_rails_rows | grep -F '`+` refspec' | head -n 1 | grep -qF 'the restack journal does not verify' && ! grep -qF 'Any other lease form' \"$SAFETY_RAILS_RULE\" && echo pass || echo \"git-flow.md must record as hook: ask the forced pushes the restack journal does not verify, not 'any other lease form'\")\"",
+      "key": "SAFETY: the lease row that asks names pushes the journal does not verify",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rail_row '`git merge` or `git pull` into a' | grep -qF 'except `git pull --ff-only` from the configured upstream' && echo pass || echo \"contract-git-flow.md merge row must except git pull --ff-only from the configured upstream, which the hook allows\")\"",
+      "before": "\"$(safety_rail_row '`git merge` or `git pull` into a' | grep -qF 'except `git pull --ff-only` from the configured upstream' && echo pass || echo \"git-flow.md merge row must except git pull --ff-only from the configured upstream, which the hook allows\")\"",
+      "key": "SAFETY: the merge-into-protected row excepts git pull --ff-only from the upstream",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_rows | grep -F '`GIT_*` assignments' | head -n 1 | grep -qF 'governed by a row of this table' && echo pass || echo \"contract-git-flow.md opaque-forms row must be limited to git or gh commands governed by a row of the table\")\"",
+      "before": "\"$(safety_rails_rows | grep -F '`GIT_*` assignments' | head -n 1 | grep -qF 'governed by a row of this table' && echo pass || echo \"git-flow.md opaque-forms row must be limited to git or gh commands governed by a row of the table\")\"",
+      "key": "SAFETY: the opaque-forms row applies to governed git and gh invocations",
+      "target": "result"
+    },
+    {
+      "after": "\"$(row=\"$(safety_rail_row '`GIT_*` assignments')\"; printf '%s' \"$row\" | grep -qF ', git aliases,' && ! printf '%s' \"${row//git aliases/}\" | grep -qiF 'alias' && echo pass || echo \"contract-git-flow.md opaque-forms row must name git aliases, not aliases in general: gh aliases are not checked\")\"",
+      "before": "\"$(row=\"$(safety_rail_row '`GIT_*` assignments')\"; printf '%s' \"$row\" | grep -qF ', git aliases,' && ! printf '%s' \"${row//git aliases/}\" | grep -qiF 'alias' && echo pass || echo \"git-flow.md opaque-forms row must name git aliases, not aliases in general: gh aliases are not checked\")\"",
+      "key": "SAFETY: the opaque-forms row names git aliases only",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rail_row 'any protected branch (protected set above)' | grep -qF 'a non-forced dry run (`--dry-run` or `-n`) is allowed' && echo pass || echo \"contract-git-flow.md protected-push row must note that a non-forced dry run (--dry-run or -n) is allowed\")\"",
+      "before": "\"$(safety_rail_row 'any protected branch (protected set above)' | grep -qF 'a non-forced dry run (`--dry-run` or `-n`) is allowed' && echo pass || echo \"git-flow.md protected-push row must note that a non-forced dry run (--dry-run or -n) is allowed\")\"",
+      "key": "SAFETY: the protected-push row notes that a non-forced dry run is allowed",
+      "target": "result"
+    },
+    {
+      "after": "\"$(safety_rails_has 'The rules check no read-only or unlisted operation' 'the hook still denies any git or gh command it cannot verify' 'while the project registry or the hook runtime is unusable' 'harness capability record' && echo pass || echo \"contract-git-flow.md \u2192 ## Safety rails must say the rules check no read-only or unlisted operation while the hook still denies unverifiable forms and every relevant command while the registry or runtime is unusable, pointing at the harness capability record\")\"",
+      "before": "\"$(safety_rails_has 'The rules check no read-only or unlisted operation' 'the hook still denies any git or gh command it cannot verify' 'while the project registry or the hook runtime is unusable' 'harness capability record' && echo pass || echo \"git-flow.md \u2192 ## Safety rails must say the rules check no read-only or unlisted operation while the hook still denies unverifiable forms and every relevant command while the registry or runtime is unusable, pointing at the harness capability record\")\"",
+      "key": "SAFETY: unlisted operations are ungoverned, yet the hook still denies unverifiable forms and an unusable registry or runtime",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-state-files.md 2>/dev/null | tr -s ' ' | grep -q 'There is no .## Blocked. section' && echo pass || echo 'contract-state-files Entry Format does not say where a blocked task is recorded, so dropping ## Blocked from the seed is undocumented')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/workflow-reference.md 2>/dev/null | tr -s ' ' | grep -q 'There is no .## Blocked. section' && echo pass || echo 'workflow-reference Entry Format does not say where a blocked task is recorded, so dropping ## Blocked from the seed is undocumented')\"",
+      "key": "SEED: the Entry Format documents where a blocked task lives",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$DELTA_CLAUSE\" | grep -qF \"$path\" && echo pass || echo \"workflows/$wf.md instructs a sub-agent to write $path, which contract-orchestration ## Shared-file discipline forbids and its delta-return clause does not name\")\"",
+      "before": "\"$(printf '%s' \"$DELTA_CLAUSE\" | grep -qF \"$path\" && echo pass || echo \"workflows/$wf.md instructs a sub-agent to write $path, which orchestration ## Shared-file discipline forbids and its delta-return clause does not name\")\"",
+      "key": "SHARED: $path written by $wf is covered by the delta-return clause",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$DELTA_CLAUSE\" | grep -q 'phase-composite-validation' && echo pass || echo 'rules/contract-orchestration.md ## Shared-file discipline does not list /phase-composite-validation, although the Validator reaches it and it writes four shared artifacts \u2014 the table claims to cover every such case')\"",
+      "before": "\"$(printf '%s' \"$DELTA_CLAUSE\" | grep -q 'phase-composite-validation' && echo pass || echo 'rules/orchestration.md ## Shared-file discipline does not list /phase-composite-validation, although the Validator reaches it and it writes four shared artifacts \u2014 the table claims to cover every such case')\"",
+      "key": "SHARED: orchestration names phase-composite-validation in the delta-return table",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ -n \"$DELTA_CLAUSE\" ] && echo pass || echo 'rules/contract-orchestration.md has no delta-return clause \u2014 every shared-file write instruction in a sub-agent workflow is then a flat contradiction')\"",
+      "before": "\"$([ -n \"$DELTA_CLAUSE\" ] && echo pass || echo 'rules/orchestration.md has no delta-return clause \u2014 every shared-file write instruction in a sub-agent workflow is then a flat contradiction')\"",
+      "key": "SHARED: orchestration still has a delta-return clause",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'composite.s rollup row is not' && echo pass || echo 'contract-orchestration no longer states that a composite rollup row is not any single sub-agent own row \u2014 the carve-out would then appear to license the Validator writing it')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'composite.s rollup row is not' && echo pass || echo 'orchestration no longer states that a composite rollup row is not any single sub-agent own row \u2014 the carve-out would then appear to license the Validator writing it')\"",
+      "key": "SHARED: the composite block is excluded from the own-progress-block carve-out",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'does \\*\\*not\\*\\* extend to .plan.md.' && echo pass || echo 'contract-orchestration ## Shared-file discipline no longer states that the own-progress-block carve-out excludes plan.md')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'does \\*\\*not\\*\\* extend to .plan.md.' && echo pass || echo 'orchestration ## Shared-file discipline no longer states that the own-progress-block carve-out excludes plan.md')\"",
+      "key": "SHARED: the progress-block carve-out is not extended to plan.md",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE '^- .Slice. column values' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'contract-state-files Protected Sections Contract no longer protects the Slice column values that pd-decompose writes')\"",
+      "before": "\"$(grep -qE '^- .Slice. column values' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference Protected Sections Contract no longer protects the Slice column values that pd-decompose writes')\"",
+      "key": "SLICE: the Slice column is still protected in workflow-reference",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$WFR_FLAT\" | grep -q 'Do NOT edit the spec file directly. (The completion frontmatter written by ./pv-finalize. step 2.5 is not an amendment' && echo pass || echo 'contract-state-files Amendment procedure no longer scopes its prohibition against the one write pv-finalize performs')\"",
+      "before": "\"$(printf '%s' \"$WFR_FLAT\" | grep -q 'Do NOT edit the spec file directly. (The completion frontmatter written by ./pv-finalize. step 2.5 is not an amendment' && echo pass || echo 'workflow-reference Amendment procedure no longer scopes its prohibition against the one write pv-finalize performs')\"",
+      "key": "SPEC: active-work amendments preserve the source spec outside controlled exceptions",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$WFR_FLAT\" | grep -q 'Add a .### Description Amendments. section to the task-level .state.md' && echo pass || echo 'contract-state-files no longer routes spec content changes into state.md \u2014 the carve-out for the completion marker would then read as general permission to edit specs')\"",
+      "before": "\"$(printf '%s' \"$WFR_FLAT\" | grep -q 'Add a .### Description Amendments. section to the task-level .state.md' && echo pass || echo 'workflow-reference no longer routes spec content changes into state.md \u2014 the carve-out for the completion marker would then read as general permission to edit specs')\"",
+      "key": "SPEC: content changes still go to state.md, not the spec",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ \"$SPEC_WRITER\" = no ] && echo pass || (printf '%s' \"$WFR_FLAT\" | grep -q 'completion marker, not a change to the task statement' && echo pass || echo 'pv-finalize step 2.5 writes to the spec file while contract-state-files calls the spec immutable and forbids editing it directly, with no carve-out naming the completion marker'))\"",
+      "before": "\"$([ \"$SPEC_WRITER\" = no ] && echo pass || (printf '%s' \"$WFR_FLAT\" | grep -q 'completion marker, not a change to the task statement' && echo pass || echo 'pv-finalize step 2.5 writes to the spec file while workflow-reference calls the spec immutable and forbids editing it directly, with no carve-out naming the completion marker'))\"",
+      "key": "SPEC: the completion-marker write is a named carve-out from immutability",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'immutable' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'contract-state-files no longer states that the spec is immutable, which is the rule spec-sync deliberately does not weaken')\"",
+      "before": "\"$(grep -qi 'immutable' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference no longer states that the spec is immutable, which is the rule spec-sync deliberately does not weaken')\"",
+      "key": "SPECSYNC: spec immutability during a task is still stated",
+      "target": "result"
+    },
+    {
+      "after": "\"$(for v in not-started red pinned green n-a failed; do grep -q \"$v\" scripts/validate-task.sh || exit 1; done && echo pass || echo 'scripts/validate-task.sh does not accept every atomic-tests value defined in contract-phases \u2014 a legal status would be reported as a contract failure')\"",
+      "before": "\"$(for v in not-started red pinned green n-a failed; do grep -q \"$v\" scripts/validate-task.sh || exit 1; done && echo pass || echo 'scripts/validate-task.sh does not accept every atomic-tests value defined in workflow-globals \u2014 a legal status would be reported as a contract failure')\"",
+      "key": "TASKVAL: the validator accepts the full atomic-tests vocabulary",
+      "target": "result"
+    },
+    {
+      "after": "\"$(tr '\\n' ' ' < rules/contract-orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'pauses once, at RED' && echo pass || echo 'contract-orchestration ### Implementer does not mention the RED pause spec-run 4.2 depends on \u2014 the two files disagree on the sequence')\"",
+      "before": "\"$(tr '\\n' ' ' < rules/orchestration.md 2>/dev/null | tr -s ' ' | grep -q 'pauses once, at RED' && echo pass || echo 'orchestration ### Implementer does not mention the RED pause spec-run 4.2 depends on \u2014 the two files disagree on the sequence')\"",
+      "key": "TDD-GIT: orchestration Implementer section names the RED pause",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$ORCH_ORCH_ROW\" | grep -q 'git operations' && echo pass || echo 'contract-orchestration ## Roles Orchestrator row no longer owns git operations, contradicting spec-run 4.2')\"",
+      "before": "\"$(printf '%s' \"$ORCH_ORCH_ROW\" | grep -q 'git operations' && echo pass || echo 'orchestration ## Roles Orchestrator row no longer owns git operations, contradicting spec-run 4.2')\"",
+      "key": "TDD-GIT: orchestration Roles table gives git operations to the orchestrator",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ -n \"$ORCH_IMPL_ROW\" ] && ! printf '%s' \"$ORCH_IMPL_ROW\" | grep -qi 'git' && printf '%s' \"$ORCH_IMPL_ROW\" | grep -q 'code, tests' && echo pass || echo 'contract-orchestration ## Roles Implementer row is missing, or now claims the Implementer writes git \u2014 spec-run 4.2 gives every commit to the orchestrator')\"",
+      "before": "\"$([ -n \"$ORCH_IMPL_ROW\" ] && ! printf '%s' \"$ORCH_IMPL_ROW\" | grep -qi 'git' && printf '%s' \"$ORCH_IMPL_ROW\" | grep -q 'code, tests' && echo pass || echo 'orchestration ## Roles Implementer row is missing, or now claims the Implementer writes git \u2014 spec-run 4.2 gives every commit to the orchestrator')\"",
+      "key": "TDD-GIT: orchestration Roles table still keeps git out of the Implementer",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$SPECRUN_FLAT\" | grep -qE 'report RED and wait|stops and reports' && echo pass || echo 'spec-run.md step 4.2 does not stop the Implementer at RED, so the test-only commit contract-git-flow requires cannot be created')\"",
+      "before": "\"$(printf '%s' \"$SPECRUN_FLAT\" | grep -qE 'report RED and wait|stops and reports' && echo pass || echo 'spec-run.md step 4.2 does not stop the Implementer at RED, so the test-only commit git-flow requires cannot be created')\"",
+      "key": "TDD-GIT: spec-run names a RED checkpoint, not just two commit points",
+      "target": "result"
+    },
+    {
+      "after": "\"$(printf '%s' \"$SPECRUN_FLAT\" | grep -q 'atomic-tests: n-a' && printf '%s' \"$SPECRUN_FLAT\" | grep -q 'single implementation commit' && echo pass || echo 'spec-run.md step 4.2 does not carry the atomic-tests: n-a exception \u2014 contract-git-flow allows a single commit only in that case')\"",
+      "before": "\"$(printf '%s' \"$SPECRUN_FLAT\" | grep -q 'atomic-tests: n-a' && printf '%s' \"$SPECRUN_FLAT\" | grep -q 'single implementation commit' && echo pass || echo 'spec-run.md step 4.2 does not carry the atomic-tests: n-a exception \u2014 git-flow allows a single commit only in that case')\"",
+      "key": "TDD-GIT: the n-a case still yields a single implementation commit",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE 'Justification record \\(mandatory when .none.\\)' rules/contract-tdd.md 2>/dev/null && grep -qE '^tdd: none \u2014' rules/contract-tdd.md 2>/dev/null && echo pass || echo 'rules/contract-tdd.md no longer mandates the tdd: none \u2014 <...> justification record, so an n-a subtask can be closed with no reason for /pav-check to audit')\"",
+      "before": "\"$(grep -qE 'Justification record \\(mandatory when .none.\\)' rules/tdd.md 2>/dev/null && grep -qE '^tdd: none \u2014' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md no longer mandates the tdd: none \u2014 <...> justification record, so an n-a subtask can be closed with no reason for /pav-check to audit')\"",
+      "key": "TDD: 'none' level requires justification",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'pae-tests' docs/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing pae-tests in atomic cycle / child workflow table')\"",
+      "before": "\"$(grep -q 'pae-tests' workflows/PIPELINE.md 2>/dev/null && echo pass || echo 'PIPELINE.md missing pae-tests in atomic cycle / child workflow table')\"",
+      "key": "TDD: PIPELINE.md documents the three-step atomic cycle",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'atomic-tests:' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing atomic-tests: field definition')\"",
+      "before": "\"$(grep -q 'atomic-tests:' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing atomic-tests: field definition')\"",
+      "key": "TDD: atomic-tests field defined in workflow-globals",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'atomic-tests:' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'contract-state-files.md missing atomic-tests: field in Subtask Progress format')\"",
+      "before": "\"$(grep -q 'atomic-tests:' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing atomic-tests: field in Subtask Progress format')\"",
+      "key": "TDD: atomic-tests field defined in workflow-reference",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q \"\\`$tstatus\\`\" rules/contract-phases.md 2>/dev/null && echo pass || echo \"contract-phases.md missing atomic-tests status: $tstatus\")\"",
+      "before": "\"$(grep -q \"\\`$tstatus\\`\" rules/workflow-globals.md 2>/dev/null && echo pass || echo \"workflow-globals.md missing atomic-tests status: $tstatus\")\"",
+      "key": "TDD: atomic-tests status '$tstatus' in workflow-globals",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'pre-TDD' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing pre-TDD backward-compatibility rule for absent atomic-tests field')\"",
+      "before": "\"$(grep -qi 'pre-TDD' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing pre-TDD backward-compatibility rule for absent atomic-tests field')\"",
+      "key": "TDD: backward compatibility for missing atomic-tests documented",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q '## TDD (quick)' rules/contract-quick-flow.md 2>/dev/null && echo pass || echo 'contract-quick-flow.md missing inline TDD step / ## TDD (quick) section')\"",
+      "before": "\"$(grep -q '## TDD (quick)' rules/quick-flow.md 2>/dev/null && echo pass || echo 'quick-flow.md missing inline TDD step / ## TDD (quick) section')\"",
+      "key": "TDD: quick-flow mandates inline TDD step",
+      "target": "result"
+    },
+    {
+      "after": "\"$([ -f rules/contract-tdd.md ] && echo pass || echo 'rules/contract-tdd.md not found')\"",
+      "before": "\"$([ -f rules/tdd.md ] && echo pass || echo 'rules/tdd.md not found')\"",
+      "key": "TDD: rules/tdd.md exists",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'tdd: test amended' rules/contract-tdd.md 2>/dev/null && grep -q 'tdd: test amended' workflows/pae-implement.md 2>/dev/null && echo pass || echo 'the tdd: test amended record is missing from rules/contract-tdd.md or workflows/pae-implement.md \u2014 an amendment could then be made with no audit line for /pav-check to find')\"",
+      "before": "\"$(grep -q 'tdd: test amended' rules/tdd.md 2>/dev/null && grep -q 'tdd: test amended' workflows/pae-implement.md 2>/dev/null && echo pass || echo 'the tdd: test amended record is missing from rules/tdd.md or workflows/pae-implement.md \u2014 an amendment could then be made with no audit line for /pav-check to find')\"",
+      "key": "TDD: tdd rule and pae-implement agree that weakening needs a recorded amendment",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'smoke' rules/contract-tdd.md 2>/dev/null && grep -q 'contract' rules/contract-tdd.md 2>/dev/null && echo pass || echo 'rules/contract-tdd.md missing test-level gate levels (unit/integration/contract/smoke/none)')\"",
+      "before": "\"$(grep -q 'smoke' rules/tdd.md 2>/dev/null && grep -q 'contract' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md missing test-level gate levels (unit/integration/contract/smoke/none)')\"",
+      "key": "TDD: test-level gate defined in tdd rule",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'Test-first execution' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing Test-first execution global principle')\"",
+      "before": "\"$(grep -qi 'Test-first execution' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing Test-first execution global principle')\"",
+      "key": "TDD: workflow-globals has Test-first execution principle",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE \"^\\| \\`blocked\\` +\\| +\\`blocked\\`\" rules/contract-state-files.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the blocked \u2192 blocked row')\"",
+      "before": "\"$(grep -qE \"^\\| \\`blocked\\` +\\| +\\`blocked\\`\" rules/workflow-reference.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the blocked \u2192 blocked row')\"",
+      "key": "Translation table: blocked \u2192 blocked row",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'complete.*atomic-execution' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'Status Translation Table missing: complete (atomic-execution)')\"",
+      "before": "\"$(grep -q 'complete.*atomic-execution' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'Status Translation Table missing: complete (atomic-execution)')\"",
+      "key": "Translation table: complete (atomic-execution)",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'complete.*atomic-validation' rules/contract-state-files.md 2>/dev/null && echo pass || echo 'Status Translation Table missing: complete (atomic-validation)')\"",
+      "before": "\"$(grep -q 'complete.*atomic-validation' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'Status Translation Table missing: complete (atomic-validation)')\"",
+      "key": "Translation table: complete (atomic-validation)",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE \"^\\| \\`failed\\` +\\| +\\`blocked\\`\" rules/contract-state-files.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the failed \u2192 blocked row')\"",
+      "before": "\"$(grep -qE \"^\\| \\`failed\\` +\\| +\\`blocked\\`\" rules/workflow-reference.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the failed \u2192 blocked row')\"",
+      "key": "Translation table: failed \u2192 blocked row",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE \"^\\| \\`skipped\\` +\\| +\\`not-reached\\`\" rules/contract-state-files.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the skipped \u2192 not-reached row')\"",
+      "before": "\"$(grep -qE \"^\\| \\`skipped\\` +\\| +\\`not-reached\\`\" rules/workflow-reference.md 2>/dev/null && echo pass || echo 'Status Translation Table missing the skipped \u2192 not-reached row')\"",
+      "key": "Translation table: skipped \u2192 not-reached row",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qi 'chat replies in Russian\\|Russian in chat' docs/USAGE.md 2>/dev/null && echo 'docs/USAGE.md claims contract-language.md sets a chat language; the rule explicitly refuses to' || echo pass)\"",
+      "before": "\"$(grep -qi 'chat replies in Russian\\|Russian in chat' docs/USAGE.md 2>/dev/null && echo 'docs/USAGE.md claims language.md sets a chat language; the rule explicitly refuses to' || echo pass)\"",
+      "key": "USAGE: does not claim the language rule sets a chat language",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qE \"^\\| \\`$status\\` \\|\" rules/contract-phases.md 2>/dev/null && echo pass || echo \"contract-phases.md plan.md status table is missing a row for: $status\")\"",
+      "before": "\"$(grep -qE \"^\\| \\`$status\\` \\|\" rules/workflow-globals.md 2>/dev/null && echo pass || echo \"workflow-globals.md plan.md status table is missing a row for: $status\")\"",
+      "key": "plan.md status '$status' has a row in the workflow-globals status table",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q '\\[composite\\]' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing [composite] block kind')\"",
+      "before": "\"$(grep -q '\\[composite\\]' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing [composite] block kind')\"",
+      "key": "workflow-globals has [composite] block kind",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'integration-validation:' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing integration-validation: field definition')\"",
+      "before": "\"$(grep -q 'integration-validation:' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing integration-validation: field definition')\"",
+      "key": "workflow-globals has integration-validation: field",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'rollup:' rules/contract-phases.md 2>/dev/null && echo pass || echo 'contract-phases.md missing rollup: field definition')\"",
+      "before": "\"$(grep -q 'rollup:' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals.md missing rollup: field definition')\"",
+      "key": "workflow-globals has rollup: field",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'Autonomous Subtask Classifier' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing Autonomous Subtask Classifier section')\"",
+      "before": "\"$(grep -q 'Autonomous Subtask Classifier' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing Autonomous Subtask Classifier section')\"",
+      "key": "workflow-reference has Autonomous Subtask Classifier",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'S2 \u2265 2' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing Type 2 rule (S2 >= 2 AND S5 >= 2)')\"",
+      "before": "\"$(grep -q 'S2 \u2265 2' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing Type 2 rule (S2 >= 2 AND S5 >= 2)')\"",
+      "key": "workflow-reference has Type 2 nesting rule (S2>=2 AND S5>=2)",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -q 'S4.*S3\\|Type 3' rules/protocol-subtask-classifier.md 2>/dev/null && echo pass || echo 'protocol-subtask-classifier.md missing Type 3 rule')\"",
+      "before": "\"$(grep -q 'S4.*S3\\|Type 3' rules/workflow-reference.md 2>/dev/null && echo pass || echo 'workflow-reference.md missing Type 3 rule')\"",
+      "key": "workflow-reference has Type 3 rule (S4 AND S3>=2)",
+      "target": "result"
+    }
+  ],
   "contract_changes": [
     {
       "target": "result",
       "key": "TDD: scripts/sync.sh deploys tdd.md to projects",
       "before": "\"$(grep -q 'tdd\\.md' scripts/sync.sh 2>/dev/null && echo pass || echo 'scripts/sync.sh does not deploy tdd.md to per-project rule directories')\"",
-      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF 'installed:rule-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'sync must deploy rules/tdd.md as a global rule skill via the deployment engine')\"",
+      "after": "\"$(grep -qF 'deploy --from \"$ROOT\" --hook-result \"$HOOK_INSTALL_RESULT\"' scripts/sync.sh && grep -qxF 'installed:rule-contract-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'sync must deploy rules/contract-tdd.md as a global rule skill via the deployment engine')\"",
       "requirement": "REQ-05",
       "reason": "Compare deployed TDD rule bytes and the rule-prefixed filename at every declared adapter target."
     },
@@ -10212,7 +11083,7 @@
       "target": "result",
       "key": "TDD: scripts/setup-new-project.sh deploys tdd.md",
       "before": "\"$(grep -q 'tdd\\.md' scripts/setup-new-project.sh 2>/dev/null && echo pass || echo 'scripts/setup-new-project.sh does not deploy tdd.md to new projects')\"",
-      "after": "\"$(grep -qF 'link-project --from \"$WORKFLOWS_SRC\" --project \"$PROJECT_DIR\"' scripts/setup-new-project.sh && grep -qxF 'setup:rule-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'setup must link the deployed rules/tdd.md rule skill through the declared adapters')\"",
+      "after": "\"$(grep -qF 'link-project --from \"$WORKFLOWS_SRC\" --project \"$PROJECT_DIR\"' scripts/setup-new-project.sh && grep -qxF 'setup:rule-contract-tdd' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo 'setup must link the deployed rules/contract-tdd.md rule skill through the declared adapters')\"",
       "requirement": "REQ-06",
       "reason": "Verify that the direct project link entry point links the deployed TDD rule to each eligible project adapter."
     },
@@ -10220,7 +11091,7 @@
       "target": "result",
       "key": "ORCH: $f deploys git-flow.md and orchestration.md",
       "before": "\"$(grep -q 'git-flow\\.md' \"$f\" 2>/dev/null && grep -q 'orchestration\\.md' \"$f\" 2>/dev/null && echo pass || echo \"$f does not deploy the orchestration rules\")\"",
-      "after": "\"$(grep -qE '(deploy|link-project) --from ' \"$f\" && grep -qxF 'installed:rule-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'installed:rule-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"$f must use the deployment engine to make rules/git-flow.md and rules/orchestration.md available\")\"",
+      "after": "\"$(grep -qE '(deploy|link-project) --from ' \"$f\" && grep -qxF 'installed:rule-contract-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'installed:rule-contract-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-contract-git-flow' <<< \"$RULE_SKILL_EVIDENCE\" && grep -qxF 'setup:rule-contract-orchestration' <<< \"$RULE_SKILL_EVIDENCE\" && echo pass || echo \"$f must use the deployment engine to make rules/contract-git-flow.md and rules/contract-orchestration.md available\")\"",
       "requirement": "REQ-05",
       "reason": "Verify deployed bytes and project link targets for both named orchestration rules in the isolated fixture."
     },
@@ -10284,7 +11155,7 @@
       "target": "result",
       "key": "TDD: rules/tdd.md is always_on",
       "before": "\"$(grep -q 'trigger: always_on' rules/tdd.md 2>/dev/null && echo pass || echo 'rules/tdd.md missing trigger: always_on')\"",
-      "after": "\"$(rule_loads_always rules/tdd.md && echo pass || echo 'rules/tdd.md must declare load: always in its front matter')\"",
+      "after": "\"$(rule_loads_always rules/contract-tdd.md && echo pass || echo 'rules/contract-tdd.md must declare load: always in its front matter')\"",
       "requirement": "REQ-12",
       "reason": "Require exactly one always-load declaration in the completed rule front matter."
     },
@@ -10300,9 +11171,25 @@
       "target": "result",
       "key": "LOG: rules/run-log.md is always_on",
       "before": "\"$(grep -q 'trigger: always_on' rules/run-log.md 2>/dev/null && echo pass || echo 'rules/run-log.md missing trigger: always_on')\"",
-      "after": "\"$(rule_loads_always rules/run-log.md && echo pass || echo 'rules/run-log.md must declare load: always in its front matter')\"",
+      "after": "\"$(rule_loads_always rules/contract-run-log.md && echo pass || echo 'rules/contract-run-log.md must declare load: always in its front matter')\"",
       "requirement": "REQ-12",
       "reason": "Require exactly one always-load declaration in the completed rule front matter."
+    },
+    {
+      "after": "\"$(grep -qxF 'A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness.' rules/contract-phases.md 2>/dev/null && echo pass || echo 'rules/contract-phases.md must contain the canonical rule-reference resolution line')\"",
+      "before": "\"$(grep -q 'rule-phase-atomic-execution' rules/workflow-globals.md 2>/dev/null && echo pass || echo 'workflow-globals Context Bootstrap does not name the rule- prefixed skills, so a reader cannot tell the phase rule from the identically-named phase workflow')\"",
+      "key": "DEPLOY: workflow-globals tells the reader how to resolve a rule reference per agent",
+      "reason": "Verify the exact rule skill resolution line in its canonical contract.",
+      "requirement": "REQ-14",
+      "target": "result"
+    },
+    {
+      "after": "\"$(grep -qxF 'A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness.' rules/contract-phases.md 2>/dev/null && grep -qF \"$section\" \"$section_source\" 2>/dev/null && echo pass || echo \"rules/contract-phases.md lacks the canonical resolution line or $section_source no longer defines '$section'\")\"",
+      "before": "\"$(grep -qF \"$section\" rules/workflow-reference.md 2>/dev/null && echo pass || echo \"rules/workflow-reference.md no longer defines '$section' \u2014 every workflow citing it now dangles\")\"",
+      "key": "REF: workflow-reference actually defines '$section'",
+      "reason": "Verify the canonical resolution line and each exact heading on its declared split owner.",
+      "requirement": "REQ-14",
+      "target": "result"
     }
   ]
 }

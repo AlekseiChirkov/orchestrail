@@ -43,7 +43,7 @@ initializes consumer repositories and creates declared skill links.
 |---|---|---|---|
 | `ORCHESTRAIL_HOME` | `scripts/sync.sh`, `scripts/setup-*.sh` | the repository root (parent of `scripts/`) | Empty values use the default; `scripts/sync.sh --from <dir>` and `--from=<dir>` override it; relative paths resolve from the caller directory |
 | `ORCHESTRAIL_LOG_ROOT` | `scripts/log-step.sh`, `/retro` | `<repo>/logs` | store is gitignored |
-| `ORCHESTRAIL_HOME` helper resolution | `rules/run-log.md`, orchestrator workflows, artifact checks | unset: skip optional logging | Configure one shared checkout; required artifact checks need a configured source |
+| `ORCHESTRAIL_HOME` helper resolution | `rules/contract-run-log.md`, orchestrator workflows, artifact checks | unset: skip optional logging | Configure one shared checkout; required artifact checks need a configured source |
 | `$HOME/.claude`, `$HOME/.codex` | `scripts/sync.sh`, `scripts/setup-new-project.sh` | — | declared harness locations |
 | `.ai/context/runbook.md → ## Commands` (per consumer project) | `pae-implement`, `pae-tests`, `bugfix` | — | `test:` required for TDD |
 

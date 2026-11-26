@@ -23,7 +23,7 @@ counts; only what is written counts.
 
 ### P3 — Canonical formats are contracts, and contracts are additive
 Status vocabularies, block layouts, section names, and cross-reference syntax are defined
-once (`workflow-globals`, `workflow-reference`) and consumed everywhere. A change is made
+once (`contract-phases`, `contract-state-files`) and consumed everywhere. A change is made
 by extension with a backward-compatibility rule for readers (e.g. a missing
 `atomic-tests:` reads as `not-started`), never by renaming. Parsers key on field names,
 never on position.
@@ -38,7 +38,7 @@ the resume point for every later step.
 
 ### P5 — Every stop is declared
 A workflow stops only at a named `**stop**` with a reported reason, at a `## Guard`, or at
-a condition listed in `workflow-globals → Workflow-declared mode overrides`. An autonomous
+a condition listed in `contract-phases → ## Context Pack`. An autonomous
 mode licenses *unblocked* decisions, never *unrecorded* ones. There is no silent decision
 and no undeclared stop.
 *Rationale:* an operator must be able to predict where a run will wait.
@@ -46,7 +46,7 @@ and no undeclared stop.
 ### P6 — Rules govern, workflows execute, reference explains
 A `rules/` file states a contract in the fewest words that make it unambiguous. A
 `workflows/` file is an executable sequence that cites rules by `file → ## Section`. Rationale,
-worked examples, and incident history belong in `workflow-reference` or in the rule's own
+worked examples, and incident history belong in `contract-state-files` or in the rule's own
 "why" paragraph — never spread across workflows. A statement that exists in two places is
 a defect (see the 2026-07 audit: ten dangling references).
 *Rationale:* the always-on context budget is finite; duplication drifts.

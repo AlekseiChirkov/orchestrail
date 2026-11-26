@@ -8,7 +8,7 @@ of a codebase whose language is instructional markdown plus bash.
 ## Standards
 
 ### Language and tone
-- English only, in every file (`rules/language.md`).
+- English only, in every file (`rules/contract-language.md`).
 - Imperative, second person to the agent ("Read `state.md`", "**stop**: …"). No hedging
   ("try to", "ideally") in a contract — a rule either holds or does not.
 - Explain *why* once, next to the rule, in one paragraph. Do not repeat the rationale in
@@ -54,7 +54,7 @@ of a codebase whose language is instructional markdown plus bash.
 1. Write the failing check in `scripts/validate-contracts.sh` first (RED at `smoke` level).
 2. Update the canonical definition.
 3. Update every reader and writer — grep for the old value across `workflows/`, `rules/`,
-   `docs/USAGE.md`, `PIPELINE.md`, `templates/`.
+   `docs/USAGE.md`, `docs/PIPELINE.md`, `templates/`.
 4. Add the backward-compatibility rule if artifacts in the old shape may exist.
 5. Run `scripts/validate-contracts.sh`, then `scripts/sync.sh`.
 6. Record the change in `.ai/adr/` if it alters a format, a stop, or a mode override.
@@ -76,7 +76,7 @@ Every document that is *about* the project rather than *part of* the pipeline go
 |---|---|---|
 | Analysis, comparison, research, review of the system | `docs/analysis/` | `YYYY-MM-DD-<slug>.md` (`.ru.md` suffix for a Russian original) |
 | Audit prompts, audit reports, audit fix specs | `docs/audits/` | prompts by name (`AUDIT-PROMPT.md`); reports and fix specs `YYYY-MM-DD-<slug>.md` |
-| Retro reports produced by `/retro` | `logs/` (untracked, per `run-log`) — copy a report to `docs/retros/YYYY-MM-DD-retro.md` only when it drives a spec |
+| Retro reports produced by `/retro` | `logs/` (untracked, per `contract-run-log`) — copy a report to `docs/retros/YYYY-MM-DD-retro.md` only when it drives a spec |
 | Operating manuals, quickstarts, harness matrices, guides | `docs/` root | descriptive upper-case names (`USAGE.md`, `SPEC-RUN-QUICKSTART.md`) |
 | Worked examples of finished tasks | `docs/examples/<slug>/` | — |
 
@@ -92,7 +92,7 @@ actionable change goes to `.ai/specs/<NN>-<slug>.md` so the pipeline can pick it
 the analysis that motivated it stays in `docs/`.
 
 ### Documentation
-- `docs/USAGE.md` is the operating manual; `PIPELINE.md` the reference; a workflow's own header
+- `docs/USAGE.md` is the operating manual; `docs/PIPELINE.md` the reference; a workflow's own header
   is the authority on its invocation. When they disagree, fix the two derived ones to
   match the workflow (until `specs/19-generated-reference-docs.md` makes them generated).
 - Numbers quoted in docs (check counts, file counts) are updated in the same change that
@@ -108,5 +108,5 @@ the analysis that motivated it stays in `docs/`.
 ### Commits (once the repository is under git)
 - `<type>[(<scope>)]: <imperative summary>`; scope names a layer or workflow in plain words
   (`rules`, `spec-run`, `sync`), never a task or spec identifier.
-- No authorship attribution trailers of any kind (`rules/git-flow.md → ## Commits`).
+- No authorship attribution trailers of any kind (`contract-git-flow → ## Commits`).
 - One contract change per commit where possible: rule + its readers + its check together.

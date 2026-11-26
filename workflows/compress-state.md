@@ -11,7 +11,7 @@ Default target: `.ai/memory/state.md`. Resolve relative paths from the current p
 ## Guard
 
 1. Read the target fully. If missing → **stop**: "No state file at `<path>`."
-2. Load `workflow-reference → ## Protected Sections Contract` before classifying content.
+2. Load `contract-state-files → ## Protected Sections Contract` before classifying content.
    Protected content takes precedence over every compression instruction below.
 3. For project memory, inspect active task state referenced by its entries. Read other task
    state only when needed to resolve a specific claim; do not load all completed tasks.

@@ -7,7 +7,7 @@ The workflow researches; helper `--refresh CANDIDATE` only validates and install
 already complete candidate. It never browses or builds a partial catalog.
 
 The canonical plan contract is
-[`workflow-reference → Model columns and resolution`](../rules/workflow-reference.md#model-columns-and-resolution).
+[`contract-state-files → ### Model columns and resolution`](../rules/contract-state-files.md#model-columns-and-resolution).
 The public implementations are [the CLI/cache](../scripts/model-catalog.py),
 [selection policy](../scripts/model_selection.py) and [plan compatibility](../scripts/model_plan.py).
 Python 3.11+ is required for full-flow selection: missing Python, helper or siblings reports selection unavailable
@@ -45,7 +45,7 @@ Locate the helper through `ORCHESTRAIL_HOME` or a known source checkout; an inst
 workflow alone does not prove that the optional helper is installed.
 
 Installed skills do not package this guide beside `SKILL.md`. Follow the canonical
-[read-only guidance preflight](../rules/workflow-reference.md#model-columns-and-resolution):
+[read-only guidance preflight](../rules/contract-state-files.md#model-columns-and-resolution):
 prefer configured `ORCHESTRAIL_HOME`, otherwise use an already-known verified absolute
 checkout in invocation-local `SOURCE_ROOT`. Read the helper, its siblings and
 `$SOURCE_ROOT/docs/MODEL-CATALOG.md` from the same verified source root. Never infer that

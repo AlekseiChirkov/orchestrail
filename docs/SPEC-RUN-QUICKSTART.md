@@ -1,11 +1,11 @@
 # `/spec-run` — quickstart
 
 One spec → stacked branches → review-ready pull requests, run by context-bounded sub-agents.
-Full contracts: `rules/orchestration.md` (roles, escalation) and `rules/git-flow.md` (branches,
+Full contracts: `rules/contract-orchestration.md` (roles, escalation) and `rules/contract-git-flow.md` (branches,
 commits, safety rails). This page is the operating procedure only.
 
 Use it when a task is big enough that one session would run out of context. For a small change,
-use the quick tier instead (`rules/quick-flow.md`).
+use the quick tier instead (`rules/contract-quick-flow.md`).
 
 ---
 

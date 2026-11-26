@@ -345,7 +345,7 @@ Acceptance order sets `seq`; earlier-ending intervals may arrive after later one
 
 Correlated writes require `jq`, `flock`, and the coreutils `truncate` command.
 Unavailable dependencies warn and return no receipt. Workflow fallback selection
-follows `run-log → ## Workflow coverage and routing`; a delivering checkpoint cannot
+follows `contract-run-log → ## Workflow coverage and routing`; a delivering checkpoint cannot
 switch routes merely because a receipt is unavailable.
 Legacy writes still work without jq; when flock is available, all step and close
 writers acquire the same bounded per-run lock on the existing event file. Active
@@ -515,7 +515,7 @@ persistence uncertain. Report that condition without inventing acceptance or
 attempting another route. A closed run rejects late delivery and is never reopened.
 
 Select prompt logging and suppressions through the canonical workflow contract:
-`run-log → ## Workflow coverage and routing`.
+`contract-run-log → ## Workflow coverage and routing`.
 
 `bash scripts/validate-contracts.sh --hook-adapter-only` runs the isolated native
 adapter fixtures, including concurrent delivery, exact attribution and fallback

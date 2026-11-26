@@ -30,8 +30,8 @@ never invent commands or passing results. Read relevant code only when context i
 
 ## Step 3 — Draft PR Description
 
-Follow `git-flow → ## Pull requests` and
-`git-flow → ## Commits → ### Pipeline identifiers stay out of the repository` for text hygiene.
+Follow `contract-git-flow → ## Pull requests` and
+`contract-git-flow → ## Commits → ### Pipeline identifiers stay out of the repository` for text hygiene.
 Describe the final change for a reviewer without conversation context. Lead with the
 concrete problem and resulting behavior. Scale detail to complexity; preserve a repository
 PR template when present. Otherwise use this copy-ready Markdown block:

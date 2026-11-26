@@ -18,7 +18,7 @@ Task directory = provided argument (trailing slash optional).
 2. If `### Approved` is empty or `None` → report "No approved issues to classify." and return.
 3. Reuse existing classification rows/IDs on resume; classify only newly approved issues.
    Append new groups rather than changing completed ones. Ask for explicit confirmation
-   before replacing assigned IDs/groups. Load the `phase-validation` rule (`## Context Bootstrap`)
+   before replacing assigned IDs/groups. Load the `bootstrap-validation` rule (`## Context Bootstrap`)
    before project writes on standalone invocation.
 
 ---
@@ -26,7 +26,7 @@ Task directory = provided argument (trailing slash optional).
 ## Classification
 
 For each approved issue, evaluate the four conditions in
-`quick-flow → ## The escalation gate`: **3 or fewer files, counting test files**;
+`contract-quick-flow → ## The escalation gate`: **3 or fewer files, counting test files**;
 no new invariant; no shipped-pipeline behaviour change; no schema/migration change.
 Record each pass/fail with evidence; unknown scope must be resolved before grouping.
 
@@ -37,7 +37,7 @@ This reuses the gate per issue; it does not change the task's `flow:` tier.
 
 Allocate non-colliding fix IDs from `plan.md` and composite membership; `/pv-create-fixes`
 reuses them in `## Fix-Tasks → Created:`. The legacy `Branch` table column stores that
-**fix-task ID**, not a git branch name; actual branch names follow `git-flow`.
+**fix-task ID**, not a git branch name; actual branch names follow `contract-git-flow`.
 `/pv-execute-fixes` uses the Created list, including sibling IDs:
 
 - **Dedicated** — one fix-task per issue: `T-NN-fix-<slug>`, `<slug>` naming the defect.
@@ -88,7 +88,7 @@ subsection into it — `/pv-create-fixes` fills in `fixes-created`, `fixes-count
 ```
 
 Every row records all four gate results, so a `dedicated` decision can be audited later —
-the same discipline `quick-flow` applies to its own tier decision.
+the same discipline `contract-quick-flow` applies to its own tier decision.
 
 Report: "Fix classification complete. <N> shared across <M> groups, <K> dedicated."
 Return to the caller; this is a progress marker.

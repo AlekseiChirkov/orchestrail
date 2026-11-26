@@ -22,7 +22,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Instructions
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before writes when standalone.
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before writes when standalone.
 Code-review severity maps directly to issue priority: `critical`, `important`, `optional`.
 
 1. Read `state.md` — extract `## Contract Check` and `## Code Review`.

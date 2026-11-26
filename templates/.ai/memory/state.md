@@ -11,7 +11,7 @@ transition.
 
 ## Active Tasks
 One entry per task: name, link to task directory, current phase, status.
-Entry format: `workflow-reference → ## .ai/memory/state.md Entry Format`.
+Entry format: `contract-state-files → ## .ai/memory/state.md Entry Format`.
 A task waiting on an external dependency stays here with `status: blocked` — there is no
 separate blocked section.
 

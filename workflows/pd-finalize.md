@@ -9,7 +9,7 @@ Called by: `/phase-discovery` as Step 4.
 
 Resolve artifacts inside the task directory. `--step-by-step` affects the closing
 digest only; consistency failures stop in every mode. Reuse parent context;
-standalone use applies the `phase-discovery` bootstrap.
+standalone use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
@@ -24,13 +24,13 @@ standalone use applies the `phase-discovery` bootstrap.
 
 ## Instructions
 
-Load `workflow-reference → ## Protected Sections Contract` and its memory/project
+Load `contract-state-files → ## Protected Sections Contract` and its memory/project
 state update formats once. Preserve unrelated content and progress.
 
 **Quick branch:** skip steps 1, 2 and 4b; verify the inline quick contract's
 criteria are binary and observable, and the recorded four-condition gate still
 passes. Missing/untestable criteria → **stop** and return to `/pd-analyze`.
-A failed quick gate requires promotion under `quick-flow`. Use the inline contract
+A failed quick gate requires promotion under `contract-quick-flow`. Use the inline contract
 where later steps refer to Solution Design. Full flow runs all steps.
 
 1. Review full-flow consistency:
@@ -38,7 +38,7 @@ where later steps refer to Solution Design. Full flow runs all steps.
    - `plan.md → ## Subtasks` has ID, Name, Key Steps (summary), Depends On, Status,
      plus Type/Slice/Repo where applicable. Preserve optional provider model columns
      `Model (Claude)` / `Model (Codex)` and legacy `Model` under
-     `workflow-reference → ### Model columns and resolution`, including composite
+     `contract-state-files → ### Model columns and resolution`, including composite
      blanks and intentional active-provider defaults; missing columns are valid.
      IDs are unique, dependencies resolve without cycles, and execution order respects them.
    - Descriptions and `## Subtask Progress` match every plan row, including composites
@@ -85,7 +85,7 @@ where later steps refer to Solution Design. Full flow runs all steps.
     bodies coexist with an old archive, apply `/pd-archive`'s overwrite Guard;
     do not silently retain stale analysis. Failed archiving → restore
     `discovery: in-progress`, report the blocker and **stop**.
-5. Upsert persistent planning state using `workflow-reference` formats:
+5. Upsert persistent planning state using `contract-state-files` formats:
    - `.ai/memory/state.md`: `[task-id] | phase: discovery | status: complete |
      note: plan ready, <N> subtasks`; for quick flow use `quick contract ready`
      rather than a subtask count. Use the full phased directory basename when present.

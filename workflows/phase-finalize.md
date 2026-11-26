@@ -7,13 +7,15 @@ step: "-"
 Invocation: `/phase-finalize <task-directory|spec-path> [--dry-run]`
 Example: `/phase-finalize .ai/tasks/todo/task-add-oauth/ --dry-run`
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 Ordinary invocation authorizes mandatory cleanup of this resolved task's proven resources.
 Continue through this one phase without another cleanup approval. This has no public child
 workflows. Existing delivery parents stop at Validation and only suggest this command.
 
 ## Context Bootstrap
 
-Load the `phase-finalize` rule (`## Context Bootstrap`) in full, including standalone runs.
+Load the `bootstrap-finalization` rule (`## Context Bootstrap`) in full, including standalone runs.
 Resolve `working_dir:` and the physical project root holding the selected `.ai/` before
 operations. A recorded umbrella repository set is authoritative; never initialize Git in
 an umbrella, infer repositories from directory names, or adopt an unrelated checkout.
@@ -54,7 +56,7 @@ Git changes. Unavailable evidence is a blocker, never a successful measurement. 
 
 ## Run Logging
 
-Apply `run-log → ## Workflow coverage and routing`; ordinary prompt steps use
+Apply `contract-run-log → ## Workflow coverage and routing`; ordinary prompt steps use
 `--note approximate`. After the Guard succeeds and only outside dry-run, preserve an
 inherited `RUN_ID`. Otherwise open an owned run through the configured logging helper:
 
@@ -69,7 +71,7 @@ fi
 ```
 
 Log `step --run <RUN_ID> --step phase-finalize --outcome ok|blocked|failed --note approximate`
-after each internal boundary, following receipt-confirmed suppression in `run-log`.
+after each internal boundary, following receipt-confirmed suppression in `contract-run-log`.
 Only when `PHASE_OWNS_RUN=true`, close with `run-end --outcome completed|stopped|failed`.
 An inherited run stays open for its owner. Missing or failing logging never blocks, retries,
 or asks for approval; continue and mention the unavailable telemetry once. Read no log store.
@@ -98,7 +100,7 @@ or asks for approval; continue and mention the unavailable telemetry once. Read 
    immutable self-contained packs in isolated storage before deletion authorization.
    Show original refs/tips, pack digests, restoration commands, scope, protection/worktrees,
    exact planned argv and operation `operations` checkpoints. Never treat a receipt alone
-   as authorization; canonical policy is `git-flow → ## Finalization Git ownership`.
+   as authorization; canonical policy is `contract-git-flow → ## Finalization Git ownership`.
    Before any semantic knowledge edit, supply `knowledge_inventory` with typed existing
    current Markdown record paths discovered in bootstrap. Preparation snapshots their
    exact original bytes. Record all checkout/refresh postconditions before semantic edits
@@ -153,7 +155,7 @@ or asks for approval; continue and mention the unavailable telemetry once. Read 
    relabel protected records to fit an allowed kind. Reconcile only records whose current
    claims changed, preserving other tasks and unfinished product work. Keep historical decisions, requirements,
    original Git/TDD fields and snapshot bytes intact. Return shared-file deltas to the
-   active owner under `orchestration`; otherwise this invocation owns surgical writes.
+   active owner under `contract-orchestration`; otherwise this invocation owns surgical writes.
    Keep untracked umbrella/consumer state local according to repository policy: no staging,
    commits or metadata publication are authorized here. An independent reviewer checks
    evidence, attempted/recovered errors, current knowledge and archive/link plans; supply

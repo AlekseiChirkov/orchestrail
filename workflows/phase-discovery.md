@@ -7,6 +7,8 @@ step: "-"
 Invocation: `/phase-discovery <path-to-spec> [--phase N] [--step-by-step]`
 Example: `/phase-discovery .ai/specs/01-add-oauth.md --phase 2`
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 The spec must be a file in `.ai/specs/`. Child workflows take the task directory,
 not the spec path. `/pd-select-model` is required after decomposition for full flow.
 
@@ -22,8 +24,7 @@ when that flag was supplied.
 
 ### Autonomous mode overrides
 
-For this phase, resolve ambiguity using `workflow-reference → ## Autonomous Decision
-Protocol` instead of the global wait-for-decision and doubt-stop rules. Research
+For this phase, resolve ambiguity using `protocol-autonomous-decision → ## Autonomous Decision Protocol` instead of the global wait-for-decision and doubt-stop rules. Research
 principles → relevant ADRs → memory → codebase patterns → best practice. Record
 requirement resolutions in `## Task Analysis → ### Assumptions`, decomposition
 choices in `plan.md → ## Decomposition Decisions`, and architecture scoring in
@@ -43,7 +44,7 @@ go-ahead. A skipped child requires no review pause.
 
 ## Context Bootstrap
 
-Apply the `phase-discovery` rule's Context Bootstrap once per context. Children
+Apply the `bootstrap-discovery` rule's Context Bootstrap once per context. Children
 reuse that context; standalone children bootstrap it themselves. Skip missing files,
 load umbrella before local context, and report the files loaded and applicable constraints.
 
@@ -64,7 +65,7 @@ overwrite confirmation and returns before state changes, logging or child execut
    **stop** with the invalid path or missing-title reason.
 2. Read the spec. Without `## Acceptance Criteria`, derive criteria in autonomous
    mode; in step-by-step mode, ask whether to continue with interactive clarification.
-3. Resolve phase scope using `workflow-reference → ## Multi-Phase Spec Rules`:
+3. Resolve phase scope using `contract-state-files → ## Multi-Phase Spec Rules`:
    - Use a `## Phases` manifest when present; every listed phase must map to one
      `## Phase N` or `### Phase N` section. Otherwise detect distinct phase numbers
      from those headings. Two or more phases means multi-phase.
@@ -126,7 +127,7 @@ overwrite confirmation and returns before state changes, logging or child execut
 
    When `/spec-run` supplies a multi-repository set, write `## Repositories` after
    `## Phases` with one repository set line per repository, in the supplied order
-   (`workflow-globals → ## Canonical Status Formats`). On resume add the section only when
+   (`contract-phases → ## Canonical Status Formats`). On resume add the section only when
    it is absent; never change existing lines. A task without the section is
    single-repository, and Discovery otherwise runs unchanged: analysis reads every
    repository, and `/pd-decompose` routes each leaf to one of them.
@@ -134,7 +135,7 @@ overwrite confirmation and returns before state changes, logging or child execut
 
 ## Run Logging
 
-Follow `run-log → ## Workflow coverage and routing`. Resolve the helper from
+Follow `contract-run-log → ## Workflow coverage and routing`. Resolve the helper from
 `ORCHESTRAIL_HOME` and issue `scripts/log-step.sh run-start --pipeline phase-discovery`
 with project, resolved task, spec, current flow and flags. Keep `LOG_HELPER` and
 `RUN_ID`; on a later-session resume start a new run. A parent-owned run uses the
@@ -173,7 +174,7 @@ Run the remaining children in order, passing the task directory and selected mod
 5. `/pd-finalize <task-directory>` — consistency, archive and final report.
 
 Read `flow:` after Step 1: for `flow: quick`, skip Steps 2 and 3 and Step 4; create no T-XX or
-`plan.md`; full flow runs all steps. Apply `quick-flow` if scope requires promotion.
+`plan.md`; full flow runs all steps. Apply `contract-quick-flow` if scope requires promotion.
 Selection incomplete or unavailable must stop the phase with `discovery: in-progress` and actionable recovery instructions. A child Guard or hard blocker stops the phase in either mode. In autonomous mode,
 immediately invoke the next child when the previous one succeeds.
 

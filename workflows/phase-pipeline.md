@@ -6,7 +6,9 @@ step: "-"
 
 Invocation: `/phase-pipeline <spec-path|task-directory>`
 
-Run one task through three phases. Load `workflow-globals`; use the phase rules for
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
+Run one task through three phases. Load `contract-phases`; use the phase rules for
 context bootstrap and resolve rule names as that contract specifies. Children reuse
 context already loaded by this invocation; standalone children bootstrap themselves.
 
@@ -18,7 +20,7 @@ mandatory in every mode. If all three phases are complete, report and **stop**.
 
 ## Run Logging
 
-Follow `run-log → ## Workflow coverage and routing`. After Step 0 resolves the task,
+Follow `contract-run-log → ## Workflow coverage and routing`. After Step 0 resolves the task,
 open one run with `scripts/log-step.sh run-start` through the configured helper:
 
 ```bash
@@ -39,7 +41,7 @@ Missing helpers or logging errors never block work; mention unavailable logging 
 
 ## Pipeline Overrides
 
-The registry is `workflow-globals`; this table specifies this command's behavior.
+The registry is `contract-phases`; this table specifies this command's behavior.
 Overrides apply only inside this invocation and never cross into a later spec phase.
 
 | Decision point | Action |
@@ -79,7 +81,7 @@ Completion of Validation ends this command; never launch the next spec phase.
 
 ## Deep Architectural Analysis Protocol
 
-Canonical definition: `workflow-reference → ## Autonomous Decision Protocol`.
+Canonical definition: `protocol-autonomous-decision → ## Autonomous Decision Protocol`.
 Use its variants, scoring, tie-breakers and decision record for substantive design
 choices. Apply the additional stops above. Routine choices already determined by an
 artifact need only that citation, not another scoring table.
@@ -110,10 +112,10 @@ Discovery, resume its recorded step; skip completed Discovery entirely.
 It owns the quick/full branch, child sequencing, `/pd-archive` and completion checks.
 Do not separately replay its children:
 
-- `/pd-analyze` → `pd-analyze.md`
-- `/pd-decompose` → `pd-decompose.md` (full only)
-- `/pd-design` → `pd-design.md` (full only)
-- `/pd-finalize` → `pd-finalize.md`
+- `/pd-analyze`
+- `/pd-decompose` (full only)
+- `/pd-design` (full only)
+- `/pd-finalize`
 
 After `discovery: complete`, report the chosen approach and advance to Execution.
 
@@ -122,17 +124,17 @@ After `discovery: complete`, report the chosen approach and advance to Execution
 Run `/phase-execution <task-directory>` with the overrides above. It owns inline quick
 execution or leaf cycles and the post-execution proposal review:
 
-- `/pe-execute` → `pe-execute.md`
-- `/pe-finalize` → `pe-finalize.md`
-- `/phase-atomic-execution` → `phase-atomic-execution.md`
-- `/pae-tests` → `pae-tests.md`
-- `/pae-implement` → `pae-implement.md`
-- `/pae-finalize` → `pae-finalize.md`
-- `/phase-atomic-validation` → `phase-atomic-validation.md`
-- `/pav-check` → `pav-check.md`
-- `/pav-propose` → `pav-propose.md`
-- `/pav-close` → `pav-close.md`
-- `/phase-composite-validation` → `phase-composite-validation.md` (triggered by the last child's close)
+- `/pe-execute`
+- `/pe-finalize`
+- `/phase-atomic-execution`
+- `/pae-tests`
+- `/pae-implement`
+- `/pae-finalize`
+- `/phase-atomic-validation`
+- `/pav-check`
+- `/pav-propose`
+- `/pav-close`
+- `/phase-composite-validation` (triggered by the last child's close)
 
 Advance only after `execution: complete` and successful artifact checks.
 
@@ -140,13 +142,13 @@ Advance only after `execution: complete` and successful artifact checks.
 
 Run `/phase-validation <task-directory>` with the overrides above:
 
-- `/pv-contract` → `pv-contract.md`
-- `/pv-review` → `pv-review.md`
-- `/pv-issues` → `pv-issues.md`
-- `/pv-create-fixes` → `pv-create-fixes.md` (full only)
-- `/pv-execute-fixes` → `pv-execute-fixes.md` (full only)
-- `/pv-finalize` → `pv-finalize.md`
-- `/compress-state` → `compress-state.md`
+- `/pv-contract`
+- `/pv-review`
+- `/pv-issues`
+- `/pv-create-fixes` (full only)
+- `/pv-execute-fixes` (full only)
+- `/pv-finalize`
+- `/compress-state`
 
 Do not rerun fix creation or execution separately after this phase; its children own them.
 

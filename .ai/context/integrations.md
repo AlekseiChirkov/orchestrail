@@ -36,7 +36,7 @@ searches the web.
 - Used by `/spec-run --allow-pr` and `/restack --allow-pr` for publication.
   Finalization uses repository-bound PR reads to verify integration.
 - Assumptions: remote `origin` exists and `gh auth status` succeeds; PR bodies follow
-  `git-flow → ## Pull requests` and carry no attribution.
+  `contract-git-flow → ## Pull requests` and carry no attribution.
 
 ### `jq` — JSON processing
 - Used by: `scripts/log-step.sh` (digest generation; degrades to a stub without it), `/retro`
@@ -51,7 +51,7 @@ searches the web.
 - Assumption: a URL that cannot be fetched stops the workflow and asks for text.
 
 ### Consumer project `.ai/` — the knowledge base contract
-- Every phase performs the Context Bootstrap from `rules/phase-*.md`: `principles/*`,
+- Every phase performs the Context Bootstrap from `rules/bootstrap-*.md`: `principles/*`,
   `memory/architecture.md`, `memory/state.md`, `adr/index.md`, `context/runbook.md`,
   conditionally `context/integrations.md`, `context/environment.md`.
 - `context/runbook.md → ## Commands` keys `test:`, `lint:`, `typecheck:`, `build:` drive

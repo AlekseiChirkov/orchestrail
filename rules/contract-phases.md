@@ -7,24 +7,26 @@ load: always
 
 These rules govern ALL phase workflows (`/phase-discovery`, `/phase-execution`, `/phase-validation`, `/phase-finalize` and their atomic counterparts) without exception.
 
-**Context Bootstrap (mandatory for every phase invocation).** Before reading any codebase file or modifying any project file, load `.ai/` context using the phase-specific rule skill:
+## Context Bootstrap
 
-| Phase | Skill name (Claude Code / Codex) | Loaded by |
-|-------|----------------------------------|-----------|
-| Discovery | `rule-phase-discovery` | `/phase-discovery`, `/pd-analyze` |
-| Execution | `rule-phase-execution` | `/phase-execution`, `/pe-execute` |
-| Validation | `rule-phase-validation` | `/phase-validation`, `/pv-contract`, `/pv-review` |
-| Finalization | `rule-phase-finalize` | `/phase-finalize` |
-| Atomic Execution | `rule-phase-atomic-execution` | `/phase-atomic-execution`, `/pae-tests`, `/pae-implement` |
-| Atomic Validation | `rule-phase-atomic-validation` | `/phase-atomic-validation`, `/pav-check` |
+**Mandatory for every phase invocation.** Before reading any codebase file or modifying any project file, load `.ai/` context using the phase-specific rule skill:
 
-**How to resolve a rule reference.** `scripts/sync.sh` deploys every `rules/*.md` as a skill
-with the `rule-` prefix in Claude Code and Codex. For example, it installs `workflow-globals`
-as `rule-workflow-globals` and `tdd` as `rule-tdd`. Six basenames (`phase-discovery`,
-`phase-execution`, `phase-validation`, `phase-finalize`, `phase-atomic-execution`, and
-`phase-atomic-validation`) exist in both `workflows/` and `rules/`. The prefix keeps each
-rule skill distinct from its workflow. When a workflow says "load the `<name>` rule", resolve
-it to `rule-<name>`.
+| Phase | Skill | Loaded by |
+| --- | --- | --- |
+| Discovery | `rule-bootstrap-discovery` | `/phase-discovery`, `/pd-analyze` |
+| Execution | `rule-bootstrap-execution` | `/phase-execution`, `/pe-execute` |
+| Validation | `rule-bootstrap-validation` | `/phase-validation`, `/pv-contract`, `/pv-review` |
+| Finalization | `rule-bootstrap-finalization` | `/phase-finalize` |
+| Atomic Execution | `rule-bootstrap-atomic-execution` | `/phase-atomic-execution`, `/pae-tests`, `/pae-implement` |
+| Atomic Validation | `rule-bootstrap-atomic-validation` | `/phase-atomic-validation`, `/pav-check` |
+
+## Rule references
+
+A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness.
+
+`scripts/sync.sh` installs every `rules/*.md` file with the `rule-` prefix on Claude Code
+and Codex. Engineering principles use `principle-<name>`. The `ref-<name>` namespace is
+reserved for documents under the rule reference directory (`rules/reference/*`).
 
 A skill is model-invoked, not always-on. The `load: always` declaration identifies policies that
 apply throughout a session. The essentials stay duplicated in `harness/claude/always-on.md` (→ `~/.claude/CLAUDE.md`)
@@ -58,7 +60,7 @@ and only `/context-pack` may write to it.
 
 **Wait for user decisions.** Architectural / technical / ambiguous choice → present 2–3 options with trade-offs, wait for user decision. Never decide independently in ambiguous situations.
 
-**Workflow-declared mode overrides.** A workflow may declare an autonomous mode that overrides "Wait for user decisions" and the Trust-mechanism stop rule below, for the duration of that workflow only. When it does, the workflow decides independently via `workflow-reference → ## Autonomous Decision Protocol` and records the rationale in `state.md`. Currently declared by:
+**Workflow-declared mode overrides.** A workflow may declare an autonomous mode that overrides "Wait for user decisions" and the Trust-mechanism stop rule below, for the duration of that workflow only. When it does, the workflow decides independently via `protocol-autonomous-decision → ## Autonomous Decision Protocol` and records the rationale in `state.md`. Currently declared by:
 
 | Workflow | Autonomous when | Interactive when |
 |---|---|---|
@@ -106,8 +108,8 @@ Only `/phase-pipeline` and `/spec-run` suspend **Never auto-advance between phas
 requests using context-bounded sub-agents, one stacked branch per subtask. It is strictly
 sequential — no workflow may introduce concurrent subtask execution, because the single
 `## Subtask Progress` section has no locking. Roles, context boundaries, and the class A/B
-escalation protocol are defined in **`orchestration`**; branching, commits, and git safety
-rails in **`git-flow`**. Orchestrated mode does not suspend the escalation conditions, the
+escalation protocol are defined in **`contract-orchestration`**; branching, commits, and git safety
+rails in **`contract-git-flow`**. Orchestrated mode does not suspend the escalation conditions, the
 Guard confirmations, or the test-first rule below.
 
 **Test-first execution.** Implementation is never the first step of an atomic cycle. Every
@@ -115,7 +117,7 @@ leaf subtask passes through `/pae-tests` (RED) before `/pae-implement` (GREEN) �
 tests are written from `## Acceptance Criteria` and become a frozen contract the
 implementation must satisfy rather than edit. The step is additive: it precedes the existing
 cycle and replaces nothing. Work that is genuinely not testable passes an explicit,
-recorded gate rather than skipping silently. Full contract → the **`tdd`** rule; test style →
+recorded gate rather than skipping silently. Full contract → the **`contract-tdd`** rule; test style →
 `testing-standards`. No autonomous mode — including `/phase-pipeline` — suspends it.
 
 **File updates after each phase.** After completing any phase, update relevant state/plan files and run `/compress-state --auto`. Only update files relevant to the completed phase. Current phase status must always be present in `state.md`. Finalization preserves its bound task snapshots and protected history; its helper owns the additive phase marker and mechanical relocation instead of running `/compress-state` on those artifacts.
@@ -129,24 +131,25 @@ recorded gate rather than skipping silently. Full contract → the **`tdd`** rul
 Every task runs in one of two tiers, recorded in the top-of-file `flow:` field. **`full`
 is the default and is the complete, unchanged pipeline.** `quick` is a lighter but
 still-governed path for small changes; the full specification, gate, and mid-flight
-escalation live in the **`quick-flow`** rule. Summary:
+escalation live in the **`contract-quick-flow`** rule. Summary:
 
 - A task qualifies for `flow: quick` **only if ALL four gate conditions hold** (else it is
   `full`, no exceptions): (1) 3 or fewer files, counting test files; (2) no new invariant;
   (3) no behaviour change to an already-shipped pipeline; (4) no DB schema change / no
   migration. Condition 1 is a count, not an estimate — the fourth file sends the task to
-  `full`, and a quick task that discovers it mid-flight is promoted (see `quick-flow →
-  ## Mid-flight escalation`). Condition 3 is the one that would have caught the 2026-07-22
+  `full`, and a quick task that discovers it mid-flight is promoted
+  (see `contract-quick-flow → ## Mid-flight escalation (quick → full)`).
+  Condition 3 is the one that would have caught the 2026-07-22
   out-of-pipeline macro fix.
 - The quick path SKIPS `/pd-decompose`, `/pd-design`, `/pd-archive`, T-XX subtasks, and the
   separate `/pv-create-fixes` + `/pv-execute-fixes` cycle. It still MANDATES an inline
   contract in `state.md` (`## Contract (quick)` with `### Off-limits` / `### Invariants` /
   `### Acceptance Criteria`, written before any code), **the TDD step inline** (RED against
-  the quick contract's Acceptance Criteria before implementation — see `quick-flow`),
+  the quick contract's Acceptance Criteria before implementation — see `contract-quick-flow`),
   `/pv-contract` + `/pv-review`, an ADR on the same trigger as the full path, and a
   `progress.md` entry.
 - A quick task that breaches any gate condition mid-flight MUST be promoted to `full` and
-  the promotion recorded in `state.md` — never silently finished. See `quick-flow`.
+  the promotion recorded in `state.md` — never silently finished. See `contract-quick-flow`.
 
 This tier does not weaken **Never auto-advance between phases** or the ADR trigger.
 
@@ -168,7 +171,7 @@ flow: quick | full
 - finalization: not-started | in-progress | complete
 ```
 
-`flow:` is a top-of-file field (alongside `spec_path:`), set during Discovery by `/pd-analyze` and defaulting to `full`. It selects the tier — see `## Flow tiers` below and the `quick-flow` rule. `## Phases` uses the same format in both tiers. Finalization is additive: a missing `finalization:` marker means `not-started` for every reader and never invalidates prior Validation. Multi-phase fields (`active_phase:`, `spec_phase_count:`) keep their existing position after `spec_path:`.
+`flow:` is a top-of-file field (alongside `spec_path:`), set during Discovery by `/pd-analyze` and defaulting to `full`. It selects the tier — see `## Flow tiers` below and the `contract-quick-flow` rule. `## Phases` uses the same format in both tiers. Finalization is additive: a missing `finalization:` marker means `not-started` for every reader and never invalidates prior Validation. Multi-phase fields (`active_phase:`, `spec_phase_count:`) keep their existing position after `spec_path:`.
 
 **Parent `state.md` → `## Subtask Progress` (one block per T-XX):**
 
@@ -183,14 +186,14 @@ T-XX | <name> | atomic-tests: <status> | atomic-execution: <status> | atomic-val
   branch: <branch name — orchestrated mode only>
   base_branch: <branch this one was cut from — orchestrated mode only>
   base_commit: <sha of the branch point — orchestrated mode only>
-  commits: <sha <type>: <summary>, ... — orchestrated mode only; the commit scope is a feature or module name, never a subtask identifier (see `git-flow`)>
+  commits: <sha <type>: <summary>, ... — orchestrated mode only; the commit scope is a feature or module name, never a subtask identifier (see `contract-git-flow`)>
   pr: <#N draft | #N ready | none — orchestrated mode only>
 ```
 
 The five git fields are written only when the task runs under `/spec-run` (see the
-`orchestration` and `git-flow` rules). They are absent in ordinary manual runs, and readers
+`contract-orchestration` and `contract-git-flow` rules). They are absent in ordinary manual runs, and readers
 must not require them. `repo:` is written with them, at branch creation, only in a
-multi-repository run (`git-flow → ## Multi-repository runs`); a block without it belongs to
+multi-repository run (`contract-git-flow → ## Multi-repository runs`); a block without it belongs to
 the single repository of its task. `base_commit` is written once, at branch creation, and never
 recomputed — it is the only input that lets `/restack` replay a branch after its parent was
 squash-merged.
@@ -218,7 +221,7 @@ Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `
 Written by `/pae-tests` (`red` / `pinned` / `n-a` / `failed`) and `/pae-implement` (`green`);
 preserved by `/pae-finalize`, `/pav-close`, and `/compress-state`. `pinned` is characterization
 mode — tests that pin existing behaviour and pass before the change, used for
-behaviour-preserving work; it transitions only to `green`. Semantics → the `tdd` rule.
+behaviour-preserving work; it transitions only to `green`. Semantics → the `contract-tdd` rule.
 
 **Backward compatibility (required of every reader):** a leaf block **without** an
 `atomic-tests:` field is a pre-TDD task. Treat the missing field as `not-started`, do not
@@ -312,7 +315,7 @@ fix-task progress lives in `## Subtask Progress` like any other leaf.
 | `blocked` | External blocker not dependent on code |
 | `not-reached` | Execution finished without reaching this subtask |
 
-Extended examples, file-role rationale → `workflow-reference`.
+Extended examples, file-role rationale → `contract-state-files`.
 
 ## Finalization
 
@@ -355,3 +358,18 @@ clean owner descendant integration advances may reconcile only through fresh rea
 checkout/source and canonical stage-zero index proofs, preserving original baselines/history.
 No staging, unmerged index or unowned/rewound generation exception is granted; no broad dirty-tree
 exception exists. Schema authority remains the finalization helper header.
+
+## Capabilities
+
+Read the declared capability records in the always-on instructions and verify that the
+session exposes the required tools and permissions. Use the listed fallback or stop
+before any side effect when a required mechanism is unavailable. Report only mechanisms
+the run actually uses.
+
+| Behaviour | Workflow | Requires | Without it |
+| --- | --- | --- | --- |
+| Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | `sub-agents`, `agent-messaging`, `git` | Stop before Step 0 and use `/phase-pipeline <task-directory>`. |
+| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | Run sequentially and record the reason while parallel support is unavailable. |
+| Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Review inline and record `critic: inline`. |
+| Model-specific worker for a leaf | `phase-atomic-execution`, `pe-execute` | `sub-agents` | Run inline when no explicit switch is required. Stop when the switch is required. |
+| Hook-covered step logging | `phase-discovery`, `phase-execution`, `phase-validation`, `phase-finalize`, `phase-pipeline`, `spec-run`, `retro` | `hooks` | Log from the prompt with `note: approximate`. |

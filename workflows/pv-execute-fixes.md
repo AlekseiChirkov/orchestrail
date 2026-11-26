@@ -25,7 +25,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before code reads or writes; perform the
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before code reads or writes; perform the
 full bootstrap when standalone. Quick tasks execute approved fixes inline in `/phase-validation`.
 
 ## Instructions

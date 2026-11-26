@@ -17,7 +17,7 @@ Parent task directory = one level above the composite task directory.
 
 ## Context Bootstrap
 
-Load the `phase-atomic-validation` rule (`## Context Bootstrap`) for the composite's `working_dir:`
+Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) for the composite's `working_dir:`
 before code reads or writes. Resolve that path relative to its description directory;
 keep parent task paths absolute. Resolve each child's `target_files:` against that child's
 own `working_dir:` so multi-repo integration reads the correct files. Run relevant tests
@@ -25,7 +25,7 @@ and lint from the corresponding service runbooks; report unavailable checks.
 
 **Orchestrated mode (`/spec-run`) — do not write the shared files.** Return the composite
 block, plan rows, Integration Issues, fix-sibling artifacts, and compression as deltas for
-the orchestrator (`orchestration → ## Shared-file discipline`). The Validator's own leaf
+the orchestrator (`contract-orchestration → ## Shared-file discipline`). The Validator's own leaf
 block exemption never covers its composite. In other modes apply the edits below.
 
 ## Guard

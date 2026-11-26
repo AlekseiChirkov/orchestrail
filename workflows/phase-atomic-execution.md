@@ -7,6 +7,8 @@ step: "-"
 Invocation: `/phase-atomic-execution <path-to-atomic-description>`
 Example: `/phase-atomic-execution .ai/tasks/todo/task_foo/T-01-slug/description.md`
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 If path is not provided — ask the user and do not continue.
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
@@ -15,13 +17,13 @@ To run a single step directly, call the child workflow:
 `/pae-tests`, `/pae-implement`, `/pae-finalize`.
 
 This cycle is test-first: `/pae-tests` establishes RED before any implementation code is
-written. The governing contract is the `tdd` rule.
+written. The governing contract is the `contract-tdd` rule.
 
 ---
 
 ## Context Bootstrap
 
-Load the `phase-atomic-execution` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-atomic-execution` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -33,7 +35,7 @@ Keep task-artifact paths absolute; run code reads, writes, and commands in `WORK
 
 ---
 
-Under `/spec-run`, follow `orchestration → ## Shared-file discipline`: write only this
+Under `/spec-run`, follow `contract-orchestration → ## Shared-file discipline`: write only this
 leaf's progress block and code/tests. Return architecture, composite, plan, and compression
 updates as deltas for the orchestrator; this applies to every child in the cycle.
 
@@ -51,11 +53,11 @@ Read parent `state.md` (one level above the atomic task directory) and `T-XX/des
     legacy plan `done`/`reviewed`) → report completion and return to the caller.
   - If execution complete but finalization is not recorded → resume `/pae-finalize`;
     do not rerun tests or implementation.
-  - If `atomic-execution: blocked` → run **Blocker Reconciliation** (`phase-atomic-execution` rules). If the blocker is a dependency/status blocker whose prerequisites are all satisfied → clear it automatically, record the reconciliation in `last_action`/`notes`, and continue. Otherwise (non-status blocker, or a prerequisite still unmet) → report the blocker and ask "Is it resolved? (yes/no)". **Wait.**
+  - If `atomic-execution: blocked` → apply `procedure-blocker-reconciliation → ## Blocker Reconciliation` before continuing.
   - If `atomic-execution: in-progress` → continue from `last_action` (may require re-running last step for idempotency).
   - If `atomic-execution: not-started` → start from step 1 of `## Steps`.
 
-**TDD entry point.** Read `atomic-tests:` from the same block (see the `tdd` rule for the
+**TDD entry point.** Read `atomic-tests:` from the same block (see the `contract-tdd` rule for the
 value set). Unless the Guard already selected finalization, it selects the resume step:
   - `not-started`, or the field is absent **and** `atomic-execution: not-started` → start at `/pae-tests`.
   - Field absent **and** `atomic-execution: in-progress` → pre-TDD task already underway. Do not retroactively demand RED. Append to `notes:` — `pre-TDD task, TDD step skipped` — and resume at `/pae-implement`.
@@ -76,7 +78,7 @@ legacy pre-TDD resume. Preserve all existing test evidence and git fields.
 Do not execute descriptions marked `type: composite`; run their leaf children instead.
 
 Before requesting a model, spawning a worker or executing a child, apply
-`workflow-reference → ### Model columns and resolution` to the parent plan row.
+`contract-state-files → ### Model columns and resolution` to the parent plan row.
 Read its active optional `Model (Claude)` / `Model (Codex)` column with legacy `Model`
 and session-default compatibility. Resolve the configured or already-verified source root
 through the canonical read-only guidance preflight. Use the same source root for the helper

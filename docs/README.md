@@ -5,6 +5,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 `.ai/principles/coding.md → Document placement`.
 
 ## Manuals
+- [Pipeline reference](PIPELINE.md) — phase order, command map and status glossary
 - [USAGE.md](USAGE.md) — operating manual: setup, project initialisation, daily workflow, command reference, status formats, post-merge finalization, hook coverage and exact retrospective timing
 - [Repository scripts](../scripts/README.md#exact-run-timing) — finalization helpers, recovery, staged sync, explicit-file timing and dependencies
 - [SPEC-RUN-QUICKSTART.md](SPEC-RUN-QUICKSTART.md) — operating procedure for `/spec-run`

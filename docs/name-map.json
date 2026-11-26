@@ -4,12 +4,128 @@
     {
       "kind": "file",
       "old": "rules/global-claude.md",
-      "new": ["harness/claude/always-on.md"]
+      "new": [
+        "harness/claude/always-on.md"
+      ]
     },
     {
       "kind": "file",
       "old": "templates/codex-global-AGENTS.md",
-      "new": ["harness/codex/always-on.md"]
+      "new": [
+        "harness/codex/always-on.md"
+      ]
+    },
+    {
+      "kind": "file",
+      "old": "workflows/PIPELINE.md",
+      "new": [
+        "docs/PIPELINE.md"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "git-flow",
+      "new": [
+        "contract-git-flow"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "language",
+      "new": [
+        "contract-language"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "orchestration",
+      "new": [
+        "contract-orchestration"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-atomic-execution",
+      "new": [
+        "bootstrap-atomic-execution",
+        "procedure-blocker-reconciliation",
+        "protocol-atomic-execution-conduct"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-atomic-validation",
+      "new": [
+        "bootstrap-atomic-validation",
+        "protocol-atomic-validation-conduct"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-discovery",
+      "new": [
+        "bootstrap-discovery",
+        "protocol-discovery-conduct"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-execution",
+      "new": [
+        "bootstrap-execution"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-finalize",
+      "new": [
+        "bootstrap-finalization",
+        "protocol-finalization-conduct"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "phase-validation",
+      "new": [
+        "bootstrap-validation"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "quick-flow",
+      "new": [
+        "contract-quick-flow"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "run-log",
+      "new": [
+        "contract-run-log"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "tdd",
+      "new": [
+        "contract-tdd"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "workflow-globals",
+      "new": [
+        "contract-phases"
+      ]
+    },
+    {
+      "kind": "rule",
+      "old": "workflow-reference",
+      "new": [
+        "contract-state-files",
+        "protocol-autonomous-decision",
+        "protocol-subtask-classifier"
+      ]
     }
   ]
 }

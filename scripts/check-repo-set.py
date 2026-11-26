@@ -637,7 +637,7 @@ class InstructionContractTests(unittest.TestCase):
         for command in ("repo-set.py mode", "repo-set.py preflight", "repo-set.py route",
                         "repo-set.py reconcile"):
             self.contains(command, text)
-        self.contains("`git-flow → ## Multi-repository runs`", text)
+        self.contains("`contract-git-flow → ## Multi-repository runs`", text)
         flat = " ".join(text.split())
         for kept in ("subtask N branches from the tip of subtask N-1",
                      "Never start N+1 before N is `reviewed`",
@@ -652,10 +652,10 @@ class InstructionContractTests(unittest.TestCase):
                       "commands", flat)
 
     def test_git_flow_defines_multi_repository_runs(self) -> None:
-        text = self.read("rules/git-flow.md")
+        text = self.read("rules/contract-git-flow.md")
         self.lacks("Single-repo only.", text)
         body = " ".join(section(text, "## Multi-repository runs").split())
-        self.assertTrue(body, "git-flow.md has no ## Multi-repository runs section")
+        self.assertTrue(body, "contract-git-flow.md has no ## Multi-repository runs section")
         for phrase in ("Run the preflight separately for every participating repository",
                        "never names a branch of another repository as its base",
                        "no shared git history",
@@ -665,12 +665,12 @@ class InstructionContractTests(unittest.TestCase):
         self.assertTrue(re.search(r"(?m)^repo: +backend$", text), "missing: repo: backend")
 
     def test_state_formats_define_the_repository_set_and_repo_field(self) -> None:
-        text = self.read("rules/workflow-globals.md")
+        text = self.read("rules/contract-phases.md")
         self.assertTrue(re.search(r"(?m)^  repo: <participating repository directory name — "
                                   r"multi-repository orchestrated mode only>$", text),
                         "missing: canonical repo: line")
         self.assertEqual(len(re.findall(r"(?m)^Repository set line: ", text)), 1)
-        protected = section(self.read("rules/workflow-reference.md"),
+        protected = section(self.read("rules/contract-state-files.md"),
                             "## Protected Sections Contract")
         self.contains("`## Repositories`", protected)
         self.contains("`repo:`", protected)
@@ -690,12 +690,12 @@ class InstructionContractTests(unittest.TestCase):
         self.contains("--repo <directory>", self.read("workflows/restack.md"))
 
     def test_workers_fall_back_to_the_shared_runbook_when_a_repository_has_none(self) -> None:
-        rule = " ".join(self.read("rules/phase-atomic-execution.md").split())
+        rule = " ".join(self.read("rules/bootstrap-atomic-execution.md").split())
         self.contains("otherwise the umbrella's `context/runbook.md`", rule)
         self.contains("from the umbrella root `<WORK_DIR>/..`", rule)
-        for reader in ("rules/phase-atomic-validation.md", "workflows/pae-tests.md",
+        for reader in ("rules/bootstrap-atomic-validation.md", "workflows/pae-tests.md",
                        "workflows/pae-implement.md", "workflows/pav-check.md"):
-            self.contains("`phase-atomic-execution → ## Context Bootstrap`",
+            self.contains("`bootstrap-atomic-execution → ## Context Bootstrap`",
                           " ".join(self.read(reader).split()))
 
     def test_quickstart_no_longer_limits_a_spec_to_one_repository(self) -> None:

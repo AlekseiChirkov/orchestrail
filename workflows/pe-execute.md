@@ -7,6 +7,8 @@ step: 1
 Invocation: `/pe-execute <task-directory>`
 Called by: `/phase-execution` as Step 1.
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 Task directory = provided argument (trailing slash optional).
 
 ---
@@ -22,7 +24,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-execution` rule (`## Context Bootstrap`) before code reads or writes. When invoked
+Load the `bootstrap-execution` rule (`## Context Bootstrap`) before code reads or writes. When invoked
 standalone, perform the full bootstrap, set `execution: in-progress`, and resume recorded work.
 `flow: quick` → **stop**: "Quick tasks execute inline in `/phase-execution`; there are no atomic subtasks."
 
@@ -41,7 +43,7 @@ standalone, perform the full bootstrap, set `execution: in-progress`, and resume
    - Require its description's `## Steps` and `## Acceptance Criteria`; if absent →
      **stop**: "Incomplete subtask description. Run `/pd-decompose` + `/pd-finalize`."
    - Before requesting a model or executing the atomic cycle, apply
-     `workflow-reference → ### Model columns and resolution`. Read the active optional
+     `contract-state-files → ### Model columns and resolution`. Read the active optional
      `Model (Claude)` / `Model (Codex)` column, legacy `Model`, or session default by
      that precedence. Resolve the configured or already-verified source root through
      the canonical read-only guidance preflight; use the same source root for the helper
@@ -88,7 +90,7 @@ standalone, perform the full bootstrap, set `execution: in-progress`, and resume
    - Otherwise record why it was not reached. Independent siblings may continue only
      when their dependency chains remain ready.
 
-At an ambiguity, follow `workflow-globals` and the active caller's declared override.
+At an ambiguity, follow `contract-phases` and the active caller's declared override.
 Without such an override, describe the issue, offer 2–3 options with trade-offs, and wait for
 user's choice. At a blocker, persist the blocker and stop.
 

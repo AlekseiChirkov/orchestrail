@@ -25,13 +25,13 @@ Parent task directory = one level above.
 Read parent `state.md → ## Subtask Progress` block for this T-XX.
 If `atomic-validation: failed` → **stop**: "Cannot close: verdict is NEEDS WORK."
 If `last_action` is not `pav-propose done` → **stop**: "Complete `/pav-propose` before closure."
-Load the `phase-atomic-validation` rule (`## Context Bootstrap`) before project writes, including standalone invocation.
+Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before project writes, including standalone invocation.
 
 ---
 
 ## Instructions
 
-Before updating plan.md in step 2, load `workflow-reference` for the Status Translation Table.
+Before updating plan.md in step 2, load `contract-state-files` for the Status Translation Table.
 
 1. Update parent `state.md → ## Subtask Progress` block for this T-XX:
    - Set `atomic-validation: complete`.
@@ -41,11 +41,11 @@ Before updating plan.md in step 2, load `workflow-reference` for the Status Tran
    - Preserve `atomic-tests:` (`green` or `n-a`). Never remove or downgrade it.
 
 2. Update parent `plan.md`: set the `Status` column for this T-XX row to `reviewed`.
-   (Translation: atomic-validation `complete` → plan.md `reviewed` — per Status Translation Table in workflow-reference)
+   (Translation: atomic-validation `complete` → plan.md `reviewed` — per Status Translation Table in contract-state-files)
 
    **Orchestrated mode (`/spec-run`) — do not write the file.** Running as the Validator
    sub-agent, report the transition (`T-XX → reviewed`) as a delta and let the orchestrator
-   apply it; `plan.md` has exactly one writer (`orchestration → ## Shared-file discipline`). In
+   apply it; `plan.md` has exactly one writer (`contract-orchestration → ## Shared-file discipline`). In
    every other mode, make the edit here. State which mode applies in the step 6 report.
 
 3. Do NOT write to `T-XX/state.md` — it does not exist in the new structure.

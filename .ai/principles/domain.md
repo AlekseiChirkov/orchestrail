@@ -46,7 +46,7 @@ appears in a rule.
 | **Fix-task** | A `T-XX-fix-<slug>` subtask created by `/pv-create-fixes` from an approved review issue. |
 | **Run log** | The central JSONL store written by `scripts/log-step.sh`; read only by `/retro`. |
 | **Retro** | `/retro` — aggregates the run log and recommends edits to this repository; never applies them. |
-| **Context Bootstrap** | The ordered `.ai/` load list a phase performs before touching any file; defined per phase in `rules/phase-*.md`. |
+| **Context Bootstrap** | The ordered `.ai/` load list a phase performs before touching any file; defined per phase in `rules/bootstrap-*.md`. |
 | **Context pack** | `.ai/context-pack.md` — a manifest-verified cache of bootstrap sources 1–7. |
 | **Umbrella** | The root `.ai/` of a multi-repo project; loaded before the service's own `.ai/`. |
 | **Sync** | `scripts/sync.sh` — validate then deploy this repository to all harness locations. |

@@ -5,7 +5,7 @@ step: "-"
 ---
 
 Invocation: `/restack <task-directory> [--repo <directory>] [--onto <branch>] [--allow-pr]`
-Load `git-flow`. Only this workflow may rebase or force-push, and only branches recorded
+Load `contract-git-flow`. Only this workflow may rebase or force-push, and only branches recorded
 for this task. Resolve task paths from the project root; operate in its single repository.
 A multi-repository task (`state.md → ## Repositories`) needs `--repo <directory>`: operate
 only in `<project root>/<directory>`, only on blocks whose `repo:` names it, with that
@@ -20,7 +20,7 @@ untouched. Without `--repo` on such a task → **stop** and list the recorded re
    `<common-dir>/orchestrail-restack/<sha256-of-canonical-task-path>.json`, keyed by
    canonical repository and task paths (schema: `## Recovery journal`). Inspect it before
    clean-tree/replay checks.
-3. Apply `git-flow → ## Preflight (mandatory, before any branch is created)` as relevant
+3. Apply `contract-git-flow → ## Preflight (mandatory, before any branch is created)` as relevant
    to replay: require a clean tracked tree, no unresolved git operation, and a resolvable
    target base. Resolve `--onto` or the repository's configured default branch; do not
    guess `main` or silently fetch a different revision.
@@ -45,7 +45,7 @@ untouched. Without `--repo` on such a task → **stop** and list the recorded re
 
 The journal is this workflow's recovery record and the only evidence the git-rails hook
 accepts for a replay rebase or a lease push; without exactly one matching journal the hook
-asks the owner, or denies a form or target it cannot resolve (`git-flow → ## Safety rails`).
+asks the owner, or denies a form or target it cannot resolve (`contract-git-flow → ## Safety rails`).
 The file name is the SHA-256 hex digest of the UTF-8 `task_path`. Every file in the journal
 directory whose name is 64 hex digits followed by `.json` must be a usable journal: one that
 is unreadable, invalid or misnamed makes every replay and lease push ask, as an unreadable
@@ -110,7 +110,7 @@ resolve:
 
 The journal records only what this workflow observed. Never edit it to make a command pass
 the hook; a command the hook asks about follows the owner-approval protocol in
-`git-flow → ## Safety rails`.
+`contract-git-flow → ## Safety rails`.
 
 ## Step 1 — Classify each branch
 

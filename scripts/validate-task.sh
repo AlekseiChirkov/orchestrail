@@ -159,7 +159,7 @@ if grep -q '^## Subtask Progress' "$STATE"; then
   check "atomic-execution/validation use the canonical vocabulary" \
     "$([ -z "$BAD_STAT" ] && echo pass || echo "found: $(echo "$BAD_STAT" | tr '\n' ';')")"
 
-  # Required-even-when-empty fields, per workflow-globals.
+  # Required-even-when-empty fields, per contract-phases.
   LEAVES="$(grep -cE '^T-[0-9]' "$STATE" || true)"
   for field in target_files notes; do
     COUNT="$(grep -cE "^ +$field:" "$STATE" || true)"
@@ -168,7 +168,7 @@ if grep -q '^## Subtask Progress' "$STATE"; then
          || echo "$COUNT ${field}: lines for $LEAVES leaf blocks — the field is mandatory even when empty")"
   done
 
-  # Tool-managed receipts, per workflow-globals: only field lines (exactly two spaces of
+  # Tool-managed receipts, per contract-phases: only field lines (exactly two spaces of
   # indentation) inside the progress section and outside fences are read, so prose that
   # mentions the field never counts. A block without the line is valid. Fences follow the
   # state tool's grammar: tracked from the first line of the file, opened by ``` or ~~~ after
@@ -199,7 +199,7 @@ if grep -q '^## Subtask Progress' "$STATE"; then
   BAD_RECEIPTS="$(printf '%s\n' "$RECEIPT_FINDINGS" | grep -E '^[0-9]+$' | tr '\n' ' ' || true)"
   OPEN_FENCE="$(printf '%s\n' "$RECEIPT_FINDINGS" | sed -n 's/^open //p')"
   RECEIPT_PROBLEMS=""
-  [ -z "$BAD_RECEIPTS" ] || RECEIPT_PROBLEMS="malformed state_receipts: line(s) at line ${BAD_RECEIPTS% } — each holds 1 to 20 entries <operation_id>#<16 lowercase hex> separated by ', ' with unique operation ids; the line is tool-managed (workflow-globals → ## Canonical Status Formats)"
+  [ -z "$BAD_RECEIPTS" ] || RECEIPT_PROBLEMS="malformed state_receipts: line(s) at line ${BAD_RECEIPTS% } — each holds 1 to 20 entries <operation_id>#<16 lowercase hex> separated by ', ' with unique operation ids; the line is tool-managed (contract-phases → ## Canonical Status Formats)"
   [ -z "$OPEN_FENCE" ] || RECEIPT_PROBLEMS="${RECEIPT_PROBLEMS:+$RECEIPT_PROBLEMS; }the fence opened at line $OPEN_FENCE is never closed, so the lines after it cannot be read — close the fence"
   check "every state_receipts: line has 1 to 20 well-formed entries with unique operation ids" \
     "$([ -z "$RECEIPT_PROBLEMS" ] && echo pass || echo "$RECEIPT_PROBLEMS")"

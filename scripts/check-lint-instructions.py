@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Check the instruction lint command with isolated source trees."""
 
+from collections import Counter
+from functools import cache
 import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,6 +26,10 @@ CAPABILITY_KEYS = (
     "hooks",
     "worktrees",
     "git",
+)
+RECEIPT_HISTORY_FRAME = (
+    "The following historical verification record preserves its original citation.\n"
+    "The current policy is `contract-git-flow → ## Finalization Git ownership`.\n\n"
 )
 ALWAYS_ON_RELOCATIONS = (
     ("rules/global-claude.md", "harness/claude/always-on.md"),
@@ -783,6 +791,9 @@ class InstructionMetadataTests(unittest.TestCase):
         legacy_rules = ("git-flow", "phase-finalize", "tdd", "workflow-globals")
         for name in legacy_rules:
             self.write(f"rules/{name}.md", RULE)
+        for name in ("contract-git-flow", "contract-tdd", "contract-phases"):
+            self.write(f"rules/{name}.md", RULE)
+        self.write("rules/bootstrap-finalization.md", sized_bootstrap(100))
         for name in ("pae-tests", "pae-implement", "phase-finalize"):
             self.write(f"workflows/{name}.md", workflow('"-"', name=name))
 
@@ -795,8 +806,14 @@ class InstructionMetadataTests(unittest.TestCase):
             with self.subTest(adapter=name):
                 relative = f"harness/{name}/capabilities.md"
                 declaration = (SOURCE / relative).read_bytes()
-                self.assertEqual(hashlib.sha256(declaration[:length]).hexdigest(), digest)
-                lines = declaration[length:].decode("utf-8").lstrip("\n").splitlines()
+                original_declaration = declaration
+                if name == "claude":
+                    heading = b"## Finalization receipt support\n\n"
+                    framed = heading + RECEIPT_HISTORY_FRAME.encode("utf-8")
+                    self.assertEqual(declaration.count(framed), 1, relative)
+                    original_declaration = declaration.replace(framed, heading, 1)
+                self.assertEqual(hashlib.sha256(original_declaration[:length]).hexdigest(), digest)
+                lines = original_declaration[length:].decode("utf-8").lstrip("\n").splitlines()
                 self.assertTrue(lines and lines[0] == "## Capability records", f"Missing records in {relative}")
                 record_names = [line.removeprefix("name: ") for line in lines if line.startswith("name: ")]
                 canonical = [key for key in record_names if key in CAPABILITY_KEYS]
@@ -987,11 +1004,14 @@ class InstructionMetadataTests(unittest.TestCase):
     def test_delivered_rule_metadata_preserves_rule_names_and_load_policy(self) -> None:
         rules = {
             "always": (
-                "git-flow", "language", "orchestration", "quick-flow", "run-log", "tdd", "workflow-globals",
+                "contract-git-flow", "contract-language", "contract-orchestration",
+                "contract-quick-flow", "contract-run-log", "contract-tdd", "contract-phases",
             ),
             "on-demand": (
-                "phase-atomic-execution", "phase-atomic-validation", "phase-discovery", "phase-execution",
-                "phase-finalize", "phase-validation", "workflow-reference",
+                *BOOTSTRAPS.values(), "contract-state-files",
+                "protocol-autonomous-decision", "protocol-subtask-classifier", "protocol-discovery-conduct",
+                "protocol-atomic-execution-conduct", "protocol-atomic-validation-conduct",
+                "protocol-finalization-conduct", "procedure-blocker-reconciliation",
             ),
         }
         self.assertCountEqual(
@@ -1032,7 +1052,7 @@ class InstructionMetadataTests(unittest.TestCase):
         }
         self.assertCountEqual(
             [path.stem for path in (SOURCE / "workflows").glob("*.md")],
-            ["PIPELINE", *(name for workflows in phases.values() for name in workflows)],
+            [name for workflows in phases.values() for name in workflows],
         )
         for phase, workflows in phases.items():
             for name, step in workflows.items():
@@ -1049,12 +1069,14 @@ class InstructionMetadataTests(unittest.TestCase):
         return metadata
 
     def test_delivered_active_documents_record_legacy_integrations_as_removed(self) -> None:
-        active_paths = {"rules/workflow-globals.md", "CLAUDE.md", "docs/USAGE.md"}
+        active_paths = {"rules/contract-phases.md", "CLAUDE.md", "docs/USAGE.md"}
         usage = (SOURCE / "docs/USAGE.md").read_bytes().splitlines(keepends=True)
         self.assertIn(b"## Removed integrations\n", usage)
+        setup = section(current("docs/USAGE.md"), "## 4. Initial Setup (new machine / standalone project)")
         self.assertEqual(
-            hashlib.sha256(usage[255]).hexdigest(),
-            "76ca60298a3212a6b48f4f8de8668ab06e4d2d246278bc9ff37889af11210809",
+            [hashlib.sha256(line.encode()).hexdigest() for line in setup.splitlines(keepends=True)
+             if line.startswith("git clone ")],
+            ["76ca60298a3212a6b48f4f8de8668ab06e4d2d246278bc9ff37889af11210809"],
         )
 
         result = self.run_checker(SOURCE)
@@ -1066,7 +1088,7 @@ class InstructionMetadataTests(unittest.TestCase):
         self.assertEqual(findings, [], "\n".join(findings))
 
     def test_orchestration_implementer_references_keep_the_step_locator(self) -> None:
-        orchestration = (SOURCE / "rules/orchestration.md").read_text(encoding="utf-8")
+        orchestration = (SOURCE / "rules/contract-orchestration.md").read_text(encoding="utf-8")
         implementer = orchestration.split("\n### Implementer\n", 1)[1].split("\n### ", 1)[0]
         loop = "`/spec-run → ## Step 4 — Subtask loop`"
         references = [paragraph for paragraph in implementer.split("\n\n") if loop in paragraph]
@@ -1077,37 +1099,19 @@ class InstructionMetadataTests(unittest.TestCase):
             self.assertIn("4.2", prose)
 
     def test_delivered_source_tree_has_only_recorded_migration_findings(self) -> None:
-        rules = (
-            "git-flow", "language", "orchestration", "phase-atomic-execution", "phase-atomic-validation",
-            "phase-discovery", "phase-execution", "phase-finalize", "phase-validation", "quick-flow",
-            "run-log", "tdd", "workflow-globals", "workflow-reference",
-        )
-        collisions = (
-            "phase-atomic-execution", "phase-atomic-validation", "phase-discovery", "phase-execution",
-            "phase-finalize", "phase-validation",
-        )
-        usage = ("usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.")
-
         result = self.run_checker(SOURCE)
 
         self.assertEqual(result.stderr, "")
         findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
-        self.assertIn(
-            (result.returncode, findings),
-            (
-                (0, []),
-                (1, [usage]),
-                (1, [
-                    *(f"kind-prefix-invalid rules/{name}.md:0 Expected a rule kind and a hyphenated subject."
-                      for name in rules),
-                    *(f"name-collision workflows/{name}.md:0 Stem {name} is also used by rules/{name}.md."
-                      for name in collisions),
-                    usage,
-                    *MISSING_PHASE_CONTRACT_FINDINGS,
-                ]),
-            ),
-            result.stdout,
-        )
+        if any(row["kind"] == "workflow" for row in name_map()["rows"]):
+            self.assertEqual((result.returncode, findings), (0, []), result.stdout)
+        else:
+            record, = SOURCE.glob("docs/audits/*-rule-migration-map.md")
+            evidence = section(current(record), "## Pending command checks")
+            trace = "\n".join(findings) + "\n"
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn(f"Findings: {len(findings)}", evidence)
+            self.assertIn(f"SHA-256: {hashlib.sha256(trace.encode()).hexdigest()}", evidence)
 
     def test_rejects_invalid_deploy_env_as_data(self) -> None:
         env_path = "harness/demo/deploy.env"
@@ -1190,9 +1194,9 @@ class InstructionMetadataTests(unittest.TestCase):
             definition = helper + body + closing
 
         checks = {
-            "TDD: rules/tdd.md is always_on": ("rules/tdd.md",),
-            "ORCH: $f is always_on": ("rules/git-flow.md", "rules/orchestration.md"),
-            "LOG: rules/run-log.md is always_on": ("rules/run-log.md",),
+            "TDD: rules/tdd.md is always_on": ("rules/contract-tdd.md",),
+            "ORCH: $f is always_on": ("rules/contract-git-flow.md", "rules/contract-orchestration.md"),
+            "LOG: rules/run-log.md is always_on": ("rules/contract-run-log.md",),
         }
         plain = RULE.replace("Check the contract", "Fixture — UTF-8").replace("on-demand", "always")
         fixtures = (
@@ -1227,7 +1231,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
 
 class GlobalInstructionGuidanceTests(unittest.TestCase):
-    guidance_paths = ("rules/language.md", "docs/USAGE.md")
+    guidance_paths = ("rules/contract-language.md", "docs/USAGE.md")
     global_paths = ("~/.claude/CLAUDE.md", "~/.codex/AGENTS.md")
 
     def test_chat_language_guidance_points_to_project_local_instructions(self) -> None:
@@ -1283,6 +1287,353 @@ class InstructionSourceIsolationTests(unittest.TestCase):
         for path in (CHECKER, SOURCE / "scripts/deploy-skills.py", Path(__file__)):
             with self.subTest(path=path.name):
                 self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
+
+
+BASELINE_SHA256 = "9a11abfcfda9db1ff7411fc6f9b879f98e3c20ac967dc61c282df4dbc79ce7bc"
+STATE_RULE = "workflow" + "-reference"
+PHASE_RULE = "workflow" + "-globals"
+BOOTSTRAPS = {
+    f"phase-{phase if phase != 'finalization' else 'finalize'}": f"bootstrap-{phase}"
+    for phase in ("discovery", "execution", "validation", "atomic-execution", "atomic-validation", "finalization")
+}
+CONTRACTS = {
+    name: f"contract-{name}"
+    for name in ("tdd", "git-flow", "orchestration", "quick-flow", "run-log", "language")
+}
+DISCOVERY = next(old for old, new in BOOTSTRAPS.items() if new == "bootstrap-discovery")
+ATOMIC_EXECUTION = next(old for old, new in BOOTSTRAPS.items() if new == "bootstrap-atomic-execution")
+RULE_TARGETS = {
+    **{old: [new] for old, new in (CONTRACTS | BOOTSTRAPS).items()},
+    PHASE_RULE: ["contract-phases"],
+    STATE_RULE: ["contract-state-files", "protocol-autonomous-decision", "protocol-subtask-classifier"],
+    DISCOVERY: ["bootstrap-discovery", "protocol-discovery-conduct"],
+    ATOMIC_EXECUTION: ["bootstrap-atomic-execution", "procedure-blocker-reconciliation"],
+}
+PIPELINE = Path("workflows", "PIPELINE.md")
+PUBLIC_PIPELINE = Path("docs", PIPELINE.name)
+CONTEXT = "## Context Bootstrap"
+BEHAVIORS = "## Phase Behaviors"
+BLOCKER = "## Blocker Reconciliation"
+PROTECTED = "## Protected Sections Contract"
+DISCOVERY_HEADINGS = ("## Codebase Reading Rules", "## Decision Protocol")
+STATE_SPLITS = {
+    "## Autonomous Decision Protocol": "protocol-autonomous-decision",
+    **dict.fromkeys(
+        ("## Autonomous Subtask Classifier", "## Decomposition Decisions", "## Decomposition Rules"),
+        "protocol-subtask-classifier",
+    ),
+}
+
+
+def source(stem: str, group: str = "rules") -> Path:
+    return Path(group, f"{stem}.md")
+
+
+def current(path: Path | str) -> str:
+    return (SOURCE / path).read_bytes().decode("utf-8")
+
+
+@cache
+def migration_baseline() -> dict:
+    data = (SOURCE / "docs/audits/rule-migration-baseline.json").read_bytes()
+    if hashlib.sha256(data).hexdigest() != BASELINE_SHA256:
+        raise ValueError("Rule migration baseline differs from the audited fixture")
+    return json.loads(data)
+
+
+def original_section(path: Path, heading: str) -> str:
+    return migration_baseline()["rules"][path.as_posix()][heading]["text"]
+
+
+def headings(document: str) -> list[tuple[str, str]]:
+    starts = list(re.finditer(r"(?m)^## [^\n]+", document))
+    ends = [match.start() for match in starts[1:]] + ([len(document)] if starts else [])
+    return [(start.group(), document[start.start():end]) for start, end in zip(starts, ends, strict=True)]
+
+
+def cells(line: str) -> tuple[str, ...]:
+    values = (cell.strip().replace(r"\|", "|") for cell in re.split(r"(?<!\\)\|", line.strip().strip("|")))
+    return tuple(re.sub(r"^(`{2,}) (.+) \1$", r"`\2`", cell) for cell in values)
+
+
+def section(document: str, heading: str) -> str:
+    return next((section for title, section in headings(document) if title == heading), "")
+
+
+def name_map() -> dict:
+    return json.loads(current("docs/name-map.json"))
+
+
+def normalized(text: str, rows: list[dict]) -> str:
+    for row in rows:
+        old = row["old"]
+        new = row["new"][0]
+        if row["kind"] == "file":
+            text = text.replace(old, new)
+        elif row["kind"] == "workflow":
+            text = re.sub(r"/" + re.escape(old) + r"(?![\w-])", f"/{new}", text)
+            text = text.replace(str(source(old, "workflows")), str(source(new, "workflows")))
+            text = re.sub(r"`" + re.escape(old) + r"(?= → )", f"`/{new}", text)
+        else:
+            for title, owner in STATE_SPLITS.items() if old == STATE_RULE else ():
+                text = text.replace(f"`{old} → {title}", f"`{owner} → {title}")
+            if old == ATOMIC_EXECUTION:
+                text = text.replace(f"**Blocker Reconciliation** (`{old}` rules)",
+                                    "**Blocker Reconciliation** (`procedure-blocker-reconciliation` rule)")
+            text = text.replace(str(source(old)), str(source(new)))
+            text = re.sub(r"(?<![\w-])rule-" + re.escape(old) + r"(?![\w-])", f"rule-{new}", text)
+            text = re.sub(r"`" + re.escape(old) + r"(?:\.md)?(?= → |` rules?\b)", f"`{new}", text)
+            if old in CONTRACTS:
+                text = text.replace(f"`{old}`", f"`{new}`")
+    return text
+
+
+class RuleSourceMigration(unittest.TestCase):
+    def record(self) -> str:
+        records = list(SOURCE.glob("docs/audits/*-rule-migration-map.md"))
+        self.assertEqual(len(records), 1, "Expected one rule migration semantics record")
+        return current(records[0])
+
+    def migrated_sections(self, first_target: str, title: str) -> str:
+        if first_target == "contract-state-files":
+            return STATE_SPLITS.get(title, first_target)
+        if first_target == "bootstrap-discovery" and title in DISCOVERY_HEADINGS:
+            return "protocol-discovery-conduct"
+        if first_target == "bootstrap-atomic-execution" and title == BLOCKER:
+            return "procedure-blocker-reconciliation"
+        return first_target
+
+    def isolated_command(self, *command: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory(prefix="rule-source-contract-") as directory:
+            paths = {name: str(Path(directory, leaf)) for name, leaf in (
+                ("HOME", "home"), ("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state"),
+            )}
+            for path in paths.values():
+                Path(path).mkdir()
+            return subprocess.run(
+                [sys.executable, *command], cwd=directory,
+                env={**os.environ, **paths, "PYTHONDONTWRITEBYTECODE": "1"},
+                capture_output=True, text=True, check=False, timeout=timeout,
+            )
+
+    def test_name_map_and_usage_declare_each_canonical_source(self) -> None:
+        rows = name_map()["rows"]
+        mapped_rules = {row["old"]: row["new"] for row in rows if row["kind"] == "rule"}
+        self.assertEqual(set(mapped_rules), set(RULE_TARGETS))
+        for old, targets in RULE_TARGETS.items():
+            with self.subTest(source=old):
+                self.assertEqual(mapped_rules[old][:len(targets)], targets)
+                extras = mapped_rules[old][len(targets):]
+                allowed = [f"protocol-{BOOTSTRAPS[old].removeprefix('bootstrap-')}-conduct"] if old in BOOTSTRAPS else []
+                self.assertTrue(set(extras) <= set(allowed), extras)
+                self.assertFalse((SOURCE / source(old)).exists(), "The old rule is still present")
+                for target in mapped_rules[old]:
+                    load = "always" if target.startswith("contract-") and target != "contract-state-files" else "on-demand"
+                    self.assertIn(f"\nload: {load}\n", current(source(target)).split("---", 2)[1])
+        self.assertEqual({path.stem for path in (SOURCE / "rules").glob("*.md")},
+                         {target for values in mapped_rules.values() for target in values})
+        self.assertIn({"kind": "file", "old": str(PIPELINE), "new": [str(PUBLIC_PIPELINE)]}, rows)
+        expected = [
+            (row["kind"], f"`{row['old']}`", ", ".join(f"`{name}`" for name in row["new"]))
+            for row in rows
+        ]
+        usage = section(current("docs/USAGE.md"), "## Renamed commands and rules")
+        table = [cells(line) for line in usage.splitlines() if line.startswith("|")]
+        self.assertEqual(table[0], ("Kind", "Old", "New"))
+        self.assertEqual(table[2:], expected)
+
+    def test_bootstrap_registry_and_size_exceptions_match_delivery(self) -> None:
+        path = source("contract-phases")
+        self.assertTrue((SOURCE / path).is_file(), "The shared phase contract has not moved")
+        phase_contract = current(path)
+        references = section(phase_contract, "## Rule references").splitlines()
+        anchor = "A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness."
+        self.assertEqual(references.count(anchor), 1)
+        self.assertTrue(all(any(f"`{prefix}" in line for line in references)
+                            for prefix in ("principle-", "ref-")))
+        registry = section(phase_contract, CONTEXT)
+        table = [cells(line) for line in registry.splitlines() if line.startswith("|")]
+        self.assertEqual(table[0], ("Phase", "Skill", "Loaded by"))
+        self.assertEqual(Counter(row[1] for row in table[2:]), Counter(f"`rule-{name}`" for name in BOOTSTRAPS.values()))
+        for _, _, loaders in table[2:]:
+            commands = re.findall(r"`/([a-z-]+)`", loaders)
+            self.assertTrue(commands, loaders)
+            for command in commands:
+                self.assertTrue((SOURCE / source(command, "workflows")).is_file(), loaders)
+        exceptions = section(self.record(), "## Bootstrap size exceptions").splitlines()
+        sizes = {row[0].strip("`"): int(row[1]) for row in map(cells, exceptions)
+                 if len(row) == 3 and row[1].isdecimal()}
+        observed = {}
+        for target in BOOTSTRAPS.values():
+            with self.subTest(rule=target):
+                text = current(source(target))
+                self.assertEqual([heading for heading, _ in headings(text)], [CONTEXT, BEHAVIORS])
+                if len(text.split()) > 300:
+                    observed[target] = len(text.split())
+                    preamble, behavior = text.split(BEHAVIORS, 1)
+                    overflow = f"protocol-{target.removeprefix('bootstrap-')}-conduct"
+                    self.assertEqual(behavior.strip(), f"Load the `{overflow}` rule before acting.")
+                    self.assertTrue((SOURCE / source(overflow)).is_file())
+                    self.assertGreater(len((preamble + BEHAVIORS + behavior).split()), 300)
+        self.assertEqual(sizes, observed)
+
+    def test_every_rule_section_has_its_canonical_owner_and_parent_digest(self) -> None:
+        record = self.record()
+        self.assertIn("SHA-256", record)
+        rows = [cells(line) for line in record.splitlines() if line.startswith("|")]
+        indexed = Counter((row[0].strip("`"), row[1].strip("`"), row[2].strip("`"), row[3].strip("`"))
+                          for row in rows if len(row) == 8 and re.fullmatch(r"[a-f0-9]{64}", row[2].strip("`")))
+        missing = []
+        installed = {path.stem: current(path).splitlines() for path in (SOURCE / "rules").glob("*.md")}
+        baseline = migration_baseline()["rules"]
+        for old, paths in RULE_TARGETS.items():
+            old_path = source(old)
+            for title, evidence in baseline[old_path.as_posix()].items():
+                target = source(self.migrated_sections(paths[0], title))
+                owners = [str(source(name)) for name in (*paths, old)
+                          for line in installed.get(name, ()) if line == title]
+                record_key = (str(old_path), title, evidence["sha256"], str(target))
+                if owners != [str(target)] or indexed[record_key] != 1:
+                    missing.append((str(old_path), title, str(target), owners, indexed[record_key]))
+        self.assertFalse(bool(missing), f"{len(missing)} invalid section owners or digests. First: {missing[:3]}")
+
+    def test_blocker_reconciliation_and_discovery_conduct_have_one_authority(self) -> None:
+        owner = source("procedure-blocker-reconciliation")
+        self.assertTrue((SOURCE / owner).is_file(), "Blocker reconciliation is still embedded in the bootstrap")
+        rows = name_map()["rows"]
+        self.assertEqual(section(current(owner), BLOCKER).rstrip("\n"),
+                         normalized(original_section(source(ATOMIC_EXECUTION), BLOCKER), rows).rstrip("\n"))
+        owners = [path.stem for path in (SOURCE / "rules").glob("*.md") if BLOCKER in current(path).splitlines()]
+        self.assertEqual(owners, [owner.stem])
+        workflows = {row["old"]: row["new"][0] for row in rows if row["kind"] == "workflow"}
+        for old in (ATOMIC_EXECUTION, "pae-implement"):
+            command = workflows.get(old, old)
+            self.assertRegex(current(source(command, "workflows")),
+                             rf"`(?:rule-)?{owner.stem}(?:` rules?\b| → {BLOCKER}`)")
+        conduct = source("protocol-discovery-conduct")
+        rules = {path.stem: current(path) for path in (SOURCE / "rules").glob("*.md")}
+        for title in DISCOVERY_HEADINGS:
+            with self.subTest(section=title):
+                self.assertEqual([name for name, body in rules.items() if title in body.splitlines()], [conduct.stem])
+                self.assertEqual(section(rules[conduct.stem], title).rstrip("\n"),
+                                 normalized(original_section(source(DISCOVERY), title), rows).rstrip("\n"))
+
+    def test_protected_body_and_status_stop_lines_survive_rule_migration(self) -> None:
+        path = source("contract-state-files")
+        self.assertTrue((SOURCE / path).is_file(), "The protected sections contract has not moved")
+        rows = name_map()["rows"]
+        self.assertEqual(normalized(original_section(source(STATE_RULE), PROTECTED), rows),
+                         section(current(path), PROTECTED))
+
+        def protected_lines(texts: list[str]) -> Counter[str]:
+            return Counter(line for text in texts for line in normalized(text, rows).splitlines()
+                           if line.startswith("Status values for") or any(marker in line for marker in (
+                               "**stop**", "atomic-tests", "pre-TDD task, TDD step skipped",
+                           )))
+
+        delivered = list(SOURCE.glob("rules/*.md")) + list(SOURCE.glob("workflows/*.md"))
+        delivered += list(SOURCE.glob("harness/*/always-on.md")) + [SOURCE / PUBLIC_PIPELINE]
+        expected_lines = protected_lines(["\n".join(lines) for lines in migration_baseline()["protected_lines"].values()])
+        actual_lines = protected_lines([current(path) for path in delivered])
+        self.assertFalse(expected_lines - actual_lines, f"Changed protected lines: {expected_lines - actual_lines}")
+
+    def test_isolated_deployment_installs_canonical_rules_and_omits_the_reference(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="rule-source-installation-") as directory:
+            fixture = Path(directory)
+            result = subprocess.run(
+                [sys.executable, "-I", str(SOURCE / "scripts/deploy-skills.py"), "deploy",
+                 "--from", str(SOURCE), "--hook-result", '{"status":"unavailable","reason":"fixture"}'],
+                cwd=fixture, env={**os.environ, "HOME": str(fixture / "home"),
+                                  "XDG_CONFIG_HOME": str(fixture / "config"), "XDG_STATE_HOME": str(fixture / "state")},
+                capture_output=True, text=True, check=False, timeout=30,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for adapter in sorted(SOURCE.glob("harness/*/deploy.env")):
+                with self.subTest(adapter=adapter.parent.name):
+                    setting = next(line for line in current(adapter).splitlines() if line.startswith("skills_dir="))
+                    skills = fixture / "home" / setting.removeprefix("skills_dir=$HOME/")
+                    self.assertTrue(skills.is_dir(), f"Fixture installation did not create {skills}")
+                    self.assertFalse(any(entry.name == PIPELINE.stem
+                                         for entry in skills.iterdir()), "The pipeline reference was installed as a skill")
+                    for source_rule in (SOURCE / "rules").glob("*.md"):
+                        installed = skills / ("rule-" + source_rule.stem) / "SKILL.md"
+                        self.assertEqual(installed.read_bytes(), source_rule.read_bytes(), str(installed))
+        self.assertTrue((SOURCE / PUBLIC_PIPELINE).is_file())
+        self.assertFalse((SOURCE / PIPELINE).exists())
+        self.assertTrue(all(current(path).count("\nInvocation: ") == 1 for path in SOURCE.glob("workflows/*.md")))
+
+    def test_current_rule_readers_and_frozen_inventory_are_coherent(self) -> None:
+        lint = self.isolated_command("-I", str(SOURCE / "scripts/lint-instructions.py"), "--root", str(SOURCE))
+        findings = [line for line in lint.stdout.splitlines() if not line.startswith("info ")]
+        workflow_rows = [row for row in name_map()["rows"] if row["kind"] == "workflow"]
+        self.assertEqual(lint.stderr, "")
+        if workflow_rows:
+            self.assertEqual((lint.returncode, findings), (0, []), lint.stdout)
+        else:
+            self.assertEqual(lint.returncode, 1, lint.stdout)
+            for finding in findings:
+                match = re.fullmatch(r"stale-name (.+):(\d+) Stale names: (.+)\.", finding)
+                self.assertIsNotNone(match, finding)
+                path, line_number, names = match.groups()
+                line = current(path).splitlines()[int(line_number) - 1]
+                for name in names.split(", "):
+                    self.assertIn(name, BOOTSTRAPS, finding)
+                    self.assertTrue((SOURCE / source(name, "workflows")).is_file(), finding)
+                    self.assertRegex(line, rf"(?<![\w-]){name}(?![\w-])", finding)
+                    self.assertNotRegex(line, rf"rule-{name}\b|rules/{name}\.md|`{name}` rules?\b", finding)
+            trace = "\n".join(findings) + "\n"
+            evidence = section(self.record(), "## Pending command checks")
+            self.assertIn(f"Findings: {len(findings)}", evidence)
+            self.assertIn(f"SHA-256: {hashlib.sha256(trace.encode()).hexdigest()}", evidence)
+        oracle = self.isolated_command(
+            "-B", str(SOURCE / "tests/validator-runtime-oracle.py"),
+            "OracleContract.test_frozen_source_detects_actual_name_expression_and_order_changes",
+            "OracleContract.test_amendment_pins_unrelated_fields_order_and_resource_changes",
+        )
+        self.assertEqual(oracle.returncode, 0, oracle.stdout + oracle.stderr)
+
+
+class RuleMigrationRepairTests(unittest.TestCase):
+    def test_export_checks_preserved_sections_without_git_metadata(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="rule-migration-source-export-") as name:
+            directory = Path(name)
+            package = directory / "source package"
+            package.mkdir()
+            for relative in ("rules", "workflows", "harness", "docs/audits"):
+                shutil.copytree(SOURCE / relative, package / relative)
+            for relative in ("scripts/check-lint-instructions.py", "docs/name-map.json", "docs/PIPELINE.md"):
+                target = package / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(SOURCE / relative, target)
+            self.assertFalse((package / ".git").exists())
+            environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            environment.update(HOME=name, XDG_CONFIG_HOME=name, XDG_STATE_HOME=name)
+            arguments = [
+                "-B", str(package / "scripts/check-lint-instructions.py"),
+                "RuleSourceMigration.test_every_rule_section_has_its_canonical_owner_and_parent_digest",
+                "RuleSourceMigration.test_protected_body_and_status_stop_lines_survive_rule_migration",
+            ]
+
+            result = subprocess.run([sys.executable, *arguments], cwd=package, env=environment, capture_output=True,
+                                    text=True, check=False, timeout=30)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            target = package / "rules/protocol-subtask-classifier.md"
+            target.write_text(target.read_text().replace("## Decomposition Rules", "## Removed section", 1))
+            invalid = subprocess.run([sys.executable, *arguments], cwd=package, env=environment, capture_output=True,
+                                     text=True, check=False, timeout=30)
+            self.assertEqual(invalid.returncode, 1, invalid.stdout + invalid.stderr)
+            self.assertIn("invalid section owners or digests", invalid.stderr)
+            self.assertNotIn("CalledProcessError", invalid.stderr)
+
+    def test_finalization_capability_frames_the_old_citation_as_historical(self) -> None:
+        receipt = section(current("harness/claude/capabilities.md"), "## Finalization receipt support")
+        framing, printed_record, historical = receipt.partition("The source git-rails core additionally recognizes")
+
+        self.assertTrue(printed_record, receipt)
+        self.assertIn("Canonical policy: `rules/git-flow.md → Finalization Git\nownership`.", historical)
+        self.assertRegex(framing, r"(?i)historical")
+        self.assertIn("`contract-git-flow → ## Finalization Git ownership`", framing)
 
 
 if __name__ == "__main__":

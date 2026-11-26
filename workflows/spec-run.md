@@ -5,8 +5,10 @@ step: "-"
 ---
 
 Invocation: `/spec-run <path-to-spec> [--repo <directory>=<base-branch> ...] [--allow-pr] [--dry-run]`
-You are the **Orchestrator**. Load `orchestration` and `git-flow` before Step 0.
+You are the **Orchestrator**. Load `contract-orchestration` and `contract-git-flow` before Step 0.
 They own roles, shared-file discipline, escalation and git rails.
+
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
 - `--allow-pr` authorizes pushes and draft PRs; without it run no push or `gh` command.
 - `--dry-run` reports preflight, existing plan and proposed stack without project writes,
@@ -36,7 +38,7 @@ python3 -I "$REPO_HELPER" mode --root "$ROOT" [--repo <directory>=<base-branch> 
   git work tree → **stop**: rerun without `--repo`.
 - `multi-repository` — `ROOT` is not a git repository and the repository set comes from
   `--repo` or, on resume, from task `state.md → ## Repositories`
-  (`git-flow → ## Multi-repository runs`). Each leaf's `WORK_DIR` is its own repository;
+  (`contract-git-flow → ## Multi-repository runs`). Each leaf's `WORK_DIR` is its own repository;
   shared files (`.ai/`, the spec, task state) stay in `ROOT` outside every repository and are
   never staged. Run every git command of a leaf inside its repository with a literal path
   (`git -C <ROOT>/<repository> …`). Never initialize a repository in `ROOT` or move files.
@@ -62,7 +64,7 @@ still needs explicit authorization. A completed run with no remaining PR promoti
 
 ## Run Logging
 
-This pipeline writes a run log. Follow the **`run-log`** rule in full — it defines the
+This pipeline writes a run log. Follow the **`contract-run-log`** rule in full — it defines the
 store, the field vocabulary, and the rule that logging never blocks a run.
 
 After Step 0 resolves the task and resume point, open the run with `scripts/log-step.sh run-start` through the configured helper:
@@ -79,7 +81,7 @@ fi
 
 The Orchestrator owns prompt log calls and adapter dispatch/status/fallback calls.
 Native hooks deliver their own correlated writes; a sub-agent never calls
-`scripts/log-step.sh` and returns its report marker. Follow `run-log → ## Workflow coverage and routing`
+`scripts/log-step.sh` and returns its report marker. Follow `contract-run-log → ## Workflow coverage and routing`
 for every boundary, including uncertain resumes and unavailable status.
 
 Log each executed numbered step once, plus one synthetic aggregate per subtask
@@ -96,7 +98,7 @@ In multi-repository mode pass `--project "$ROOT"`.
 
 ## Step 0 — Preflight and resume
 
-1. Resolve the project `WORK_DIR` and run `git-flow → ## Preflight (mandatory, before any branch is created)`. Report any failure
+1. Resolve the project `WORK_DIR` and run `contract-git-flow → ## Preflight (mandatory, before any branch is created)`. Report any failure
    and **stop**. Dry-run performs read-only checks and reads an existing plan if available;
    otherwise report "unknown until Discovery" and stop after closing telemetry.
    In multi-repository mode run `repo-set.py preflight` after item 2 instead, with
@@ -143,7 +145,7 @@ state, plan and relevant project context. Use the session-default role worker wi
 model override after checking current worker capabilities, permissions and restrictions;
 no leaf plan cell governs this spawn. Retain it by message for this session.
 
-`orchestration → ## Escalation protocol` governs Discovery: resolve class A with cited
+`contract-orchestration → ## Escalation protocol` governs Discovery: resolve class A with cited
 sources; collect class B in `## Open Questions (batch)`. No worker may infer missing intent.
 
 ### The batch gate — the only planned human stop
@@ -172,7 +174,7 @@ Verify the discovery `## Model Selection` checkpoint and current leaf digests. F
 `Model (Claude)` / `Model (Codex)` columns in `plan.md → ## Subtasks`, preserving
 legacy `Model` values through explicit migration. Read the active provider column,
 legacy fallback and session default under
-`workflow-reference → ### Model columns and resolution`.
+`contract-state-files → ### Model columns and resolution`.
 
 Plan model intent applies only to leaf execution workers: Implementers, including
 recreated Implementers. The Arbiter runs before Step 2 with no leaf or plan row for
@@ -215,7 +217,7 @@ topological order over `Depends On`, honouring any ordering policy in `## Execut
 Composite rows are containers — they get no branch and no agent; their children appear in the
 order as ordinary leaves.
 
-Derive the branch stack per `git-flow → ## Branch model — the stack`: subtask N branches from the tip of
+Derive the branch stack per `contract-git-flow → ## Branch model — the stack`: subtask N branches from the tip of
 subtask N-1, with subtask 1 branching from the repository default branch.
 
 Print the plan before executing:
@@ -232,7 +234,7 @@ PRs: draft on creation, promoted to ready after validation | not created (no --a
 Subtask identifiers appear in this plan and in `state.md`; whether those records are tracked
 follows repository policy. They never reach a branch name, a commit message, or pull request
 text — see
-`git-flow → ### Pipeline identifiers stay out of the repository`.
+`contract-git-flow → ### Pipeline identifiers stay out of the repository`.
 
 **Multi-repository mode.** Run `repo-set.py route --plan <plan.md>`. It returns the shared
 order, one stack per repository (`stacks`), each leaf's `stack_parent` and `base_branch`,
@@ -271,7 +273,7 @@ work, not entries to leave behind in the originally printed stack. Update remain
 positions and PR totals; preserve already created branch points.
 
 **4.1 Branch.** Derive the branch name from the subtask's `## Goal` as `<type>/<feature-slug>`
-in domain language — never from its identifier (`git-flow → ## Branch model — the stack`). For a new leaf, create it from
+in domain language — never from its identifier (`contract-git-flow → ## Branch model — the stack`). For a new leaf, create it from
 the previous reviewed leaf's tip (default branch for the first) and check it out.
 For a resumed leaf, check out its reconciled existing branch.
 Immediately record in the subtask's `## Subtask Progress` block: `branch:`, `base_branch:`,
@@ -287,7 +289,7 @@ Leaves of other repositories never move this repository's stack.
 
 **4.2 Implementer — one agent, two checkpoints.** Before the existing spawn, check native
 capability, current installation and native session identity as required by
-`run-log → ## Workflow coverage and routing`. Only when the profile/payload is supported,
+`contract-run-log → ## Workflow coverage and routing`. Only when the profile/payload is supported,
 installation is available, `RUN_ID` is usable and `CLAUDE_CODE_SESSION_ID` is present,
 provisionally dispatch the expected `pae-tests` boundary. Assign one stable logical
 `actor_id` to this worker, retain it for the checkpoint, and invoke the readable adapter
@@ -330,21 +332,21 @@ a. The agent runs `/pae-tests`, then **stops and reports**: the RED digest and t
    one unindented canonical `ORCHESTRAIL_REPORT_V1` line outside code fences to this
    final response. Use the exact retained tuple with `"outcome":"ok","tests":"red"`,
    compact key-sorted JSON and no step or timestamp fields. Marker construction and
-   native evidence follow `run-log → ## Native hook adapter → ### Dispatch and native evidence`. A genuine unique
+   native evidence follow `contract-run-log → ## Native hook adapter → ### Dispatch and native evidence`. A genuine unique
    native `Skill` invocation of `pae-tests` remains required; the expected-skill flag
    alone, a wrapper invocation, or reading the workflow file cannot establish coverage.
    The orchestrator resolves status or serialized fallback before the git checkpoint,
-   using `run-log → ## Workflow coverage and routing`. Match the retained tuple and
+   using `contract-run-log → ## Workflow coverage and routing`. Match the retained tuple and
    acceptance receipt; suppress only this named RED row after acceptance. If no envelope
    was ever issued, log `--step pae-tests --outcome ok --tests red --note approximate`.
    Do not fabricate native events, poll, or delay the git handoff for telemetry.
 b. The orchestrator commits exactly those paths as `test: <what the tests assert>`. Stage
    explicit paths — never `git add -A`. Verify staged paths follow the repository-owned
-   tracking policy in `git-flow → ## Commits`. Append the sha to `commits:`.
+   tracking policy in `contract-git-flow → ## Commits`. Append the sha to `commits:`.
 c. The orchestrator sends the **same** agent one message to continue. It runs
    `/pae-implement` → `/pae-finalize` in the context it already holds, so the GREEN step still
    reads the RED set it is satisfying — the reason tests and implementation share one agent
-   (`orchestration → ### Implementer`).
+   (`contract-orchestration → ### Implementer`).
    The GREEN batch must never reuse the RED marker or envelope for its return; retain
    approximate logging for `pae-implement`, `pae-finalize` and the existing aggregate.
 d. On the GREEN report, the orchestrator commits the implementation paths added to
@@ -354,15 +356,15 @@ d. On the GREEN report, the orchestrator commits the implementation paths added 
 When the test-level gate returned `none` (`atomic-tests: n-a`), emit no RED report and
 no RED timing row. Leave any provisional checkpoint uncovered: there is no RED checkpoint
 and no `test:` commit — the agent runs straight through and the subtask gets a single
-implementation commit, exactly as `git-flow → ## Commits` specifies for that case.
+implementation commit, exactly as `contract-git-flow → ## Commits` specifies for that case.
 
-Follow `git-flow → ## Commits` for explicit staging, repository tracking policy and
+Follow `contract-git-flow → ## Commits` for explicit staging, repository tracking policy and
 messages. Verify the recorded digest/commits before skipping an interrupted checkpoint.
 In multi-repository mode `WORK_DIR` is the leaf's repository: stage and commit only paths
 inside it, with `git -C <ROOT>/<repository>`; the shared `.ai/` in `ROOT` is outside every
 repository and is never staged.
 A characterization (`pinned`) checkpoint uses the same test-first commit handoff without
-claiming RED or emitting a named RED marker; follow `tdd` for its evidence.
+claiming RED or emitting a named RED marker; follow `contract-tdd` for its evidence.
 
 **4.3 Validator.** Spawn a **separate** sub-agent as a session-default role worker
 without a model override after checking fresh worker capabilities, permissions and
@@ -376,7 +378,7 @@ Do **not** give it the Implementer's reasoning or report. Instruct it to run `/p
 `/pav-propose --batch` → `/pav-close`.
 
 Keep the three-skill validation batch and its internal prompt steps approximate under
-`run-log → ## Workflow coverage and routing`.
+`contract-run-log → ## Workflow coverage and routing`.
 
 If the verdict is NEEDS WORK → the subtask does not close. Record the findings, leave the
 branch and commits intact, and **stop the run**: the stack is sequential and nothing above
@@ -389,24 +391,24 @@ In multi-repository mode that is the current branch of the composite's one repos
 
 **4.5 Pull request** (only with `--allow-pr`, only when the subtask is `reviewed`). Push the
 branch, then open a **draft** PR with base = the previous subtask's branch (for T-01, base =
-the repository default branch). Build the body per `git-flow → ## Pull requests`, including
+the repository default branch). Build the body per `contract-git-flow → ## Pull requests`, including
 the stack position and the dependency warning. Record `pr:` in the block.
 In multi-repository mode push and open the PR from the leaf's repository. Its base is
 `next.base_branch` from Step 4.1 — the stack parent in the same repository or that
 repository's base branch — never a branch of another repository. State the stack position
 within that repository and add one line per cross-repository dependency, naming the other
 repository, its branch and its PR URL (or "local branch"), per
-`git-flow → ## Multi-repository runs`.
+`contract-git-flow → ## Multi-repository runs`.
 
 A subtask that is `blocked` or whose validation `failed` gets no PR.
 
 **4.6 Shared state.** Apply returned plan, composite and knowledge deltas per
-`orchestration → ## Shared-file discipline`; verify each progress block is intact.
+`contract-orchestration → ## Shared-file discipline`; verify each progress block is intact.
 Compress task state with `/compress-state --auto`. After all leaves are reviewed, run
 `/pe-finalize` once to record Execution completion and collect batched proposals before
 Task-level Validation. In this mode, retain batched proposals pending and report them
 at delivery; apply none and request no new proposal choice. This named override is
-registered in `workflow-globals`. The Orchestrator delegates approved code work to an Implementer.
+registered in `contract-phases`. The Orchestrator delegates approved code work to an Implementer.
 
 ---
 
@@ -430,7 +432,7 @@ This is a callback **during Step 5**, not a second fix pass. `/pv-create-fixes` 
 The Orchestrator applies shared deltas and runs Step 4's Implementer/Validator/commit
 handoffs for each group before `/pv-finalize`. Shared groups execute leaves sequentially
 on their recorded branch; only dedicated groups create another branch. Use domain-named
-`fix:` branches/messages and test-first commits under `git-flow`. In multi-repository
+`fix:` branches/messages and test-first commits under `contract-git-flow`. In multi-repository
 mode each fix group belongs to one repository and its branch extends that repository's
 stack from its tip; rerun `repo-set.py route` after the fix rows are added, so each fix
 leaf carries `Repo` and `working_dir:` like any other leaf.

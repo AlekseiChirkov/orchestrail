@@ -24,8 +24,10 @@ SPEC.loader.exec_module(ORACLE)
 FROZEN_INVENTORY_SHA256 = "57f7872d3525f608b57b29410792e2e02106542f28456f806319e2e7065557a1"
 
 
-AMENDMENT_SHA256 = "e426a747d44ba56a94468d74fccd8ba0816e3c853a263470860f482be33cec68"
+AMENDMENT_SHA256 = "05bd008a3aae8a9da94ddaa6fb07650102957e5be156687b0f975c73bd5acc43"
 APPROVED_PATHS = frozenset({
+    "tests/hook-workflow-contract.sh",
+    "tests/workflow-instructions.py",
     "scripts/model-catalog.py", "scripts/model_selection.py", "tests/model-plan.py",
     "tests/usage-observation-bundle-schema.py", "tests/usage-status-large-authority.py",
     "tests/usage-status-large-parts.py", "tests/usage-status-parts-cli.py",

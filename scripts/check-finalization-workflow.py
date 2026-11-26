@@ -1498,10 +1498,10 @@ class InstructionContracts(unittest.TestCase):
             self.assertNotIn(forbidden, workflow)
 
     def test_finalization_is_registered_in_canonical_contracts_and_bootstrap(self) -> None:
-        expected = {'rules/workflow-globals.md': ('rule-phase-finalize', '- finalization: not-started', 'pending', 'preserved'),
-                    'rules/workflow-reference.md': ('Finalization', 'current-location', 'original snapshots'),
-                    'rules/orchestration.md': ('/phase-finalize',),
-                    'rules/run-log.md': ('/phase-finalize',),
+        expected = {'rules/contract-phases.md': ('rule-bootstrap-finalization', '- finalization: not-started', 'pending', 'preserved'),
+                    'rules/contract-state-files.md': ('Finalization', 'current-location', 'original snapshots'),
+                    'rules/contract-orchestration.md': ('/phase-finalize',),
+                    'rules/contract-run-log.md': ('/phase-finalize',),
                     'harness/claude/always-on.md': ('/phase-finalize',),
                     'harness/codex/always-on.md': ('/phase-finalize',),
                     'templates/.ai/memory/state.md': ('finalization',),
@@ -1510,17 +1510,19 @@ class InstructionContracts(unittest.TestCase):
             value = (SOURCE / path).read_text()
             for token in tokens:
                 self.assertIn(token, value, path)
-        bootstrap = (SOURCE / 'rules/phase-finalize.md').read_text()
-        for token in ('## Context Bootstrap', 'umbrella', 'environment.md', 'integrations.md', 'runbook.md',
-                      'independent', 'validation', 'original', 'journal'):
+        bootstrap = (SOURCE / 'rules/bootstrap-finalization.md').read_text()
+        for token in ('## Context Bootstrap', 'umbrella', 'environment.md', 'integrations.md', 'runbook.md'):
             self.assertIn(token, bootstrap)
+        conduct = (SOURCE / 'rules/protocol-finalization-conduct.md').read_text()
+        for token in ('independent', 'validation', 'original', 'journal'):
+            self.assertIn(token, bootstrap + conduct)
 
     def test_delivery_endpoints_only_suggest_finalization_after_owner_merge(self) -> None:
         for path in ('workflows/spec-run.md', 'workflows/phase-pipeline.md', 'workflows/pv-finalize.md'):
             text = (SOURCE / path).read_text()
             self.assertIn('/phase-finalize', text, path)
             self.assertIn('owner merges', text, path)
-        for path in ('workflows/PIPELINE.md', 'docs/USAGE.md', 'docs/SPEC-RUN-QUICKSTART.md',
+        for path in ('docs/PIPELINE.md', 'docs/USAGE.md', 'docs/SPEC-RUN-QUICKSTART.md',
                      'scripts/README.md', 'README.md'):
             self.assertIn('phase-finalize', (SOURCE / path).read_text(), path)
 

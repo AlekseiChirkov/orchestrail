@@ -29,14 +29,14 @@ explicit confirmation before replacing it. Do not prompt on the first successful
 ## Context Bootstrap
 
 Resolve `working_dir:` relative to the atomic task directory (absent → invocation directory),
-set absolute `WORK_DIR` / `AI_DIR`, and load `phase-atomic-execution → ## Context Bootstrap`
+set absolute `WORK_DIR` / `AI_DIR`, and load `bootstrap-atomic-execution → ## Context Bootstrap`
 before project writes. Keep description/state/plan paths absolute.
 
 ## Instructions
 
-Use the Status Translation Table in workflow-reference before changing plan statuses.
+Use the Status Translation Table in contract-state-files before changing plan statuses.
 Under `/spec-run`, write only this leaf's progress block; return all plan, architecture,
-composite, and compression changes as deltas under `orchestration → ## Shared-file discipline`.
+composite, and compression changes as deltas under `contract-orchestration → ## Shared-file discipline`.
 
 1. Preserve the successful leaf block: `atomic-execution: complete`, `blocker: none`.
    Preserve `atomic-tests:` as set by `/pae-tests` / `/pae-implement` (`green` or `n-a`).

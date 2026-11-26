@@ -26,7 +26,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -49,7 +49,7 @@ the load order, umbrella precedence, conditional sources, and reporting.
    - **Uncovered edge cases** — null values, empty collections, error paths, boundary conditions.
    - **Contract violations** — public interfaces changed unexpectedly.
    - **Test coverage and integrity** — review the test files in `target_files:` as code, not
-     as an afterthought. Load the `tdd` rule and `testing-standards`. Findings:
+     as an afterthought. Load the `contract-tdd` rule and `testing-standards`. Findings:
      - A subtask with `atomic-tests: n-a` whose `notes:` justification is missing or
        hand-waving ("hard to test", "no framework", "small change", "will add later",
        "existing tests cover it") → `important`.

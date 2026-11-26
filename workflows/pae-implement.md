@@ -11,7 +11,7 @@ Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
 
 This is the GREEN step. The RED test set produced by `/pae-tests` is a frozen contract —
-see the `tdd` rule, `## GREEN — what implementation may and may not do`.
+see the `contract-tdd` rule, `## GREEN — what implementation may and may not do`.
 
 ---
 
@@ -25,7 +25,7 @@ see the `tdd` rule, `## GREEN — what implementation may and may not do`.
    - `pinned` → characterization mode: the tests pin existing behaviour and already pass.
      Continue. The GREEN check below becomes a **preservation check** — the pinned set must
      still pass, unchanged, after the work. A pinned test that turns red is a defect in the
-     change, never in the test (`tdd → ## Characterization mode — behaviour-preserving work`).
+     change, never in the test (`contract-tdd → ## Characterization mode — behaviour-preserving work`).
    - `n-a` → test-level gate returned `none` with a justification in `notes:`. Continue; the Final Verification test step degrades to running the existing suite for regressions. If no justification line is present in `notes:` → **stop**: "`atomic-tests: n-a` without a recorded justification. Run `/pae-tests` to classify this subtask."
    - `green` → tests already pass. This is a re-run; confirm before overwriting work.
    - `failed` → **stop**: "RED was never reached for T-XX: <reason from notes>. Resolve before implementing — implementing against a test set that never failed proves nothing."
@@ -52,7 +52,7 @@ see the `tdd` rule, `## GREEN — what implementation may and may not do`.
      Set `AI_DIR = .ai`.
    Report the resolved `WORK_DIR` before continuing.
 
-1. Load the `phase-atomic-execution` rule (`## Context Bootstrap`) from `AI_DIR` before
+1. Load the `bootstrap-atomic-execution` rule (`## Context Bootstrap`) from `AI_DIR` before
    reading code or writing tests/implementation. Run the full bootstrap even when
    standalone; the rule owns load order and reporting. Load `WORK_DIR/../.ai` as the
    umbrella when present, then `AI_DIR`.
@@ -75,7 +75,7 @@ see the `tdd` rule, `## GREEN — what implementation may and may not do`.
 3. Read `T-XX/description.md` — extract: `## Goal`, `## Context`, `## Steps`, `## Acceptance Criteria`, and `## Test Plan` if present.
 4. Read parent `state.md` — extract `## Solution Design → Decision`, `### Off-limits`, `### Invariants`.
 5. Read parent `state.md → ## Subtask Progress` block for this T-XX (if present) — extract `last_action`, `blocker`, `notes`. Determine starting step from `last_action`.
-   - If this block is `atomic-execution: blocked` (standalone invocation, without the orchestrator's Step 0) → apply **Blocker Reconciliation** (`phase-atomic-execution` rules) before executing any step. Auto-clear a dependency/status blocker whose prerequisites are all satisfied and continue; for a non-status blocker or an unmet prerequisite, report and wait for confirmation.
+   - If this block is `atomic-execution: blocked` on a standalone invocation, apply `procedure-blocker-reconciliation → ## Blocker Reconciliation` before executing any step.
 
 Output scope summary before making any changes:
 - **Task**: T-XX directory + Goal (from description.md).
@@ -106,7 +106,7 @@ For each planned step, starting from recorded `last_action:`:
 
 ## Test Set Discipline (GREEN)
 
-For `red` and `pinned`, enforce `tdd → ## GREEN — what implementation may and may not do`:
+For `red` and `pinned`, enforce `contract-tdd → ## GREEN — what implementation may and may not do`:
 **The RED test set may not be weakened.** Do not delete, rename, comment out, or mark
 `skip`/`xfail` tests; do not weaken assertions or change expected values to fit the code.
 Record a legitimate correction as:
@@ -125,7 +125,7 @@ Record the result in `last_action:`. Refactor only within scope after GREEN, the
 ## Tripwire Check (composite promotion)
 
 Evaluate at the beginning of execution and again at the midpoint of `## Steps` (after
-`ceil(N/2)` of N steps are complete). Load `workflow-reference` for the Autonomous Subtask Classifier (Composite Promotion Protocol) before evaluating.
+`ceil(N/2)` of N steps are complete). Load `contract-state-files` for the Autonomous Subtask Classifier (Composite Promotion Protocol) before evaluating.
 
 **Tripwire fires if any of the following conditions are true:**
 - Steps balloon: the implementation of this leaf requires substantially more steps than described, and the additional steps constitute a second independently-testable component.
@@ -140,7 +140,7 @@ If either check is true — this is a depth-2 leaf; do NOT promote it. Stop and 
 
 If neither check is true — this is a depth-1 leaf (whether a plain leaf or a Type 3 re-sliced leaf); it MAY be promoted to a composite, within the depth-2 cap.
 
-**If tripwire fires (and this is a depth-1 leaf):** Invoke the Composite Promotion Protocol from `workflow-reference → Autonomous Subtask Classifier → Runtime self-correction`. Do not continue executing the current leaf. Persist the promotion and preserved evidence, then stop/return the replacement children to
+**If tripwire fires (and this is a depth-1 leaf):** Invoke the Composite Promotion Protocol from `protocol-subtask-classifier → ## Autonomous Subtask Classifier → ### Runtime self-correction (tripwire)`. Do not continue executing the current leaf. Persist the promotion and preserved evidence, then stop/return the replacement children to
 the caller. Do not execute the first child until the declared tripwire decision is resolved.
 
 **Tests on promotion.** Preserve every frozen test and its original pre-implementation
@@ -158,7 +158,7 @@ If no tripwire condition is observed → continue execution normally without any
 ## Final Verification
 
 After all planned steps, read the resolved runbook's `## Commands` (`AI_DIR/context/runbook.md`,
-or the umbrella fallback of `phase-atomic-execution → ## Context Bootstrap`) and run
+or the umbrella fallback of `bootstrap-atomic-execution → ## Context Bootstrap`) and run
 verification in `WORK_DIR` (from the umbrella root for an umbrella runbook):
 1. Require `test:` for testable work. A missing command blocks it; only justified `n-a`
    or a documented pre-TDD task may record its absence and use actual AC/manual

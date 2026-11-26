@@ -17,14 +17,14 @@ import unittest
 # Assertions below check the specific report fields required by each caller contract.
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = "docs/MODEL-CATALOG.md"
-REFERENCE = "workflow-reference → ### Model columns and resolution"
+REFERENCE = "contract-state-files → ### Model columns and resolution"
 EXECUTORS = ("spec-run", "pe-execute", "phase-atomic-execution")
 PRESERVERS = ("pd-decompose", "pd-design", "pd-finalize")
 DERIVED = ("docs/USAGE.md", "docs/SPEC-RUN-QUICKSTART.md", "docs/README.md",
-           "workflows/PIPELINE.md")
+           "docs/PIPELINE.md")
 HELPERS = ("model-catalog.py", "model_selection.py", "model_plan.py")
 GUIDE_CALLERS = ("workflows/pd-select-model.md", *(f"workflows/{name}.md" for name in EXECUTORS),
-                "rules/workflow-reference.md")
+                "rules/contract-state-files.md")
 
 
 def reachability_errors(root: Path) -> list[str]:
@@ -32,7 +32,7 @@ def reachability_errors(root: Path) -> list[str]:
     for relative in (GUIDE, *(f"scripts/{name}" for name in HELPERS)):
         if not (root / relative).is_file():
             errors.append(f"missing {relative}")
-    canonical = root / "rules/workflow-reference.md"
+    canonical = root / "rules/contract-state-files.md"
     if not canonical.is_file() or "### Model columns and resolution" not in canonical.read_text():
         errors.append("missing canonical model resolution section")
     for reader in (*EXECUTORS, *PRESERVERS, "pd-select-model"):
@@ -99,7 +99,7 @@ class WorkflowContractTests(unittest.TestCase):
                                 f"missing caller contract: {pattern}")
 
     def canonical(self) -> str:
-        text = self.read("rules/workflow-reference.md")
+        text = self.read("rules/contract-state-files.md")
         self.assertTrue("### Model columns and resolution" in text,
                         "canonical optional model columns and resolution are absent")
         parent = text.split("## Parent `plan.md` Table Format", 1)[1].split("\n## ", 1)[0]
@@ -263,7 +263,7 @@ class WorkflowContractTests(unittest.TestCase):
                              r"present.*empty.*(?:overrid|precedence|default)",
                              r"missing.*(?:column|columns).*session", r"populated.*legacy",
                              r"explicit.*(?:value|decision).*every", r"null"))
-        self.assertNotIn("Model (Claude)", self.read("rules/workflow-globals.md"),
+        self.assertNotIn("Model (Claude)", self.read("rules/contract-phases.md"),
                          "the provider-column definition has one canonical owner")
 
     def test_canonical_resolution_requires_invocation_support_permissions_and_restrictions(self) -> None:
@@ -333,7 +333,7 @@ class WorkflowContractTests(unittest.TestCase):
             decoy = directory / "misleading project"
             shutil.copytree(source, decoy)
             installed = installed_caller_fixtures(directory / "home")
-            rule = next(path for path in installed if path.parent.name == "rule-workflow-reference")
+            rule = next(path for path in installed if path.parent.name == "rule-contract-state-files")
             script = self.guidance_preflight(rule)
             self.patterns(rule.read_text(), (r"(?:never|do not).*CWD", r"schema.*rubric"))
             for settings in ({"ORCHESTRAIL_HOME": str(source), "SOURCE_ROOT": str(decoy)},
@@ -354,7 +354,7 @@ class WorkflowContractTests(unittest.TestCase):
             shutil.copytree(source, decoy)
             installed = installed_caller_fixtures(directory / "home")
             script = self.guidance_preflight(next(path for path in installed
-                                                 if path.parent.name == "rule-workflow-reference"))
+                                                 if path.parent.name == "rule-contract-state-files"))
             guide = source / GUIDE
             original = guide.read_text()
             protected = {name: source / name for name in ("plan.md", "catalog.md", "session.txt")}
@@ -409,7 +409,7 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertTrue("MODEL-CATALOG.md" in text, f"{relative} must link the catalog guide")
                 self.assertNotRegex(text.lower(), r"every (?:run|invocation).*live (?:web|search)")
         self.patterns(self.read("docs/USAGE.md"), (r"--refresh", r"Model \(Claude\)", r"Model \(Codex\)"))
-        self.patterns(self.read("workflows/PIPELINE.md"), (r"--refresh", r"session default"))
+        self.patterns(self.read("docs/PIPELINE.md"), (r"--refresh", r"session default"))
 
     def test_guide_documents_age_quality_economics_migration_and_ownership(self) -> None:
         text = self.read(GUIDE)
@@ -505,7 +505,7 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_contract_gate_rejects_broken_helper_canonical_reader_and_guide_links(self) -> None:
         self.assertEqual(reachability_errors(ROOT), [])
-        paths = (GUIDE, "rules/workflow-reference.md", *DERIVED,
+        paths = (GUIDE, "rules/contract-state-files.md", *DERIVED,
                  *(f"scripts/{helper}" for helper in HELPERS),
                  *(f"workflows/{reader}.md" for reader in (*EXECUTORS, *PRESERVERS, "pd-select-model")))
         with tempfile.TemporaryDirectory(prefix="workflow-drift-") as temporary:
@@ -516,7 +516,7 @@ class WorkflowContractTests(unittest.TestCase):
                 shutil.copyfile(ROOT / relative, target)
             self.assertEqual(reachability_errors(directory), [])
             (directory / "scripts/model_plan.py").unlink()
-            canonical = directory / "rules/workflow-reference.md"
+            canonical = directory / "rules/contract-state-files.md"
             canonical.write_text(canonical.read_text().replace("### Model columns and resolution", "### Removed"))
             reader = directory / "workflows/pe-execute.md"
             reader.write_text(reader.read_text().replace(REFERENCE, "removed reference"))

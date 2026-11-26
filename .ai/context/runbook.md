@@ -12,7 +12,7 @@ build:     bash scripts/sync.sh --from "$(pwd)"
 
 Notes:
 - `test:` is the `smoke`-level validating tool for this repository. A new contract check
-  that fails before a change and passes after it is the RED test (`rules/tdd.md`).
+  that fails before a change and passes after it is the RED test (`rules/contract-tdd.md`).
 - `build:` deploys to the current machine's harness directories. To produce reviewable
   provider artifacts without installing them, use
   `scripts/sync.sh --from <source-tree> --stage <empty-directory>`.
@@ -39,7 +39,7 @@ Notes:
   (the read-only `scripts/repo-set.py` helper against disposable git repositories, plus the
   instruction contract) in a few seconds. It is standalone, outside the frozen validator
   inventory, so run it after every change to `scripts/repo-set.py`, `workflows/spec-run.md`,
-  `rules/git-flow.md → ## Multi-repository runs` or the `## Repositories` state format.
+  `contract-git-flow → ## Multi-repository runs` or the `## Repositories` state format.
 - `python3 -I scripts/audit-instructions.py extract|verify|render` is the read-only audit tool
   for rules, workflows and harness adapters;
   `python3 -I scripts/audit-instructions.py verify --root . --report docs/audits/<date>-rules-workflows-audit.md`
@@ -98,13 +98,13 @@ requires a configured file and fails closed.
 
 ### Add a workflow
 1. Create `workflows/<name>.md` following `.ai/principles/coding.md → Workflow file shape`.
-2. Ensure the basename does not collide with a file in `rules/` (if it must, the rule
-   deploys as `rule-<name>` automatically — but avoid it).
-3. Add its row to `docs/USAGE.md → ## 7` and `## 9`, and to `PIPELINE.md` if it is a pipeline step.
+2. Require the workflow basename to differ from every rule basename. Check the workflow
+   name and installed skill prefixes before adding it.
+3. Add its row to `docs/USAGE.md → ## 7` and `## 9`, and to `docs/PIPELINE.md` if it is a pipeline step.
 4. If it writes a `state.md` section, add a "has writer" check to `scripts/validate-contracts.sh`
    group 1 and list the section in the Protected Sections Contract if `/compress-state`
    must preserve it.
-5. If it is an orchestrator, add run-log calls per `rules/run-log.md`.
+5. If it is an orchestrator, add run-log calls per `rules/contract-run-log.md`.
 6. Deploy.
 
 ### Add or change a rule
@@ -121,7 +121,7 @@ requires a configured file and fails closed.
 
 ### Change a canonical status format
 Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
-- Add the backward-compatibility sentence for readers in `workflow-globals`.
+- Add the backward-compatibility sentence for readers in `contract-phases`.
 - Update `scripts/validate-task.sh` so existing task directories in other repositories still pass
   (or are reported as legacy, not failed).
 - Update `compress-state.md` if the field is protected.
@@ -149,7 +149,7 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
    `scripts/setup-new-project.sh` per service.
    One shared spec in a root that is not a git repository runs across its repositories with
    `/spec-run .ai/specs/<spec>.md --repo <directory>=<base-branch> …` from that root
-   (`rules/git-flow.md → ## Multi-repository runs`); start with `--dry-run`.
+   (`contract-git-flow → ## Multi-repository runs`); start with `--dry-run`.
 5. Respect repository-owned tracking policy. New consumers keep `.ai/` ignored by default; existing tracked knowledge is preserved and is not a preflight failure.
 6. A consumer that tracks `.ai/` gets the two state-tool ignore entries by adding `.state-tool.lock` and `.state.md.*.tmp` to its `.gitignore` by hand, or by rerunning `scripts/setup-new-project.sh`, which appends both and skips its `.ai/` entry where files under `.ai/` are tracked.
 
@@ -163,7 +163,7 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
 ### Recover a task whose state is corrupt
 1. `bash scripts/validate-task.sh <task-dir>` — read every `[FAIL]`.
 2. Repair the `## Subtask Progress` block by hand to the canonical format
-   (`workflow-globals → Canonical Status Formats`); never delete `base_commit`, `commits`,
+   (`contract-phases → ## Canonical Status Formats`); never delete `base_commit`, `commits`,
    `notes:`, or `tdd:` lines.
 3. Re-run the same phase command; Guards will find the resume point.
 4. Under `/spec-run`, Step 0 reconciles recorded branches against git; if a branch tip

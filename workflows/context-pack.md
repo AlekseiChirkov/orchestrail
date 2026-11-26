@@ -7,7 +7,7 @@ step: "-"
 Invocation: `/context-pack [--refresh] [--check] [--task <task-directory>]`
 
 The pack is a derived cache, never a source of truth. Canonical reader permission:
-`workflow-globals → ## Context Pack`.
+`contract-phases → ## Context Pack`.
 
 ## Guard
 

@@ -9,7 +9,7 @@ Called by: `/phase-discovery` as Step 3.
 
 Resolve artifacts inside the task directory. Default is autonomous;
 `--step-by-step` waits for architecture choice. Reuse parent context; standalone
-use applies the `phase-discovery` bootstrap.
+use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
@@ -27,7 +27,7 @@ use applies the `phase-discovery` bootstrap.
    Generate 2–3 viable approaches with summary, advantages, disadvantages and risks.
 2. Select the winner:
    - Step-by-step: present the variants and **wait** for the user's choice.
-   - Autonomous: apply `workflow-reference → ## Autonomous Decision Protocol`:
+   - Autonomous: apply `protocol-autonomous-decision → ## Autonomous Decision Protocol`:
      score all five lenses, apply its anti-overengineering filter and tie-breaks,
      and escalate only at its threshold. Under `/spec-run`, leave unresolved
      Class B intent for the parent's batch gate rather than inventing an answer.
@@ -69,7 +69,7 @@ use applies the `phase-discovery` bootstrap.
    in Decomposition Decisions. If the design requires a different decomposition,
    run `/pd-decompose` with this decision as input and its overwrite Guard; then
    recheck alignment. Preserve optional/legacy columns under
-   `workflow-reference → ### Model columns and resolution`. A scope change in a
+   `contract-state-files → ### Model columns and resolution`. A scope change in a
    subtask with any populated provider model cell/column or legacy `Model` cell
    makes its recommendation stale and needs a fresh bulk `/pd-select-model`
    before discovery finalization; mark the selection checkpoint incomplete and report the stale recommendation without

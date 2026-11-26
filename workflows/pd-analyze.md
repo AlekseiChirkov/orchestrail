@@ -26,18 +26,18 @@ autonomous; `--step-by-step` waits for requirement clarification. Reuse parent c
    and the selected phase section up to the next recognized phase heading,
    regardless of its number or heading level. Exclude other phases. Validate the selected
    boundary; lead the Goal with `Phase <N> of <M> —`.
-2. Apply the `phase-discovery` rule's Context Bootstrap unless the parent already
+2. Apply the `bootstrap-discovery` rule's Context Bootstrap unless the parent already
    supplied it. This includes `.ai/memory/architecture.md`, `.ai/memory/state.md`,
    `.ai/principles/architecture.md`, coding/domain principles and the ADR index;
    progress and integration/environment context are conditional as defined there.
    Report loaded files and constraints once per context.
 3. Resolve ambiguities:
    - Step-by-step: ask only unresolved questions and **wait** for answers.
-   - Autonomous: follow the research order in `phase-discovery` and the
-     `workflow-reference → ## Autonomous Decision Protocol`. Record each resolution
+   - Autonomous: follow the research order in `protocol-discovery-conduct → ## Decision Protocol` and the
+     `protocol-autonomous-decision → ## Autonomous Decision Protocol`. Record each resolution
      and evidence in `### Assumptions`. Derive missing Acceptance Criteria from the
      goal; escalate only on the protocol's threshold or a hard blocker.
-   - Under `/spec-run`, apply `orchestration → ## Escalation protocol`: resolve
+   - Under `/spec-run`, apply `contract-orchestration → ## Escalation protocol`: resolve
      Class A (missing context) with evidence; collect Class B (missing intent) in
      `## Open Questions (batch)`. Never guess Class B answers. Continue analysis
      that does not depend on them; mark dependent conclusions provisional. The
@@ -101,7 +101,7 @@ contract_version: <valid source VERSION; omit when unavailable>
 
    Write `None` when no Class B question remains; omit this section outside
    orchestrated mode. Preserve previously answered questions as assumptions.
-7. Evaluate `quick-flow → ## The escalation gate` against the established file
+7. Evaluate `contract-quick-flow → ## The escalation gate` against the established file
    count and impact (3 or fewer files, counting test files). Require all conditions;
    uncertainty means full. Write top-level `flow:` and an assumption line:
    `flow: quick|full — gate: 1<pass/fail> 2<pass/fail> 3<pass/fail> 4<pass/fail>`.

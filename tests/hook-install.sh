@@ -974,7 +974,7 @@ class HookInstallation(unittest.TestCase):
                                  cwd=self.project, text=True, capture_output=True, timeout=30)
         self.assertNotIn("can't open file", decided.stderr)
         self.assertEqual(decided.returncode, 2, decided.stderr)
-        self.assertIn('rule: rules/git-flow.md', decided.stderr, 'the registered entrypoint must reach its core')
+        self.assertIn('rule: rules/contract-git-flow.md', decided.stderr, 'the registered entrypoint must reach its core')
 
     def test_hook_git_rails_symlinked_entrypoint_is_never_registered_alone(self) -> None:
         elsewhere = self.root / 'detached entrypoint'
