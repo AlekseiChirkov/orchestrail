@@ -4,10 +4,14 @@
 Where the workflow system runs and what it assumes about the host. Read before any
 change to `scripts/sync.sh`, `scripts/setup-*.sh`, `scripts/log-step.sh`, or to a path mentioned in a rule.
 
-## Environments
+## Model harnesses
 
-The source declares two model harnesses, Claude Code and Codex. Project setup
-initializes consumer repositories and creates declared skill links.
+The source declares Claude Code and Codex in `harness/<name>/`. Each
+`harness/<name>/deploy.env` declares the global `skills_dir` and `always_on_path`, and
+may declare a relative `project_skills_link_dir`. The same directory holds
+`always-on.md` and `capabilities.md`, plus any optional `hooks.json`,
+`permissions.json` or `reserved-names.txt`. Project setup initializes consumer
+repositories and creates declared skill links.
 
 ### Claude Code (primary)
 - Workflows → `~/.claude/skills/<name>/SKILL.md`
@@ -26,16 +30,22 @@ initializes consumer repositories and creates declared skill links.
 - Project setup seeds `AGENTS.md` from `templates/AGENTS.md` and preserves existing files.
 - Check worker and messaging support in the current session.
 
-### Retired Windsurf and Devin integrations
-- Sync reports legacy paths for review. The deployment engine manages the targets
-  declared by the Claude Code and Codex adapters.
+### Deployment records
+- Set `<config>` to the non-empty `XDG_CONFIG_HOME` value or use `$HOME/.config`.
+- `<config>/orchestrail/deploy/<harness>.json` records the managed paths and their
+  digests for each adapter. The same directory holds `journal.json` during recovery.
+- `<config>/orchestrail/deploy.lock` coordinates the deployment passes.
+- `scripts/report-legacy-artifacts.sh` reports retired paths for owner review.
 
 ### Consumer projects
 - Seeded by `scripts/setup-new-project.sh`: `CLAUDE.md`, `AGENTS.md`, `.ai/` (from
   `templates/.ai/`, never overwrites), `.gitignore` entries (`.ai/`, `.claude/skills/`,
   `.env`, `*.pyc`, `__pycache__/`, and the state tool's `.state-tool.lock` and
   `.state.md.*.tmp`); the script skips the `.ai/` entry where `git ls-files .ai` lists a tracked file.
-- Consumer projects are recorded in the local registry; none is named here.
+- Setup registers physical project roots in
+  `${XDG_CONFIG_HOME:-$HOME/.config}/orchestrail/projects`. Sync reads that registry to
+  refresh existing declared link directories in eligible projects. The registry can
+  also protect global skills while a registered consumer is active.
 
 ## Configuration
 

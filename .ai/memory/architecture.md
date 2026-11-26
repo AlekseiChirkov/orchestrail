@@ -78,19 +78,21 @@ root), `AGENTS.md` (Codex, per project), `subtask-description.md` and `spec.md`
 
 ### Harness adapters
 
+Each model harness declares its targets in `harness/<name>/deploy.env`.
 `harness/claude/always-on.md` supplies `~/.claude/CLAUDE.md` and
-`harness/codex/always-on.md` supplies `~/.codex/AGENTS.md`. Each adapter declares
-its global paths in `deploy.env` and includes ordered canonical records in
-`capabilities.md`. Hook support describes the shipped implementation, with current
-installation and checkpoint coverage verified separately. The sync command manages both
-deployed global instruction files. Edits to deployed files surface as ownership conflicts.
+`harness/codex/always-on.md` supplies `~/.codex/AGENTS.md`. Sync appends each adapter's
+`capabilities.md` declaration and its current hook installation result exactly once.
+Workflows read the declared capability records and verify actual tool access and permission
+at dispatch. Hook support, current installation and checkpoint coverage are separate facts.
+Sync manages both deployed global instruction files and reports an ownership conflict when
+their current bytes differ from the recorded digest.
 
 ### Layer 5 — scripts
 | Script | Role |
 |---|---|
 | `scripts/validate-contracts.sh` | Consistency and smoke checks across layers 1–3, including bidirectional canonical JSON-table/runtime contract comparison (`--run-log-contract-only`); includes an optional tracked-file public-hygiene scanner using local patterns (`--hygiene-only`, `--root`, `--denylist`); run by `scripts/sync.sh`; any failure blocks deploy |
 | `scripts/validate-task.sh` | applies the same contracts to one task directory's artifacts; run by `/discovery-finalize` and `/execution-finalize` |
-| `scripts/lint-instructions.py` | Standalone checker for instruction metadata, capability records, executable references and retired names. It validates canonical rule kinds and casefolded installed names, checks bootstrap headings and audited size exceptions, and checks the workflow name map against its usage table and declared harness reservations. It checks the canonical phase rule and shared capability extensions across declared harnesses. The frozen validator oracle pins the map digest for path-only changes. |
+| `scripts/lint-instructions.py` | Standalone checker for instruction metadata, capability records, executable references and retired names. It validates canonical rule kinds and casefolded installed names, checks bootstrap headings and audited size exceptions, and checks `docs/name-map.json` against its usage table and declared harness reservations. It checks the canonical phase rule and shared capability extensions across declared harnesses. The frozen validator oracle pins the map digest for path-only changes. |
 | `scripts/sync.sh` | Runs contract and finalization preflight, installs hooks, reports retired files, and delegates deployment. `--stage <directory>` renders the declared harness outputs in an isolated destination. |
 | `scripts/deploy-skills.py` | Plans and applies deployment under a lock. It validates targets and ownership, persists a recovery journal before atomic writes, advances the harness manifests, and refreshes registered project links. It defers global changes while a registered consumer is active, records working-tree HEAD, and reports former skill directories. |
 | `scripts/report-legacy-artifacts.sh` | Reports legacy global and project objects with shell-quoted paths. It uses a non-dereferencing metadata check. |
@@ -108,10 +110,13 @@ deployed global instruction files. Edits to deployed files surface as ownership 
 
 `harness/claude/hooks.json` contains the portable native hook fragment: the git-rails `PreToolUse` group for `Bash` (`onFailure: block`) and the Stop/SubagentStop logging groups (`onFailure: continue`). `harness/claude/permissions.json` is the deny-only permission fragment `{"permissions":{"deny":[…]}}`: five exact rules for blanket staging and commit-all, defence in depth beside the hook, each with a positive and a negative fixture under the recorded match semantics. Claude and Codex capability declarations under `harness/` distinguish mechanism support, current installation status and demonstrated checkpoint coverage. Sync rebuilds the existing global instruction bodies and appends each capability block and installation result once; installation unavailability does not interrupt the other deployment targets or consumer refresh. The Claude capability record also carries a verified `git-rails` section (PreToolUse/Bash exit and JSON protocol, the anchored `git-rails ask-capable modes:` allowlist, permission-rule match semantics, the blocking failure option, limitations and residual risks X1–X10); the Codex record declares `git-rails: none (textual rules only)`. Contract checks in `scripts/validate-contracts.sh` pin each field.
 
-Project setup is the sole writer of the XDG configuration project registry. It atomically
-registers canonical roots under a dedicated lock. Both deployment and the hook adapter read
-the registry. Deployment refreshes owned links in eligible roots and preserves existing
-knowledge tracking. Each manifest lives at `<config>/orchestrail/deploy/<harness>.json`.
+Project setup is the sole writer of the physical-root registry at
+`${XDG_CONFIG_HOME:-$HOME/.config}/orchestrail/projects`. It atomically registers canonical
+roots under a dedicated lock. Deployment and the hook adapter read the registry. The
+deployment pass uses the registry to refresh owned skill links in eligible projects and
+preserves repository-owned knowledge tracking. Each manifest lives at
+`<config>/orchestrail/deploy/<harness>.json` and records ownership by digest. The deployment
+lock and recovery journal protect planning and application across all adapters.
 
 ### Executable acceptance checks
 
@@ -397,5 +402,8 @@ without creating locks, assessing lifecycle actions, or issuing cleanup authoriz
 ## Harness migration status
 
 Phase 1 integrated at `c7e986fbd79b01868efb8adc54dd1ba6ff379204`. It delivered the deployment engine,
-standalone instruction checker and pinned inventory relocation checks. Phase 2 owns
-the naming migration, read-only finalization journal relocation and whole-spec verification.
+standalone instruction checker and pinned inventory relocation checks. The Phase 2 source
+uses the canonical rule names and workflow commands and supports verified read-only
+finalization journal relocation. [ADR-0029](../adr/0029-task-011-instruction-contract-migration.md)
+records the naming, deployment-target and inventory decisions. Whole-spec verification,
+owner integration and live deployment each require their own evidence.

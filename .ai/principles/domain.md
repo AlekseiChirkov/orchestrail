@@ -9,8 +9,34 @@ appears in a rule.
 
 | Term | Meaning |
 |---|---|
-| **Workflow** | A slash-command definition in `workflows/` installed as a Claude Code and Codex skill. |
-| **Rule** | A policy in `rules/` with a declared load policy, installed as a `rule-<name>` skill. |
+| **Harness** | A supported model runtime, declared by a `harness/<name>/` directory containing `deploy.env`. |
+| **Adapter files** | The harness files `deploy.env`, `always-on.md`, `capabilities.md` and optional `hooks.json`, `permissions.json` and `reserved-names.txt`. |
+| **Rule** | A top-level `rules/<stem>.md` policy deployed as the skill `rule-<stem>`. |
+| **Rule kind** | The file-stem prefix before the first hyphen: `bootstrap`, `contract`, `protocol` or `procedure`. |
+| **Bootstrap rule** | A `bootstrap-<phase>` rule with exactly two level-two headings, `## Context Bootstrap` and `## Phase Behaviors`. |
+| **`bootstrap`** | Lists the ordered context sources a phase loads before acting and the phase behaviours. |
+| **`contract`** | States formats, vocabularies, invariants or obligations that hold across workflows regardless of the current decision point. |
+| **`protocol`** | Defines how to decide at a named decision point, including inputs, criteria and outcomes. |
+| **`procedure`** | Gives ordered actions triggered by a named condition and usable from more than one workflow. |
+| **Workflow** | An invocable `workflows/<stem>.md` skill source with front matter and one `Invocation:` line. |
+| **Load mode** | The `always` or `on-demand` loading requirement. Actual presence in the current context must be established separately. |
+| **Capability** | An operation offered by a harness to shipped workflows. Its record declares state, runtime, date and evidence. At dispatch, verify the actual session tool and permission separately. |
+| **Capability record** | A block in `capabilities.md` that starts with `name:`. |
+| **Registry** | The list of physical consumer roots at `${XDG_CONFIG_HOME:-$HOME/.config}/orchestrail/projects`, written by project setup. |
+| **Active project** | A registered root with at least one task phase `in-progress` or an unreadable task state. |
+| **Active consumer** | An active project counted when a global deployment change is planned. A registered, active source checkout also counts. |
+| **Deploy manifest** | The per-harness ownership record `<config>/orchestrail/deploy/<harness>.json`. The generator manifest and hook installer receipt have separate purposes. |
+| **Owned object** | An installed path whose current bytes match a digest in its deploy manifest or recovery journal. |
+| **Plan** | The complete list of create, replace and remove actions computed before the first write. |
+| **Legacy object** | A path in the fixed set of former integration targets identified by `scripts/report-legacy-artifacts.sh`. |
+| **Leftover skill** | An unowned directory under `skills_dir` named by the previous sync from an old workflow, old prefixed rule, or retired skill-producing file in the name map. |
+| **Name map** | `docs/name-map.json`, the record of migrated workflow names, rule names and file paths. |
+| **Installed name** | The skill directory name derived from a source file and shared across harnesses. |
+| **Executable reference** | A reference in an instruction file that the checker resolves as a command, section, rule or repository path under the documented grammar. |
+| **Active reference** | Any occurrence of a name in the stale-name scan set. The migration record identifies individual old-name occurrences allowed to stay. |
+| **Word** | A maximal non-empty run of non-whitespace characters. |
+| **Always-on body** | The text of `harness/<name>/always-on.md`, comprising its provenance line, header and core. The capability declaration and installation record are appended at assembly. |
+| **Inventory amendment** | `tests/fixtures/validator-runtime/inventory-amendment.json`, the audited changes to the frozen validator inventory. |
 | **Principle** | An engineering standard in `principles/` installed as a `principle-<name>` skill. |
 | **Spec** | The immutable task statement, `.ai/specs/<NN>-<slug>.md`; H1 title required; only `/spec-sync` may edit it after Discovery starts. |
 | **Task directory** | `.ai/tasks/todo/task-<NN>-<slug>/` holding `state.md`, `plan.md`, `state-archive.md`, and `T-XX-<slug>/description.md` per subtask. |

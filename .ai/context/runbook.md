@@ -32,6 +32,12 @@ Notes:
   verified system interpreter, e.g. `PATH=/usr/bin:/bin bash scripts/sync.sh
   --from <source-tree> --stage <empty-directory>`. Selecting an unknown mise
   version can start an installation; it is not required for verification.
+- Run `python3 -I scripts/lint-instructions.py` directly for rule and workflow metadata,
+  executable references, adapter and capability declarations, and the delivered name map.
+  Run `python3 -I scripts/check-lint-instructions.py` and
+  `python3 -I scripts/check-deploy-skills.py` for their isolated acceptance suites.
+  All three are standalone under [ADR-0029](../adr/0029-task-011-instruction-contract-migration.md)
+  and run outside the frozen validator and sync preflight.
 - `bash scripts/check-spec-draft.sh` pins the `/spec-draft` review contract (critic, round
   limit, rubric and threshold) in about 30 ms. It runs standalone, outside the frozen validator
   inventory, so run it after every change to `workflows/spec-draft.md`.
@@ -92,7 +98,10 @@ requires a configured file and fails closed.
 1. `bash scripts/validate-contracts.sh` — must report 0 failed.
 2. `bash scripts/sync.sh` (or `scripts/sync.sh --from <dir>`). Sync validates the source,
    deploys managed files to the declared Claude Code and Codex targets, and refreshes
-   existing skill-link directories in registered projects.
+   existing skill-link directories in eligible projects from the registry at
+   `${XDG_CONFIG_HOME:-$HOME/.config}/orchestrail/projects`. Active consumers defer
+   global changes. `--force` overrides that deferment and the active-project skip.
+   Ownership checks, input validation and the deployment lock still apply.
 3. Check the target paths printed by sync and confirm `/discovery` is available.
 4. Restart open sessions to load the refreshed global instructions.
 
@@ -108,7 +117,9 @@ requires a configured file and fails closed.
 6. Deploy.
 
 ### Add or change a rule
-1. Write the check in `scripts/validate-contracts.sh` first; run it; it must fail.
+1. Write and observe a failing check before editing the rule. Follow
+   [Changing a contract](../principles/coding.md#changing-a-contract) for the
+   standalone check and frozen validator inventory policy.
 2. Edit the rule. Keep vocabulary on anchored definition lines.
 3. Grep `workflows/ rules/ docs/ templates/` for every reader of the
    changed text; update them.
@@ -154,11 +165,28 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
 6. A consumer that tracks `.ai/` gets the two state-tool ignore entries by adding `.state-tool.lock` and `.state.md.*.tmp` to its `.gitignore` by hand, or by rerunning `scripts/setup-new-project.sh`, which appends both and skips its `.ai/` entry where files under `.ai/` are tracked.
 
 ### Recover from a bad deploy
-- Deployed copies are disposable. Fix the source here, re-run `scripts/sync.sh`.
+- Fix the canonical source, then re-run `scripts/sync.sh`. If a local edit caused
+  `ownership-conflict`, save the edit elsewhere and delete the conflicting file
+  or restore its recorded bytes before re-running sync.
 - If a workflow skill shadows a rule skill (or vice versa), check that `rule-` prefixes
   are present: `ls -d ~/.claude/skills/rule-* | wc -l` must equal the count of `rules/*.md`.
 - A project-local directory at `.claude/skills/<name>` can shadow the global skill. Sync
   preserves existing directories. Review the local contents before restoring the skill link.
+
+### Deployment rollback
+
+1. Revert the migration delivery commits with ordinary commits. The resulting tree
+   carries the previous `scripts/sync.sh`. Its sync reads no manifest, overwrites
+   both always-on files and every skill it deploys, restores retired targets, and
+   removes nothing. New-name skills stay installed until the owner removes them.
+2. After running the prior sync, the owner deletes `<config>/orchestrail/deploy/`
+   including its manifests and journal. Here `<config>` is non-empty
+   `XDG_CONFIG_HOME` or `$HOME/.config`. The old digests would cause
+   `ownership-conflict` on re-delivery for the overwritten paths. With the record
+   directory cleared, the re-delivered engine proceeds as a first run: adopt
+   eligible files, remove nothing, and report leftovers.
+
+Consumer task history stays intact through rollback and re-delivery.
 
 ### Recover a task whose state is corrupt
 1. `bash scripts/validate-task.sh <task-dir>` — read every `[FAIL]`.

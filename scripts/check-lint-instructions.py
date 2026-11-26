@@ -1910,5 +1910,150 @@ class CapabilityDispatchContract(unittest.TestCase):
         self.assertNotIn("before anything else", repository_mode.lower())
 
 
+class InstructionKnowledgeContract(unittest.TestCase):
+    def test_migration_decision_preserves_prior_authority(self) -> None:
+        adr_dir = SOURCE / ".ai/adr"
+        index = section(current(adr_dir / "index.md"), "## Records")
+        rows = [cells(line) for line in index.splitlines() if re.match(r"^\| [0-9]{4} \|", line)]
+        records = {number: (status, link) for number, _, status, _, link in rows}
+        self.assertEqual(len(records), len(rows), "Decision numbers must be unique")
+
+        status, _ = records["0003"]
+        supersession = re.search(r"\bdeployment targets only\b.*\bADR-(\d{4})\b", status)
+        self.assertTrue(status.startswith("Accepted"), status)
+        self.assertIsNotNone(supersession, "ADR-0003 must supersede its deployment targets only")
+        migration = supersession[1]
+        self.assertRegex(records["0018"][0], rf"^Provisional\b.*schema-2\b.*\bamend\w*\b.*ADR-{migration}\b")
+        self.assertEqual(records["0019"][0], "Accepted")
+        self.assertIn(migration, records)
+        status, link = records[migration]
+        self.assertEqual(status, "Accepted")
+        filename = re.fullmatch(r"\[[^\]]+\]\(([^/]+\.md)\)", link)
+        self.assertIsNotNone(filename, link)
+        self.assertTrue(filename[1].startswith(f"{migration}-"), link)
+        decision = current(adr_dir / filename[1])
+        self.assertEqual(section(decision, "## Status").partition("\n")[2].strip(), "Accepted")
+        prose = " ".join(decision.replace("`", "").split())
+        for pattern in (
+            r"ADR-0003.{0,120}deployment targets only",
+            r"ADR-0009.{0,100}Decision 2",
+            r"ADR-0009.{0,100}Decision 3",
+            r"rule-.{0,50}prefix",
+            r"\bduplicat\w*\b.{0,80}\bessentials\b",
+            r"ADR-0018.{0,160}schema-2",
+            r"ADR-0019.{0,100}Decision 3",
+            r"\bscripts/lint-instructions\.py\b",
+            r"\btests/fixtures/validator-runtime/inventory-amendment\.json\b",
+        ):
+            with self.subTest(decision=pattern):
+                self.assertRegex(prose, pattern)
+
+        verification = " ".join(section(decision, "## Verification").split())
+        self.assertIn("python3 -I scripts/lint-instructions.py", verification)
+        self.assertRegex(verification, r"\bPython \d+\.\d+\.\d+\b")
+        self.assertRegex(verification, r"\bLinux\s+\S+")
+        self.assertRegex(verification, r"\b[0-9a-f]{40}\b")
+        elapsed = re.search(r"\b(\d+\.\d+)\s*(?:seconds\b|s\b)", verification)
+        self.assertIsNotNone(elapsed, "Record the measured checker duration")
+        seconds = float(elapsed[1])
+        self.assertGreater(seconds, 0)
+        if seconds > 30:
+            self.assertRegex(verification.lower(), r"\b(?:overrun|exceed\w*)\b")
+        self.assertRegex(verification, r"\b(?:0|zero) (?:strict )?findings\b")
+
+    def test_guidance_names_canonical_deployment_inputs(self) -> None:
+        paths = (
+            "memory/architecture.md", "context/environment.md", "context/integrations.md",
+            "context/runbook.md", "principles/domain.md", "principles/coding.md",
+        )
+        guidance = {path: current(f".ai/{path}") for path in paths}
+        for path, document in guidance.items():
+            with self.subTest(document=path):
+                self.assertNotRegex(document, r"(?i)windsurf|codeium|\bdevin\b")
+        collective = "\n".join(guidance.values())
+        for path in (
+            "harness/<name>/deploy.env", "<config>/orchestrail/deploy/<harness>.json",
+            "docs/name-map.json", "scripts/lint-instructions.py", "orchestrail/projects",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(path, collective)
+        sentences = re.split(r"(?<=[.!?])\s+", " ".join(collective.lower().split()))
+        self.assertTrue(any(
+            all(term in sentence for term in ("registry", "refresh", "project", "link"))
+            for sentence in sentences
+        ), "Explain how the registry drives the project link refresh")
+
+    def test_domain_and_coding_define_the_instruction_contract(self) -> None:
+        vocabulary = section(current(".ai/principles/domain.md"), "## Vocabulary")
+        rows = [cells(line) for line in vocabulary.splitlines() if line.startswith("| **")]
+        definitions = {term.strip("*`").lower(): definition.lower() for term, definition in rows}
+        self.assertEqual(len(definitions), len(rows), "Vocabulary terms must be unique")
+        meanings = {
+            "Harness": ("model runtime", "harness/<name>/", "deploy.env"),
+            "Adapter files": ("deploy.env", "always-on.md", "capabilities.md", "optional",
+                              "hooks.json", "permissions.json", "reserved-names.txt"),
+            "Rule": ("rules/<stem>.md", "rule-<stem>"),
+            "Rule kind": ("stem", "prefix", "bootstrap", "contract", "protocol", "procedure"),
+            "Bootstrap rule": ("bootstrap-<phase>", "exactly", "## context bootstrap", "## phase behaviors"),
+            "Workflow": ("workflows/<stem>.md", "front matter", "invocation:"),
+            "Load mode": ("always", "on-demand", "requirement", "context"),
+            "Capability": ("operation", "state", "runtime", "date", "evidence", "permission"),
+            "Capability record": ("name:", "capabilities.md"),
+            "Registry": ("${xdg_config_home:-$home/.config}/orchestrail/projects",),
+            "Active project": ("registered", "in-progress", "unreadable"),
+            "Active consumer": ("active project", "global", "source checkout"),
+            "Deploy manifest": ("ownership", "orchestrail/deploy/<harness>.json"),
+            "Owned object": ("bytes", "digest", "manifest", "journal"),
+            "Plan": ("create", "replace", "remove", "before the first write"),
+            "Legacy object": ("path", "scripts/report-legacy-artifacts.sh"),
+            "Leftover skill": ("skills_dir", "unowned", "previous"),
+            "Name map": ("docs/name-map.json",),
+            "Installed name": ("skill directory", "source"),
+            "Executable reference": ("instruction", "reference"),
+            "Active reference": ("occurrence", "scan set"),
+            "Word": ("maximal", "non-empty", "non-whitespace"),
+            "Always-on body": ("harness/<name>/always-on.md", "capability declaration", "installation record"),
+            "Inventory amendment": ("tests/fixtures/validator-runtime/inventory-amendment.json",),
+            "bootstrap": ("ordered", "context", "phase", "behavio"),
+            "contract": ("formats", "vocabular", "invariants", "obligations", "across workflows"),
+            "protocol": ("decision point", "inputs", "criteria", "outcomes"),
+            "procedure": ("ordered", "actions", "named condition", "more than one workflow"),
+        }
+        for term, fragments in meanings.items():
+            with self.subTest(term=term):
+                definition = definitions.get(term.lower(), "").replace("`", "")
+                self.assertEqual([fragment for fragment in fragments if fragment not in definition], [])
+
+        coding = current(".ai/principles/coding.md")
+        shape = re.search(r"(?ms)^### Rule file shape[^\n]*\n(.*?)(?=^#{1,3} |\Z)", coding)
+        self.assertIsNotNone(shape, "Missing the rule file shape guidance")
+        self.assertNotRegex(coding, r"trigger:\s*always_on\b")
+        self.assertNotIn("trigger:", shape[1])
+        for fragment in (
+            "description:", "load:", "always", "on-demand", "loads", "column 0", "---",
+            "JSON string", "tabs", "comments", "duplicate keys", "continuation lines",
+        ):
+            with self.subTest(metadata=fragment):
+                self.assertIn(fragment, shape[1])
+
+    def test_runbook_records_owner_controlled_rollback(self) -> None:
+        runbook = current(".ai/context/runbook.md")
+        subsection = re.search(r"(?ms)^### [^\n]*[Rr]ollback[^\n]*\n(.*?)(?=^#{1,3} |\Z)", runbook)
+        self.assertIsNotNone(subsection, "Missing the deployment rollback procedure")
+        prose = " ".join(subsection[1].replace("`", "").lower().split())
+        rollback = re.search(r"\brevert\w*\b.{0,100}\bordinary commits\b", prose)
+        reset = re.search(r"\bowner\b.{0,80}\bdelet\w*\b.{0,80}<config>/orchestrail/deploy/", prose)
+        self.assertIsNotNone(rollback, "Document the ordinary revert commits")
+        self.assertIsNotNone(reset, "The owner must remove the former deploy records")
+        self.assertLess(rollback.start(), reset.start())
+        for fragment in (
+            "overwrites", "always-on", "no manifest", "retired targets", "new-name skills",
+            "manifests", "journal", "ownership-conflict", "first run", "adopt", "leftovers",
+            "removes nothing", "task history",
+        ):
+            with self.subTest(rollback=fragment):
+                self.assertIn(fragment, prose)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

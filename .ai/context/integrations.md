@@ -23,9 +23,18 @@ searches the web.
 - Workflows use the installed skills and the available orchestration capabilities.
   Project setup preserves an existing project-local `AGENTS.md`.
 
-### Retired Windsurf and Devin integrations
-- The legacy reporter lists known previous installation paths. The source deploys
-  only the targets declared by its two model adapters.
+### Adapter declarations and session capabilities
+- Deployment reads each `harness/<name>/deploy.env` as data to resolve that adapter's
+  targets. `scripts/report-legacy-artifacts.sh` reports previous installation paths
+  for owner review.
+- Workflows read `capabilities.md` records from the installed always-on instructions.
+  Each record declares a state, with runtime, verification date and evidence for an
+  established state. A declared `yes` also requires the actual session tool and
+  permission at dispatch. Verify access without network probing. Record fresh evidence
+  before changing a capability record.
+- The installed skill name is shared across harnesses. `docs/name-map.json` records
+  the migration from old names to canonical source names and the instruction checker
+  verifies the mapping against the shipped command reference.
 
 ### git — version control of consumer repositories
 - Used by development, restack, and finalization workflows with distinct Git authority.
