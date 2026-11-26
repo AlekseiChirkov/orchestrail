@@ -51,6 +51,12 @@ BEHAVIOUR_ROWS = (
     "| Hook-covered step logging | `discovery`, `execution`, `validation`, `finalization`, `pipeline`, "
     "`spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |",
 )
+MISSING_PHASE_CONTRACT_FINDINGS = (
+    f"resolution-rule-missing {PHASE_CONTRACT}:0 Expected one canonical rule-reference line.",
+    f"bootstrap-table-invalid {PHASE_CONTRACT}:0 Expected one row for each phase and its bootstrap skill.",
+    f"capability-behaviour-table-invalid {PHASE_CONTRACT}:0 Expected the capability behaviour table.",
+)
+MISSING_PHASE_CONTRACT_OUTPUT = "\n".join(MISSING_PHASE_CONTRACT_FINDINGS) + "\n"
 
 
 def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
@@ -123,6 +129,13 @@ class InstructionMetadataTests(unittest.TestCase):
             any(line.startswith(f"{code} {relative}:") for line in result.stdout.splitlines()),
             f"Expected {code} for {relative}. Output:\n{result.stdout}{result.stderr}",
         )
+
+    def findings_for_minimal_fixture(self, result: subprocess.CompletedProcess[str]) -> list[str]:
+        findings = result.stdout.splitlines()
+        for expected in MISSING_PHASE_CONTRACT_FINDINGS:
+            self.assertEqual(findings.count(expected), 1, result.stdout)
+            findings.remove(expected)
+        return findings
 
     def test_accepts_valid_rule_and_workflow_metadata(self) -> None:
         self.write("rules/contract-demo.md", RULE)
@@ -379,7 +392,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("kind-prefix-invalid", f"rules/{name}.md") for name in invalid],
         )
 
@@ -391,7 +405,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [line.split()[0] for line in result.stdout.splitlines()],
+            [line.split()[0] for line in self.findings_for_minimal_fixture(result)],
             ["kind-prefix-invalid", "name-collision"],
         )
 
@@ -405,7 +419,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [line.split()[0] for line in result.stdout.splitlines()],
+            [line.split()[0] for line in self.findings_for_minimal_fixture(result)],
             ["kind-prefix-invalid", "installed-name-collision", "installed-name-collision"],
         )
         for name in ("rule-tdd", "principle-quality"):
@@ -425,7 +439,8 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-        self.assertEqual([line.split()[0] for line in result.stdout.splitlines()], ["installed-name-collision"])
+        self.assertEqual([line.split()[0] for line in self.findings_for_minimal_fixture(result)],
+                         ["installed-name-collision"])
 
     def test_requires_exact_ordered_bootstrap_headings(self) -> None:
         context = "## Context Bootstrap\n"
@@ -445,7 +460,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("bootstrap-sections", f"rules/bootstrap-{name}.md") for name in fixtures],
         )
 
@@ -457,7 +473,7 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assert_finding(result, "bootstrap-size", "rules/bootstrap-over-limit.md")
-        self.assertEqual(len(result.stdout.splitlines()), 1, result.stdout)
+        self.assertEqual(len(self.findings_for_minimal_fixture(result)), 1, result.stdout)
 
     def test_bootstrap_size_exception_applies_to_the_named_rule_at_the_listed_count(self) -> None:
         for name in ("exact", "changed", "unlisted"):
@@ -473,7 +489,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("bootstrap-size", f"rules/bootstrap-{name}.md") for name in ("changed", "unlisted")],
         )
 
@@ -495,7 +512,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         result = self.run_checker()
 
-        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "info reserved-names-absent demo\n", ""))
+        self.assertEqual((result.returncode, result.stdout, result.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT + "info reserved-names-absent demo\n", ""))
 
     def test_reserved_command_requires_the_prefixed_workflow_and_invocation(self) -> None:
         self.write_pipeline_command("pipeline")
@@ -510,7 +528,7 @@ class InstructionMetadataTests(unittest.TestCase):
         with self.subTest(command="reserved"):
             result = self.run_checker()
             self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-            findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
+            findings = [line for line in self.findings_for_minimal_fixture(result) if not line.startswith("info ")]
             self.assertEqual(len(findings), 1, result.stdout)
             self.assertTrue(findings[0].startswith("reserved-name-collision "), result.stdout)
             self.assertIn("orchestrail-pipeline", findings[0])
@@ -525,7 +543,9 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write(source, RULE + "\nInvoke `/orchestrail-pipeline`.\n")
         with self.subTest(command="prefixed"):
             result = self.run_checker()
-            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+            self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+            self.assertTrue(all(line.startswith("info ") for line in self.findings_for_minimal_fixture(result)),
+                            result.stdout)
 
     def test_workflow_symlink_does_not_resolve_as_an_installed_command(self) -> None:
         self.write_pipeline_command("orchestrail-pipeline")
@@ -573,7 +593,10 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write_adapter("fixture-second", "Fixture instructions", second)
 
         baseline = self.run_checker()
-        self.assertEqual(baseline.returncode, 0, baseline.stdout + baseline.stderr)
+        self.assertEqual((baseline.returncode, baseline.stderr), (1, ""), baseline.stdout)
+        self.assertEqual(self.findings_for_minimal_fixture(baseline),
+                         ["info reserved-names-absent fixture-first", "info reserved-names-absent fixture-second"],
+                         baseline.stdout)
 
         disabled_hooks = capability_record("hooks", "no")
         mutations = {
@@ -661,7 +684,8 @@ class InstructionMetadataTests(unittest.TestCase):
                 result = self.run_checker()
                 self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
                 self.assertCountEqual(
-                    [" ".join(line.split()[:2]) for line in result.stdout.splitlines() if not line.startswith("info ")],
+                    [" ".join(line.split()[:2]) for line in self.findings_for_minimal_fixture(result)
+                     if not line.startswith("info ")],
                     [
                         *(f"kind-prefix-invalid rules/{rule}.md:0" for rule in legacy_rules),
                         "name-collision workflows/phase-finalize.md:0",
@@ -762,7 +786,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.write("docs/USAGE.md", f"{heading}{row}, `contract-guide-extra` |\n")
         aligned = self.run_checker()
-        self.assertEqual(aligned.returncode, 0, aligned.stdout + aligned.stderr)
+        self.assertEqual((aligned.returncode, aligned.stdout, aligned.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT, ""))
 
     def test_resolves_executable_references_and_section_order(self) -> None:
         self.write("rules/contract-target.md", RULE + "\n## Guide — Notes\n### Run\n#### Finish\n## End\n")
@@ -793,7 +818,8 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-        self.assertEqual({" ".join(line.split()[:2]) for line in result.stdout.splitlines()}, expected, result.stdout)
+        self.assertEqual({" ".join(line.split()[:2]) for line in self.findings_for_minimal_fixture(result)},
+                         expected, result.stdout)
 
     def test_reports_stale_names_with_scan_and_retention_exceptions(self) -> None:
         self.write("docs/name-map.json", json.dumps({"schema_version": 1, "rows": [
@@ -950,6 +976,7 @@ class InstructionMetadataTests(unittest.TestCase):
                     *(f"name-collision workflows/{name}.md:0 Stem {name} is also used by rules/{name}.md."
                       for name in collisions),
                     usage,
+                    *MISSING_PHASE_CONTRACT_FINDINGS,
                 ]),
             ),
             result.stdout,
@@ -961,7 +988,8 @@ class InstructionMetadataTests(unittest.TestCase):
         original = (self.root / env_path).read_bytes()
         baseline = self.run_checker()
         info = "info reserved-names-absent demo"
-        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr), (0, info + "\n", ""))
+        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT + info + "\n", ""))
         skills_line = b"skills_dir=$HOME/demo/skills\n"
         marker = self.workspace / "command-executed"
         fixtures = {
@@ -983,7 +1011,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
                 self.assertFalse(marker.exists(), "The checker executed an adapter command.")
                 self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-                findings = result.stdout.splitlines()
+                findings = self.findings_for_minimal_fixture(result)
                 self.assertIn(info, findings)
                 findings.remove(info)
                 self.assertEqual(len(findings), 1, result.stdout)
@@ -1004,7 +1032,7 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-        findings = [line.split(maxsplit=2)[:2] for line in result.stdout.splitlines()]
+        findings = [line.split(maxsplit=2)[:2] for line in self.findings_for_minimal_fixture(result)]
         self.assertCountEqual(
             findings,
             [
@@ -1021,7 +1049,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         result = self.run_checker()
 
-        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (1, MISSING_PHASE_CONTRACT_OUTPUT, ""))
 
 
     def test_frozen_rule_load_checks_follow_front_matter_scalar_grammar(self) -> None:

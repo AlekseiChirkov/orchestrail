@@ -18,10 +18,15 @@ RULE_KINDS = frozenset({"bootstrap", "contract", "protocol", "procedure"})
 SKILL_PREFIXES = {"rules": "rule-", "workflows": "", "principles": "principle-"}
 BOOTSTRAP_HEADINGS = ["## Context Bootstrap", "## Phase Behaviors"]
 BOOTSTRAP_WORD_LIMIT = 300
-PHASES = frozenset({
+BOOTSTRAP_PHASES = (
     "discovery", "execution", "validation", "atomic-execution", "atomic-validation",
-    "finalization", "orchestrated", "entry", "utility",
-})
+    "finalization",
+)
+PHASES = frozenset((*BOOTSTRAP_PHASES, "orchestrated", "entry", "utility"))
+PHASE_CONTRACT = "rules/contract-phases.md"
+RULE_REFERENCES_HEADING = "## Rule references"
+RESOLUTION_LINE = "A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness."
+OBSOLETE_RESOLUTION_PHRASE = "bare" + " basename"
 LOADS = frozenset({"always", "on-demand"})
 FIELD = re.compile(r"([a-z_]+):(?: (.*))?")
 STEP = re.compile(r"[1-9][0-9]*(?:\.[1-9][0-9]*|[a-z])?")
@@ -40,6 +45,13 @@ CAPABILITY_STATES = frozenset({"yes", "no", "unknown"})
 CANONICAL_CAPABILITIES = (
     "sub-agents", "concurrent-sub-agents", "agent-messaging", "hooks", "worktrees", "git",
 )
+REQUIRED_BEHAVIOURS = {
+    "Orchestrated run with Implementer, Validator and Arbiter workers": {"sub-agents", "agent-messaging", "git"},
+    "Parallel children": {"worktrees", "concurrent-sub-agents"},
+    "Devil's Advocate critic": {"sub-agents", "agent-messaging"},
+    "Model-specific worker for a leaf": {"sub-agents"},
+    "Hook-covered step logging": {"hooks"},
+}
 VERIFIED_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 INSTRUCTION_DIRECTORIES = ("rules", "workflows", "harness", "principles", "templates")
@@ -282,14 +294,22 @@ def table_cells(line: str) -> list[str]:
     return [cell.strip() for cell in re.split(r"(?<!\\)\|", line[1:-1])]
 
 
-def table_rows(lines: list[str], start: int, end: int, header: list[str]) -> list[list[str]] | None:
+def is_table_divider(line: str, columns: int) -> bool:
+    cells = table_cells(line)
+    return len(cells) == columns and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
+
+
+def table_rows(
+    lines: list[str], start: int, end: int, header: list[str], *, exact_header: bool = False,
+) -> list[list[str]] | None:
     visible = {number: line for number, line in outside_fences(lines)}
     headers = [number for number in range(start + 1, end) if table_cells(visible.get(number, "")) == header]
     if len(headers) != 1:
         return None
+    if exact_header and visible[headers[0]] != f"| {' | '.join(header)} |":
+        return None
     number = headers[0] + 1
-    divider = table_cells(visible.get(number, ""))
-    if len(divider) != len(header) or any(not re.fullmatch(r":?-{3,}:?", cell) for cell in divider):
+    if number >= end or not is_table_divider(visible.get(number, ""), len(header)):
         return None
     rows = []
     for number in range(number + 1, end):
@@ -383,18 +403,19 @@ def reference_findings(
             yield "reference-missing", f"Path {span} does not exist in the source tree."
 
 
-def check_executable_references(lint: InstructionLint) -> None:
+def check_executable_references(lint: InstructionLint) -> dict[Path, list[str]]:
     sources = {
-        path: text
+        path: input_lines(text)
         for path in source_paths(lint.root, ("harness/*/always-on.md",))
         if (text := lint.read_text(path)) is not None
     }
-    sources.update({
-        path: text
+    instruction_lines = {
+        path: input_lines(text)
         for path in installed_source_paths(lint.root, ("rules", "workflows"))
         if (text := lint.read_text(path, regular=True)) is not None
-    })
-    visible = {path: list(outside_fences(input_lines(text))) for path, text in sources.items()}
+    }
+    sources.update(instruction_lines)
+    visible = {path: list(outside_fences(lines)) for path, lines in sources.items()}
 
     def by_stem(directory: str) -> dict[str, list[str]]:
         return {path.stem: [line for _, line in lines if HEADING.match(line)]
@@ -406,6 +427,7 @@ def check_executable_references(lint: InstructionLint) -> None:
             for span, after in inline_references(line):
                 for code, message in reference_findings(lint, span, after, rules, workflows):
                     lint.report(code, path, number, message)
+    return instruction_lines
 
 
 def whole_token(pattern: str) -> str:
@@ -470,13 +492,12 @@ def unquote_record_cell(cell: str) -> str:
     return cell.replace(r"\|", "|")
 
 
-def check_stale_names(lint: InstructionLint, rows: list[NameRow], retained: set[tuple[str, str]]) -> None:
-    if not rows:
-        return
+def check_active_references(lint: InstructionLint, rows: list[NameRow], retained: set[tuple[str, str]]) -> int:
     names = [(row.old, stale_pattern(row), successor_paths(row)) for row in rows]
     patterns = [f"{directory}/**/*" for directory in (*INSTRUCTION_DIRECTORIES, "hooks", "scripts", "tests")]
     patterns.extend(("CLAUDE.md", "README.md", "docs/*.md", ".ai/principles/*.md", ".ai/context/*.md",
                      ".ai/memory/architecture.md"))
+    anchor_count = 0
     for path in source_paths(lint.root, patterns):
         relative = path.relative_to(lint.root).as_posix()
         if relative in REFERENCE_EXCLUSIONS or relative.startswith(FROZEN_FIXTURES):
@@ -487,15 +508,91 @@ def check_stale_names(lint: InstructionLint, rows: list[NameRow], retained: set[
         lines = input_lines(text)
         excluded = list(markdown_sections(lines, USAGE_HEADING)) if relative == USAGE else []
         for number, line in enumerate(lines, 1):
-            if any(start <= number < end for start, end in excluded) or (relative, line) in retained:
+            if any(start <= number < end for start, end in excluded):
                 continue
+            original_line = line
             if relative == "scripts/validate-contracts.sh":
                 if line.lstrip().startswith("#"):
                     continue
                 line = CHECK_DESCRIPTION.sub(r"\1", line)
-            stale = sorted({old for old, pattern, allowed in names if pattern.search(allowed.sub(" ", line))})
-            if stale:
-                lint.report("stale-name", path, number, f"Stale names: {', '.join(stale)}.")
+            if line == RESOLUTION_LINE:
+                anchor_count += 1
+            if OBSOLETE_RESOLUTION_PHRASE in line.casefold():
+                lint.report("resolution-rule-missing", path, number, "Obsolete wording in a rule reference.")
+            if "rules file" in line.casefold() and number < len(lines):
+                cells = table_cells(line)
+                if (any(cell.casefold().startswith("rules file") for cell in cells)
+                        and is_table_divider(lines[number], len(cells))):
+                    lint.report("resolution-rule-missing", path, number, "Obsolete rule reference column.")
+            if (relative, original_line) not in retained:
+                stale = sorted({old for old, pattern, allowed in names if pattern.search(allowed.sub(" ", line))})
+                if stale:
+                    lint.report("stale-name", path, number, f"Stale names: {', '.join(stale)}.")
+    return anchor_count
+
+
+def phase_section(lines: list[str], heading: str) -> tuple[int, int]:
+    sections = list(markdown_sections(lines, heading))
+    return sections[0] if len(sections) == 1 else (0, 0)
+
+
+def check_bootstrap_table(lint: InstructionLint, path: Path, lines: list[str], rule_names: set[str]) -> None:
+    start, end = phase_section(lines, BOOTSTRAP_HEADINGS[0])
+    rows = table_rows(lines, start, end, ["Phase", "Skill", "Loaded by"], exact_header=True)
+    expected = {(phase.replace("-", " ").title(), f"`rule-bootstrap-{phase}`") for phase in BOOTSTRAP_PHASES}
+    skills = {f"bootstrap-{phase}" for phase in BOOTSTRAP_PHASES}
+    if (rows is None or len(rows) != len(expected) or not skills <= rule_names
+            or {(row[0], row[1]) for row in rows if len(row) == 3 and row[2]} != expected):
+        lint.report("bootstrap-table-invalid", path, start, "Expected one row for each phase and its bootstrap skill.")
+
+
+def table_names(cell: str) -> set[str]:
+    return {unquote_record_cell(name.strip()) for name in cell.split(",")}
+
+
+def check_behaviour_table(
+    lint: InstructionLint, path: Path, lines: list[str], workflow_names: set[str], declared_keys: set[str],
+) -> None:
+    code = "capability-behaviour-table-invalid"
+    start, end = phase_section(lines, "## Capabilities")
+    rows = table_rows(lines, start, end, ["Behaviour", "Workflow", "Requires", "Without it"], exact_header=True)
+    if rows is None:
+        lint.report(code, path, start, "Expected the capability behaviour table.")
+        return
+
+    seen: set[str] = set()
+    for cells in rows:
+        if len(cells) != 4 or not all(cells):
+            lint.report(code, path, start, "Every behaviour must name workflows, capabilities and a fallback.")
+            continue
+        behaviour, workflow_cell, requires_cell, _ = cells
+        workflows, required = table_names(workflow_cell), table_names(requires_cell)
+        expected = REQUIRED_BEHAVIOURS.get(behaviour)
+        if (behaviour in seen or not workflows <= workflow_names or not required <= declared_keys
+                or (expected is not None and required != expected)):
+            lint.report(code, path, start, f"Invalid capability behaviour row: {behaviour}.")
+        seen.add(behaviour)
+    missing = set(REQUIRED_BEHAVIOURS) - seen
+    if missing:
+        lint.report(code, path, start, f"Missing required behaviours: {', '.join(sorted(missing))}.")
+
+
+def check_phase_contract(
+    lint: InstructionLint, instructions: dict[Path, list[str]], anchor_count: int, adapter_keys: list[set[str]],
+) -> None:
+    path = lint.root / PHASE_CONTRACT
+    lines = instructions.get(path, [])
+    start, end = phase_section(lines, RULE_REFERENCES_HEADING)
+    if anchor_count != 1 or not any(start < number < end and line == RESOLUTION_LINE
+                                    for number, line in outside_fences(lines)):
+        lint.report("resolution-rule-missing", path, start, "Expected one canonical rule-reference line.")
+
+    rules = {file.stem for file in instructions if file.parent == lint.root / "rules"}
+    workflows = {file.stem for file in instructions
+                 if file.parent == lint.root / "workflows" and NAME_STEM.fullmatch(file.stem)}
+    shared = set.intersection(*adapter_keys) if adapter_keys else set()
+    check_bootstrap_table(lint, path, lines, rules)
+    check_behaviour_table(lint, path, lines, workflows, shared.union(CANONICAL_CAPABILITIES))
 
 
 def scalar(raw: str) -> str:
@@ -669,33 +766,39 @@ def valid_capability_field(key: str, value: str) -> bool:
 
 def check_capability_fields(
     lint: InstructionLint, path: Path, record_line: int, lines: list[str],
-) -> str | None:
+) -> tuple[str | None, bool]:
     fields: dict[str, str] = {}
+    valid = True
     for number, line in enumerate(lines, record_line + 1):
         field = CAPABILITY_FIELD.fullmatch(line)
         if field is None:
             lint.report("capability-schema", path, number, "Expected a capability field.")
+            valid = False
             continue
         key, value = field.groups()
         if key != "evidence" and key in fields:
             lint.report("capability-schema", path, number, f"Repeated capability field {key}.")
+            valid = False
             continue
         fields[key] = value
         if not valid_capability_field(key, value):
             lint.report("capability-schema", path, number, f"Invalid capability field {key}.")
+            valid = False
 
     state = fields.get("state")
     required = ("state", "runtime", "verified", "evidence") if state in {"yes", "no"} else ("state",)
     for key in required:
         if key not in fields:
             lint.report("capability-schema", path, record_line, f"Missing capability field {key}.")
-    return state
+            valid = False
+    return state, valid
 
 
 def check_capability_records(
     lint: InstructionLint, path: Path, lines: list[str], start: int, end: int,
-) -> dict[str, tuple[int, str | None]]:
+) -> tuple[dict[str, tuple[int, str | None]], set[str]]:
     records: dict[str, tuple[int, str | None]] = {}
+    valid_names: set[str] = set()
     index = start
     while index < end:
         title = lines[index]
@@ -715,20 +818,23 @@ def check_capability_records(
             lint.report("capability-schema", path, record_line, "Invalid capability name.")
             continue
         name = match[1]
-        state = check_capability_fields(lint, path, record_line, lines[fields_start:fields_end])
+        state, valid = check_capability_fields(lint, path, record_line, lines[fields_start:fields_end])
         if name in records:
             lint.report("capability-schema", path, record_line, f"Repeated capability {name}.")
+            valid_names.discard(name)
         else:
             records[name] = (record_line, state)
+            if valid:
+                valid_names.add(name)
         if name in CANONICAL_CAPABILITIES:
             following_line = lines[index] if index < end else ""
             limitations = following_line.removeprefix("Limitations: ")
             if following_line == limitations or not limitations.strip():
                 lint.report("capability-schema", path, record_line, f"Missing limitations for {name}.")
-    return records
+    return records, valid_names
 
 
-def check_capabilities(lint: InstructionLint, path: Path, declaration: str, always_on_path: str) -> None:
+def check_capabilities(lint: InstructionLint, path: Path, declaration: str, always_on_path: str) -> set[str]:
     lines = declaration.replace("\r\n", "\n").split("\n")
     headings = [index for index, line in enumerate(lines) if line == CAPABILITY_HEADING]
     if not headings:
@@ -738,7 +844,7 @@ def check_capabilities(lint: InstructionLint, path: Path, declaration: str, alwa
     heading = headings[0] if headings else len(lines)
     start = heading + 1
     end = next((index for index in range(start, len(lines)) if lines[index].startswith(("# ", "## "))), len(lines))
-    records = check_capability_records(lint, path, lines, start, end)
+    records, valid_names = check_capability_records(lint, path, lines, start, end)
     canonical_order = [name for name in CANONICAL_CAPABILITIES if name in records]
     for name in CANONICAL_CAPABILITIES:
         if name not in records:
@@ -760,6 +866,7 @@ def check_capabilities(lint: InstructionLint, path: Path, declaration: str, alwa
         legacy_hooks = [line for line in lines[:heading] if line.startswith("hooks:")]
         if state not in {"yes", "no"} or legacy_hooks != [f"hooks: {state}"]:
             lint.report("hooks-state-mismatch", path, number, "Hooks state must match the existing hooks line.")
+    return valid_names if len(headings) == 1 else set()
 
 
 def check_always_on(lint: InstructionLint, path: Path, body: str, declaration: str | None) -> None:
@@ -826,7 +933,8 @@ def check_reserved_names(lint: InstructionLint, directory: Path, commands: set[s
             )
 
 
-def check_harness_instructions(lint: InstructionLint, commands: set[str]) -> None:
+def check_harness_instructions(lint: InstructionLint, commands: set[str]) -> list[set[str]]:
+    adapter_keys: list[set[str]] = []
     for directory in sorted((lint.root / "harness").glob("*")):
         if not HARNESS_NAME.fullmatch(directory.name) or directory.is_symlink() or not directory.is_dir():
             continue
@@ -840,6 +948,7 @@ def check_harness_instructions(lint: InstructionLint, commands: set[str]) -> Non
         if missing:
             for path in missing:
                 lint.report("adapter-incomplete", path, 0, "Expected a regular adapter file.")
+            adapter_keys.append(set())
             continue
 
         check_reserved_names(lint, directory, commands)
@@ -849,7 +958,10 @@ def check_harness_instructions(lint: InstructionLint, commands: set[str]) -> Non
         if body is not None:
             check_always_on(lint, body_path, body, declaration)
         if deployment is not None and declaration is not None:
-            check_capabilities(lint, capability_path, declaration, deployment["always_on_path"])
+            adapter_keys.append(check_capabilities(lint, capability_path, declaration, deployment["always_on_path"]))
+        else:
+            adapter_keys.append(set())
+    return adapter_keys
 
 
 def main() -> int:
@@ -867,12 +979,13 @@ def main() -> int:
     commands = {name for row in rows or [] if row.kind == "workflow" for name in row.new}
     check_source_metadata(lint, bootstrap_size_exceptions(record))
     check_installed_names(lint)
-    check_harness_instructions(lint, commands)
+    adapter_keys = check_harness_instructions(lint, commands)
     check_legacy_mentions(lint)
-    check_executable_references(lint)
+    instructions = check_executable_references(lint)
     if rows is not None:
         check_usage_map(lint, rows)
-    check_stale_names(lint, rows or [], retained_names(record))
+    anchor_count = check_active_references(lint, rows or [], retained_names(record))
+    check_phase_contract(lint, instructions, anchor_count, adapter_keys)
     for line in (*lint.findings, *lint.information):
         print(line)
     return int(bool(lint.findings))
