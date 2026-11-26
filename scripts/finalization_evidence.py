@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+from typing import Literal, overload
 
 from finalization_support import Refusal, dated, digest, field, manifest, normalized_state, now, read_json, require, safe_path, section, text, visible_lines
 from finalization_knowledge import owns as owns_knowledge
@@ -23,14 +24,22 @@ REVIEW_STOP_WORDS = frozenset(
 )
 
 
-def process(arguments: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+@overload
+def process(arguments: list[str], cwd: Path, *, binary: Literal[False] = False) -> subprocess.CompletedProcess[str]: ...
+
+
+@overload
+def process(arguments: list[str], cwd: Path, *, binary: Literal[True]) -> subprocess.CompletedProcess[bytes]: ...
+
+
+def process(arguments: list[str], cwd: Path, *, binary: bool = False) -> subprocess.CompletedProcess[str] | subprocess.CompletedProcess[bytes]:
     env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
     env.update({'GIT_OPTIONAL_LOCKS': '0', 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_REPLACE_OBJECTS': '1', 'GIT_NO_LAZY_FETCH': '1', 'LC_ALL': 'C'})
     # Fixture process isolation is explicit; production never inherits a GIT_* override.
     if os.environ.get('FINALIZATION_TEST_ROOT') and cwd.is_relative_to(Path(os.environ['FINALIZATION_TEST_ROOT'])):
         env.update({'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null'})
     try:
-        return subprocess.run(arguments, cwd=cwd, text=True, capture_output=True, timeout=20,
+        return subprocess.run(arguments, cwd=cwd, text=not binary, capture_output=True, timeout=20,
                               env=env, stdin=subprocess.DEVNULL)
     except (OSError, subprocess.TimeoutExpired) as error:
         raise Refusal('evidence-unavailable', f'{arguments[0]} read failed: {error}') from error
@@ -50,6 +59,15 @@ def git(repo: Path, *arguments: str, codes: tuple[int, ...] = (0,)) -> str:
     result = process(['git', '--no-replace-objects', '-c', 'core.fsmonitor=false', '-c', 'core.hooksPath=/dev/null', *arguments], repo)
     require(result.returncode in codes, 'git-read-failed', f'{arguments[0]} failed: {result.stderr.strip()}')
     return result.stdout.strip()
+
+
+def git_blob(repo: Path, object_id: str) -> bytes:
+    """Read a full Git blob ID without text conversion or a caller-selected subcommand."""
+    require(SHA.fullmatch(object_id), 'internal-read-policy', 'A full Git blob ID is required')
+    result = process(['git', '--no-replace-objects', '-c', 'core.fsmonitor=false',
+                      '-c', 'core.hooksPath=/dev/null', 'cat-file', 'blob', object_id], repo, binary=True)
+    require(result.returncode == 0, 'git-read-failed', f'Cannot read Git blob {object_id}')
+    return result.stdout
 
 
 def commit(repo: Path, revision: str) -> str | None:

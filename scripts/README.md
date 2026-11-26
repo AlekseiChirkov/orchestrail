@@ -71,6 +71,7 @@ The `phase-finalize.py` header is authoritative for CLI, journal and evidence sc
 | `finalization_knowledge.py` | Predeclared current-record snapshots, independent exact before/after changes and unchanged-index enforcement |
 | `finalization_recovery.py` | Self-contained original-object recovery packs, isolated closure verification and immutable digests |
 | `finalization_archive.py`, `finalization_support.py` | Stable old-path resolution, snapshots/manifests, no-overwrite archival, mechanical link/pointer relocation, atomic writes |
+| `finalization_relocation.py` | Read-only verification of the pinned archival relocation and its original journal identity |
 | `check-phase-finalize.py` | Isolated evidence, safety, recovery and archive behavior |
 | `check-finalization-safety.py` | Hook receipts/rails and isolated staged provider parity |
 | `check-finalization-workflow.py` | Standalone workflow contracts, failed/recovered commands and checks, SSH aliases, interruption checkpoints and task validation |
@@ -137,6 +138,14 @@ prior-evidence reuse/runtime/dependency limits; it never erases the earlier erro
 The journal is `.ai/context/finalization/<stable-id>/journal.json`; it stays in place during
 archival. Resume with the same public invocation, including original task/spec paths. Read
 an actual journal revision when a write was interrupted; never replay a stale expected hash.
+
+For the recorded review task relocation, `phase-finalize.py inspect TARGET --root ROOT
+--relocation-evidence FILE` accepts the corresponding former or current task or specification
+path. Supply the journal ID and SHA-256 of independently read journal bytes. Inspection
+verifies the archived Git trees, tracked current files and original specification snapshot
+before returning `relocation: verified-read-only`. The result carries no lifecycle action
+plan or cleanup authorization, and mutating commands refuse the relocation aliases.
+
 Completed reruns use persisted journal evidence; an old optional evidence file bound to raw
 state before the completion marker is stale, and must not be presented as fresh evidence.
 Journals bind `remote_identity` to configured fetch/push URLs and expanded effective fetch/push

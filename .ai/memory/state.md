@@ -6,6 +6,8 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
+- [Names, finalization and integrated verification](../specs/011-model-only-harnesses-and-rule-naming.md#phase-2--names-finalization-and-integrated-verification) | phase: execution | status: in-progress | note: Seven sequential subtasks planned. Archived relocation inspection started.
+
 
 
 Specification references were reviewed against the three-digit mapping; corrections and
@@ -59,7 +61,6 @@ Runtime work was closed by owner decision; remaining roadmap scope is not automa
 
 ## Deferred
 
-- Phase 2 — Harness and workflow names, finalization compatibility and integrated verification. Phase 1 validation and owner integration are complete. Phase 2 is eligible for Discovery.
 - Phase 2 — Deferred standalone review service. Prerequisites: historical offline comparison and owner decision.
 
 ## Known conditions (read before starting any task)
