@@ -1,16 +1,23 @@
 # 012. Golden-run regression tests and independent strategy evaluation
 
-> **Scope reconciliation, 2026-11-25:** The former spec 23 was consolidated into
-> [the parallel execution specification](027-parallel-execution-program.md). References
-> below to its numbered requirements or data models describe a historical design preserved
-> at Git revision `42325d2` and require reconciliation before implementation.
-
+> **Scope reconciliation, 2026-11-25; reconciled 2026-11-26:** The former spec 23 was
+> consolidated into [the parallel execution specification](027-parallel-execution-program.md).
+> Current text names spec 027 as the owner of parallel children. Spec 23 identifiers that
+> remain (its REQ-15 and C-5 row) appear only as historical provenance and resolve at Git
+> revision `42325d2`; no requirement of this spec depends on them (`## Notes → Specs 024 and
+> 027`, Q-08).
 
 ## Source
 
 - **Request:** `/spec-draft .ai/specs/012-golden-run-tests.md --auto-mode` (refinement in place,
   2026-11-13). The owner authorized in-place replacement and will not answer questions during
   this run; every gap is resolved under `## Assumptions` with its source.
+- **Refinement request, 2026-11-26:** `/spec-draft .ai/specs/012-golden-run-tests.md
+  --auto-mode`, run by the owner in a separate workspace before `/phase-discovery`. The
+  invocation authorizes in-place refinement; no owner answers were available, so gaps are
+  recorded as assumptions or open questions. Scope of the change: reconciliation with spec
+  027 and the 2026-11-25 renumbering, spec 011's rule-file renames, and re-verification of
+  code citations against `main` at `c7e986f`.
 - **Input:** the existing Russian-language specification at commit `060ce6d` (file last
   changed in `c4372f8`). Its full original text stays in git history. The condensed English
   translation below is faithful in substance; requirement and acceptance identifiers are
@@ -270,37 +277,38 @@ Verified facts:
   accepted yields `accepted_denominator_zero` (`:172`); `compare_outcome_groups` is at
   `:185-206`.
 - Pipeline artifacts the golden checks read are canonical: top-level `state.md` fields and
-  `## Phases` (`rules/workflow-globals.md:160-169`), leaf blocks and git fields (`:175-186`),
-  status vocabularies (`:195`, `:197`), the legacy `atomic-tests:` rule (`:202-208`),
-  composite blocks (`:210-219`), `## Fix-Tasks` (`:248-263`), `plan.md` statuses
-  (`:268-278`); TDD states and the pre-TDD note (`rules/tdd.md:34-50`); the characterization
-  note (`rules/tdd.md:146-147`) and the amendment note (`rules/tdd.md:186`); the leaf `notes:`
+  `## Phases` (`rules/workflow-globals.md:160-169`), leaf blocks and git fields (`:175-188`),
+  status vocabularies (`:215`, `:217`), the legacy `atomic-tests:` rule (`:223-228`),
+  composite blocks (`:230-239`), `## Fix-Tasks` (`:283-301`), `plan.md` statuses
+  (`:303-313`); TDD states and the pre-TDD note (`rules/tdd.md:35-51`); the characterization
+  note (`rules/tdd.md:147-148`) and the amendment note (`rules/tdd.md:187`); the leaf `notes:`
   lines `tdd: red digest — <behaviour> → test_<name>, …` written in red and pinned modes and
-  `tdd: none — …` for `n-a` (`workflows/pae-tests.md:100-110`, `:205-213`, `:219-225`); the
-  two-commit rule (`rules/git-flow.md:85-103`) applied only by `/spec-run` and `/restack`
-  (`rules/git-flow.md:7-9`); `## Contract Check` with a free-text Criterion column
-  (`workflows/pv-contract.md:46-62`) and its critical stop gate (`:64`); `## Issue List`
-  (`workflows/pv-issues.md:46-52`) with severity `critical | important | optional` (`:24`,
-  `:28`); the quick gate (`rules/quick-flow.md:28-50`) and quick TDD record
-  (`rules/quick-flow.md:90-97`); bugfix task directories `fix-<NN>-<slug>`, `kind: bugfix`,
-  `## Reproduction` (`workflows/bugfix.md:25`, `:37-45`, `:52-60`), and the bugfix stop when
-  any quick-gate condition fails (`workflows/bugfix.md:97-100`); `/spec-run` stops on
-  `flow: quick` (`workflows/spec-run.md:112-114`).
-- The run log lives under `$ORCHESTRAIL_LOG_ROOT` when set (`rules/run-log.md:35-45`); step
+  `tdd: none — …` for `n-a` (`workflows/pae-tests.md:105-112`, `:208-216`, `:222-228`); the
+  two-commit rule (`rules/git-flow.md:87-105`) applied only by `/spec-run` and `/restack`
+  (`rules/git-flow.md:8-10`); `## Contract Check` with a free-text Criterion column
+  (`workflows/pv-contract.md:48-64`) and its critical stop gate (`:66`); `## Issue List`
+  (`workflows/pv-issues.md:48-54`) with severity `critical | important | optional` (`:26`,
+  `:30`); the quick gate (`rules/quick-flow.md:29-51`) and quick TDD record
+  (`rules/quick-flow.md:91-98`); bugfix task directories `fix-<NN>-<slug>`, `kind: bugfix`,
+  `## Reproduction` (`workflows/bugfix.md:27`, `:39-47`, `:54-62`), and the bugfix stop when
+  any quick-gate condition fails (`workflows/bugfix.md:99-102`); `/spec-run` stops on
+  `flow: quick` (`workflows/spec-run.md:163-165`).
+- The run log lives under `$ORCHESTRAIL_LOG_ROOT` when set (`rules/run-log.md:36-46`); step
   events carry `step`, `outcome`, optional `tests`, `gate` and free-text `subtask`
-  (`rules/run-log.md:217-222`, `:249-252`). The helper reads step names from
+  (`rules/run-log.md:218-223`, `:250-253`). The helper reads step names from
   `$ORCHESTRAIL_HOME/workflows/*.md` (`scripts/log-step.sh:371-378`). Under `/phase-pipeline`
   execution logs one `pe-execute` step per subtask cycle with `--subtask`, `--tests` mirroring
-  the final `atomic-tests:` and `--gate` from validation (`workflows/phase-execution.md:36-40`);
-  child steps are logged once each (`workflows/phase-pipeline.md:32-35`). Only `/spec-run`
-  logs a per-leaf `pae-tests` RED row (`workflows/spec-run.md:255-259`). No emitted event
+  the final `atomic-tests:` and `--gate` from validation (`workflows/phase-execution.md:38-42`);
+  child steps are logged once each (`workflows/phase-pipeline.md:34-37`). Only `/spec-run`
+  logs a per-leaf `pae-tests` RED row (`workflows/spec-run.md:335-339`). No emitted event
   orders test writing before implementation for workflows without commits.
 - Entry workflows: `/phase-pipeline <spec-path|task-directory>`
-  (`workflows/phase-pipeline.md:5`), `/spec-run <path-to-spec> [--allow-pr] [--dry-run]`
-  (`workflows/spec-run.md:5`; without `--allow-pr` no push or `gh` command, `:9`),
-  `/bugfix "<defect>" [--auto-mode] [--no-repro]` (`workflows/bugfix.md:5`). Both
+  (`workflows/phase-pipeline.md:7`), `/spec-run <path-to-spec> [--repo <directory>=<base-branch> ...] [--allow-pr] [--dry-run]`
+  (`workflows/spec-run.md:7`; without `--allow-pr` no push or `gh` command, `:11`),
+  `/bugfix "<defect>" [--auto-mode] [--no-repro]` (`workflows/bugfix.md:7`). Both
   `/phase-pipeline` and `/spec-run` are autonomous and pre-answer the issue approve/defer prompt
-  (`rules/workflow-globals.md:66`, `:71`, `:79`).
+  (`rules/workflow-globals.md:65`, `:70`, `:78`; `/spec-run`'s own pre-answer at
+  `workflows/spec-run.md:421`).
 - A non-interactive `claude -p` run has no person to answer permission prompts
   (`harness/claude/capabilities.md:63`). The installed CLI (`claude --version` →
   `2.1.323 (Claude Code)`, observed 2026-11-13 with `claude --help`, no model call) offers
@@ -310,9 +318,9 @@ Verified facts:
   names and the enforcement of `--max-budget-usd` were not observed.
 - `/output/` is ignored as local generated artifacts (`.gitignore:10`); `ORCHESTRAIL_HOME` and
   `ORCHESTRAIL_LOG_ROOT` select the helper checkout and log store
-  (`.ai/memory/architecture.md:179`); the git-rails hook only reads the project registry
-  (`.ai/memory/architecture.md:94`) and covers registered projects
-  (`harness/claude/capabilities.md:77`). `pytest` is not installed in the repository's pinned
+  (`.ai/memory/architecture.md:201`); project setup is the registry's only writer, while
+  deployment and the hook adapter read it (`.ai/memory/architecture.md:108-110`); the git-rails
+  hook covers registered projects (`harness/claude/capabilities.md:77`). `pytest` is not installed in the repository's pinned
   Python 3.12.16 (`python3 -m pytest --version` → `No module named pytest`, 2026-11-13).
 
 Consequence: optimization specs 013 and 014–18 cannot show that a change preserves behaviour, and
@@ -365,8 +373,13 @@ order`):
   budget; adopting a promoted variant is a separate owner decision and spec.
 - Building `docs/examples/flat-task/` (owned by spec 023 REQ-11); this spec only makes the
   `flat` case and its runs available as the source.
-- Parallel composite execution and its integration errors (spec 23 extends the `composite`
-  case later).
+- Parallel composite execution and its integration errors: spec 027 owns parallel children
+  and names this spec as the owner of comparative evaluation (027 Notes → Implementation plan,
+  delivery E); the change that delivers parallel children extends the `composite` case (Q-08).
+  This spec ships no case workflow with `parallel` > 1.
+- Multi-repository runs: every case is one repository, no case prompt passes `--repo`, and
+  the leaf `repo:` field and the task `## Repositories` section
+  (`rules/workflow-globals.md:182`, `:198-213`) are not read (A-33).
 - A third harness, a trained router (strategy D is hypothetical unless recorded results are
   supplied), Codex execution (only through recorded results).
 - Defining usage telemetry, token accounting, price snapshots or API-equivalent valuation
@@ -426,12 +439,12 @@ order`):
 | Finished attempt | An attempt with a `finished` ledger event, whatever its outcome. | REQ-27 |
 | Outcome | Exactly one of `independently-accepted`, `rejected-by-criteria`, `stopped-by-policy`, `cancelled`, `technically-incomplete`, `excluded`. | REQ-29 |
 | Unit outcome | The outcome of the unit's last finished attempt; `stopped-by-policy` with the refusal reason for a unit refused before any launch; none (`pending`) for a unit not yet reached. | REQ-29 |
-| Workflow-claimed success | All three `## Phases` are `complete` in the final task state. | REQ-28 |
+| Workflow-claimed success | The `discovery`, `execution` and `validation` markers of `## Phases` are `complete` in the final task state. The `finalization` marker (a missing marker means `not-started`, `rules/workflow-globals.md:171`) is ignored: finalization is a separate post-integration workflow that no case prompt invokes. | REQ-28 |
 | Missed defect | A failed hidden check (or a late defect within the follow-up window) in an attempt with workflow-claimed success; its severity is the defect's `critical`, `important` or `optional`. | REQ-28 |
 | Split | `tuning` or `holdout` for each manifest task; the decision split is chosen by `analysis.decision_split`. | REQ-12 |
 | Strategy code | `A`–`F` as in the original §7; a variant has exactly one. | REQ-06 |
 | Weaker design | A manifest flag in `accepted_weaker_isolation` or `limits.accept_unverified_cost_cap` by which the approving owner accepts a check that cannot be enforced; reports state it. | REQ-21 |
-| Severity | `critical`, `important`, `optional` — the pipeline's issue vocabulary (`workflows/pv-issues.md:24`). The original's "high severity" means `critical` or `important`. | — |
+| Severity | `critical`, `important`, `optional` — the pipeline's issue vocabulary (`workflows/pv-issues.md:26`). The original's "high severity" means `critical` or `important`. | — |
 | Gates G1–G8 | Canonical definition: `.ai/specs/README.md → ## Shared acceptance gates`. | README |
 
 Rejected synonyms: "golden test" for the offline suite (use *offline suite*); "verdict" for an
@@ -635,6 +648,14 @@ behaviour and its remaining obligations move to REQ-13 onward (2026-11-13).
   and manifest validity stage of `run` (before authorization, lock and preflight) and in
   `validate-manifest --print-current`, and SHALL NOT treat the file as absent.
 
+- **REQ-55 Parallel cases rejected until delivered (2026-11-26).** IF a `case.json` read by
+  `check`, `build-reference`, `validate-manifest`, `run` or `import-recorded` (for `run`,
+  `validate-manifest` and `import-recorded`: a case named by a manifest task) declares a workflow
+  whose `parallel` is not the integer `1`, THEN THE SYSTEM SHALL exit 2 with reason
+  `parallel-unsupported` naming the case and case workflow, before building a workspace — for
+  `run`, in the invocation and manifest validity stage, before authorization, lock and
+  preflight.
+
 ## Data Model
 
 All entities are new. JSON files are UTF-8, parsed with rejection of duplicate keys, `NaN`,
@@ -686,7 +707,7 @@ tests/golden/cases/<case>/
 | `case` | string | Case id; equals the directory name |
 | `test_command` | list of strings | Open-test argv run in the workspace: `["python3", "-m", "pytest", "-q", "tests"]` |
 | `test_globs` | list of globs | Paths that count as test files: `["tests/**/*.py"]` |
-| `workflows` | object | Key = case workflow (names per Notes → Spec 011 coupling); value `{"entry": "spec-run"\|"phase-pipeline"\|"bugfix", "prompt": string, "commits": bool, "expect_flow": "full"\|"quick", "parallel": int}`; `entry` is the pipeline workflow the prompt invokes and the key may differ from it (for example a later `spec-run-parallel-2`); `commits` is true exactly when `entry` is `spec-run`; `parallel` (default 1) is the child concurrency N the prompt requests and SA-10/SA-11 use; a prompt with `parallel` > 1 contains `--parallel <N>` |
+| `workflows` | object | Key = case workflow (names per Notes → Spec 011 coupling); value `{"entry": "spec-run"\|"phase-pipeline"\|"bugfix", "prompt": string, "commits": bool, "expect_flow": "full"\|"quick", "parallel": int}`; `entry` is the pipeline workflow the prompt invokes and the key may differ from it (for example a later `spec-run-parallel-2`); `commits` is true exactly when `entry` is `spec-run`; `parallel` (integer ≥ 1, default 1) is the child concurrency N the prompt requests and SA-10/SA-11 use; this delivery accepts only `1` (REQ-55); the N > 1 form, historically a prompt containing `--parallel <N>`, is reserved for the parallel delivery (A-32, Q-08) |
 | `acceptance_ids` | list of strings | Spec criterion ids (`AC-01`, …) expected `PASS` in `## Contract Check` |
 | `allowed_paths` | list of globs | Paths a run may create or change (always including `.ai/**`) |
 | `forbidden_paths` | list of globs | Paths a run must not change; take precedence over `allowed_paths` |
@@ -712,7 +733,7 @@ with steps applied in order to a fresh workspace holding the seed commit:
 
 Initial catalog (five catalog pairs). Every seed declares in `.ai/memory/architecture.md` that the
 package is unreleased and has no consumers, so quick-gate condition 3 holds; flow tiers then
-follow from file counts and invariants (`rules/quick-flow.md:28-50`).
+follow from file counts and invariants (`rules/quick-flow.md:29-51`).
 
 | Case | Package and behaviour | Workflows and expected flow | Defects (severity) | Detection targets |
 |---|---|---|---|---|
@@ -749,10 +770,10 @@ facts and their sources:
 | Fact | Source | Missing/ambiguous → |
 |---|---|---|
 | Task directory | Exactly one directory under `.ai/tasks/todo/` or `.ai/tasks/completed/` whose `state.md` is new or differs from the seed | error |
-| `flow:`, `kind:`, `## Phases` values | Task `state.md` (`rules/workflow-globals.md:160-169`, `workflows/bugfix.md:37-45`) | error |
-| Leaf and composite blocks, fields by name | `## Subtask Progress` (`:175-186`, `:210-219`) | error when a block header is unparsable |
-| Leaf mode and leaf tests | `notes:` entries — the value and continuation lines of every `notes` field group split at line breaks and at `; ` per spec 015 Data Model → Note entries, which joins to a `tdd: red digest —` entry each following piece on its line that matches `^.+ → test_\w+(, test_\w+)*$` and starts with none of `tdd:`, `context-` or `verification:`, because the digest separates its behaviours with `; ` (`workflows/pae-tests.md:210`, `:225`) — starting with `tdd: characterize —` (pinned), `tdd: none —` (n-a), `tdd: red digest —` (test names: every `test_\w+` after any `→` within that entry only); these three are the only entries read and every other entry, such as `tdd: red output` or `tdd: green output`, is ignored | error when a name matches functions in two files |
-| `plan.md` subtask statuses | Status table (`:268-278`) | error for `full` flow; not read for `quick` |
+| `flow:`, `kind:`, `## Phases` values | Task `state.md` (`rules/workflow-globals.md:160-169`, `workflows/bugfix.md:39-47`) | error |
+| Leaf and composite blocks, fields by name | `## Subtask Progress` (`:175-188`, `:230-239`) | error when a block header is unparsable |
+| Leaf mode and leaf tests | `notes:` entries — the value and continuation lines of every `notes` field group split at line breaks and at `; ` per spec 015 Data Model → Note entries, which joins to a `tdd: red digest —` entry each following piece on its line that matches `^.+ → test_\w+(, test_\w+)*$` and starts with none of `tdd:`, `context-` or `verification:`, because the digest separates its behaviours with `; ` (`workflows/pae-tests.md:213`, `:228`) — starting with `tdd: characterize —` (pinned), `tdd: none —` (n-a), `tdd: red digest —` (test names: every `test_\w+` after any `→` within that entry only); these three are the only entries read and every other entry, such as `tdd: red output` or `tdd: green output`, is ignored | error when a name matches functions in two files |
+| `plan.md` subtask statuses | Status table (`:303-313`) | error for `full` flow; not read for `quick` |
 | Contract Check rows | `## Contract Check` tables; a row's criterion id is the first token matching `AC-\d+` in its Criterion cell, else none | error when the section is absent and `validation` is `complete` |
 | Issue List entries | `### Approved`, `### Deferred`; an entry is a line matching `^\s*(?:[-*]\s*)?\[?(\d+)\]?[.):]?\s`; `None` means empty | error when a subsection has other non-empty content |
 | Quick contract and TDD record | `## Contract (quick)`, `## TDD (quick)` (`tests:` names, `level:`, `red-observed:`, `green-observed:`) | error for `quick` flow |
@@ -767,7 +788,7 @@ Semantic assertions:
 | Id | Rule | `not-applicable` when |
 |---|---|---|
 | SA-01 | Task directory fact exists | never |
-| SA-02 | All three phases `complete` | never |
+| SA-02 | The `discovery`, `execution` and `validation` markers are `complete`; `finalization` is not read | never |
 | SA-03 | Flow equals `expect_flow`; every `plan.md` subtask is `reviewed` and has a progress block and vice versa; every composite has `rollup: done` and `integration-validation: complete` | plan and composite parts for `quick` |
 | SA-04 | Every leaf block has `target_files:`, `blocker:` and `notes:`; every leaf with `atomic-execution` other than `not-started` has `atomic-tests:` unless SA-14 passes for it; composite blocks have `children:`, `blocker:`, `notes:` | `quick` |
 | SA-05 | TDD evidence table below | never |
@@ -775,7 +796,7 @@ Semantic assertions:
 | SA-07 | No Acceptance Criteria row is `FAIL`; the number of rows is at least the number of `acceptance_ids`; every `acceptance_ids` entry found as a row id is `PASS` | never |
 | SA-08 | Number of Contract Check `FAIL` rows ≤ number of Issue List entries (approved + deferred) | never |
 | SA-09 | Every changed path matches `allowed_paths` and none matches `forbidden_paths`; changed paths outside `.ai/` ≤ `max_changed_files` when set | never |
-| SA-10 | Rules by branch model (DM-3 fact). **`per-leaf` or field absent:** each leaf has `branch:`, `base_branch:`, `base_commit:`, `commits:`; `base_commit` and every listed commit resolve; the first leaf's `base_branch` is the seed branch and each later leaf's `base_branch` is the previous leaf's `branch` in plan order. **`per-composite`** (spec 024 DM-1, DM-2): the stack entries are the top-level leaves and composites in plan order, children excluded; every entry and every child has `branch:`, `base_branch:`, `base_commit:`, `commits:`; `base_commit`, every listed commit and every child `merge_commit` resolve, while a child's `branch:` need not exist; the first entry's `base_branch` is the seed branch, and each later entry's `base_branch` is the previous entry's `branch` with `base_commit` equal to the previous entry's last listed commit; each child's `base_branch` is its composite's `branch`; the composite's start tip is its last listed commit that precedes its first `merge` entry (a promoted leaf's own commits, spec 024 REQ-37) or its `base_commit` when there is none; at N = 1 exactly one child of a composite has the start tip as `base_commit` and every other child's `base_commit` equals another child's `merge_commit` in that composite; at N > 1 each child's `base_commit` equals or descends from the `merge_commit` of each prerequisite child (plan `Depends On`) in the same composite; each child's `merge_commit` has a first parent equal to (N = 1) or descending from (N > 1) the child's `base_commit`, a second parent equal to the child's last listed commit, is an ancestor of the composite's last listed commit, and has a subject matching `^Merge branch '[^']+' into \S+$`. N is the case workflow's `parallel`. **Both models:** no commit subject matches `\bT-\d` | workflow `commits: false` |
+| SA-10 | Rules by branch model (DM-3 fact). **`per-leaf` or field absent:** each leaf has `branch:`, `base_branch:`, `base_commit:`, `commits:`; `base_commit` and every listed commit resolve; the first leaf's `base_branch` is the seed branch and each later leaf's `base_branch` is the previous leaf's `branch` in plan order. **`per-composite`** (spec 024 DM-1, DM-2): the stack entries are the top-level leaves and composites in plan order, children excluded; every entry and every child has `branch:`, `base_branch:`, `base_commit:`, `commits:`; `base_commit`, every listed commit and every child `merge_commit` resolve, while a child's `branch:` need not exist; the first entry's `base_branch` is the seed branch, and each later entry's `base_branch` is the previous entry's `branch` with `base_commit` equal to the previous entry's last listed commit; each child's `base_branch` is its composite's `branch`; the composite's start tip is its last listed commit that precedes its first `merge` entry (a promoted leaf's own commits, spec 024 REQ-37) or its `base_commit` when there is none; at N = 1 exactly one child of a composite has the start tip as `base_commit` and every other child's `base_commit` equals another child's `merge_commit` in that composite; at N > 1 each child's `base_commit` equals or descends from the `merge_commit` of each prerequisite child (plan `Depends On`) in the same composite; each child's `merge_commit` has a first parent equal to (N = 1) or descending from (N > 1) the child's `base_commit`, a second parent equal to the child's last listed commit, is an ancestor of the composite's last listed commit, and has a subject matching `^Merge branch '[^']+' into \S+$`. N is the case workflow's `parallel`; the N > 1 clauses are reserved and need not be implemented while REQ-55 rejects `parallel` ≠ 1 (A-32). **Both models:** no commit subject matches `\bT-\d` | workflow `commits: false` |
 | SA-11 | For consecutive modules in `dependency_chain`, take the owning leaf of each (the one leaf listing the module in `target_files:`); zero or two owning leaves → failed `chain-leaf-missing`. With commits and `per-leaf` (or field absent): the later owning leaf's `base_commit` equals the earlier owning leaf's last listed commit. With commits and `per-composite`: when both owning leaves are children of one composite, the later child's `base_commit` equals or descends from the earlier child's `merge_commit`; otherwise the stack entry containing the later leaf (the leaf itself or its composite) has a `base_commit` equal to or descending from the last listed commit of the entry containing the earlier leaf. Without commits, completion order only: the later leaf's `pe-execute` step event has a higher `seq` than the earlier leaf's `pe-execute` event with outcome `ok` in the same run, and when either event is absent the result is `not-applicable` with reason `not-observed` | no `dependency_chain` |
 | SA-12 | Open-test command exits 0 | never |
 | SA-13 | `## Contract (quick)` has `### Off-limits`, `### Invariants`, `### Acceptance Criteria`; `## TDD (quick)` has `level:` and `red-observed:`; no `T-` subtask directories and no `## Subtask Progress` blocks | flow `full` |
@@ -815,7 +836,7 @@ to an empty temporary directory and the child environment allowlist:
 | `schema_version`, `normalization_version` | `1`, `1` |
 | `case`, `workflow`, `flow` | Strings |
 | `branch_model` | `per-leaf`, `per-composite` or `null` (DM-3 fact) |
-| `phases` | Object of the three phase values |
+| `phases` | Object `{discovery, execution, validation}` of the three phase values; the `finalization` marker is excluded |
 | `leaves` | Sorted by id: `{id, mode: "red"\|"pinned"\|"n-a"\|"pre-tdd", atomic_tests, atomic_execution, atomic_validation, plan_status, tdd_order: "git"\|"not-observed", target_files: sorted normalized paths}` |
 | `composites` | Sorted by id: `{id, rollup, integration_validation, children}` |
 | `contract_check` | `{acceptance: {<criterion id>: "PASS"\|"FAIL"}, unnumbered: {pass: int, fail: int}, invariants_failed: int, off_limits_failed: int}` |
@@ -1160,8 +1181,9 @@ for example `prompt_args: ["--repair-policy", "bounded-local"]` on the candidate
 `env: {"ORCHESTRAIL_SCOPED_VERIFICATION": "off"}` on the full-review arm for spec 017 (spec 017
 REQ-34 and its row for 012). Spec 020 defines no switch (spec 020 A-14); its decomposition-policy
 variants differ only in `strategy_details` (spec 020's row for 012). `prompt_args` are appended,
-space-separated, to the case workflow's prompt; `--allow-pr` and `--parallel` are rejected
-(exit 2), because REQ-36 forbids the first and N comes from the case workflow entry. `env` names
+space-separated, to the case workflow's prompt; `--allow-pr`, `--repo` and `--parallel` are
+rejected (exit 2), because REQ-36 forbids the first, multi-repository runs are out of scope
+(A-33), and N comes from the case workflow entry. `env` names
 must match `^ORCHESTRAIL_[A-Z0-9_]{1,56}$` and must not be `ORCHESTRAIL_HOME` or
 `ORCHESTRAIL_LOG_ROOT` (exit 2), so a switch cannot change the model, the harness configuration
 or an allowlisted variable. `overlay` and `overlay_digest` may be `null` in every variant. `overlay` is a directory relative to the manifest whose files are copied into
@@ -1321,7 +1343,7 @@ index row; `scripts/README.md` one inventory row for `golden-eval.py`.
 | `per-composite` child whose `base_branch` is not its composite's branch, or a merge whose second parent is not the child's last commit | SA-10 failed | REQ-51 |
 | Runner's user git configuration signs commits or sets hooks | Ignored by `build-reference` and the seed commit; ids unchanged | REQ-49 |
 | `flat` task declared `holdout` | Exit 2 `published-case-holdout` | REQ-50 |
-| Switch overlay file already in the seed, `--allow-pr` or `--parallel` in `prompt_args`, or an `env` name outside `ORCHESTRAIL_*` or reserved | Exit 2 | REQ-52 |
+| Switch overlay file already in the seed, `--allow-pr`, `--repo` or `--parallel` in `prompt_args`, or an `env` name outside `ORCHESTRAIL_*` or reserved | Exit 2 | REQ-52 |
 | Variant without the `validator` role key or with an extra key | Exit 2 | REQ-53 |
 | Calculator probabilities outside [0,1] or not summing to 1 | Exit 2 naming the strategy | REQ-11 |
 | Calculator break-even with differing acceptance | `not-applicable` | REQ-11 |
@@ -1477,7 +1499,8 @@ Reference workspaces come from `build-reference`.
   runs, then every non-`pytest` test runs, one diagnostic naming `pytest` is printed, no package
   installer is invoked, and the exit code is 3.
 - **AC-26** (REQ-36): Given each catalog pair's reference build and a `run` attempt, then `git
-  remote` in the captured workspace prints nothing and no case prompt contains `--allow-pr`.
+  remote` in the captured workspace prints nothing and no case prompt contains `--allow-pr` or
+  `--repo`.
 - **AC-27** (REQ-37): Given `tests/golden/manifest-template.json`, when `validate-manifest`
   runs, then it reports `valid: true, runnable: false`, and `run` with it exits 4.
 - **AC-28** (REQ-38): Given the `flat`/`spec-run` reference imported for a `recorded` variant,
@@ -1534,7 +1557,7 @@ Reference workspaces come from `build-reference`.
   `run` runs, then the double's ledger shows the A2 prompt ending with ` --example-switch on`,
   `ORCHESTRAIL_EXAMPLE_SWITCH` among its env names, the
   overlay file present in its cwd, and `.ai/example-policy.json` absent from A2's
-  `changed_paths`; A1's entries show none of these; and manifests with `--allow-pr` or
+  `changed_paths`; A1's entries show none of these; and manifests with `--allow-pr`, `--repo` or
   `--parallel` in `prompt_args`, an `env` name `ANTHROPIC_MODEL` or `ORCHESTRAIL_HOME`, or an
   overlay file that exists in the seed each exit 2.
 - **AC-41** (REQ-53): Given comparison manifests whose variant lacks the `validator` role key or
@@ -1561,6 +1584,20 @@ Reference workspaces come from `build-reference`.
   content is not valid JSON (including one with a duplicate key), then `validate-manifest
   --print-current` and `run` each exit 2 with reason `policy-file-invalid` naming the entry, the
   double's ledger is empty, and the digest is not computed as `absent`.
+- **AC-45** (REQ-28, REQ-29): Given the `flat`/`phase-pipeline` reference, a copy whose final
+  task `state.md` adds `- finalization: in-progress` to `## Phases`, and a copy that adds
+  `- finalization: not-started`, when `check` runs on each, then SA-02 passes,
+  `workflow_claimed_success` is `true`, and the three projections' `phases` objects are equal
+  and have exactly the keys `discovery`, `execution` and `validation`; given a copy with
+  `execution: in-progress`, then SA-02 fails and `workflow_claimed_success` is `false`.
+- **AC-46** (REQ-55): Given a copy of the `composite` case whose `spec-run` workflow declares
+  `parallel: 2`, and copies declaring `parallel: 0` and `parallel: "1"`, when `check`,
+  `build-reference`, `validate-manifest` (with a manifest task naming that case), `run` (with an
+  approved runnable regression manifest naming it, using the test double) and `import-recorded`
+  (into a `recorded` variant of a manifest naming it) run, then each exits 2 with reason
+  `parallel-unsupported` naming the case workflow, no workspace or experiment directory is
+  created, and the double's ledger is empty; the shipped cases all declare `parallel: 1` or omit
+  it.
 
 ## Traceability
 
@@ -1593,8 +1630,8 @@ Reference workspaces come from `build-reference`.
 | REQ-25 | AC-16 |
 | REQ-26 | AC-17 |
 | REQ-27 | AC-18 |
-| REQ-28 | AC-19 |
-| REQ-29 | AC-20 |
+| REQ-28 | AC-19, AC-45 |
+| REQ-29 | AC-20, AC-45 |
 | REQ-30 | AC-21 |
 | REQ-31 | AC-22 |
 | REQ-32 | AC-23 |
@@ -1620,6 +1657,7 @@ Reference workspaces come from `build-reference`.
 | REQ-52 | AC-40 |
 | REQ-53 | AC-41 |
 | REQ-54 | AC-42, AC-43, AC-44 |
+| REQ-55 | AC-46 |
 
 ## Risks
 
@@ -1643,7 +1681,7 @@ Reference workspaces come from `build-reference`.
 - A-01 | Language of the spec | Resolved: rewrite in English with a condensed faithful translation under `## Source`, marked non-normative | Source: `rules/language.md`; `.ai/principles/coding.md → Language and tone` | Reversible: yes
 - A-02 | Where the suite is registered | Resolved: standalone `python3 -I tests/golden-runs.py`; not added to `scripts/validate-contracts.sh` | Source: ADR-0019 Decision 3 (`.ai/adr/0019-…:68-80`); `tests/fixtures/validator-runtime/oracle.py:250` | Reversible: yes
 - A-03 | File placement | Resolved: tooling in `scripts/golden-eval.py` and `scripts/golden_*.py`; owner-named `tests/run-golden.sh` and `tests/expected/`; fixtures under `tests/golden/`; suite `tests/golden-runs.py` | Source: original REQ-02/REQ-04 paths; `scripts/model_selection.py` + `tests/model-selection.py` pattern | Reversible: yes
-- A-04 | Runtime | Resolved: Python 3.11+ standard library, run with `python3 -I` | Source: ADR-0009 Decision 6; `.ai/context/runbook.md:41` | Reversible: yes
+- A-04 | Runtime | Resolved: Python 3.11+ standard library, run with `python3 -I` | Source: ADR-0009 Decision 6; `.ai/context/runbook.md:69` | Reversible: yes
 - A-05 | Expected results per workflow | Resolved: `tests/expected/<case>/<workflow>/` | Source: best practice — one case runs under several workflows | Reversible: yes
 - A-06 | Projection content | Resolved: semantic projection without free text (NR-4) | Source: original §10; best practice | Reversible: yes
 - A-07 | Initial expected results | Resolved: from reference builds, `origin: synthetic-reference`, reviewed in the implementation change | Source: original §15 (no live run without approval) | Reversible: yes
@@ -1655,21 +1693,25 @@ Reference workspaces come from `build-reference`.
 - A-13 | Primary quality metric | Resolved: independent acceptance rate only in version 1 | Source: original §11.3; smallest choice | Reversible: yes
 - A-14 | Cost of live attempts | Resolved: adapter-reported cost has coverage `incomplete` unless `attach-usage` supplies spec 006 evidence | Source: G1/G8; spec 006 ownership | Reversible: yes
 - A-15 | Isolation mechanisms | Resolved: `none` and `command-prefix` with control-checked probes; weaker design only by approved manifest flag | Source: original §9.1 item 5, §9.2 | Reversible: yes
-- A-16 | Workspace location | Resolved: system temporary directory outside the checkout, artifact roots, case roots and registered roots; copied into the capture | Source: REQ-47; `.ai/memory/architecture.md:94`, `harness/claude/capabilities.md:77` | Reversible: yes
+- A-16 | Workspace location | Resolved: system temporary directory outside the checkout, artifact roots, case roots and registered roots; copied into the capture | Source: REQ-47; `.ai/memory/architecture.md:108-110`, `harness/claude/capabilities.md:77` | Reversible: yes
 - A-17 | Helper home | Resolved: tracked files of the pinned revision without `tests/`, `.ai/`, `docs/` | Source: `scripts/log-step.sh:371-378`; `tests/log-step.sh:15-30` copy pattern | Reversible: yes
 - A-18 | Release of a critical-defect halt | Resolved: the variant stays halted; continuing needs a new approved manifest | Source: original REQ-10 ("until owner decision") | Reversible: yes
-- A-19 | TDD order evidence | Resolved: git ancestry for committing workflows; `not-observed` otherwise; red/pinned meaning from HC-2 seed replay of digest tests | Source: `rules/git-flow.md:7-9`; `workflows/phase-execution.md:36-40`; `workflows/pae-tests.md:205-225` | Reversible: yes
-- A-20 | Case domains, behaviours and gate inputs | Resolved: catalog in DM-1, seeds declaring unreleased packages | Source: original §6.1 targets; `rules/quick-flow.md:28-50`; `workflows/bugfix.md:97-100` | Reversible: yes
+- A-19 | TDD order evidence | Resolved: git ancestry for committing workflows; `not-observed` otherwise; red/pinned meaning from HC-2 seed replay of digest tests | Source: `rules/git-flow.md:8-10`; `workflows/phase-execution.md:38-42`; `workflows/pae-tests.md:208-228` | Reversible: yes
+- A-20 | Case domains, behaviours and gate inputs | Resolved: catalog in DM-1, seeds declaring unreleased packages | Source: original §6.1 targets; `rules/quick-flow.md:29-51`; `workflows/bugfix.md:99-102` | Reversible: yes
 - A-21 | Exit codes | Resolved: table under Contracts | Source: best practice; spec 009 style of distinct refusal codes | Reversible: yes
 - A-22 | Retention | Resolved: recorded only, no automatic deletion | Source: original §8.1 "Data"; smallest choice | Reversible: yes
 - A-23 | Sequential attempts | Resolved: one attempt at a time | Source: P4; ADR-0004 | Reversible: yes
 - A-24 | CI | Resolved 2026-11-14 (supersedes "no CI file exists or is created"): this spec creates no CI file; spec 023 REQ-81 owns the one offline workflow, which runs this spec's command when present; paid runs never start in CI (G6) | Source: spec 023 REQ-81, D-03; gate G6; no `.github/` at `060ce6d` | Reversible: yes
 - A-25 | Calculator range limit | Resolved: at most 16 range parameters | Source: best practice — bounded enumeration, not a quality target | Reversible: yes
-- A-26 | Quick and bugfix test-first evidence | Resolved: `## TDD (quick)` record plus HC-2 seed replay | Source: `rules/quick-flow.md:90-97`; `workflows/bugfix.md:106-112` | Reversible: yes
+- A-26 | Quick and bugfix test-first evidence | Resolved: `## TDD (quick)` record plus HC-2 seed replay | Source: `rules/quick-flow.md:91-98`; `workflows/bugfix.md:108-114` | Reversible: yes
 - A-27 | `pytest` provisioning | Resolved: the owner installs `pytest` once, outside any check run, into the interpreter used for the suite and runs (for example a virtual environment outside the repository: `python3 -m venv <dir> && <dir>/bin/pip install pytest`); the diagnostic prints this command | Source: original §6.1 (install diagnostics outside the check run); ADR-0009 Decision 6 (pytest fixture) | Reversible: yes
-- A-28 | Leaf-to-test mapping | Resolved: the `tdd: red digest` note | Source: `workflows/pae-tests.md:205-213`, `:219-225` | Reversible: yes
-- A-29 | Composite expectation | Resolved: a missing composite is golden drift, not a rejection; existing composites must reach their final states | Source: classifier decides nesting autonomously (`rules/workflow-reference.md:483-516`) | Reversible: yes
+- A-28 | Leaf-to-test mapping | Resolved: the `tdd: red digest` note | Source: `workflows/pae-tests.md:208-216`, `:222-228` | Reversible: yes
+- A-29 | Composite expectation | Resolved: a missing composite is golden drift, not a rejection; existing composites must reach their final states | Source: classifier decides nesting autonomously (`rules/workflow-reference.md:504-540`) | Reversible: yes
 - A-30 | Token and retry metrics | Resolved: tokens only from `attach-usage` or recorded metadata; retries reported as attempts per unit | Source: G2; spec 006 owns token accounting | Reversible: yes
+- A-31 | Citations across spec 011's renames (2026-11-26) | Resolved: cite paths at `main` `c7e986f`; after spec 011's naming stage they resolve through `docs/name-map.json` — `rule` rows (DM-10), `workflow` rows (DM-11), the DM-12 section map for `rules/workflow-reference.md`, and a `file` row only for `workflows/PIPELINE.md` — without changing the cited facts | Source: README → Dependency order (011 precedes 012); 011 DM-10–DM-12; `.ai/specs/011-model-only-harnesses-and-rule-naming.md:600-612` | Reversible: yes
+- A-34 | Workflow and step names while spec 011's naming stage is pending (2026-11-26) | Resolved: shipped `case.json` entries and prompts, SA-11's step name and every other workflow or step name this spec delivers use the names that exist at the implementation's base revision (today `phase-pipeline`, `pe-execute`); when spec 011's naming stage lands first, they use its DM-11 names. A case-workflow key uses the same workflow name as its `entry`, as the whole key or its prefix (DM-1). Whichever of spec 011's naming stage and this spec lands second renames the keys, `entry` values, prompts and history steps, rebuilds the references with `build-reference`, and re-accepts every affected expected result through `check --update` and `accept-expected`; a text-only rewrite of `tests/expected/` or `reference/` is not an acceptance and leaves `check` failing with `golden-mismatch`, `missing-expected` or a `projection_sha256` mismatch | Source: 011 A-26 (`.ai/specs/011-model-only-harnesses-and-rule-naming.md:1788`) puts `case.json` in scan set R; 011 REQ-25 (`:366-369`) requires stale-name updates in that set; REQ-16, REQ-17; `.ai/memory/state.md:9`; smallest reversible choice | Reversible: yes
+- A-32 | Parallel children after the spec 23 consolidation (2026-11-26) | Resolved: keep the DM-1 `parallel` field (default 1) and the N > 1 rules of SA-10/SA-11 as a forward contract from revision `42325d2`; ship no pair with `parallel` > 1 and reject `parallel` ≠ 1 (REQ-55), so the N > 1 clauses are reserved and not implemented now; the parallel delivery lifts REQ-55 and adds or amends them | Source: 027 Notes → Implementation plan (delivery E); 027 Historical design provenance; smallest reversible choice | Reversible: yes
+- A-33 | Multi-repository `/spec-run` (2026-11-26) | Resolved: out of scope; cases are single repositories, prompts pass no `--repo`, and DM-3 does not read `repo:` or `## Repositories` | Source: `workflows/spec-run.md:7`; `rules/workflow-globals.md:182`, `:198-213`; smallest reversible choice | Reversible: yes
 
 ## Decisions
 
@@ -1725,6 +1767,25 @@ A-01–A-30 and Q-01–Q-06.
   with different effort or repair policy would share one configuration hash, breaking
   attribution (G1) and comparability (G2).
 
+- Q-08 | non-blocker | How does this spec model parallel children (N > 1) once spec 027 defines
+  its execution entry interface: (a) the prompt form and catalog pair that exercise them (the DM-1
+  form `--parallel <N>` comes from the historical spec 23 design, revision `42325d2`), and (b) how
+  N varies between variants? Spec 027 requires a sequential-versus-parallel comparison on
+  equivalent inputs (027 REQ-19, Notes → Implementation plan, delivery E), but here N is a
+  property of the case workflow and REQ-52 rejects `--parallel` in `prompt_args`, so a
+  sequential and a parallel arm cannot be paired on the same decision tasks by the promotion
+  rule. Impact: none on this spec's delivery (REQ-55 rejects `parallel` ≠ 1); comparative
+  evaluation of parallel execution needs an amendment, either a switch form for N (amending
+  REQ-52's rejection) or a pairing rule for tasks that differ only in `parallel`. Recommended:
+  resolve in spec 027 delivery D/E and amend this spec through `/spec-sync`.
+- Q-09 | non-blocker | Does spec 011 adopt the re-acceptance procedure of A-34 for
+  `tests/golden/**` and `tests/expected/**` if its naming stage lands after this spec? Its A-26
+  and REQ-25 require only stale-name updates in scan set R, which A-34 does not accept as a
+  re-acceptance of expected results. Impact: only the order "this spec first, then 011's naming
+  stage"; a text-only rewrite would leave `check` failing until the references are rebuilt and
+  re-accepted. Recommended: spec 011 records the procedure through `/spec-sync` as a peer row,
+  as specs 016 and 024 did for theirs; today's order (011 before 012) avoids the case.
+
 ## Notes
 
 - **CI consistency (2026-11-14):** REQ-35 (exit 3 without `pytest`) and the exclusion of CI
@@ -1745,22 +1806,47 @@ A-01–A-30 and Q-01–Q-06.
   `tests/fixtures/validator-runtime/README.md:9-28` to classify new call sites and re-pin
   `inventory_sha256`, then run the guard, regression and oracle suites.
 - **Spec 011 coupling:** workflow and step names in this spec are today's. Spec 011 is a
-  prerequisite (README → "Dependency order"), so the delivered values use its names (011 DM-11):
-  the DM-1 `entry` value `phase-pipeline` is `pipeline`, SA-11's step `pe-execute` is
-  `execution-execute`, and `case.json` prompts use the renamed commands; spec 011's reference
-  scan includes `tests/golden/cases/*/case.json`.
-- **Specs 024 and 23:** before spec 024 is delivered, `/spec-run` writes no `branch_model:`, so
+  prerequisite (README → "Dependency order"). Once its naming stage is delivered, the shipped
+  values use its names (011 DM-11): the DM-1 `entry` value and case-workflow key
+  `phase-pipeline` become `pipeline`, SA-11's step `pe-execute` becomes `execution-execute`,
+  and `case.json` prompts use the renamed commands. Until then A-34 applies and today's names
+  ship; spec 011's reference
+  scan includes `tests/golden/cases/*/case.json` (011 A-26) and requires stale names in its scan
+  set to be updated (011 REQ-25). Peer obligation: whichever change lands second also renames
+  the case-workflow keys (and so the `tests/expected/<case>/<workflow>/` and
+  `reference/<workflow>/` directories), the `history.json` log steps and the projection's
+  workflow and step names, and re-accepts the expected results through `build-reference`,
+  `check --update` and `accept-expected` (A-34); it never rewrites expected results as text.
+  Spec 011 also renames the rule files this
+  spec cites (011 DM-10, for example `rules/workflow-globals.md` → `rules/contract-phases.md`,
+  `rules/tdd.md` → `rules/contract-tdd.md`, `rules/git-flow.md` → `rules/contract-git-flow.md`,
+  `rules/quick-flow.md` → `rules/contract-quick-flow.md`, `rules/run-log.md` →
+  `rules/contract-run-log.md`) and moves `workflows/PIPELINE.md` to `docs/PIPELINE.md`. The
+  `path:line` citations in this spec are verified at `main` `c7e986f`, before those renames.
+  After spec 011's naming stage is integrated they resolve through its canonical name map
+  `docs/name-map.json` (011 DM-1 rows, `.ai/specs/011-model-only-harnesses-and-rule-naming.md:600-612`):
+  cited rule files through `rule` rows keyed by stem (DM-10, for example `tdd` →
+  `contract-tdd`), cited workflow files through `workflow` rows (DM-11, for example
+  `pe-execute` → `execution-execute`), the split `rules/workflow-reference.md` citation through
+  the DM-12 section map, and only `workflows/PIPELINE.md` through a `file` row. The facts they
+  support do not change (A-31). At `c7e986f` spec 011's naming stage is not delivered (only its
+  phase 1 is reviewed, `.ai/memory/state.md:9`); the names an implementation ships follow A-34.
+- **Specs 024 and 027:** before spec 024 is delivered, `/spec-run` writes no `branch_model:`, so
   the `composite`/`spec-run` pair exercises the `per-leaf` rules of SA-10 and SA-11. After spec
   024's composite branch model is delivered, new `/spec-run` tasks record `per-composite` (spec
   024 REQ-16), so the same pair exercises the `per-composite` rules at N = 1; its reference and
-  expected projection must be rebuilt in the change that delivers spec 024, and a `composite`
-  workflow entry with `entry: "spec-run"` and `parallel: 2` must be added for spec 23 REQ-15 in
-  the change that delivers spec 23's parallel children. Spec 024's C-5 row lists
-  `tests/golden/cases/composite/reference/spec-run/` with
-  `tests/expected/composite/spec-run/projection.json`, and spec 23's C-5 row lists
-  `tests/golden/cases/composite/case.json` (entry `spec-run`, `parallel: 2`); the paths and the
-  `entry` and `parallel` fields match DM-1 (the case-workflow key may differ from `entry`, as
-  DM-1 allows). Spec 024's Notes also describe the first child's `base_commit` as the
+  expected projection must be rebuilt in the change that delivers spec 024. Spec 024's C-5 row
+  lists `tests/golden/cases/composite/reference/spec-run/` with
+  `tests/expected/composite/spec-run/projection.json`; the paths match DM-1. Parallel children
+  are owned by spec 027, which assigns comparative evaluation to this spec (027 Notes →
+  Implementation plan, delivery E) but does not yet define the parallel entry interface (027
+  Readiness Checklist: NOT READY). The historical spec 23 design (revision `42325d2`, its
+  REQ-15 and C-5 row) required a `composite` case workflow with `entry: "spec-run"` and
+  `parallel: 2`; the DM-1 `parallel` field and the N > 1 rules of SA-10 and SA-11 keep that
+  design as a forward contract. No shipped catalog pair has `parallel` > 1, so those rules are
+  not exercised by this spec's acceptance criteria; the change that delivers spec 027's
+  parallel children adds the pair, its prompt form, its reference and its acceptance
+  criterion, or amends the N > 1 rules (A-32, Q-08). Spec 024's Notes also describe the first child's `base_commit` as the
   composite's start tip (the composite's own `base_commit`, or the promoted leaf's tip after a
   promotion, spec 024 REQ-37),
   which agrees with the start-tip rule of SA-10 and SA-11. Old tasks stay `per-leaf` and keep
@@ -1789,7 +1875,8 @@ A-01–A-30 and Q-01–Q-06.
   run's wording); a single cumulative spend counter without per-attempt cap (cannot stop an
   in-flight overrun); approval embedded in the manifest (circular hash); requiring a composite
   for acceptance (the classifier's nesting choice is legitimate either way).
-- **Identity ledger (follow-up outside this spec):** the ledger row(s) at `.ai/tasks/completed/task-002-git-source-of-truth/state.md` line 207 pins a former-name occurrence at this spec's line 19, which the refined text no longer holds; the change that commits this revision removes them, as spec 023 A-41 does for its own row.
+- **Identity ledger (done):** `.ai/tasks/completed/task-002-git-source-of-truth/state.md` no
+  longer holds a row for this spec (verified 2026-11-26); no follow-up remains.
 
 ### Change Log
 
@@ -1851,28 +1938,48 @@ A-01–A-30 and Q-01–Q-06.
   Traceability record that owner policy files enter the instructions digest. Out of Scope and A-24
   updated for spec 023 REQ-81 (the one offline workflow); Notes record the REQ-35 consistency.
 
+#### 2026-11-26 — auto-mode refinement before Discovery
+
+- Spec 23 consolidation reconciled: Out of Scope, the Notes paragraph (renamed "Specs 024 and
+  027") and the header note now name spec 027 as the owner of parallel children; the DM-1
+  `parallel` field and the N > 1 rules of SA-10/SA-11 stay a forward contract from revision
+  `42325d2`, exercised by no shipped pair (A-32, new non-blocker Q-08).
+- Spec 011 rule-file renames (011 DM-10) recorded in Notes → Spec 011 coupling (A-31).
+- 62 stale `path:line` citations re-verified and corrected against `main` `c7e986f`; the
+  `/spec-run` signature now includes `--repo`; the registry wording follows the current
+  architecture memory.
+- `## Phases` gained a `finalization` marker upstream: workflow-claimed success and SA-02 read
+  only the `discovery`, `execution` and `validation` markers. Multi-repository runs are out of
+  scope (A-33).
+- Independent review: REQ-55 rejects `parallel` ≠ 1 (AC-46), so the N > 1 clauses of SA-10 are
+  reserved; AC-45 pins SA-02's handling of the `finalization` marker and DM-4 `phases` keys;
+  `--repo` is rejected in switches and absent from case prompts (AC-26, AC-40); A-34 fixes
+  which workflow and step names ship before spec 011's naming stage; Q-08 now covers how N
+  varies between variants; the identity-ledger follow-up is recorded as done; REQ-55 also
+  covers `run` and `import-recorded`; A-34 states how expected results are re-accepted after
+  a rename; new non-blocker Q-09 asks spec 011 to adopt that procedure.
+
 ## Readiness Checklist
+
+Rerun 2026-11-26 after the auto-mode refinement; this result replaces the 2026-11-14 one.
 
 | # | Check | Result |
 |---|---|---|
 | 1 | Goal is one domain-language paragraph | PASS — one paragraph stating the problem and the outcome |
-| 2 | Out of Scope names concrete exclusions | PASS — paid runs, validator registration, CI files (spec 023 REQ-81 owns the one workflow), defaults, 21/23 work, telemetry, isolation implementation and others are named |
-| 3 | Each REQ has a stable id and one EARS behaviour | PASS — REQ-01–REQ-54; originals keep their ids, bundled obligations split into REQ-13 onward |
-| 4 | Every REQ maps to an AC and every AC names a REQ | PASS — `## Traceability` covers REQ-01–REQ-54 and AC-01–AC-44 |
+| 2 | Out of Scope names concrete exclusions | PASS — paid runs, validator registration, CI files (spec 023 REQ-81 owns the one workflow), defaults, spec 023 and spec 027 work, multi-repository runs, telemetry, isolation implementation and others are named |
+| 3 | Each REQ has a stable id and one EARS behaviour | PASS — REQ-01–REQ-55; originals keep their ids, bundled obligations split into REQ-13 onward |
+| 4 | Every REQ maps to an AC and every AC names a REQ | PASS — `## Traceability` covers REQ-01–REQ-55 and AC-01–AC-46 |
 | 5 | Every AC is binary, observable and test-first | PASS — each AC names inputs, a test double or reference build, and exact outputs or exit codes |
 | 6 | Non-functional targets measurable or N/A | PASS — determinism, offline operation, durability, privacy and permissions are verifiable; runtime N/A justified by ADR-0020 and absence of an owner target |
 | 7 | Data model and contracts specified | PASS — DM-1–DM-13, CLI, exit codes, run sequence, directory opening, resume, imports, isolation, limits, promotion rule, calculator |
-| 8 | Error, empty, boundary and concurrency cases covered | PASS — N-01–N-12 and the failure table; concurrency limited by sequential attempts and the experiment lock |
-| 9 | Every ambiguity recorded as resolved or open | PASS — A-01–A-30, Q-01–Q-07 (Q-07 resolved 2026-11-14) |
-| 10 | No blocker question remains | PASS — Q-01–Q-06 are open non-blockers that limit the live path only; Q-07 is resolved |
-| 11 | Every existing-code claim has a verified path:line citation | PASS — citations verified by the author and independently by the critic |
+| 8 | Error, empty, boundary and concurrency cases covered | PASS — N-01–N-12 and the failure table; concurrency limited by sequential attempts and the experiment lock; `parallel` ≠ 1 rejected (REQ-55) |
+| 9 | Every ambiguity recorded as resolved or open | PASS — A-01–A-34, Q-01–Q-09 (Q-07 resolved 2026-11-14) |
+| 10 | No blocker question remains | PASS — Q-01–Q-06, Q-08 and Q-09 are open non-blockers that limit the live path or a later parallel delivery only; Q-07 is resolved |
+| 11 | Every existing-code claim has a verified path:line citation | PASS — all citations re-verified against `main` `c7e986f` on 2026-11-26 and spot-checked by the critic |
 | 12 | Terminology matches project definitions | PASS — pipeline vocabulary from `.ai/principles/domain.md` and the canonical rules; rejected synonyms listed |
 | 13 | Scope is feature-sized (1–8 subtasks) | PASS — eight delivery parts, at the upper bound; split boundary named in `## Notes` (parts 1–3 regression, 4–8 evaluation) |
-| 14 | Devil's Advocate review passed | PASS — Review: 5 rounds, score 99/100, critic: sub-agent, open: none (minor F-46 applied after round 5 without re-scoring) |
+| 14 | Devil's Advocate review passed | PASS — Review: 3 rounds, score 98/100, critic: sub-agent, open: none (minor F-15 and F-16 applied after round 3 without re-scoring) |
 
-Note (2026-11-14, second reconciliation pass): peer-spec obligations and citations were rechecked
-against specs 023, 23, 016 and 018 by id; the verdict is unchanged.
-
-Verdict: **READY FOR DEVELOPMENT**. Live execution remains limited by non-blocking questions
-Q-02, Q-03 and Q-06 until the owner approves a first regression run. Automated readiness is
-not sign-off; review before implementation.
+Verdict: **READY FOR DEVELOPMENT**. Live execution remains limited by non-blocking questions Q-02, Q-03 and
+Q-06 until the owner approves a first regression run. Automated readiness is not sign-off;
+review before implementation.
