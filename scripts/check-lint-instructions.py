@@ -361,6 +361,72 @@ class InstructionMetadataTests(unittest.TestCase):
             self.write("harness/fixture-second/capabilities.md", f"{second}\n\n## Example\n\n{record}\n")
             self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
 
+    def test_bootstrap_table_counts_rows_without_outer_pipes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BOOTSTRAP_ROWS[-1]
+
+        with self.subTest(table="six rows with mixed pipe styles"):
+            self.write(PHASE_CONTRACT, contract.replace(last, last.strip("| ")))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(table="seventh row without outer pipes"):
+            extra = BOOTSTRAP_ROWS[0].strip("| ")
+            self.write(PHASE_CONTRACT, contract.replace(last, f"{last}\n{extra}"))
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_table_validates_rows_without_outer_pipes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BEHAVIOUR_ROWS[-1]
+
+        with self.subTest(table="five rows with mixed pipe styles"):
+            self.write(PHASE_CONTRACT, contract.replace(last, last.strip("| ")))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        for label, row in (
+            ("undeclared extension", "Set worker effort | `spec-run` | `sub-agent-effort` | Use default effort"),
+            ("uninstalled workflow", "Send a message | `missing-command` | `agent-messaging` | Run inline"),
+        ):
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, contract + row + "\n")
+                self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+    def test_rule_reference_rejects_obsolete_markdown_column_variants(self) -> None:
+        self.write_phase_contract_fixture()
+
+        for label, table in (
+            ("no outer pipes", "Phase | Rules file\n--- | ---\nDiscovery | Bootstrap"),
+            ("code span", "| Phase | `Rules file` |\n| --- | --- |\n| Discovery | Bootstrap |"),
+        ):
+            with self.subTest(header=label):
+                self.write("README.md", f"# Guide\n\n{table}\n")
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+    def test_phase_contract_uses_visible_markdown_content(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        with self.subTest(markdown="comment-only anchor"):
+            self.write(PHASE_CONTRACT, contract.replace(RESOLUTION_LINE, f"<!--\n{RESOLUTION_LINE}\n-->"))
+            self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
+        with self.subTest(markdown="comment-only phase sections"):
+            self.write(PHASE_CONTRACT, RULE + f"\n<!--\n{contract.removeprefix(RULE)}-->\n")
+            result = self.run_checker()
+            for code in ("resolution-rule-missing", "bootstrap-table-invalid", "capability-behaviour-table-invalid"):
+                with self.subTest(diagnostic=code):
+                    self.assert_finding(result, code, PHASE_CONTRACT)
+
+        with self.subTest(markdown="commented heading beside the live table"):
+            self.write(PHASE_CONTRACT, contract.replace("## Capabilities", "<!--\n## Capabilities\n-->\n\n## Capabilities"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(markdown="comment opener inside a fenced example"):
+            self.write(PHASE_CONTRACT, contract.replace("## Capabilities", "```text\n<!--\n```\n\n## Capabilities"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
     def test_counts_only_the_always_on_body_at_the_size_limit(self) -> None:
         capabilities = words(1607)
         self.write_adapter("at-limit", words(1200), capabilities)
