@@ -9,11 +9,12 @@ still apply to the shell scripts.
 ## Principles
 
 ### P1 — The repository is the only source of truth
-Edits happen here and nowhere else. Deployed copies (`~/.claude/skills`, `~/.codex/skills`,
-`~/.codeium/windsurf/global_*`, project `.windsurf/rules/`) are disposable and overwritten
-by `scripts/sync.sh`. A fix applied to a deployed copy is lost; a fix applied here reaches every
-harness and every project.
-*Rationale:* three harnesses, N projects, one author — divergence is the default failure.
+Edit the source checkout. `scripts/sync.sh` updates the harness outputs declared in
+`harness/<name>/deploy.env` and refreshes links in registered projects. Ownership records
+protect foreign files and make edits to managed always-on instructions a conflict.
+Changes to shared global outputs defer while an active project depends on them unless
+the operator supplies `--force`.
+*Rationale:* the two harnesses and their registered projects use one versioned source.
 
 ### P2 — State lives on disk, not in the conversation
 Every phase reads `state.md` before acting and writes it before finishing. A workflow must
@@ -82,10 +83,9 @@ roadmap (`specs/`) is ordered by it.
 non-vocabulary statuses); the interpreter of these rules is probabilistic.
 
 ### P11 — Environment parity is stated, not assumed
-Where a harness cannot execute a mechanism (sub-agents on Windsurf, always-on rules on
-Claude Code), the documentation says so and the rule provides the closest substitute
-(`rule-*` skills, `harness/<name>/always-on.md` essentials). A capability that only works in one
-harness is labelled with that harness.
+Each harness records capability states and their evidence in `harness/<name>/capabilities.md`.
+Check the current session's tools and permissions before dispatch. The workflow follows
+the stated fallback or stops at its guard when a required capability is unavailable.
 *Rationale:* an undocumented gap is a workflow that silently does something else.
 
 ### P12 — The system measures itself

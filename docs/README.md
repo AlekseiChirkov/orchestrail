@@ -14,7 +14,7 @@ Everything here is *about* the system; the system itself is `workflows/`, `rules
 
 ## Audits (`audits/`)
 
-- [Rule migration semantics record](audits/2026-11-25-rule-migration-map.md) — section mappings, superseded checks, retained names, size exceptions and reference fixes
+- [Rule migration semantics record](audits/2026-11-25-rule-migration-map.md) — parent section digests, current readers, superseded checks, retained names, size exceptions and reference repairs
 - [Rules and workflows audit](audits/2026-11-17-rules-workflows-audit.md) — pinned audit of every rule, workflow and harness adapter before the naming migration: migration map, statement coverage, 72 findings (15 major, 9 blocking the migration) and seven proposed amendments to the migration specification, with the machine-readable inventory and assessment beside it; independently reviewed and accepted by the owner on 2026-11-18
 - [Specification delivery review](audits/2026-11-06-specification-delivery-review.md) — all 23 specifications, delivered foundations, outstanding scope, owner-directed runtime closure, and verification limits
 - [Usage telemetry review](audits/2026-10-30-usage-telemetry-review.md) — isolated per-PR reviews, behavioral repairs, independent rechecks and integration evidence

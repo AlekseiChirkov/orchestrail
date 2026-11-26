@@ -535,7 +535,7 @@ Path argument syntax:
 - `/discovery`: `<path>` = path to spec file in `.ai/specs/`
 - `/finalization`: `<path>` = exact task directory or uniquely mapped spec path; only optional flag is `--dry-run`
 - All other phase and child workflow commands: `<path>` = task directory (`.ai/tasks/todo/task-<NN>-<slug>/`)
-- Atomic child workflows (`pae-*`, `pav-*`, `phase-atomic-*`): `<path>` = `T-XX/description.md`
+- Atomic execution, atomic validation, their children, and `/composite-validation`: `<path>` = `T-XX/description.md`
 
 ### Phase orchestrators
 
