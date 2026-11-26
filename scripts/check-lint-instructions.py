@@ -40,6 +40,11 @@ def words(count: int) -> str:
     return " ".join(["word"] * count)
 
 
+def sized_bootstrap(count: int) -> str:
+    template = RULE + "\n# Bootstrap\n\n## Context Bootstrap\n\n```text\n{}\n```\n\n## Phase Behaviors\n"
+    return template.format(words(count - len(template.format("").split())))
+
+
 def capability_record(name: str, state: str) -> str:
     fields = f"name: {name}\nstate: {state}"
     if state != "unknown":
@@ -178,6 +183,164 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assert_finding(result, "input-encoding", "rules/contract-invalid-utf8.md")
         self.assert_finding(result, "input-encoding", "workflows/invalid-separator.md")
+
+    def test_requires_a_canonical_rule_kind_and_subject(self) -> None:
+        invalid = ("guide", "rules-tdd", "contract", "protocol-")
+        for name in (*invalid, "contract-guide", "protocol-guide", "procedure-guide"):
+            self.write(f"rules/{name}.md", RULE)
+        self.write("rules/bootstrap-guide.md", sized_bootstrap(30))
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertCountEqual(
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [("kind-prefix-invalid", f"rules/{name}.md") for name in invalid],
+        )
+
+    def test_reports_equal_rule_and_workflow_stems(self) -> None:
+        self.write("rules/discovery.md", RULE)
+        self.write("workflows/discovery.md", workflow("1", name="discovery"))
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertCountEqual(
+            [line.split()[0] for line in result.stdout.splitlines()],
+            ["kind-prefix-invalid", "name-collision"],
+        )
+
+    def test_reports_collisions_after_adding_installed_prefixes(self) -> None:
+        self.write("rules/tdd.md", RULE)
+        self.write("workflows/rule-tdd.md", workflow("1", name="rule-tdd"))
+        self.write("principles/quality.md", "# Quality\n")
+        self.write("workflows/principle-quality.md", workflow("1", name="principle-quality"))
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertCountEqual(
+            [line.split()[0] for line in result.stdout.splitlines()],
+            ["kind-prefix-invalid", "installed-name-collision", "installed-name-collision"],
+        )
+        for name in ("rule-tdd", "principle-quality"):
+            with self.subTest(installed_name=name):
+                self.assertTrue(
+                    any(line.startswith("installed-name-collision ") and name in line
+                        for line in result.stdout.splitlines()),
+                    result.stdout,
+                )
+
+    def test_reports_casefolded_installed_workflow_names(self) -> None:
+        self.write("workflows/retro.md", workflow("1", name="retro"))
+        if (self.root / "workflows/Retro.md").exists():
+            self.skipTest("The temporary filesystem is case-insensitive.")
+        self.write("workflows/Retro.md", workflow("1", name="Retro"))
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertEqual([line.split()[0] for line in result.stdout.splitlines()], ["installed-name-collision"])
+
+    def test_requires_exact_ordered_bootstrap_headings(self) -> None:
+        context = "## Context Bootstrap\n"
+        behaviors = "## Phase Behaviors\n"
+        self.write("rules/bootstrap-valid.md", RULE + context + "```md\n## Fenced example\n```\n" + behaviors)
+        fixtures = {
+            "extra": context + behaviors + "## Additional Notes\n",
+            "duplicate": context + context + behaviors,
+            "missing": context,
+            "reversed": behaviors + context,
+            "renamed": "## Context Bootstrap — Notes\n" + behaviors,
+        }
+        for name, body in fixtures.items():
+            self.write(f"rules/bootstrap-{name}.md", RULE + body)
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertCountEqual(
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [("bootstrap-sections", f"rules/bootstrap-{name}.md") for name in fixtures],
+        )
+
+    def test_bootstrap_word_limit_includes_front_matter_and_fenced_code(self) -> None:
+        self.write("rules/bootstrap-at-limit.md", sized_bootstrap(300))
+        self.write("rules/bootstrap-over-limit.md", sized_bootstrap(301))
+        self.write("rules/contract-long.md", RULE + words(301))
+
+        result = self.run_checker()
+
+        self.assert_finding(result, "bootstrap-size", "rules/bootstrap-over-limit.md")
+        self.assertEqual(len(result.stdout.splitlines()), 1, result.stdout)
+
+    def test_bootstrap_size_exception_applies_to_the_named_rule_at_the_listed_count(self) -> None:
+        for name in ("exact", "changed", "unlisted"):
+            self.write(f"rules/bootstrap-{name}.md", sized_bootstrap(316))
+        self.write(
+            "docs/audits/2024-02-29-rule-migration-map.md",
+            "## Bootstrap size exceptions\n\n| Rule | Words | Reason |\n| --- | --- | --- |\n"
+            "| `bootstrap-exact` | 316 | Context and citing line exceed 300 words |\n"
+            "| `bootstrap-changed` | 315 | Context and citing line exceed 300 words |\n",
+        )
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+        self.assertCountEqual(
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [("bootstrap-size", f"rules/bootstrap-{name}.md") for name in ("changed", "unlisted")],
+        )
+
+    def write_pipeline_command(self, name: str) -> None:
+        self.write(f"workflows/{name}.md", workflow('"-"', "orchestrated", name))
+        self.write("docs/name-map.json", json.dumps({
+            "schema_version": 1,
+            "rows": [{"kind": "workflow", "old": "phase-pipeline", "new": [name]}],
+        }))
+        self.write(
+            "docs/USAGE.md",
+            "## Renamed commands and rules\n\n| Kind | Old | New |\n| --- | --- | --- |\n"
+            f"| workflow | `phase-pipeline` | `{name}` |\n",
+        )
+
+    def test_absent_reserved_listing_is_informational(self) -> None:
+        self.write_pipeline_command("pipeline")
+        self.write_adapter("demo", "Fixture instructions", capability_declaration("demo", "no"))
+
+        result = self.run_checker()
+
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "info reserved-names-absent demo\n", ""))
+
+    def test_reserved_command_requires_the_prefixed_workflow_and_invocation(self) -> None:
+        self.write_pipeline_command("pipeline")
+        self.write_adapter("demo", "Fixture instructions", capability_declaration("demo", "no"))
+        self.write_adapter("another", "Fixture instructions", capability_declaration("another", "no"))
+        self.write(
+            "harness/demo/reserved-names.txt",
+            "runtime: Fixture runtime 1.0\nverified: 2024-02-29\nevidence: https://example.org/skills\n\n"
+            "# Names from the fixture listing\npipeline\n",
+        )
+
+        with self.subTest(command="reserved"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+            findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
+            self.assertEqual(len(findings), 1, result.stdout)
+            self.assertTrue(findings[0].startswith("reserved-name-collision "), result.stdout)
+            self.assertIn("orchestrail-pipeline", findings[0])
+
+        (self.root / "workflows/pipeline.md").unlink()
+        self.write_pipeline_command("orchestrail-pipeline")
+        source = "rules/contract-caller.md"
+        self.write(source, RULE + "\nInvoke `/pipeline`.\n")
+        with self.subTest(command="uninstalled"):
+            self.assert_finding(self.run_checker(), "reference-missing", source)
+
+        self.write(source, RULE + "\nInvoke `/orchestrail-pipeline`.\n")
+        with self.subTest(command="prefixed"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
 
     def test_checks_capability_records_for_each_adapter(self) -> None:
         first = capability_declaration("fixture-first", "yes").replace(
