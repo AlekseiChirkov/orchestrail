@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Check the instruction lint command with isolated source trees."""
 
+from collections import Counter
 import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import runpy
 import subprocess
 import sys
@@ -1283,6 +1285,291 @@ class InstructionSourceIsolationTests(unittest.TestCase):
         for path in (CHECKER, SOURCE / "scripts/deploy-skills.py", Path(__file__)):
             with self.subTest(path=path.name):
                 self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
+
+
+PARENT = "eece6f526912139650466f4c9f6a6bc9c8a18ba9"
+STATE_RULE = "workflow" + "-reference"
+PHASE_RULE = "workflow" + "-globals"
+BOOTSTRAPS = {
+    f"phase-{phase if phase != 'finalization' else 'finalize'}": f"bootstrap-{phase}"
+    for phase in ("discovery", "execution", "validation", "atomic-execution", "atomic-validation", "finalization")
+}
+CONTRACTS = {
+    name: f"contract-{name}"
+    for name in ("tdd", "git-flow", "orchestration", "quick-flow", "run-log", "language")
+}
+DISCOVERY = next(old for old, new in BOOTSTRAPS.items() if new == "bootstrap-discovery")
+ATOMIC_EXECUTION = next(old for old, new in BOOTSTRAPS.items() if new == "bootstrap-atomic-execution")
+RULE_TARGETS = {
+    **{old: [new] for old, new in (CONTRACTS | BOOTSTRAPS).items()},
+    PHASE_RULE: ["contract-phases"],
+    STATE_RULE: ["contract-state-files", "protocol-autonomous-decision", "protocol-subtask-classifier"],
+    DISCOVERY: ["bootstrap-discovery", "protocol-discovery-conduct"],
+    ATOMIC_EXECUTION: ["bootstrap-atomic-execution", "procedure-blocker-reconciliation"],
+}
+PIPELINE = Path("workflows", "PIPELINE.md")
+PUBLIC_PIPELINE = Path("docs", PIPELINE.name)
+CONTEXT = "## Context Bootstrap"
+BEHAVIORS = "## Phase Behaviors"
+BLOCKER = "## Blocker Reconciliation"
+PROTECTED = "## Protected Sections Contract"
+DISCOVERY_HEADINGS = ("## Codebase Reading Rules", "## Decision Protocol")
+STATE_SPLITS = {
+    "## Autonomous Decision Protocol": "protocol-autonomous-decision",
+    **dict.fromkeys(
+        ("## Autonomous Subtask Classifier", "## Decomposition Decisions", "## Decomposition Rules"),
+        "protocol-subtask-classifier",
+    ),
+}
+
+
+def source(stem: str, group: str = "rules") -> Path:
+    return Path(group, f"{stem}.md")
+
+
+def current(path: Path | str) -> str:
+    return (SOURCE / path).read_bytes().decode("utf-8")
+
+
+def history(*args: str) -> str:
+    with tempfile.TemporaryDirectory(prefix="rule-source-history-") as directory:
+        return subprocess.check_output(
+            ["git", "-C", str(SOURCE), *args],
+            cwd=directory, env={**os.environ, "HOME": directory, "XDG_CONFIG_HOME": directory,
+                                "XDG_STATE_HOME": directory}, timeout=15,
+        ).decode("utf-8")
+
+
+def parent(path: Path) -> str:
+    return history("show", f"{PARENT}:{path.as_posix()}")
+
+
+def headings(document: str) -> list[tuple[str, str]]:
+    starts = list(re.finditer(r"(?m)^## [^\n]+", document))
+    ends = [match.start() for match in starts[1:]] + ([len(document)] if starts else [])
+    return [(start.group(), document[start.start():end]) for start, end in zip(starts, ends, strict=True)]
+
+
+def cells(line: str) -> tuple[str, ...]:
+    return tuple(cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip().strip("|")))
+
+
+def section(document: str, heading: str) -> str:
+    return next((section for title, section in headings(document) if title == heading), "")
+
+
+def name_map() -> dict:
+    return json.loads(current("docs/name-map.json"))
+
+
+def normalized(text: str, rows: list[dict]) -> str:
+    for row in rows:
+        old = row["old"]
+        new = row["new"][0]
+        if row["kind"] == "file":
+            text = text.replace(old, new)
+        elif row["kind"] == "workflow":
+            text = re.sub(r"/" + re.escape(old) + r"(?![\w-])", f"/{new}", text)
+            text = text.replace(str(source(old, "workflows")), str(source(new, "workflows")))
+            text = re.sub(r"`" + re.escape(old) + r"(?= → )", f"`/{new}", text)
+        else:
+            for title, owner in STATE_SPLITS.items() if old == STATE_RULE else ():
+                text = text.replace(f"`{old} → {title}", f"`{owner} → {title}")
+            if old == ATOMIC_EXECUTION:
+                text = text.replace(f"**Blocker Reconciliation** (`{old}` rules)",
+                                    "**Blocker Reconciliation** (`procedure-blocker-reconciliation` rule)")
+            text = text.replace(str(source(old)), str(source(new)))
+            text = re.sub(r"(?<![\w-])rule-" + re.escape(old) + r"(?![\w-])", f"rule-{new}", text)
+            text = re.sub(r"`" + re.escape(old) + r"(?:\.md)?(?= → |` rules?\b)", f"`{new}", text)
+            if old in CONTRACTS:
+                text = text.replace(f"`{old}`", f"`{new}`")
+    return text
+
+
+class RuleSourceMigration(unittest.TestCase):
+    def record(self) -> str:
+        records = list(SOURCE.glob("docs/audits/*-rule-migration-map.md"))
+        self.assertEqual(len(records), 1, "Expected one rule migration semantics record")
+        return current(records[0])
+
+    def migrated_sections(self, first_target: str, title: str) -> str:
+        if first_target == "contract-state-files":
+            return STATE_SPLITS.get(title, first_target)
+        if first_target == "bootstrap-discovery" and title in DISCOVERY_HEADINGS:
+            return "protocol-discovery-conduct"
+        if first_target == "bootstrap-atomic-execution" and title == BLOCKER:
+            return "procedure-blocker-reconciliation"
+        return first_target
+
+    def isolated_command(self, *command: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory(prefix="rule-source-contract-") as directory:
+            paths = {name: str(Path(directory, leaf)) for name, leaf in (
+                ("HOME", "home"), ("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state"),
+            )}
+            for path in paths.values():
+                Path(path).mkdir()
+            return subprocess.run(
+                [sys.executable, *command], cwd=directory,
+                env={**os.environ, **paths, "PYTHONDONTWRITEBYTECODE": "1"},
+                capture_output=True, text=True, check=False, timeout=timeout,
+            )
+
+    def test_name_map_and_usage_declare_each_canonical_source(self) -> None:
+        rows = name_map()["rows"]
+        mapped_rules = {row["old"]: row["new"] for row in rows if row["kind"] == "rule"}
+        self.assertEqual(set(mapped_rules), set(RULE_TARGETS))
+        for old, targets in RULE_TARGETS.items():
+            with self.subTest(source=old):
+                self.assertEqual(mapped_rules[old][:len(targets)], targets)
+                extras = mapped_rules[old][len(targets):]
+                allowed = [f"protocol-{BOOTSTRAPS[old].removeprefix('bootstrap-')}-conduct"] if old in BOOTSTRAPS else []
+                self.assertTrue(set(extras) <= set(allowed), extras)
+                self.assertFalse((SOURCE / source(old)).exists(), "The old rule is still present")
+                for target in mapped_rules[old]:
+                    load = "always" if target.startswith("contract-") and target != "contract-state-files" else "on-demand"
+                    self.assertIn(f"\nload: {load}\n", current(source(target)).split("---", 2)[1])
+        self.assertEqual({path.stem for path in (SOURCE / "rules").glob("*.md")},
+                         {target for values in mapped_rules.values() for target in values})
+        self.assertIn({"kind": "file", "old": str(PIPELINE), "new": [str(PUBLIC_PIPELINE)]}, rows)
+        expected = [
+            (row["kind"], f"`{row['old']}`", ", ".join(f"`{name}`" for name in row["new"]))
+            for row in rows
+        ]
+        usage = section(current("docs/USAGE.md"), "## Renamed commands and rules")
+        table = [cells(line) for line in usage.splitlines() if line.startswith("|")]
+        self.assertEqual(table[0], ("Kind", "Old", "New"))
+        self.assertEqual(table[2:], expected)
+
+    def test_bootstrap_registry_and_size_exceptions_match_delivery(self) -> None:
+        path = source("contract-phases")
+        self.assertTrue((SOURCE / path).is_file(), "The shared phase contract has not moved")
+        phase_contract = current(path)
+        references = section(phase_contract, "## Rule references").splitlines()
+        anchor = "A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness."
+        self.assertEqual(references.count(anchor), 1)
+        self.assertTrue(all(any(f"`{prefix}" in line for line in references)
+                            for prefix in ("principle-", "ref-")))
+        registry = section(phase_contract, CONTEXT)
+        table = [cells(line) for line in registry.splitlines() if line.startswith("|")]
+        self.assertEqual(table[0], ("Phase", "Skill", "Loaded by"))
+        self.assertEqual(Counter(row[1] for row in table[2:]), Counter(f"`rule-{name}`" for name in BOOTSTRAPS.values()))
+        for _, _, loaders in table[2:]:
+            commands = re.findall(r"`/([a-z-]+)`", loaders)
+            self.assertTrue(commands, loaders)
+            for command in commands:
+                self.assertTrue((SOURCE / source(command, "workflows")).is_file(), loaders)
+        exceptions = section(self.record(), "## Bootstrap size exceptions").splitlines()
+        sizes = {row[0].strip("`"): int(row[1]) for row in map(cells, exceptions)
+                 if len(row) == 3 and row[1].isdecimal()}
+        observed = {}
+        for target in BOOTSTRAPS.values():
+            with self.subTest(rule=target):
+                text = current(source(target))
+                self.assertEqual([heading for heading, _ in headings(text)], [CONTEXT, BEHAVIORS])
+                if len(text.split()) > 300:
+                    observed[target] = len(text.split())
+                    preamble, behavior = text.split(BEHAVIORS, 1)
+                    overflow = f"protocol-{target.removeprefix('bootstrap-')}-conduct"
+                    self.assertEqual(behavior.strip(), f"Load the `{overflow}` rule before acting.")
+                    self.assertTrue((SOURCE / source(overflow)).is_file())
+                    self.assertGreater(len((preamble + BEHAVIORS + behavior).split()), 300)
+        self.assertEqual(sizes, observed)
+
+    def test_every_rule_section_has_its_canonical_owner_and_parent_digest(self) -> None:
+        record = self.record()
+        self.assertIn("SHA-256", record)
+        rows = [cells(line) for line in record.splitlines() if line.startswith("|")]
+        indexed = Counter((row[0].strip("`"), row[1].strip("`"), row[2].strip("`"), row[3].strip("`"))
+                          for row in rows if len(row) == 8 and re.fullmatch(r"[a-f0-9]{64}", row[2].strip("`")))
+        missing = []
+        installed = {path.stem: current(path).splitlines() for path in (SOURCE / "rules").glob("*.md")}
+        for old, paths in RULE_TARGETS.items():
+            old_path = source(old)
+            for title, text in headings(parent(old_path)):
+                target = source(self.migrated_sections(paths[0], title))
+                owners = [str(source(name)) for name in (*paths, old)
+                          for line in installed.get(name, ()) if line == title]
+                record_key = (str(old_path), title, hashlib.sha256(text.encode()).hexdigest(), str(target))
+                if owners != [str(target)] or indexed[record_key] != 1:
+                    missing.append((str(old_path), title, str(target), owners, indexed[record_key]))
+        self.assertFalse(bool(missing), f"{len(missing)} invalid section owners or digests. First: {missing[:3]}")
+
+    def test_blocker_reconciliation_and_discovery_conduct_have_one_authority(self) -> None:
+        owner = source("procedure-blocker-reconciliation")
+        self.assertTrue((SOURCE / owner).is_file(), "Blocker reconciliation is still embedded in the bootstrap")
+        rows = name_map()["rows"]
+        self.assertEqual(section(current(owner), BLOCKER).rstrip("\n"),
+                         normalized(section(parent(source(ATOMIC_EXECUTION)), BLOCKER), rows).rstrip("\n"))
+        owners = [path.stem for path in (SOURCE / "rules").glob("*.md") if BLOCKER in current(path).splitlines()]
+        self.assertEqual(owners, [owner.stem])
+        workflows = {row["old"]: row["new"][0] for row in rows if row["kind"] == "workflow"}
+        for old in (ATOMIC_EXECUTION, "pae-implement"):
+            command = workflows.get(old, old)
+            self.assertRegex(current(source(command, "workflows")),
+                             rf"`(?:rule-)?{owner.stem}(?:` rules?\b| → {BLOCKER}`)")
+        conduct = source("protocol-discovery-conduct")
+        rules = {path.stem: current(path) for path in (SOURCE / "rules").glob("*.md")}
+        for title in DISCOVERY_HEADINGS:
+            with self.subTest(section=title):
+                self.assertEqual([name for name, body in rules.items() if title in body.splitlines()], [conduct.stem])
+                self.assertEqual(section(rules[conduct.stem], title).rstrip("\n"),
+                                 normalized(section(parent(source(DISCOVERY)), title), rows).rstrip("\n"))
+
+    def test_protected_body_and_status_stop_lines_survive_rule_migration(self) -> None:
+        path = source("contract-state-files")
+        self.assertTrue((SOURCE / path).is_file(), "The protected sections contract has not moved")
+        rows = name_map()["rows"]
+        self.assertEqual(normalized(section(parent(source(STATE_RULE)), PROTECTED), rows),
+                         section(current(path), PROTECTED))
+
+        def protected_lines(texts: list[str]) -> Counter[str]:
+            return Counter(line for text in texts for line in normalized(text, rows).splitlines()
+                           if line.startswith("Status values for") or any(marker in line for marker in (
+                               "**stop**", "atomic-tests", "pre-TDD task, TDD step skipped",
+                           )))
+
+        previous = [Path(path) for path in history("ls-tree", "-r", "--name-only", PARENT, "rules", "workflows", "harness").splitlines()
+                    if re.fullmatch(r"(?:rules|workflows)/[^/]+\.md|harness/[^/]+/always-on\.md", path)]
+        delivered = list(SOURCE.glob("rules/*.md")) + list(SOURCE.glob("workflows/*.md"))
+        delivered += list(SOURCE.glob("harness/*/always-on.md")) + [SOURCE / PUBLIC_PIPELINE]
+        expected_lines = protected_lines([parent(path) for path in previous])
+        actual_lines = protected_lines([current(path) for path in delivered])
+        self.assertFalse(expected_lines - actual_lines, f"Changed protected lines: {expected_lines - actual_lines}")
+
+    def test_isolated_deployment_installs_canonical_rules_and_omits_the_reference(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="rule-source-installation-") as directory:
+            fixture = Path(directory)
+            result = subprocess.run(
+                [sys.executable, "-I", str(SOURCE / "scripts/deploy-skills.py"), "deploy",
+                 "--from", str(SOURCE), "--hook-result", '{"status":"unavailable","reason":"fixture"}'],
+                cwd=fixture, env={**os.environ, "HOME": str(fixture / "home"),
+                                  "XDG_CONFIG_HOME": str(fixture / "config"), "XDG_STATE_HOME": str(fixture / "state")},
+                capture_output=True, text=True, check=False, timeout=30,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for adapter in sorted(SOURCE.glob("harness/*/deploy.env")):
+                with self.subTest(adapter=adapter.parent.name):
+                    setting = next(line for line in current(adapter).splitlines() if line.startswith("skills_dir="))
+                    skills = fixture / "home" / setting.removeprefix("skills_dir=$HOME/")
+                    self.assertTrue(skills.is_dir(), f"Fixture installation did not create {skills}")
+                    self.assertFalse(any(entry.name == PIPELINE.stem
+                                         for entry in skills.iterdir()), "The pipeline reference was installed as a skill")
+                    for source_rule in (SOURCE / "rules").glob("*.md"):
+                        installed = skills / ("rule-" + source_rule.stem) / "SKILL.md"
+                        self.assertEqual(installed.read_bytes(), source_rule.read_bytes(), str(installed))
+        self.assertTrue((SOURCE / PUBLIC_PIPELINE).is_file())
+        self.assertFalse((SOURCE / PIPELINE).exists())
+        self.assertTrue(all(current(path).count("\nInvocation: ") == 1 for path in SOURCE.glob("workflows/*.md")))
+
+    def test_current_rule_readers_and_frozen_inventory_are_coherent(self) -> None:
+        lint = self.isolated_command("-I", str(SOURCE / "scripts/lint-instructions.py"), "--root", str(SOURCE))
+        self.assertEqual(lint.returncode, 0, lint.stdout + lint.stderr)
+        oracle = self.isolated_command(
+            "-B", str(SOURCE / "tests/validator-runtime-oracle.py"),
+            "OracleContract.test_frozen_source_detects_actual_name_expression_and_order_changes",
+            "OracleContract.test_amendment_pins_unrelated_fields_order_and_resource_changes",
+        )
+        self.assertEqual(oracle.returncode, 0, oracle.stdout + oracle.stderr)
 
 
 if __name__ == "__main__":
