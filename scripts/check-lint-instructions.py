@@ -427,6 +427,60 @@ class InstructionMetadataTests(unittest.TestCase):
             result = self.run_checker()
             self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
 
+    def test_phase_tables_continue_after_a_pipe_less_body_row(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BOOTSTRAP_ROWS[-1]
+        trailing_bootstrap = BOOTSTRAP_ROWS[0]
+
+        with self.subTest(table="bootstrap"):
+            self.write(PHASE_CONTRACT, contract.replace(last, f"{last}\nSingle cell\n{trailing_bootstrap}"))
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+        invalid_behaviour = "Send a message | `missing-command` | `agent-messaging` | Run inline"
+        with self.subTest(table="capabilities"):
+            self.write(PHASE_CONTRACT, contract + f"Single cell\n{invalid_behaviour}\n")
+            result = self.run_checker()
+            self.assert_finding(result, "capability-behaviour-table-invalid", PHASE_CONTRACT)
+            self.assertIn("Invalid capability behaviour row: Send a message.", result.stdout)
+
+        for label, boundary in (
+            ("heading", "### Appendix"), ("blank line", ""), ("blockquote", "> Appendix | Project notes"),
+        ):
+            with self.subTest(boundary=label):
+                self.write(PHASE_CONTRACT, contract + f"{boundary}\n{invalid_behaviour}\n")
+                result = self.run_checker()
+                self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+    def test_phase_table_delimiter_accepts_single_dashes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        with self.subTest(delimiter="canonical tables with single dashes and alignment"):
+            compact = contract.replace("| --- | --- | --- |", "| - | :-: | -: |")
+            self.write(PHASE_CONTRACT, compact.replace("| - | :-: | -: | --- |", "| - | :-: | -: | :- |"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(delimiter="obsolete header with single dashes"):
+            self.write(PHASE_CONTRACT, contract)
+            self.write("README.md", "# Guide\n\nPhase | Rules file\n- | :-:\nDiscovery | Bootstrap\n")
+            self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+        for label, obsolete in (("bold", "**Rules file** (old)"), ("italic", "_Rules file_")):
+            with self.subTest(delimiter="ordinary", header=label):
+                self.write("README.md", f"# Guide\n\n| Phase | {obsolete} |\n| --- | --- |\n| Discovery | Bootstrap |\n")
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+    def test_phase_table_headers_remain_exact_after_filtering_comments(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        for header, code in (
+            (BOOTSTRAP_HEADER, "bootstrap-table-invalid"),
+            (BEHAVIOUR_HEADER, "capability-behaviour-table-invalid"),
+        ):
+            with self.subTest(header=header):
+                self.write(PHASE_CONTRACT, contract.replace(header, header + "<!-- header note -->"))
+                self.assert_finding(self.run_checker(), code, PHASE_CONTRACT)
+
     def test_counts_only_the_always_on_body_at_the_size_limit(self) -> None:
         capabilities = words(1607)
         self.write_adapter("at-limit", words(1200), capabilities)
