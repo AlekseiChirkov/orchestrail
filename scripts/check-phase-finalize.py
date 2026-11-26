@@ -1447,6 +1447,29 @@ class ArchivedRelocationChecks(unittest.TestCase):
                                                   response['revision'], *options, command='finish'),
                                         'relocation-inspect-only')
 
+    def test_equivalent_archive_claim_is_ambiguous(self) -> None:
+        from shutil import copytree
+
+        original = self.root / '.ai/tasks/todo/task-other-archive'
+        competing = self.journal_path(original)
+        snapshot = competing.parent / 'snapshot'
+        copytree(self.snapshot, snapshot)
+        spec = self.root / self.SPEC_NEW
+        other = self.journal_document | {
+            'id': competing.parent.name, 'task_original': str(original),
+            'task_current': str(self.root / '.ai/tasks/completed' / original.name),
+            'spec_original': str(spec.parent.parent / spec.name), 'spec_current': str(spec),
+            'snapshot_path': str(snapshot),
+            'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True},
+        }
+        competing.write_text(json.dumps(other), encoding='utf-8')
+        self.assert_refused(self.inspect(self.SPEC_NEW), 'relocation-evidence-invalid')
+
+        other['spec_current'] = f'{spec.parent}/./{spec.name}'
+        self.assertEqual(spec, Path(other['spec_current']))
+        competing.write_text(json.dumps(other), encoding='utf-8')
+        self.assert_refused(self.inspect(self.SPEC_NEW), 'relocation-evidence-invalid')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
