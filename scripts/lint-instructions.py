@@ -76,6 +76,17 @@ FENCE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)")
 BACKTICKS = re.compile(r"`+")
 COMMENT_OR_CODE = re.compile(r"(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)|(?<!\\)<!--")
 TABLE_PUNCTUATION = re.compile(r"\\.|\|")
+BLOCK_CONTAINER = re.compile(r" {0,3}(?:>|(?:[*+-]|[0-9]{1,9}[.)])(?:[ \t]|$))")
+THEMATIC_BREAK = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})")
+HTML_BLOCK_START = re.compile(
+    r" {0,3}<(?:!--|\?|![A-Z]|!\[CDATA\[|/?(?:"
+    r"address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|"
+    r"dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|"
+    r"legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|pre|script|section|"
+    r"source|style|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:[ \t]|/?>|$))",
+    re.IGNORECASE,
+)
+HTML_TAG_LINE = re.compile(r" {0,3}</?[A-Za-z][A-Za-z0-9-]*(?:[ \t]+[^<>]*)?/?[ \t]*>[ \t]*")
 COMMAND = re.compile(r"/([a-z0-9][a-z0-9-]*)(\.md)?(?: .*)?")
 SECTION = re.compile(r"/?([a-z0-9][a-z0-9-]*)(\.md)? → (#{2,3} .+)")
 NEXT_HEADING = re.compile(r" → (?=#{2,4} .)")
@@ -348,28 +359,40 @@ def table_cells(line: str, *, optional_outer_pipes: bool = False) -> list[str]:
 
 def is_table_divider(line: str, columns: int, *, optional_outer_pipes: bool = False) -> bool:
     cells = table_cells(line, optional_outer_pipes=optional_outer_pipes)
-    return len(cells) == columns and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
+    pattern = r":?-+:?" if optional_outer_pipes else r":?-{3,}:?"
+    return len(cells) == columns and all(re.fullmatch(pattern, cell) for cell in cells)
+
+
+def starts_markdown_block(line: str) -> bool:
+    return bool(HEADING.match(line) or BLOCK_CONTAINER.match(line) or THEMATIC_BREAK.fullmatch(line)
+                or HTML_BLOCK_START.match(line) or HTML_TAG_LINE.fullmatch(line)
+                or re.match(r"(?: {4}| {0,3}\t)", line))
 
 
 def table_rows(
-    lines: list[str], start: int, end: int, header: list[str], *, exact_header: bool = False,
-    optional_outer_pipes: bool = False,
+    lines: list[str], start: int, end: int, header: list[str], *, raw_phase_lines: list[str] | None = None,
 ) -> list[list[str]] | None:
     visible = {number: line for number, line in outside_fences(lines)}
     headers = [number for number in range(start + 1, end) if table_cells(visible.get(number, "")) == header]
     if len(headers) != 1:
         return None
-    if exact_header and visible[headers[0]] != f"| {' | '.join(header)} |":
+    if raw_phase_lines is not None and raw_phase_lines[headers[0] - 1] != f"| {' | '.join(header)} |":
         return None
+    phase_table = raw_phase_lines is not None
     number = headers[0] + 1
     if number >= end or not is_table_divider(visible.get(number, ""), len(header),
-                                            optional_outer_pipes=optional_outer_pipes):
+                                            optional_outer_pipes=phase_table):
         return None
     rows = []
     for number in range(number + 1, end):
-        cells = table_cells(visible.get(number, ""), optional_outer_pipes=optional_outer_pipes)
-        if not cells:
+        line = visible.get(number, "")
+        if not line.strip() or (phase_table and starts_markdown_block(line)):
             break
+        cells = table_cells(line, optional_outer_pipes=phase_table)
+        if not cells:
+            if not phase_table:
+                break
+            cells = [line.strip()]
         rows.append(cells)
     return rows
 
@@ -578,7 +601,7 @@ def check_active_references(lint: InstructionLint, rows: list[NameRow], retained
             if "rules file" in contract_line.casefold() and number < len(lines):
                 cells = table_cells(contract_line, optional_outer_pipes=True)
                 divider = (contract_lines if contract_lines is not None else lines)[number]
-                if (any(unquote_record_cell(cell).casefold().startswith("rules file") for cell in cells)
+                if (any(unquote_record_cell(cell).lstrip(" `*_").casefold().startswith("rules file") for cell in cells)
                         and is_table_divider(divider, len(cells), optional_outer_pipes=True)):
                     lint.report("resolution-rule-missing", path, number, "Obsolete rule reference column.")
             if (relative, original_line) not in retained:
@@ -593,10 +616,11 @@ def phase_section(lines: list[str], heading: str) -> tuple[int, int]:
     return sections[0] if len(sections) == 1 else (0, 0)
 
 
-def check_bootstrap_table(lint: InstructionLint, path: Path, lines: list[str], rule_names: set[str]) -> None:
+def check_bootstrap_table(
+    lint: InstructionLint, path: Path, lines: list[str], raw_lines: list[str], rule_names: set[str],
+) -> None:
     start, end = phase_section(lines, BOOTSTRAP_HEADINGS[0])
-    rows = table_rows(lines, start, end, ["Phase", "Skill", "Loaded by"],
-                      exact_header=True, optional_outer_pipes=True)
+    rows = table_rows(lines, start, end, ["Phase", "Skill", "Loaded by"], raw_phase_lines=raw_lines)
     expected = {(phase.replace("-", " ").title(), f"`rule-bootstrap-{phase}`") for phase in BOOTSTRAP_PHASES}
     skills = {f"bootstrap-{phase}" for phase in BOOTSTRAP_PHASES}
     if (rows is None or len(rows) != len(expected) or not skills <= rule_names
@@ -609,12 +633,12 @@ def table_names(cell: str) -> set[str]:
 
 
 def check_behaviour_table(
-    lint: InstructionLint, path: Path, lines: list[str], workflow_names: set[str], declared_keys: set[str],
+    lint: InstructionLint, path: Path, lines: list[str], raw_lines: list[str], workflow_names: set[str],
+    declared_keys: set[str],
 ) -> None:
     code = "capability-behaviour-table-invalid"
     start, end = phase_section(lines, "## Capabilities")
-    rows = table_rows(lines, start, end, ["Behaviour", "Workflow", "Requires", "Without it"],
-                      exact_header=True, optional_outer_pipes=True)
+    rows = table_rows(lines, start, end, ["Behaviour", "Workflow", "Requires", "Without it"], raw_phase_lines=raw_lines)
     if rows is None:
         lint.report(code, path, start, "Expected the capability behaviour table.")
         return
@@ -640,7 +664,8 @@ def check_phase_contract(
     lint: InstructionLint, instructions: dict[Path, list[str]], anchor_count: int, adapter_keys: list[set[str]],
 ) -> None:
     path = lint.root / PHASE_CONTRACT
-    lines = strip_markdown_comments(instructions.get(path, []))
+    raw_lines = instructions.get(path, [])
+    lines = strip_markdown_comments(raw_lines)
     start, end = phase_section(lines, RULE_REFERENCES_HEADING)
     if anchor_count != 1 or not any(start < number < end and line == RESOLUTION_LINE
                                     for number, line in outside_fences(lines)):
@@ -650,8 +675,8 @@ def check_phase_contract(
     workflows = {file.stem for file in instructions
                  if file.parent == lint.root / "workflows" and NAME_STEM.fullmatch(file.stem)}
     shared = set.intersection(*adapter_keys) if adapter_keys else set()
-    check_bootstrap_table(lint, path, lines, rules)
-    check_behaviour_table(lint, path, lines, workflows, shared.union(CANONICAL_CAPABILITIES))
+    check_bootstrap_table(lint, path, lines, raw_lines, rules)
+    check_behaviour_table(lint, path, lines, raw_lines, workflows, shared.union(CANONICAL_CAPABILITIES))
 
 
 def scalar(raw: str) -> str:
