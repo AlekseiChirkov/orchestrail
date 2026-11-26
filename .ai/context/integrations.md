@@ -13,31 +13,28 @@ searches the web.
   `~/.claude/CLAUDE.md` global instructions; per-project `CLAUDE.md`.
 - Used by: every workflow; `/spec-run` relies on spawning sub-agents, keeping the Arbiter
   alive and addressing it by message, and pausing the Implementer mid-run.
-- Assumptions: skills are model-invoked (not always-on) — hence `harness/claude/always-on.md`
-  duplicates the essentials; a project-local `.claude/skills/` hides global skills
-  (`scripts/link-skills.sh`). Hooks and permission deny-lists are available but **not used yet**
-  (`specs/03`, `specs/06`).
+- The Claude always-on source carries essential instructions. The adapter declares
+  `.claude/skills/` as its project link directory. The published hook records describe
+  native hook support and the current installation result.
 - Docs: https://docs.claude.com/en/docs/claude-code
 
 ### OpenAI Codex — agent harness
 - Interface: `~/.codex/AGENTS.md`, `~/.codex/skills/<name>/SKILL.md`, per-project `AGENTS.md`.
-- Used by: all workflows as skills; no orchestration.
-- Assumptions: reads `AGENTS.md → ## Commands` directly; template changes do not propagate
-  to existing projects.
+- Workflows use the installed skills and the available orchestration capabilities.
+  Project setup preserves an existing project-local `AGENTS.md`.
 
-### Windsurf / Devin Desktop (Codeium) — agent harness
-- Interface: `~/.codeium/windsurf/global_workflows/*.md`, `global_rules/*.md` with
-  `trigger: always_on`; per-project `.windsurf/rules/`, `.devin/rules/`.
-- Assumptions: rules are truly always-on here; no sub-agents.
+### Retired Windsurf and Devin integrations
+- The legacy reporter lists known previous installation paths. The source deploys
+  only the targets declared by its two model adapters.
 
 ### git — version control of consumer repositories
-- Used by: `/spec-run`, `/restack` (the only workflows allowed to write), preflight checks,
-  `suggest-*` utilities (read-only).
-- Rails: no `git add -A`, no push to base, no force-push outside `/restack`
-  (`--force-with-lease` only), no `reset --hard`/`clean`, no branch deletion, no merge.
+- Used by development, restack, and finalization workflows with distinct Git authority.
+  Finalization returns exact checkout, fast-forward and cleanup commands from its
+  evidence-bound plan. The Git rails define protected refs and task-scoped exceptions.
 
 ### GitHub CLI (`gh`) — pull requests
-- Used by: `/spec-run --allow-pr` (draft PR creation, promotion to ready), `/restack --allow-pr`.
+- Used by `/spec-run --allow-pr` and `/restack --allow-pr` for publication.
+  Finalization uses repository-bound PR reads to verify integration.
 - Assumptions: remote `origin` exists and `gh auth status` succeeds; PR bodies follow
   `git-flow → ## Pull requests` and carry no attribution.
 

@@ -6,30 +6,29 @@ change to `scripts/sync.sh`, `scripts/setup-*.sh`, `scripts/log-step.sh`, or to 
 
 ## Environments
 
-There are no staging/production tiers; there are three **agent harnesses** the source is
-deployed into, plus consumer projects.
+The source declares two model harnesses, Claude Code and Codex. Project setup
+initializes consumer repositories and creates declared skill links.
 
 ### Claude Code (primary)
 - Workflows → `~/.claude/skills/<name>/SKILL.md`
 - Rules → `~/.claude/skills/rule-<name>/SKILL.md`; principles → `principle-<name>`
-- `harness/claude/always-on.md` → `~/.claude/CLAUDE.md` (overwritten on every sync)
+- The Claude adapter assembles `~/.claude/CLAUDE.md` from its always-on source,
+  capability declaration and hook installation result. Sync checks ownership before replacing it.
 - Per project: `CLAUDE.md` (pointer or two-level protocol), `.claude/skills/<name>` symlinks
   to the global skills (workaround: a project-local `.claude/skills/` hides global skills)
-- Only harness where `/spec-run`'s sub-agent model (Arbiter kept alive, Implementer paused
-  at RED, separate Validator) is executable. Skills are model-invoked, not always-on.
+- Workflows invoke skills when needed. Capability records and current tooling govern
+  whether a run can use sub-agents and messaging.
 
 ### OpenAI Codex
 - Same three skill layouts under `~/.codex/skills/`
-- `harness/codex/always-on.md` → `~/.codex/AGENTS.md`
-- Per project: `AGENTS.md` from `templates/AGENTS.md` (never overwritten; manual updates)
-- No sub-agent orchestration; `/spec-run` is not executable here.
+- The Codex adapter assembles `~/.codex/AGENTS.md` from its always-on source and
+  capability declaration and unavailable native-hook result. Sync checks ownership before replacing it.
+- Project setup seeds `AGENTS.md` from `templates/AGENTS.md` and preserves existing files.
+- Check worker and messaging support in the current session.
 
-### Windsurf / Devin Desktop
-- Workflows → `~/.codeium/windsurf/global_workflows/`
-- Rules and principles → `~/.codeium/windsurf/global_rules/` (always-on by front matter)
-- Per project: copies (not symlinks) of a fixed list of rule files in `.windsurf/rules/`
-  and `.devin/rules/`; refreshed by `scripts/sync.sh` for every project that has `.devin/`.
-- No sub-agents; the Orchestrator role degrades to a single session.
+### Retired Windsurf and Devin integrations
+- Sync reports legacy paths for review. The deployment engine manages the targets
+  declared by the Claude Code and Codex adapters.
 
 ### Consumer projects
 - Seeded by `scripts/setup-new-project.sh`: `CLAUDE.md`, `AGENTS.md`, `.ai/` (from
@@ -45,7 +44,7 @@ deployed into, plus consumer projects.
 | `ORCHESTRAIL_HOME` | `scripts/sync.sh`, `scripts/setup-*.sh` | the repository root (parent of `scripts/`) | Empty values use the default; `scripts/sync.sh --from <dir>` and `--from=<dir>` override it; relative paths resolve from the caller directory |
 | `ORCHESTRAIL_LOG_ROOT` | `scripts/log-step.sh`, `/retro` | `<repo>/logs` | store is gitignored |
 | `ORCHESTRAIL_HOME` helper resolution | `rules/run-log.md`, orchestrator workflows, artifact checks | unset: skip optional logging | Configure one shared checkout; required artifact checks need a configured source |
-| `$HOME/.claude`, `$HOME/.codex`, `$HOME/.codeium/windsurf` | `scripts/sync.sh`, `scripts/setup-new-project.sh` | — | harness locations |
+| `$HOME/.claude`, `$HOME/.codex` | `scripts/sync.sh`, `scripts/setup-new-project.sh` | — | declared harness locations |
 | `.ai/context/runbook.md → ## Commands` (per consumer project) | `pae-implement`, `pae-tests`, `bugfix` | — | `test:` required for TDD |
 
 Local configuration belongs under `~/.config/orchestrail/`. Keep machine settings
@@ -79,7 +78,6 @@ outside the manual sweep. The local checkout location remains private.
 ## Isolated provider generation
 
 `scripts/sync.sh --from <source-tree> --stage <directory>` runs mandatory preflight
-and generates the normal Claude, Codex and Windsurf/Devin outputs beneath the
-selected empty directory. It does not install hooks, scan consumer projects or
-write live harness locations. These files are review artifacts, not installed
-consumer changes. The source checkout remains the implementation authority.
+and generates the declared Claude Code and Codex outputs in the selected empty
+directory. Staging preserves live hook settings and consumer projects. The exported
+files are review artifacts. The source checkout remains the implementation authority.

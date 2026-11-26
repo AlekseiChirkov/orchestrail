@@ -9,9 +9,9 @@ appears in a rule.
 
 | Term | Meaning |
 |---|---|
-| **Workflow** | A slash-command definition in `workflows/`; deployed as a Windsurf workflow and a Claude Code / Codex skill. Executable. |
-| **Rule** | An always-on contract in `rules/`; deployed as a Windsurf global rule and a `rule-<name>` skill. |
-| **Principle** | An engineering standard in `principles/`; deployed as a global rule and a `principle-<name>` skill. |
+| **Workflow** | A slash-command definition in `workflows/` installed as a Claude Code and Codex skill. |
+| **Rule** | A policy in `rules/` with a declared load policy, installed as a `rule-<name>` skill. |
+| **Principle** | An engineering standard in `principles/` installed as a `principle-<name>` skill. |
 | **Spec** | The immutable task statement, `.ai/specs/<NN>-<slug>.md`; H1 title required; only `/spec-sync` may edit it after Discovery starts. |
 | **Task directory** | `.ai/tasks/todo/task-<NN>-<slug>/` holding `state.md`, `plan.md`, `state-archive.md`, and `T-XX-<slug>/description.md` per subtask. |
 | **Phase** | Discovery, Execution, Validation, or separately invoked post-merge Finalization. Existing autonomous parents advance only through Validation; transitions into Finalization remain owner-initiated. |
