@@ -1,5 +1,5 @@
 ---
-description: Workflow process reference — load when using any /phase-* or child workflow slash command.
+description: Workflow process reference — load for the pipeline, phase orchestrators, and child workflows.
 load: on-demand
 ---
 

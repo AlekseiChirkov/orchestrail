@@ -2055,5 +2055,115 @@ class InstructionKnowledgeContract(unittest.TestCase):
                 self.assertIn(fragment, prose)
 
 
+class MigrationEvidenceContract(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.path, = SOURCE.glob("docs/audits/*-rule-migration-map.md")
+        cls.record = current(cls.path)
+
+    def table(self, heading: str, columns: int) -> list[tuple[str, ...]]:
+        document = section(self.record, heading) if heading else self.record.split("\n## ", 1)[0]
+        rows = [cells(line) for line in document.splitlines() if line.startswith("|")]
+        self.assertTrue(rows[2:], f"Missing populated table for {heading or 'section migration'}")
+        for row in rows:
+            self.assertEqual(len(row), columns, row)
+        return rows[2:]
+
+    def test_migrated_sections_name_current_readers_and_evidence(self) -> None:
+        rows = self.table("", 8)
+        readers = self.table("## Rule consumers", 2)
+        targets = {row[3] for row in rows}
+        self.assertCountEqual([target for target, _ in readers], targets)
+        guidance_paths = ("rules/*.md", "workflows/*.md", "harness/*/always-on.md", "principles/*.md",
+                          "templates/**/*.md", "docs/*.md", ".ai/principles/*.md", ".ai/context/*.md",
+                          ".ai/memory/architecture.md", "CLAUDE.md", "README.md")
+        guidance = {path.relative_to(SOURCE).as_posix(): current(path)
+                    for pattern in guidance_paths for path in SOURCE.glob(pattern)}
+        for target, consumers in readers:
+            path = target.strip("`")
+            stem = re.escape(Path(path).stem)
+            citation = re.compile(rf"(?<![a-z0-9-])(?:rule-)?{stem}(?![a-z0-9-])")
+            expected = [file for file, document in guidance.items() if file != path and citation.search(document)]
+            with self.subTest(target=target):
+                self.assertTrue(expected, target)
+                self.assertCountEqual(re.findall(r"`([^`]+)`", consumers), expected)
+
+        topics = set()
+        for old, title, digest, target, heading, consumers, evidence, verdict in rows:
+            with self.subTest(source=old, heading=title, target=target):
+                self.assertRegex(digest, r"^[0-9a-f]{64}$")
+                if heading != "`(preamble)`":
+                    self.assertIn(heading.strip("`"), current(target.strip("`")).splitlines())
+                self.assertIn(f"[Rule consumers](#rule-consumers) for {target}", consumers)
+                self.assertIn("[Section verification](#section-verification)", evidence)
+                topic = evidence.partition(" — ")[2]
+                self.assertTrue(topic.strip(), evidence)
+                self.assertRegex(verdict, r"^[A-Za-z][A-Za-z -]* \d{4}-\d{2}-\d{2} pass$")
+                topics.add(topic)
+        self.assertGreater(len(topics), len(targets), "Evidence must distinguish sections within each rule")
+
+    def test_audit_index_phase_one_evidence_and_supersession_receipts(self) -> None:
+        relative = self.path.relative_to(SOURCE / "docs").as_posix()
+        self.assertIn(f"]({relative})", current("docs/README.md"))
+        history = section(self.record, "## Phase 1 checker evidence")
+        self.assertIn("usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.", history)
+        self.assertIn("> Signed: Independent validator 2026-11-25 c955d28827dd28ae6842594d37d6dd1f53742a88", history)
+        amendment = json.loads(current("tests/fixtures/validator-runtime/inventory-amendment.json"))
+        rows = self.table("## Superseded checks", 5)
+        self.assertCountEqual([(key.strip("`"), requirement) for key, _, _, requirement, _ in rows],
+                              [(entry["key"], entry["requirement"]) for entry in amendment["contract_changes"]])
+        for key, before, after, _, verdict in rows:
+            with self.subTest(key=key):
+                self.assertTrue(before and after and before != after)
+                self.assertRegex(verdict, r"^pass — \S")
+
+    def test_recorded_reference_repairs_are_exactly_present_in_canonical_sources(self) -> None:
+        rows = self.table("## Pre-existing reference defects", 3)
+        mapped = {f"{row['kind']}s/{row['old']}.md": f"{row['kind']}s/{row['new'][0]}.md"
+                  for row in name_map()["rows"] if row["kind"] in {"rule", "workflow"}}
+        for location, _, fix in rows:
+            old_path, _, _ = location.strip("`").partition(":")
+            path = mapped.get(old_path, old_path)
+            with self.subTest(location=location):
+                span = fix.strip("` ") if fix.endswith("`") else re.search(r"`([^`]+)`", fix)[1]
+                self.assertIn(f"`{span}`", current(path))
+                stem, *headings = re.split(r" → (?=#{2,4} )", span)
+                if not headings:
+                    self.assertRegex(stem, r"^/[a-z][a-z0-9-]+$")
+                    self.assertTrue((SOURCE / source(stem[1:], "workflows")).is_file(), span)
+                    continue
+                group = "workflows" if stem.startswith("/") else "rules"
+                target = current(source(stem.removeprefix("/"), group)).splitlines()
+                for heading in headings:
+                    self.assertRegex(heading, r"^#{2,4} \S")
+                    self.assertIn(heading, target)
+
+    def test_retained_names_record_exact_current_source_lines(self) -> None:
+        unquote = runpy.run_path(str(CHECKER))["unquote_record_cell"]
+        entries = self.table("## Retained old names", 3)
+        retained = {(unquote(path), unquote(line)) for path, line, _ in entries}
+        self.assertEqual(len(retained), len(entries), "Duplicate retained source line")
+        source_lines = {path: current(path).splitlines() for path, _ in retained}
+        obsolete = sorted((path, line) for path, line in retained if line not in source_lines[path])
+        self.assertFalse(obsolete, f"No longer present in source: {obsolete[:3]} ({len(obsolete)} total)")
+        for path, line, reason in entries:
+            self.assertTrue(reason.strip(), (path, line))
+        legacy_name = "-".join(("phase", "finalize"))
+        legacy = re.compile(rf"(?<![a-z0-9-]){legacy_name}(?![a-z0-9-]|\.py)")
+        finalization_sources = ("hooks/git_rails.py", "scripts/*finaliz*.py", "workflows/finalization.md",
+                                "scripts/check-lint-instructions.py")
+        relevant = {(path.relative_to(SOURCE).as_posix(), line)
+                    for pattern in finalization_sources for path in SOURCE.glob(pattern)
+                    for line in current(path).splitlines() if legacy.search(line)}
+        missing = sorted(relevant - retained)
+        self.assertFalse(missing, f"Missing retained protocol or fixture lines: {missing[:3]} ({len(missing)} total)")
+
+    def test_live_guidance_uses_canonical_workflow_families(self) -> None:
+        for path in ("harness/claude/always-on.md", "rules/contract-run-log.md",
+                     "rules/contract-state-files.md", "docs/USAGE.md"):
+            with self.subTest(path=path):
+                self.assertNotRegex(current(path), r"\b(?:phase|phase-atomic|pae|pav)-\*")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

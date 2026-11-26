@@ -69,7 +69,7 @@ considered — unit, integration, contract, or smoke — and why each is inappli
 test", "no framework", "small change", "will add tests later", and "existing tests cover it"
 are not exemptions.
 
-In projects using the `/phase-*` pipeline, this is enforced by `/atomic-execution-tests` before
+In projects using the workflow pipeline, this is enforced by `/atomic-execution-tests` before
 `/atomic-execution-implement`; the full contract is the `contract-tdd` rule and test style is `testing-standards`.
 
 ## Context Loading Protocol

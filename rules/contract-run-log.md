@@ -126,7 +126,7 @@ usable mechanism permits provisional dispatch, not a precision claim. Run-start 
 Keep prompt instructions for every ordinary step and attach `--note approximate`
 (or a note beginning `approximate; ` when adding a short clause). This includes
 discovery, root work, arbitration and Arbiter decisions: all remain approximate.
-Internal skills in GREEN and validation batches, single-session `/phase-*` steps,
+Internal skills in GREEN and validation batches, single-session phase steps,
 pipeline overrides, batch gates, dry runs and synthetic subtask summaries also remain
 approximate unless that exact boundary independently meets the native evidence
 contract. Do not remove internal logging prompts because a generic Stop fired.

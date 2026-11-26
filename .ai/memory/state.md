@@ -6,7 +6,7 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
-- [Names, finalization and integrated verification](../specs/011-model-only-harnesses-and-rule-naming.md#phase-2--names-finalization-and-integrated-verification) | phase: execution | status: in-progress | note: Seven sequential subtasks planned. Archived relocation inspection started.
+- [Names, finalization and integrated verification](../specs/011-model-only-harnesses-and-rule-naming.md#phase-2--names-finalization-and-integrated-verification) | phase: execution | status: complete | note: Seven independently reviewed drafts are open as PRs #160–#166. Specification completion is blocked by the prior phase journal's byte binding and the exact identity ledger.
 
 
 
@@ -14,8 +14,9 @@ Specification references were reviewed against the three-digit mapping; correcti
 the outstanding parallel-program reconciliation are recorded in [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
 
 Task-to-specification numbering was reviewed on 2026-11-25; the later commit `32a608f` also
-relocated the phase-one review task. Its existing journal still points to the former paths;
-read-only recovery remains unresolved. See [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
+relocated the phase-one review task. Its journal records the former paths. Read-only
+inspection now verifies the exact archived paths when supplied with the recorded relocation
+evidence. See [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
 
 - [Parallel execution direction](../specs/027-parallel-execution-program.md) | status: planning | note: owner requested automatic parallel execution across the task graph in both execution entry points and parallel-aware Discovery, retaining stacked PRs; program-level specification and delivery map prepared, with Git materialization, capability enforcement and recovery contracts still blocking implementation; former spec 23 consolidated; specs 020 and 024 retain separate scope and require review. No runtime implementation started.
 
@@ -24,14 +25,14 @@ read-only recovery remains unresolved. See [the reference review](../../docs/ana
 The ordered roadmap and prerequisites are in `specs/README.md`. ADR-0026 records
 the current three-digit numbering across active and completed specifications; the
 previous order and numbers are historical. A specification becomes a task via
-`/phase-discovery .ai/specs/<NNN>-<slug>.md`.
+`/discovery .ai/specs/<NNN>-<slug>.md`.
 
 
 Runtime work was closed by owner decision; remaining roadmap scope is not automatically scheduled.
 
 ## Done
 - [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | completed | note: All 19 PRs merged on 2026-11-25 and Phase 1 integrated at `c7e986fbd79b01868efb8adc54dd1ba6ff379204`. Verified recovery and local and remote branch cleanup. Fresh isolated staging passed 725 contract checks with two optional skips. Phase 2 remains active.
-- [task-026-spec-driven-pr-review-p1](../tasks/completed/task-026-spec-driven-pr-review-p1/state.md) | completed | note: offline protocol and synthetic verification integrated through PRs #132–#137 at `04f2c35`; validation evidence corrected at `cb7b720`; recovery verified and six local and remote stack branches cleaned up. Historical comparison remains pending approved inputs and locked settings. The local finalization journal still names the former task and specification paths; current-path recovery is unresolved.
+- [task-026-spec-driven-pr-review-p1](../tasks/completed/task-026-spec-driven-pr-review-p1/state.md) | completed | note: offline protocol and synthetic verification integrated through PRs #132–#137 at `04f2c35`; validation evidence corrected at `cb7b720`; recovery verified and six local and remote stack branches cleaned up. Historical comparison remains pending approved inputs and locked settings. The local finalization journal records the former paths. Read-only inspection accepts the verified archive relocation with explicit evidence.
 - Finalization evidence compatibility | completed: 2026-11-23 | note: accepts recorded contract tables, reviewed fix aliases and repository-bound PR number and URL pairs. A read-only reproduction now reaches integration evidence checks. Delivery and live installation are tracked separately.
 - [fix-01-finalization-inline-code-links](../tasks/completed/fix-01-finalization-inline-code-links/state.md) | completed: 2026-11-19 | note: archive link relocation now treats inline code spans as text, as it does fences (example links in task records no longer refuse archival); links whose text holds code and links after a stray bracket stay relocated and checked; owner-approved quick-path exception; three independent review rounds; suites 65/77 OK, validator 725/0/2
 - [task-010-rules-workflows-audit](../tasks/completed/task-010-rules-workflows-audit/state.md) | completed: 2026-11-19 | note: closed by `/phase-finalize` (stack branches removed with verified recovery packs); pinned audit of the 61 rule, workflow, harness and Codex template files at `8d7e484` ([report](../../docs/audits/2026-11-17-rules-workflows-audit.md)); delivery PRs #105–#116 merged into main 2026-11-18 (09fba91); all retained improvement proposals applied by follow-ups T-13–T-19 (stack PRs #117, #120–#125 from main; state-tool memory warning #119 from main), spec 013 intake extended (#118), report corrected, independently re-reviewed (`Reviewed: … ce56065`) and accepted (`Accepted: owner 2026-11-18`), amendments applied to spec 011 (AC-50); integration tree complete validator 725/0/2, audit suite 296 OK; spec 010 Q-06 decided by the owner as D-06 (2026-11-19); #117–#125, #118 and #119 merged into main on 2026-11-19 (dc665bc) by owner instruction; closed by `/phase-finalize` on 2026-11-19: the 19 stack branches removed on origin and locally after a verified recovery pack, fresh complete validator 725/0/2 at 4884aaa; the specification is archived and its identity-ledger path was updated; matrix versions 2.44.2, 2.45.0, 2.53.0 not run
