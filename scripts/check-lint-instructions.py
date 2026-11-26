@@ -1887,5 +1887,28 @@ class CanonicalWorkflowMigration(unittest.TestCase):
         self.assertEqual([json.loads(line)["pipeline"] for line in history_bytes.splitlines()], [old] * 3)
 
 
+class CapabilityDispatchContract(unittest.TestCase):
+    def test_capabilities_require_dispatch_access_and_fresh_evidence(self) -> None:
+        declaration = section(current(PHASE_CONTRACT), "## Capabilities").partition("| Behaviour |")[0]
+        prose = " ".join(declaration.replace("`", "").lower().split())
+        expectations = {
+            "declaration source": r"\balways-on\b",
+            "unavailable declarations": r"(?=[^.]*\bno\b)(?=[^.]*\bunknown\b)(?=[^.]*\babsent\b)[^.]*\bunavailable\b",
+            "declared yes still needs access": r"(?=[^.]*\byes\b)(?=[^.]*\bsession\b)(?=[^.]*\btools?\b)[^.]*\bpermissions?\b",
+            "dispatch timing": r"\bat dispatch\b",
+            "no network probing": r"\b(?:without|avoid|no)\b[^.]*\bnetwork prob(?:e|es|ing)\b",
+            "fresh evidence": r"(?=[^.]*\brecords?\b)(?=[^.]*\bchang(?:e|es|ed|ing)\b)[^.]*\bnew evidence\b",
+        }
+        for requirement, pattern in expectations.items():
+            with self.subTest(requirement=requirement):
+                self.assertRegex(prose, pattern)
+
+        spec_run = current("workflows/spec-run.md")
+        repository_mode = section(spec_run, "## Repository mode")
+        self.assertLess(spec_run.index("\n## Guard\n"), spec_run.index("\n## Repository mode\n"))
+        self.assertRegex(repository_mode, r"(?i)\b(?:after|once) (?:the )?(?:capability )?(?:guard|preflight)\b")
+        self.assertNotIn("before anything else", repository_mode.lower())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
