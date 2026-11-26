@@ -481,6 +481,13 @@ class InstructionMetadataTests(unittest.TestCase):
                 self.write(PHASE_CONTRACT, contract.replace(header, header + "<!-- header note -->"))
                 self.assert_finding(self.run_checker(), code, PHASE_CONTRACT)
 
+    def test_visible_rule_reference_anchor_requires_exact_source_text(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        synthetic_anchor = RESOLUTION_LINE.replace("resolves", "re<!-- hidden -->solves")
+        self.write(PHASE_CONTRACT, contract.replace(RESOLUTION_LINE, synthetic_anchor))
+
+        self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
     def test_counts_only_the_always_on_body_at_the_size_limit(self) -> None:
         capabilities = words(1607)
         self.write_adapter("at-limit", words(1200), capabilities)
