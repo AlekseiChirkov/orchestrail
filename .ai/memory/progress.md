@@ -247,3 +247,19 @@ Compared task state pointers with all specification files and aligned eleven tas
 ## 2026-11-25 — Archive implemented specifications
 
 Archived the rules and workflows audit and task finalization specifications after reviewing their completed validation and integration evidence. The audit identity-ledger row and current task pointers now name the archived paths; the finalization task itself remains unarchived and deployment remains unverified. The archived review-pilot specification still contains an explicitly deferred second phase and is not evidence of whole-spec delivery.
+
+
+## 2026-11-25 — Harness infrastructure integrated and stack cleanup verified
+
+All 19 PRs were merged. Phase 1 is integrated at `c7e986fbd79b01868efb8adc54dd1ba6ff379204`.
+After verifying a self-contained recovery pack, finalization confirmed removal of all 19
+local and remote stack refs. The owner separately authorized deletion of the remote
+legacy reporter branch after it advanced to an integrated merge commit.
+
+Fresh isolated verification passed 103 focused tests, 725 contract checks with two
+optional skips, and 189 finalization acceptance tests. Both staged harnesses matched
+their canonical sources byte-for-byte. The strict checker returned the single expected
+`usage-map-mismatch` diagnostic for the deferred Phase 2 rename table.
+
+Phase 2 retains the naming migration, read-only
+journal relocation, and whole-spec verification.

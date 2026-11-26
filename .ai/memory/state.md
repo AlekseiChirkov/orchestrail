@@ -6,7 +6,9 @@ of every session. Updated after every phase transition.
 
 ## Active Tasks
 
-- [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | phase: validation | status: reviewed | note: 17 implementation leaves, two composites and two validation repairs passed. PRs #139–#157 await owner integration before Phase 2.
+- [Names, finalization and integrated verification](../specs/011-model-only-harnesses-and-rule-naming.md#phase-2--names-finalization-and-integrated-verification) | phase: execution | status: in-progress | note: Seven sequential subtasks planned. Archived relocation inspection started.
+
+
 
 Specification references were reviewed against the three-digit mapping; corrections and
 the outstanding parallel-program reconciliation are recorded in [the reference review](../../docs/analysis/2026-11-25-specification-reference-review.md).
@@ -28,6 +30,7 @@ previous order and numbers are historical. A specification becomes a task via
 Runtime work was closed by owner decision; remaining roadmap scope is not automatically scheduled.
 
 ## Done
+- [Harness infrastructure and inventory](../specs/011-model-only-harnesses-and-rule-naming.md#phase-1--harness-infrastructure-and-inventory) | completed | note: All 19 PRs merged on 2026-11-25 and Phase 1 integrated at `c7e986fbd79b01868efb8adc54dd1ba6ff379204`. Verified recovery and local and remote branch cleanup. Fresh isolated staging passed 725 contract checks with two optional skips. Phase 2 remains active.
 - [task-026-spec-driven-pr-review-p1](../tasks/completed/task-026-spec-driven-pr-review-p1/state.md) | completed | note: offline protocol and synthetic verification integrated through PRs #132–#137 at `04f2c35`; validation evidence corrected at `cb7b720`; recovery verified and six local and remote stack branches cleaned up. Historical comparison remains pending approved inputs and locked settings. The local finalization journal still names the former task and specification paths; current-path recovery is unresolved.
 - Finalization evidence compatibility | completed: 2026-11-23 | note: accepts recorded contract tables, reviewed fix aliases and repository-bound PR number and URL pairs. A read-only reproduction now reaches integration evidence checks. Delivery and live installation are tracked separately.
 - [fix-01-finalization-inline-code-links](../tasks/completed/fix-01-finalization-inline-code-links/state.md) | completed: 2026-11-19 | note: archive link relocation now treats inline code spans as text, as it does fences (example links in task records no longer refuse archival); links whose text holds code and links after a stray bracket stay relocated and checked; owner-approved quick-path exception; three independent review rounds; suites 65/77 OK, validator 725/0/2
@@ -58,7 +61,6 @@ Runtime work was closed by owner decision; remaining roadmap scope is not automa
 
 ## Deferred
 
-- Phase 2 — Harness and workflow names, finalization compatibility and integrated verification. Prerequisites: phase-one validation and owner integration.
 - Phase 2 — Deferred standalone review service. Prerequisites: historical offline comparison and owner decision.
 
 ## Known conditions (read before starting any task)

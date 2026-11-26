@@ -157,9 +157,8 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
 - Deployed copies are disposable. Fix the source here, re-run `scripts/sync.sh`.
 - If a workflow skill shadows a rule skill (or vice versa), check that `rule-` prefixes
   are present: `ls -d ~/.claude/skills/rule-* | wc -l` must equal the count of `rules/*.md`.
-- Project-local `.claude/skills/<name>` that are real directories (not symlinks) shadow
-  the global skill; `scripts/sync.sh` deletes such copies for projects with `.devin/`, otherwise
-  remove them by hand and re-run `scripts/link-skills.sh`.
+- A project-local directory at `.claude/skills/<name>` can shadow the global skill. Sync
+  preserves existing directories. Review the local contents before restoring the skill link.
 
 ### Recover a task whose state is corrupt
 1. `bash scripts/validate-task.sh <task-dir>` — read every `[FAIL]`.

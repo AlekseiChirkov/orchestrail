@@ -7,7 +7,7 @@ Project Git mutations are returned as argv arrays for explicit hook-governed exe
 Recovery verification initializes/writes only disposable isolated temporary Git storage.
 
 CLI (one JSON object on stdout, exit 0 success / 1 blocked / 2 usage):
-  phase-finalize.py inspect TARGET --root ROOT [--evidence JSON] [--dry-run]
+  phase-finalize.py inspect TARGET --root ROOT [--evidence JSON] [--relocation-evidence FILE] [--dry-run]
   phase-finalize.py prepare|attempt|record|knowledge|archive|finish TARGET --root ROOT
       [--evidence JSON] --authorize --expected-revision absent|SHA256 [--dry-run]
 No implicit project root/repository discovery, project Git initialization, checkout, fetch, PR/history merge,
@@ -28,6 +28,15 @@ Statuses: ready, recovery-required, prepared, recorded, archived, complete, bloc
 is not completion. record rechecks each actual ref/checkout postcondition; command
 exit codes or caller success flags never establish cleanup. Surviving remote refs
 remain incomplete. Local branch -d refusal MUST preserve that branch; never use -D.
+
+Relocation evidence applies to one pinned historical relocation. Its regular UTF-8 JSON
+file (up to 1 MiB) contains exactly schema_version ("1"), journal_id, journal_sha256,
+task_old, task_new, spec_old, spec_new and evidence_commit, all strings. The two journal
+values are lowercase SHA-256 strings; paths are exact project-relative locations.
+Inspect verifies the journal, immutable Git provenance, tracked current bytes and original
+specification snapshot. It returns the same identity and verified paths for each of the
+four selectors, with relocation: verified-read-only and no lifecycle action plan.
+Mutating subcommands refuse those selectors and the relocation option before any writes.
 
 Internal attempt input: evidence.command_attempt is exactly {attempt_id, operation_id,
 checkpoint, repository, argv, exit_code, stdout, stderr, observed_at, provenance,
@@ -240,6 +249,7 @@ from finalization_evidence import assess, commit, evidence_file, git, remote_ref
 from finalization_recovery import check_verified, prepare_recovery, recovery_plan
 from finalization_knowledge import (capture as capture_knowledge, capture_indexes, changes as knowledge_changes,
                                     index_observations, reconcile_indexes)
+from finalization_relocation import inspect_relocation, matches_alias
 from finalization_support import (Refusal, atomic_write, dated, digest, encoded, expect_revision,
                                   edit_current_state, fault, field, locked, manifest, normalized_state, now, read_json, require, safe_path, section, text)
 
@@ -524,12 +534,20 @@ def reconcile_knowledge_input(command: str, dry_run: bool, root: Path, task: Pat
 def execute(args: argparse.Namespace) -> dict:
     root = safe_path(Path(args.root))
     require(root.is_dir(), 'root-invalid', 'Explicit project root does not exist')
-    evidence = evidence_file(Path(args.evidence) if args.evidence else None)
     selected = Path(args.target)
+    if args.command != 'inspect':
+        require(args.relocation_evidence is None and not matches_alias(root, selected),
+                'relocation-inspect-only', 'Archived relocation selectors and evidence are only supported by inspect')
+    elif args.relocation_evidence is not None:
+        require(len(args.relocation_evidence) == 1, 'relocation-evidence-invalid', 'Provide exactly one relocation evidence file')
+        return inspect_relocation(root, selected, Path(args.relocation_evidence[0]))
+    evidence = evidence_file(Path(args.evidence) if args.evidence else None)
     selected_absolute = safe_path(selected if selected.is_absolute() else root / selected, root)
     adoption = evidence.get('adoption')
     if isinstance(adoption, dict) and str(selected_absolute) == adoption.get('original_task_path') and not selected_absolute.exists():
         selected = Path(adoption.get('task_path', ''))
+        require(args.command == 'inspect' or not matches_alias(root, selected),
+                'relocation-inspect-only', 'An adoption selector cannot enable mutation of an archived relocation')
     task, spec, path, prior = resolve(root, selected)
     if prior is None and task.parent == root / '.ai/tasks/completed':
         require(isinstance(adoption, dict) and adoption.get('task_path') == str(task)
@@ -629,6 +647,7 @@ def main() -> int:
     parser.add_argument('target')
     parser.add_argument('--root', required=True)
     parser.add_argument('--evidence')
+    parser.add_argument('--relocation-evidence', action='append')
     parser.add_argument('--authorize', action='store_true')
     parser.add_argument('--expected-revision')
     parser.add_argument('--dry-run', action='store_true')

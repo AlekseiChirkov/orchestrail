@@ -1,7 +1,7 @@
 """Lossless, no-overwrite archival and exact task/journal location resolution."""
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 import ctypes
 import errno
 import os
@@ -23,6 +23,11 @@ def journal_path(root: Path, stable_id: str) -> Path:
 
 def validate_journal(root: Path, path: Path) -> dict:
     document = read_json(path)
+    validate_journal_document(root, path, document)
+    return document
+
+
+def validate_journal_document(root: Path, path: Path, document: dict) -> None:
     require(document.get('schema_version') == 1 and document.get('project_root') == str(root), 'journal-invalid', 'Journal schema or project identity differs')
     original = safe_path(Path(document.get('task_original', '')), root)
     stable_id = identity(root, original)
@@ -33,19 +38,17 @@ def validate_journal(root: Path, path: Path) -> dict:
         safe_path(Path(document[key]), root)
     require(Path(document['task_current']) in {original, root / '.ai/tasks/completed' / original.name}, 'journal-invalid', 'Invalid current task location')
     require(isinstance(document.get('repositories'), list) and isinstance(document.get('actions'), list), 'journal-invalid', 'Journal plan is missing')
-    return document
+
+
+def journal_files(root: Path) -> Iterator[Path]:
+    directory = safe_path(root / '.ai/context/finalization', root)
+    if directory.exists():
+        for path in sorted(directory.glob('*/journal.json')):
+            yield safe_path(path, root)
 
 
 def all_journals(root: Path) -> list[tuple[Path, dict]]:
-    directory = root / '.ai/context/finalization'
-    safe_path(directory, root)
-    if not directory.exists():
-        return []
-    result: list[tuple[Path, dict]] = []
-    for path in sorted(directory.glob('*/journal.json')):
-        safe_path(path, root)
-        result.append((path, validate_journal(root, path)))
-    return result
+    return [(path, validate_journal(root, path)) for path in journal_files(root)]
 
 
 def resolve(root: Path, selected: Path) -> tuple[Path, Path, Path, dict | None]:
