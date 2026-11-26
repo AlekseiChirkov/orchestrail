@@ -32,8 +32,24 @@ of a codebase whose language is instructional markdown plus bash.
    rule's body into a workflow.
 
 ### Rule file shape (`rules/*.md`)
-- Front matter includes a one-line `description:` and `load: always` or
-  `load: on-demand`. Sync installs the file as a `rule-<name>` skill.
+- The first line and the line closing front matter are both `---`. Every non-empty
+  line between them uses `<key>: <value>` at column 0, with a key matching
+  `[a-z_]+`. A value starting with a double quote is a JSON string that consumes
+  the rest of the line. A plain value is the non-empty remainder with trailing
+  spaces removed. Its first character must be outside the set
+  `` ' [ { | > & * ! % @ ` ``.
+  The scalar grammar rejects tabs, comments, duplicate keys and continuation lines.
+- Required keys are a non-empty one-line `description:` and `load:` with either
+  `always` or `on-demand`. The registered extension is `loads`. An empty value or
+  `[]` on its column-0 line opens a block through the next column-0 line or
+  closing delimiter. The owning validator checks block contents under its own
+  grammar. Until that validator is registered in `scripts/lint-instructions.py`,
+  the checker reports `metadata-unknown-field` for the extension.
+- The stem starts with one of the rule kinds defined in
+  [the domain vocabulary](domain.md#vocabulary). Sync installs the file as a
+  `rule-<stem>` skill. Bootstrap rules use only the two prescribed level-two
+  headings. The checker applies the 300-word limit and accepts an audited size
+  exception only while its word count equals the recorded value.
 - Contract first, rationale second, worked examples last. Target: a rule readable in one
   screen before its first example.
 - Any vocabulary (status values, field names, enum) is defined on **one anchored line**
@@ -45,13 +61,16 @@ of a codebase whose language is instructional markdown plus bash.
 ### Cross-references
 - Syntax: `` `file → ## Section` `` or `` `file → ## Section → ### Subsection` ``. The
   section must exist with that exact heading text.
-- Adding a reference means adding a check in `scripts/validate-contracts.sh` if the target is a
-  section other workflows do not already depend on.
+- Check references to new instruction sections with `scripts/lint-instructions.py`.
+  Add focused coverage in the standalone suite when the contract requires it.
 - A concept has exactly one canonical definition. If two files must mention it, one of
   them says "canonical definition: `file → ## Section`".
 
 ### Changing a contract
-1. Write the failing check in `scripts/validate-contracts.sh` first (RED at `smoke` level).
+1. Write and observe the failing check first. Preserve the frozen inventory of
+   `scripts/validate-contracts.sh`. For independently verified instruction or
+   deployment contracts, extend the corresponding standalone suite
+   (`scripts/check-lint-instructions.py` or `scripts/check-deploy-skills.py`).
 2. Update the canonical definition.
 3. Update every reader and writer — grep for the old value across `workflows/`, `rules/`,
    `docs/USAGE.md`, `docs/PIPELINE.md`, `templates/`.

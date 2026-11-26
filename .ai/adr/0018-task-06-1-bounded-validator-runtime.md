@@ -2,7 +2,8 @@
 
 ## Status
 
-Provisional
+Provisional. [ADR-0029](0029-task-011-instruction-contract-migration.md) records the schema-2
+amendment to the frozen validator inventory. The runtime decision remains provisional.
 
 ## Date
 

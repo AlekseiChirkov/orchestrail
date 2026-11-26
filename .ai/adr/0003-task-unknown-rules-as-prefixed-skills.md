@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted
+Accepted. [ADR-0029](0029-task-011-instruction-contract-migration.md) supersedes the deployment
+targets only. The `rule-` prefix and the duplication of always-on essentials still apply.
 
 ## Date
 

@@ -12,7 +12,7 @@ so that a contributor can find the *why* without reading every rule. ADR-0007 an
 |--------|-------|--------|------|------|
 | 0001 | The pipeline is markdown instructions with no runtime | Accepted | 2026-07-01 | [0001-task-unknown-markdown-only-no-runtime.md](0001-task-unknown-markdown-only-no-runtime.md) |
 | 0002 | All pipeline state lives on disk in `.ai/` and is never committed in consumer projects | Accepted | 2026-07-01 | [0002-task-unknown-state-on-disk-untracked.md](0002-task-unknown-state-on-disk-untracked.md) |
-| 0003 | Rules deploy to Claude Code and Codex as `rule-<name>` skills; essentials duplicated | Accepted | 2026-07-21 | [0003-task-unknown-rules-as-prefixed-skills.md](0003-task-unknown-rules-as-prefixed-skills.md) |
+| 0003 | Rules deploy to Claude Code and Codex as `rule-<name>` skills; essentials duplicated | Accepted (deployment targets only superseded by ADR-0029) | 2026-07-21 | [0003-task-unknown-rules-as-prefixed-skills.md](0003-task-unknown-rules-as-prefixed-skills.md) |
 | 0004 | Orchestrated mode uses context-bounded roles and strictly sequential execution | Accepted | 2026-08-26 | [0004-task-unknown-sequential-orchestration-context-roles.md](0004-task-unknown-sequential-orchestration-context-roles.md) |
 | 0005 | Stacked branches, two commits per subtask, no pipeline identifiers or attribution in the repository | Accepted | 2026-08-26 | [0005-task-unknown-pipeline-invisible-in-repository.md](0005-task-unknown-pipeline-invisible-in-repository.md) |
 | 0006 | Central cross-project run log written by a helper and read only by `/retro` | Accepted | 2026-08-26 | [0006-task-unknown-central-run-log-and-retro.md](0006-task-unknown-central-run-log-and-retro.md) |
@@ -27,7 +27,7 @@ so that a contributor can find the *why* without reading every rule. ADR-0007 an
 | 0015 | Optional cached catalog and conservative model resolution | Accepted | 2026-10-28 | [0015-task-04-cached-model-selection.md](0015-task-04-cached-model-selection.md) |
 | 0016 | Additive usage telemetry | Accepted | 2026-10-30 | [0016-task-05-additive-usage-telemetry.md](0016-task-05-additive-usage-telemetry.md) |
 | 0017 | Enforced git rails through a PreToolUse hook with owner-approval asks | Accepted | 2026-11-05 | [0017-task-06-enforced-git-rails-hook.md](0017-task-06-enforced-git-rails-hook.md) |
-| 0018 | Bounded contract validator runtime with preserved expression semantics | Provisional | 2026-11-05 | [0018-task-06-1-bounded-validator-runtime.md](0018-task-06-1-bounded-validator-runtime.md) |
+| 0018 | Bounded contract validator runtime with preserved expression semantics | Provisional (schema-2 inventory amendment recorded by ADR-0029) | 2026-11-05 | [0018-task-06-1-bounded-validator-runtime.md](0018-task-06-1-bounded-validator-runtime.md) |
 | 0019 | Independent bounded Devil's Advocate review in specification authoring | Accepted | 2026-11-13 | [0019-task-unknown-spec-draft-devils-advocate-review.md](0019-task-unknown-spec-draft-devils-advocate-review.md) |
 | 0020 | Source guard timeouts are watchdogs, not budgets | Accepted | 2026-11-13 | [0020-task-unknown-source-guard-watchdog-timeouts.md](0020-task-unknown-source-guard-watchdog-timeouts.md) |
 | 0021 | Schedule the state tool with a kernel-released lock, `scripts/` path and ignore rules | Accepted | 2026-11-13 | [0021-task-07-schedule-state-tool.md](0021-task-07-schedule-state-tool.md) |
@@ -38,3 +38,4 @@ so that a contributor can find the *why* without reading every rule. ADR-0007 an
 | 0026 | Three-digit specification numbers across active and completed records | Accepted; integration pending | 2026-11-25 | [0026-task-unknown-specification-number-format.md](0026-task-unknown-specification-number-format.md) |
 | 0027 | Evidence-bound knowledge relocations | Accepted | 2026-11-25 | [0027-task-011-evidence-bound-relocations.md](0027-task-011-evidence-bound-relocations.md) |
 | 0028 | Harness deployment engine | Accepted | 2026-11-25 | [0028-task-011-harness-deployment-engine.md](0028-task-011-harness-deployment-engine.md) |
+| 0029 | Adapter-declared deployment targets and canonical instruction names | Accepted | 2026-11-26 | [0029-task-011-instruction-contract-migration.md](0029-task-011-instruction-contract-migration.md) |
