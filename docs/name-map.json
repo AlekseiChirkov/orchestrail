@@ -126,6 +126,209 @@
         "protocol-autonomous-decision",
         "protocol-subtask-classifier"
       ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pae-finalize",
+      "new": [
+        "atomic-execution-finalize"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pae-implement",
+      "new": [
+        "atomic-execution-implement"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pae-tests",
+      "new": [
+        "atomic-execution-tests"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pav-check",
+      "new": [
+        "atomic-validation-check"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pav-close",
+      "new": [
+        "atomic-validation-close"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pav-propose",
+      "new": [
+        "atomic-validation-propose"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-analyze",
+      "new": [
+        "discovery-analyze"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-archive",
+      "new": [
+        "discovery-archive"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-decompose",
+      "new": [
+        "discovery-decompose"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-design",
+      "new": [
+        "discovery-design"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-finalize",
+      "new": [
+        "discovery-finalize"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pd-select-model",
+      "new": [
+        "discovery-select-model"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pe-execute",
+      "new": [
+        "execution-execute"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pe-finalize",
+      "new": [
+        "execution-finalize"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-atomic-execution",
+      "new": [
+        "atomic-execution"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-atomic-validation",
+      "new": [
+        "atomic-validation"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-composite-validation",
+      "new": [
+        "composite-validation"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-discovery",
+      "new": [
+        "discovery"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-execution",
+      "new": [
+        "execution"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-finalize",
+      "new": [
+        "finalization"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-pipeline",
+      "new": [
+        "pipeline"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "phase-validation",
+      "new": [
+        "validation"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-classify-fixes",
+      "new": [
+        "validation-classify-fixes"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-contract",
+      "new": [
+        "validation-contract"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-create-fixes",
+      "new": [
+        "validation-create-fixes"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-execute-fixes",
+      "new": [
+        "validation-execute-fixes"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-finalize",
+      "new": [
+        "validation-finalize"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-issues",
+      "new": [
+        "validation-issues"
+      ]
+    },
+    {
+      "kind": "workflow",
+      "old": "pv-review",
+      "new": [
+        "validation-review"
+      ]
     }
   ]
 }

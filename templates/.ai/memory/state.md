@@ -16,13 +16,13 @@ A task waiting on an external dependency stays here with `status: blocked` — t
 separate blocked section.
 
 ## Done
-Completed tasks. `/pv-finalize` moves an entry here from `## Active Tasks` when validation
-completes with no deferred items. Separately invoked `/phase-finalize` reconciles this entry
+Completed tasks. `/validation-finalize` moves an entry here from `## Active Tasks` when validation
+completes with no deferred items. Separately invoked `/finalization` reconciles this entry
 and current links after integration; preserve prior Validation and report finalization outcomes
 from the stable journal without implying deployment or closing unfinished product scope.
 
 ## Deferred
 Tasks or items explicitly postponed, with reason.
 
-Later phases of a multi-phase spec are recorded here by `/pd-finalize` in this format:
+Later phases of a multi-phase spec are recorded here by `/discovery-finalize` in this format:
 `- <basename> phase <K>/<M> | deferred | reason: later phase of <basename>, starts after phase <N> validation complete`

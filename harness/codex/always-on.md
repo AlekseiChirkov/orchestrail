@@ -56,7 +56,7 @@ language — never a work-item id.
 
 ## Post-merge task closure
 
-Use `/phase-finalize <task-directory|spec-path> [--dry-run]` only by separate invocation
+Use `/finalization <task-directory|spec-path> [--dry-run]` only by separate invocation
 after owner integration. Ordinary invocation authorizes mandatory proven task cleanup;
 load `rule-bootstrap-finalization`, `rule-contract-phases` and `rule-contract-git-flow` before operations.
 Required finalization helpers fail closed on missing evidence; dry-run writes nothing.

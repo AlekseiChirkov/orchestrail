@@ -4,13 +4,13 @@ phase: discovery
 step: "-"
 ---
 
-Invocation: `/phase-discovery <path-to-spec> [--phase N] [--step-by-step]`
-Example: `/phase-discovery .ai/specs/01-add-oauth.md --phase 2`
+Invocation: `/discovery <path-to-spec> [--phase N] [--step-by-step]`
+Example: `/discovery .ai/specs/01-add-oauth.md --phase 2`
 
 Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
 The spec must be a file in `.ai/specs/`. Child workflows take the task directory,
-not the spec path. `/pd-select-model` is required after decomposition for full flow.
+not the spec path. `/discovery-select-model` is required after decomposition for full flow.
 
 ## Execution Modes
 
@@ -34,7 +34,7 @@ from the spec and record that assumption.
 Escalate only on the protocol's threshold, a hard blocker, or an overwrite Guard.
 Under `/spec-run`, its Class A/B escalation and Discovery batch gate take precedence.
 Overwrite Guards still apply. Only an encompassing workflow such as
-`/phase-pipeline` may advance phases.
+`/pipeline` may advance phases.
 
 ### Step-by-step mode behavior
 
@@ -130,19 +130,19 @@ overwrite confirmation and returns before state changes, logging or child execut
    (`contract-phases → ## Canonical Status Formats`). On resume add the section only when
    it is absent; never change existing lines. A task without the section is
    single-repository, and Discovery otherwise runs unchanged: analysis reads every
-   repository, and `/pd-decompose` routes each leaf to one of them.
+   repository, and `/discovery-decompose` routes each leaf to one of them.
 8. Bootstrap context and open the run log before the first child.
 
 ## Run Logging
 
 Follow `contract-run-log → ## Workflow coverage and routing`. Resolve the helper from
-`ORCHESTRAIL_HOME` and issue `scripts/log-step.sh run-start --pipeline phase-discovery`
+`ORCHESTRAIL_HOME` and issue `scripts/log-step.sh run-start --pipeline discovery`
 with project, resolved task, spec, current flow and flags. Keep `LOG_HELPER` and
 `RUN_ID`; on a later-session resume start a new run. A parent-owned run uses the
 parent's routing rather than opening an independent child run.
 
-Log each child actually executed (`pd-analyze`, `pd-decompose`,
-`pd-select-model`, `pd-design`, `pd-finalize`, `pd-archive`); account for nested
+Log each child actually executed (`discovery-analyze`, `discovery-decompose`,
+`discovery-select-model`, `discovery-design`, `discovery-finalize`, `discovery-archive`); account for nested
 archive once. Add `--note approximate` to ordinary prompt steps. Carry observed
 questions, stops, decisions, escalations and quick-to-full promotion counts.
 Close with `run-end --outcome completed` after finalization, or `stopped` on an
@@ -160,26 +160,26 @@ Use explicit markers in order:
 
 A marker whose required artifact is missing or contradictory → **stop** and
 report the inconsistency. Partial T-XX artifacts without a completion marker
-still enter `/pd-decompose`'s overwrite Guard. A confirmed rerun starts at Step 1; otherwise resume at the first incomplete step.
+still enter `/discovery-decompose`'s overwrite Guard. A confirmed rerun starts at Step 1; otherwise resume at the first incomplete step.
 Report the resume point.
 
 ## Execution
 
 Run the remaining children in order, passing the task directory and selected mode:
 
-1. `/pd-analyze <task-directory>` — analysis and flow selection.
-2. `/pd-decompose <task-directory>` — full flow only.
-3. `/pd-select-model <task-directory>` — full flow only; persist verified or explicitly preliminary recommendations.
-4. `/pd-design <task-directory>` — full flow only. If design changes a leaf or decomposition, rerun selection before finalization.
-5. `/pd-finalize <task-directory>` — consistency, archive and final report.
+1. `/discovery-analyze <task-directory>` — analysis and flow selection.
+2. `/discovery-decompose <task-directory>` — full flow only.
+3. `/discovery-select-model <task-directory>` — full flow only; persist verified or explicitly preliminary recommendations.
+4. `/discovery-design <task-directory>` — full flow only. If design changes a leaf or decomposition, rerun selection before finalization.
+5. `/discovery-finalize <task-directory>` — consistency, archive and final report.
 
 Read `flow:` after Step 1: for `flow: quick`, skip Steps 2 and 3 and Step 4; create no T-XX or
 `plan.md`; full flow runs all steps. Apply `contract-quick-flow` if scope requires promotion.
 Selection incomplete or unavailable must stop the phase with `discovery: in-progress` and actionable recovery instructions. A child Guard or hard blocker stops the phase in either mode. In autonomous mode,
 immediately invoke the next child when the previous one succeeds.
 
-Let `/pd-finalize` supply the single final report: artifact paths, chosen approach,
+Let `/discovery-finalize` supply the single final report: artifact paths, chosen approach,
 autonomous assumptions and scores when available, and the next command as text.
 For quick flow, report the inline contract.
 
-**STOP. Do not run `/phase-execution` automatically.**
+**STOP. Do not run `/execution` automatically.**

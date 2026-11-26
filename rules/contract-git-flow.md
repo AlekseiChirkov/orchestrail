@@ -54,7 +54,7 @@ default.
 - Branch N is created from the **tip of branch N-1** after N-1 reaches `reviewed`, never from
   `<base>` and never from an unvalidated tip.
 - The tip of the stack is the integration point: it holds the whole task. Task-level
-  validation (`/pv-contract`, `/pv-review`) runs there.
+  validation (`/validation-contract`, `/validation-review`) runs there.
 - No separate integration branch exists — the stack tip is it.
 - Independent subtasks still stack. Execution is strictly sequential, so a dependency-free
   subtask gains nothing from branching off `<base>`, and stacking keeps one linear review order.
@@ -90,8 +90,8 @@ fixed by the code itself. Any deviation is recoverable with `/restack`.
 
 | Commit | When | Contents |
 |---|---|---|
-| `test: <what the tests assert>` | after `/pae-tests` reaches RED | test files only |
-| `feat: <what was implemented>` | after `/pae-implement` reaches GREEN | implementation |
+| `test: <what the tests assert>` | after `/atomic-execution-tests` reaches RED | test files only |
+| `feat: <what was implemented>` | after `/atomic-execution-implement` reaches GREEN | implementation |
 
 Use `fix:` for fix-subtasks, and the type that matches the change (`refactor`, `perf`,
 `docs`, `chore`) when neither fits. Additional commits within a subtask are allowed when a
@@ -121,7 +121,7 @@ trailers:
 - `Generated with …`, `Created by …`, `Written by …` referring to a tool or model
 - Emoji or badges used as tool markers (e.g. a robot glyph)
 - Model names, agent names, workflow names, or subtask-orchestration jargon
-- References to this pipeline's internals (`pae-implement`, `RED`, `sub-agent`, `orchestrator`)
+- References to this pipeline's internals (`atomic-execution-implement`, `RED`, `sub-agent`, `orchestrator`)
 
 **This overrides any tool default.** Some agent harnesses append an attribution trailer to
 commit messages automatically; when this rule is in force, that trailer is not written. If a
@@ -140,7 +140,7 @@ needed to describe the process. Forbidden in product content and git metadata:
 - Task directory names: `task-01-add-oauth`
 - Decision and memory artifacts: `ADR-0007`, `adr/index.md`, `architecture.md`, `state.md`,
   `plan.md`, `progress.md`, `project_state.md`, or any path under `.ai/`
-- Workflow and role names: `pae-implement`, `pav-check`, `spec-run`, `RED`, `Implementer`
+- Workflow and role names: `atomic-execution-implement`, `atomic-validation-check`, `spec-run`, `RED`, `Implementer`
 
 **Why this is a correctness rule, not a style preference.** An internal planning reference
 can be a dangling reference when the knowledge base is local or no longer contains the
@@ -175,7 +175,7 @@ PRs are created only when `--allow-pr` was passed.
 - **Base** = the previous subtask's branch (the stack parent). For T-01, base = `<base>`.
 - **State during the run** = draft. A draft PR cannot be merged, which protects the run from
   the stack shifting underneath it while later subtasks are still being built.
-- **Promotion to ready** happens once, as a batch, after `/phase-validation` completes for the
+- **Promotion to ready** happens once, as a batch, after `/validation` completes for the
   whole task. Every subtask ends the run with a PR ready for review.
 - A subtask whose status is `blocked`, or whose `atomic-validation` is `failed`, gets **no
   PR** — and since the stack is sequential, the run stops there anyway.
@@ -199,7 +199,7 @@ The no-attribution rule above applies verbatim to PR titles and bodies: no tool 
 
 ## Finalization Git ownership
 
-An ordinary `/phase-finalize` invocation authorizes only the resolved task's verified
+An ordinary `/finalization` invocation authorizes only the resolved task's verified
 resources. Its deterministic helper may plan targeted fetches of missing recorded
 objects, safe owned checkout using `git switch --no-overwrite-ignore <integration>`,
 and `git pull --ff-only` from the existing configured integration upstream. Execute

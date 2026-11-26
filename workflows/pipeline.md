@@ -4,7 +4,7 @@ phase: orchestrated
 step: "-"
 ---
 
-Invocation: `/phase-pipeline <spec-path|task-directory>`
+Invocation: `/pipeline <spec-path|task-directory>`
 
 Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
@@ -27,7 +27,7 @@ open one run with `scripts/log-step.sh run-start` through the configured helper:
 LOG_HELPER="${ORCHESTRAIL_HOME:+$ORCHESTRAIL_HOME/scripts/log-step.sh}"
 RUN_ID=""
 if [ -x "$LOG_HELPER" ]; then
-  RUN_ID=$("$LOG_HELPER" run-start --pipeline phase-pipeline \
+  RUN_ID=$("$LOG_HELPER" run-start --pipeline pipeline \
     --project "$WORK_DIR" --task <task-directory> --spec <spec-path> \
     --flow <quick|full>) || RUN_ID=""
 fi
@@ -47,13 +47,13 @@ Overrides apply only inside this invocation and never cross into a later spec ph
 | Decision point | Action |
 |---|---|
 | End of Discovery or Execution | Continue to the next phase after its completion marker is verified. |
-| `pd-analyze`, `pd-decompose`, `pd-design` | Use autonomous defaults; never pass `--step-by-step`. Resolve design choices through the protocol below. |
-| `pae-tests` output formatting | Pass `--batch` to suppress duplicate digest display; preserve every evidence/blocker gate. RED establishment is never skipped. |
-| `pv-issues` approval | Approve `critical` and `important`; defer `optional`; record the automatic split. |
-| `phase-composite-validation` integration approval | Apply the same split in `## Integration Issues (T-XX)`. |
-| `pav-propose` | Pass `--batch`: record every proposal, apply nothing. |
-| `pe-finalize` step 5, batched `Do Now` choice | Choose option 2: apply now before Validation, and record the automatic choice. |
-| `pe-execute`, `pv-execute-fixes` ambiguity | Resolve through the protocol; external blockers still stop. |
+| `discovery-analyze`, `discovery-decompose`, `discovery-design` | Use autonomous defaults; never pass `--step-by-step`. Resolve design choices through the protocol below. |
+| `atomic-execution-tests` output formatting | Pass `--batch` to suppress duplicate digest display; preserve every evidence/blocker gate. RED establishment is never skipped. |
+| `validation-issues` approval | Approve `critical` and `important`; defer `optional`; record the automatic split. |
+| `composite-validation` integration approval | Apply the same split in `## Integration Issues (T-XX)`. |
+| `atomic-validation-propose` | Pass `--batch`: record every proposal, apply nothing. |
+| `execution-finalize` step 5, batched `Do Now` choice | Choose option 2: apply now before Validation, and record the automatic choice. |
+| `execution-execute`, `validation-execute-fixes` ambiguity | Resolve through the protocol; external blockers still stop. |
 | `compress-state` confirmation | Pass `--auto`; protected sections remain intact. |
 | `spec-sync` reconciliation | Pass `--auto-mode` after Validation, retaining its failed-criterion guard. |
 
@@ -69,11 +69,11 @@ The following gates also stop and wait:
 
 | Gate | Action |
 |---|---|
-| `pv-contract` critical-failure gate: failed Invariant or Off-limits | Record the failure; ask the human. |
-| `pae-implement` out-of-scope work or composite-promotion tripwire | Preserve evidence; request the recorded decision. |
-| `pae-tests`: `atomic-tests: failed` | Establish valid test evidence before continuing. |
-| `phase-atomic-execution`, `pae-implement`: unresolved blocker | Preserve the stopping point and report the needed input. |
-| `pe-finalize`: `integration-validation: failed` with all children reviewed | Keep the integration cycle open; do not mark Execution complete. |
+| `validation-contract` critical-failure gate: failed Invariant or Off-limits | Record the failure; ask the human. |
+| `atomic-execution-implement` out-of-scope work or composite-promotion tripwire | Preserve evidence; request the recorded decision. |
+| `atomic-execution-tests`: `atomic-tests: failed` | Establish valid test evidence before continuing. |
+| `atomic-execution`, `atomic-execution-implement`: unresolved blocker | Preserve the stopping point and report the needed input. |
+| `execution-finalize`: `integration-validation: failed` with all children reviewed | Keep the integration cycle open; do not mark Execution complete. |
 | Any Guard confirmation that overwrites existing artifacts | Wait for explicit authorization. |
 | Failed artifact validation or inconsistent phase markers | Repair the artifact or report the blocker before advancing. |
 
@@ -90,7 +90,7 @@ artifact need only that citation, not another scoring table.
 
 1. Resolve `WORK_DIR` from `working_dir:` when present; otherwise use the project root
    owning the input and its `.ai/`. Resolve relative arguments from the caller's directory.
-2. For a spec, **Run `phase-discovery` Step 0 in full**, once, for resolution only, and adopt its resolved task
+2. For a spec, **Run `discovery` Step 0 in full**, once, for resolution only, and adopt its resolved task
    directory. This preserves multi-phase `-p<N>` naming and the numeric-prefix collision
    guard. This is read-only resolution: a fresh task is initialized by Discovery,
    not by the parent.
@@ -106,48 +106,48 @@ artifact need only that citation, not another scoring table.
 ## Phase 1 — Discovery
 
 Pass the resolved `--phase N` for multi-phase specs so the child keeps the selected
-phase. Run `/phase-discovery` in autonomous mode. Read-only resolution did not initialize a
+phase. Run `/discovery` in autonomous mode. Read-only resolution did not initialize a
 fresh task: let the child perform its normal initialization once. For an in-progress
 Discovery, resume its recorded step; skip completed Discovery entirely.
-It owns the quick/full branch, child sequencing, `/pd-archive` and completion checks.
+It owns the quick/full branch, child sequencing, `/discovery-archive` and completion checks.
 Do not separately replay its children:
 
-- `/pd-analyze`
-- `/pd-decompose` (full only)
-- `/pd-design` (full only)
-- `/pd-finalize`
+- `/discovery-analyze`
+- `/discovery-decompose` (full only)
+- `/discovery-design` (full only)
+- `/discovery-finalize`
 
 After `discovery: complete`, report the chosen approach and advance to Execution.
 
 ## Phase 2 — Execution
 
-Run `/phase-execution <task-directory>` with the overrides above. It owns inline quick
+Run `/execution <task-directory>` with the overrides above. It owns inline quick
 execution or leaf cycles and the post-execution proposal review:
 
-- `/pe-execute`
-- `/pe-finalize`
-- `/phase-atomic-execution`
-- `/pae-tests`
-- `/pae-implement`
-- `/pae-finalize`
-- `/phase-atomic-validation`
-- `/pav-check`
-- `/pav-propose`
-- `/pav-close`
-- `/phase-composite-validation` (triggered by the last child's close)
+- `/execution-execute`
+- `/execution-finalize`
+- `/atomic-execution`
+- `/atomic-execution-tests`
+- `/atomic-execution-implement`
+- `/atomic-execution-finalize`
+- `/atomic-validation`
+- `/atomic-validation-check`
+- `/atomic-validation-propose`
+- `/atomic-validation-close`
+- `/composite-validation` (triggered by the last child's close)
 
 Advance only after `execution: complete` and successful artifact checks.
 
 ## Phase 3 — Validation
 
-Run `/phase-validation <task-directory>` with the overrides above:
+Run `/validation <task-directory>` with the overrides above:
 
-- `/pv-contract`
-- `/pv-review`
-- `/pv-issues`
-- `/pv-create-fixes` (full only)
-- `/pv-execute-fixes` (full only)
-- `/pv-finalize`
+- `/validation-contract`
+- `/validation-review`
+- `/validation-issues`
+- `/validation-create-fixes` (full only)
+- `/validation-execute-fixes` (full only)
+- `/validation-finalize`
 - `/compress-state`
 
 Do not rerun fix creation or execution separately after this phase; its children own them.
@@ -165,5 +165,5 @@ Re-run the same invocation. Read current files, reconcile pending decisions, and
 from the earliest incomplete checkpoint. Never infer completion from the last chat reply.
 
 After the owner merges the delivered branches into their intended integration branches,
-suggest `/phase-finalize <task-directory>` for separately invoked evidence-backed closure.
+suggest `/finalization <task-directory>` for separately invoked evidence-backed closure.
 Do not invoke it, perform its cleanup or change this workflow's Validation/delivery endpoint.

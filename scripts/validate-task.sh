@@ -69,7 +69,7 @@ check "state.md carries spec_path:" \
 
 check "state.md carries a flow: tier" \
   "$(grep -qE '^flow: *(quick|full)$' "$STATE" && echo pass \
-     || echo 'flow: is missing or is not exactly quick|full — pd-analyze sets it and quick-flow depends on it')"
+     || echo 'flow: is missing or is not exactly quick|full — discovery-analyze sets it and quick-flow depends on it')"
 
 check "state.md has the ## Phases block with all three phases" \
   "$(awk '/^## Phases/{f=1} f&&/^- discovery:/{d=1} f&&/^- execution:/{e=1} f&&/^- validation:/{v=1} END{exit !(d&&e&&v)}' "$STATE" && echo pass \

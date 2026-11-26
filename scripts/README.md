@@ -57,7 +57,7 @@ See [the retrospective workflow](../workflows/retro.md) for denominators and rep
 
 ## Post-merge finalization
 
-Public workflow: `/phase-finalize <task-directory|spec-path> [--dry-run]`. Invoke separately
+Public workflow: `/finalization <task-directory|spec-path> [--dry-run]`. Invoke separately
 after owner integration; ordinary invocation authorizes mandatory cleanup of proven task
 resources. Markdown owns orchestration. Python 3.11+ standard-library helpers are required
 for mutation safety; Git mutations remain returned argv for explicit hook-governed commands.

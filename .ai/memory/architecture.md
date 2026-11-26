@@ -52,13 +52,13 @@ Domain-quality rules for Python, FastAPI and GCP, deployed as `principle-*` skil
 ### Layer 3 — `workflows/` (slash commands, 42 files)
 
 ```
-Orchestrators        phase-discovery  phase-execution  phase-validation  phase-pipeline
-Post-integration     phase-finalize (separate invocation, no public children)
-Atomic orchestrators phase-atomic-execution  phase-atomic-validation  phase-composite-validation
-Discovery children   pd-analyze → pd-decompose → (pd-select-model) → pd-design → pd-finalize → pd-archive
-Execution children   pe-execute → pe-finalize
-Atomic children      pae-tests → pae-implement → pae-finalize ; pav-check → pav-propose → pav-close
-Validation children  pv-contract → pv-review → pv-issues → pv-create-fixes (→ pv-classify-fixes) → pv-execute-fixes → pv-finalize
+Orchestrators        discovery  execution  validation  pipeline
+Post-integration     finalization (separate invocation, no public children)
+Atomic orchestrators atomic-execution  atomic-validation  composite-validation
+Discovery children   discovery-analyze → discovery-decompose → (discovery-select-model) → discovery-design → discovery-finalize → discovery-archive
+Execution children   execution-execute → execution-finalize
+Atomic children      atomic-execution-tests → atomic-execution-implement → atomic-execution-finalize ; atomic-validation-check → atomic-validation-propose → atomic-validation-close
+Validation children  validation-contract → validation-review → validation-issues → validation-create-fixes (→ validation-classify-fixes) → validation-execute-fixes → validation-finalize
 Orchestrated mode    spec-run, restack
 Entry points         spec-draft, bugfix, onboard-legacy-project, adr-new, spec-sync
 Utilities            context-pack, compress-state, retro, suggest-commit-message, suggest-pr-description, suggest-commit-pr
@@ -89,7 +89,7 @@ deployed global instruction files. Edits to deployed files surface as ownership 
 | Script | Role |
 |---|---|
 | `scripts/validate-contracts.sh` | Consistency and smoke checks across layers 1–3, including bidirectional canonical JSON-table/runtime contract comparison (`--run-log-contract-only`); includes an optional tracked-file public-hygiene scanner using local patterns (`--hygiene-only`, `--root`, `--denylist`); run by `scripts/sync.sh`; any failure blocks deploy |
-| `scripts/validate-task.sh` | applies the same contracts to one task directory's artifacts; run by `/pd-finalize` and `/pe-finalize` |
+| `scripts/validate-task.sh` | applies the same contracts to one task directory's artifacts; run by `/discovery-finalize` and `/execution-finalize` |
 | `scripts/lint-instructions.py` | Standalone checker for instruction metadata, capability records, executable references and retired names. It validates canonical rule kinds and casefolded installed names, checks bootstrap headings and audited size exceptions, and checks the workflow name map against its usage table and declared harness reservations. It checks the canonical phase rule and shared capability extensions across declared harnesses. The frozen validator oracle pins the map digest for path-only changes. |
 | `scripts/sync.sh` | Runs contract and finalization preflight, installs hooks, reports retired files, and delegates deployment. `--stage <directory>` renders the declared harness outputs in an isolated destination. |
 | `scripts/deploy-skills.py` | Plans and applies deployment under a lock. It validates targets and ownership, persists a recovery journal before atomic writes, advances the harness manifests, and refreshes registered project links. It defers global changes while a registered consumer is active, records working-tree HEAD, and reports former skill directories. |
@@ -159,9 +159,9 @@ scripts/setup-new-project.sh (per project) ──▶ CLAUDE.md, AGENTS.md, .ai/ 
         │
         ▼
 spec in .ai/specs/NN-slug.md
-  ──▶ /phase-discovery  ──▶ .ai/tasks/todo/task-NN-slug/{state.md, plan.md, T-XX/description.md}
-  ──▶ /phase-execution  ──▶ per T-XX: pae-tests (RED) → pae-implement (GREEN) → pae-finalize → pav-*
-  ──▶ /phase-validation ──▶ contract → review → issues → fix-tasks → finalize → ADR, progress.md, spec-sync
+  ──▶ /discovery  ──▶ .ai/tasks/todo/task-NN-slug/{state.md, plan.md, T-XX/description.md}
+  ──▶ /execution  ──▶ per T-XX: atomic-execution-tests (RED) → atomic-execution-implement (GREEN) → atomic-execution-finalize → atomic-validation-*
+  ──▶ /validation ──▶ contract → review → issues → fix-tasks → finalize → ADR, progress.md, spec-sync
   (or /spec-run: same, plus Arbiter, stacked branches, test:/feat: commits, draft→ready PRs;
    with --repo flags, one stack per declared repository under a non-git shared root)
         │
@@ -180,15 +180,14 @@ scripts/log-step.sh ──▶ logs/runs/*.jsonl ──▶ read-only lint ──�
 - **Cross-reference syntax** — `<file> → ## <Section>`; offline instruction checks
   validate canonical workflow/rule section targets, alongside the existing contract checks.
 - **Mode overrides registry** (`contract-phases → ## Context Pack`) —
-  the only place a workflow may declare autonomy; `phase-pipeline → ## Pipeline
-  Overrides` is the detail.
+  the only place a workflow may declare autonomy; `/pipeline → ## Pipeline Overrides` is the detail.
 - **`--batch`** — proposal callers record, prompt for nothing, apply nothing.
-  `/pae-tests --batch` only suppresses duplicate digest display; it grants no authority.
+  `/atomic-execution-tests --batch` only suppresses duplicate digest display; it grants no authority.
 - **Rule-name resolution** — Claude Code and Codex install rules as `rule-<name>` skills.
 - **Active-run metadata** — a fixed format header and escaped values preserve multiline caller text without interpreting it as records; ordinary legacy metadata remains readable. JSONL events retain their existing schema.
 - **Repository set** (`contract-phases`, `contract-git-flow → ## Multi-repository runs`) — task
   `## Repositories` lines and the leaf `repo:` field; read by `/spec-run`, `/restack`,
-  `/pd-decompose`, `/pv-classify-fixes` and `scripts/repo-set.py`; absent means single-repository.
+  `/discovery-decompose`, `/validation-classify-fixes` and `scripts/repo-set.py`; absent means single-repository.
 - **Run-log vocabulary** — the helper enforces event-specific enums, bounded counts, exact legacy aliases, and safe run identifiers through one runtime contract exposed by `contract`; rejected arguments leave accepted event state unchanged.
 
 ## External Dependencies

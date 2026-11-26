@@ -4,8 +4,8 @@ phase: validation
 step: 4a
 ---
 
-Invocation: `/pv-classify-fixes <task-directory>`
-Called by: `/pv-create-fixes` before it creates fix-task directories.
+Invocation: `/validation-classify-fixes <task-directory>`
+Called by: `/validation-create-fixes` before it creates fix-task directories.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -13,7 +13,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Guard
 
-1. Read `state.md`. If `## Issue List → ### Approved` is missing → **stop**: "Run `/pv-issues`
+1. Read `state.md`. If `## Issue List → ### Approved` is missing → **stop**: "Run `/validation-issues`
    first."
 2. If `### Approved` is empty or `None` → report "No approved issues to classify." and return.
 3. Reuse existing classification rows/IDs on resume; classify only newly approved issues.
@@ -35,17 +35,17 @@ This reuses the gate per issue; it does not change the task's `flow:` tier.
 
 ### Naming — one vocabulary, shared with every downstream reader
 
-Allocate non-colliding fix IDs from `plan.md` and composite membership; `/pv-create-fixes`
+Allocate non-colliding fix IDs from `plan.md` and composite membership; `/validation-create-fixes`
 reuses them in `## Fix-Tasks → Created:`. The legacy `Branch` table column stores that
 **fix-task ID**, not a git branch name; actual branch names follow `contract-git-flow`.
-`/pv-execute-fixes` uses the Created list, including sibling IDs:
+`/validation-execute-fixes` uses the Created list, including sibling IDs:
 
 - **Dedicated** — one fix-task per issue: `T-NN-fix-<slug>`, `<slug>` naming the defect.
 - **Shared** — one fix-task per group, covering every issue in it: `T-NN-fix-<group-slug>`,
   `<group-slug>` naming in domain language what the group fixes. One branch and one pull
   request per group.
 - **Child of a composite** (D8) — `T-NNx-fix-<slug>`, the sibling letter form defined in
-  `/pv-create-fixes` step 2 Case B.
+  `/validation-create-fixes` step 2 Case B.
 
 Each distinct ID is one group; `Grouping: shared` alone does not identify a group.
 Keep top-level fixes separate from composite-child fixes, and never group children of
@@ -72,10 +72,10 @@ two differently-named groups, never as a letter suffix on one name.
 
 ## Output
 
-Write to `state.md` under `## Fix-Tasks`, as a classification table `/pv-create-fixes`
-consumes. This step runs **before** `/pv-create-fixes` writes that section, so create
+Write to `state.md` under `## Fix-Tasks`, as a classification table `/validation-create-fixes`
+consumes. This step runs **before** `/validation-create-fixes` writes that section, so create
 `## Fix-Tasks` if it does not exist yet and write only the `### Fix Classification`
-subsection into it — `/pv-create-fixes` fills in `fixes-created`, `fixes-count`, and
+subsection into it — `/validation-create-fixes` fills in `fixes-created`, `fixes-count`, and
 `Created:` immediately afterwards and must not overwrite this subsection:
 
 ```

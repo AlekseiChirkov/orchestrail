@@ -4,8 +4,8 @@ phase: discovery
 step: 3
 ---
 
-Invocation: `/pd-design <task-directory> [--step-by-step]`
-Called by: `/phase-discovery` as Step 3.
+Invocation: `/discovery-design <task-directory> [--step-by-step]`
+Called by: `/discovery` as Step 3.
 
 Resolve artifacts inside the task directory. Default is autonomous;
 `--step-by-step` waits for architecture choice. Reuse parent context; standalone
@@ -13,10 +13,10 @@ use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
-1. Missing task `state.md` / `## Task Analysis` → **stop**: run `/pd-analyze`.
+1. Missing task `state.md` / `## Task Analysis` → **stop**: run `/discovery-analyze`.
 2. `flow: quick` → report that design is skipped; retain `## Contract (quick)`.
 3. Require `## Decomposition` / `decomposition: complete`, `plan.md`, and every
-   listed subtask description. Missing input → **stop**: complete `/pd-decompose`.
+   listed subtask description. Missing input → **stop**: complete `/discovery-decompose`.
 4. `discovery: complete` or an existing `## Solution Design → ### Decision` →
    **stop** for explicit overwrite confirmation unless already confirmed by the
    parent for this exact rerun. Preserve execution/validation progress.
@@ -67,16 +67,16 @@ use applies the `bootstrap-discovery` bootstrap.
    descriptions and `plan.md` summaries/dependencies. Preserve the six-section
    format, leaf-health constraints, statuses and progress. Record material changes
    in Decomposition Decisions. If the design requires a different decomposition,
-   run `/pd-decompose` with this decision as input and its overwrite Guard; then
+   run `/discovery-decompose` with this decision as input and its overwrite Guard; then
    recheck alignment. Preserve optional/legacy columns under
    `contract-state-files → ### Model columns and resolution`. A scope change in a
    subtask with any populated provider model cell/column or legacy `Model` cell
-   makes its recommendation stale and needs a fresh bulk `/pd-select-model`
+   makes its recommendation stale and needs a fresh bulk `/discovery-select-model`
    before discovery finalization; mark the selection checkpoint incomplete and report the stale recommendation without
    assigning or silently changing models here. Started
    work that conflicts with the decision is a reconciliation blocker, not permission
    to rewrite progress.
-5. Apply `pv-finalize → ## Instructions`'s architecture-decision trigger. If it fires,
+5. Apply `/validation-finalize → ## Instructions`'s architecture-decision trigger. If it fires,
    invoke `/adr-new <task-directory> --provisional`; final validation promotes the
    record rather than duplicating it. Otherwise record under `### Decision`:
    `adr: not triggered — <reason>`. Report ADR creation failure and continue;

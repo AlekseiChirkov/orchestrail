@@ -4,8 +4,8 @@ phase: validation
 step: 2
 ---
 
-Invocation: `/pv-review <task-directory>`
-Called by: `/phase-validation` as Step 2.
+Invocation: `/validation-review <task-directory>`
+Called by: `/validation` as Step 2.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -15,10 +15,10 @@ Task directory = provided argument (trailing slash optional).
 
 1. Read `state.md` in the task directory.
 2. Check `## Phases → validation`. If `complete` → **stop**: "Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
-3. Check `## Contract Check` must be present. If missing → **stop**: "Step 1 (`/pv-contract`) must be completed first."
+3. Check `## Contract Check` must be present. If missing → **stop**: "Step 1 (`/validation-contract`) must be completed first."
 4. Check `### Critical Failures Decision` inside `## Contract Check`:
-   - If critical Invariant/Off-limits failures exist and the decision field is absent → **stop**: "`/pv-contract` stopped at the critical-failure gate. Resolve it before running `/pv-review`."
-   - If decision is `pause` → **stop**: "Validation is paused pending critical-failure fix. Do not run `/pv-review`."
+   - If critical Invariant/Off-limits failures exist and the decision field is absent → **stop**: "`/validation-contract` stopped at the critical-failure gate. Resolve it before running `/validation-review`."
+   - If decision is `pause` → **stop**: "Validation is paused pending critical-failure fix. Do not run `/validation-review`."
    - If decision is `continue-marked` or no critical failures → continue.
 5. Otherwise → continue.
 
@@ -39,7 +39,7 @@ the load order, umbrella precedence, conditional sources, and reporting.
    `### Invariants`, and `### Acceptance Criteria`, and `## TDD (quick)` holds the test record
    the test-coverage findings below are judged against.
    If `### Critical Failures Decision: continue-marked` is recorded in `## Contract Check` — carry every failed Invariant/Off-limits entry into `### Findings` as a `critical` item (prefixed with `contract:`).
-2. Read the same task-owned file set `/pv-contract` used, including tests. For full tasks,
+2. Read the same task-owned file set `/validation-contract` used, including tests. For full tasks,
    union cumulative `target_files:` and resolve each subtask's `working_dir:`; for quick
    tasks, use the persisted inline file list. Do not infer quick tasks have leaf blocks.
 3. Review for:

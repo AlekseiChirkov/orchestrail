@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Evidence-backed finalization mechanics (Python 3.11+, standard library).
 
-Public workflow: /phase-finalize TARGET [--dry-run]. This internal CLI is its
+Public workflow: /finalization TARGET [--dry-run]. This internal CLI is its
 required mechanics, not a Git policy bypass. It never mutates project Git state.
 Project Git mutations are returned as argv arrays for explicit hook-governed execution.
 Recovery verification initializes/writes only disposable isolated temporary Git storage.
@@ -558,7 +558,7 @@ def execute(args: argparse.Namespace) -> dict:
                 and adoption.get('spec_sha256') == digest(spec.read_bytes()),
                 'adoption-evidence-missing', 'Preexisting archives need explicit dated original-path/manifest/provenance evidence')
     if args.command == 'attempt' and not args.dry_run:
-        require(args.authorize, 'authorization-required', 'An explicit invocation of phase-finalize for this task is required')
+        require(args.authorize, 'authorization-required', 'An explicit invocation of /finalization for this task is required')
         require(prior is not None, 'journal-missing', 'Run prepare before recording attempts')
         with locked(path.with_name('journal.lock'), root):
             expect_revision(path, args.expected_revision)
@@ -586,7 +586,7 @@ def execute(args: argparse.Namespace) -> dict:
             update_postconditions(observed)
             accept_attestations(observed, evidence, task)
         return response(args.command, 'ready', root, task, spec, path, current, observed)
-    require(args.authorize, 'authorization-required', 'An explicit invocation of phase-finalize for this task is required')
+    require(args.authorize, 'authorization-required', 'An explicit invocation of /finalization for this task is required')
     with locked(path.with_name('journal.lock'), root):
         expect_revision(path, args.expected_revision)
         # Re-resolve and re-read under the lock; stale snapshots cannot authorize writes.

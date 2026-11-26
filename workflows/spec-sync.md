@@ -5,7 +5,7 @@ step: "-"
 ---
 
 Invocation: `/spec-sync <task-directory> [--auto-mode] [--dry-run]`
-Called by: `/pv-finalize` after validation; also runnable standalone.
+Called by: `/validation-finalize` after validation; also runnable standalone.
 Resolve task paths from the project root and use that task's `spec_path:`.
 
 `--dry-run` reports only and takes precedence over all write instructions. `--auto-mode`
@@ -20,7 +20,7 @@ missing authorization or turns a failed criterion into success.
 3. Respect `contract-state-files → ## File Responsibility`: task requirements remain
    immutable during implementation. If validation is incomplete, perform a report-only
    pass unless the user explicitly authorized reconciliation at this point, or a calling
-   `/pv-finalize` has verified all contract/review/fix prerequisites and is completing its
+   `/validation-finalize` has verified all contract/review/fix prerequisites and is completing its
    finalization steps. Record the authority/evidence; label any incomplete delivery
    accurately. The finalizer need not mark validation complete before this call succeeds.
 4. Read any existing `## Spec Sync` and change log to avoid duplicate edits. A `synced_at:`
@@ -101,7 +101,7 @@ spec: <spec_path>
 
 Append one progress entry for a new reconciliation; a no-op rerun adds none. If new
 architecturally significant delivered scope meets the ADR trigger in
-`pv-finalize → ## Instructions`, step 3, report the owed ADR and print
+`/validation-finalize → ## Instructions`, step 3, report the owed ADR and print
 `/adr-new <task-directory>`; do not invoke it here.
 
 Report path, delta counts, edits, unresolved observations and validation limitations.

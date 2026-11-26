@@ -4,8 +4,8 @@ phase: discovery
 step: 2
 ---
 
-Invocation: `/pd-decompose <task-directory> [--step-by-step]`
-Called by: `/phase-discovery` as Step 2.
+Invocation: `/discovery-decompose <task-directory> [--step-by-step]`
+Called by: `/discovery` as Step 2.
 
 Resolve artifacts inside the task directory. Default is autonomous;
 `--step-by-step` waits for boundary decisions. Reuse parent context; standalone
@@ -13,7 +13,7 @@ use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
-1. Missing `state.md` or `## Task Analysis` → **stop**: run `/pd-analyze` first.
+1. Missing `state.md` or `## Task Analysis` → **stop**: run `/discovery-analyze` first.
 2. `flow: quick` → report that decomposition is skipped; create no subtasks.
 3. `discovery: complete`, `decomposition: complete`, or existing T-XX directories
    → list affected artifacts and **stop** for explicit overwrite confirmation
@@ -88,13 +88,13 @@ use applies the `bootstrap-discovery` bootstrap.
    ```
 
    Derive initial Scope from analysis and Steps/Context; align with existing
-   `## Solution Design → ### Scope` on rerun. On first run, `/pd-design` reconciles
+   `## Solution Design → ### Scope` on rerun. On first run, `/discovery-design` reconciles
    descriptions after choosing the architecture.
 
    Apply the `contract-tdd` test-level gate. Cover every criterion with an observable
    scenario; rewrite untestable criteria. `none` needs reasons for rejecting each
    other level; difficulty, missing framework, size, deferral and existing coverage
-   are not reasons. `/pae-tests` may later record Test Plan amendments in state.
+   are not reasons. `/atomic-execution-tests` may later record Test Plan amendments in state.
 
    For a composite, use the same six headings with these replacements:
    - Context adds `type: composite` and `children: T-XXa, T-XXb, …`.
@@ -102,7 +102,7 @@ use applies the `bootstrap-discovery` bootstrap.
    - Steps contains `See children: <IDs and components>` instead of numbered steps.
    - At least two Acceptance Criteria verify integrated output across children.
    - Test Plan uses integration and/or contract scenarios executed by
-     `/phase-composite-validation`, rather than `/pae-tests`.
+     `/composite-validation`, rather than `/atomic-execution-tests`.
 5. Write top-level `plan.md` with `## Subtasks` and `## Execution Strategy`:
 
    ```

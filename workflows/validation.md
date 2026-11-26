@@ -4,8 +4,8 @@ phase: validation
 step: "-"
 ---
 
-Invocation: `/phase-validation <task-directory>`
-Example: `/phase-validation .ai/tasks/todo/task-01-add-oauth/`
+Invocation: `/validation <task-directory>`
+Example: `/validation .ai/tasks/todo/task-01-add-oauth/`
 
 Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
@@ -13,8 +13,8 @@ If path is not provided — ask the user and do not continue.
 Task directory = provided argument (trailing slash optional).
 
 To run a single step directly, call the child workflow:
-`/pv-contract`, `/pv-review`, `/pv-issues`, `/pv-create-fixes` (which calls `/pv-classify-fixes`
-as step 4a), `/pv-execute-fixes`, `/pv-finalize`.
+`/validation-contract`, `/validation-review`, `/validation-issues`, `/validation-create-fixes` (which calls `/validation-classify-fixes`
+as step 4a), `/validation-execute-fixes`, `/validation-finalize`.
 
 ---
 
@@ -32,20 +32,20 @@ At Step 0, preserve an inherited `RUN_ID`; otherwise open an owned run with `scr
 LOG_HELPER="${ORCHESTRAIL_HOME:+$ORCHESTRAIL_HOME/scripts/log-step.sh}"
 PHASE_OWNS_RUN=false
 if [ -z "${RUN_ID:-}" ] && [ -x "$LOG_HELPER" ]; then
-  RUN_ID=$("$LOG_HELPER" run-start --pipeline phase-validation \
+  RUN_ID=$("$LOG_HELPER" run-start --pipeline validation \
   --project "$(pwd)" --task <task-directory> --flow <quick|full>) || RUN_ID=""
   [ -z "$RUN_ID" ] || PHASE_OWNS_RUN=true
 fi
 ```
 
-Log one `step` line after each of `pv-contract`, `pv-review`, `pv-issues`,
-`pv-classify-fixes`, `pv-create-fixes`, `pv-execute-fixes`, and `pv-finalize`. Carry
-`--gate pass|fail` from `pv-contract` and `pv-review`, `--fix-tasks` from
-`pv-create-fixes`, `--stops 1` on the `pv-issues` approve/defer prompt when a human
-answered it, and `--decisions` when `/phase-pipeline` answered it instead.
+Log one `step` line after each of `validation-contract`, `validation-review`, `validation-issues`,
+`validation-classify-fixes`, `validation-create-fixes`, `validation-execute-fixes`, and `validation-finalize`. Carry
+`--gate pass|fail` from `validation-contract` and `validation-review`, `--fix-tasks` from
+`validation-create-fixes`, `--stops 1` on the `validation-issues` approve/defer prompt when a human
+answered it, and `--decisions` when `/pipeline` answered it instead.
 
 Close with `run-end` only when `PHASE_OWNS_RUN=true`; an inherited run stays open for
-its owner. Do not open a second run for `/phase-pipeline` or `/spec-run`.
+its owner. Do not open a second run for `/pipeline` or `/spec-run`.
 
 Logging is best-effort: if `$LOG_HELPER` is missing or a call fails,
 continue unchanged and mention it once in the final report. Never stop, retry, or ask the
@@ -66,7 +66,7 @@ the load order, umbrella precedence, conditional sources, and reporting.
 Step 0 — State Check
 
 Resolve the task directory absolutely and read `state.md → ## Phases` before writing.
-Missing state or execution not `complete` → **stop**: "Complete `/phase-execution` first."
+Missing state or execution not `complete` → **stop**: "Complete `/execution` first."
 Validation complete → ask for explicit confirmation before replacing completed artifacts.
 Absent `flow:` means `full`.
 
@@ -88,16 +88,16 @@ Open an owned run only after prerequisites and flow are known.
 
 Run sequentially, skipping only completed steps whose evidence remains valid:
 
-1. `/pv-contract <task-directory>`.
-2. `/pv-review <task-directory>`.
-3. `/pv-issues <task-directory>` — record approval/deferral before applying findings.
-4. `/pv-create-fixes <task-directory>` — full tier only; it calls `/pv-classify-fixes`.
-5. `/pv-execute-fixes <task-directory>` — full tier only, skipped when `fixes-count: 0`.
-6. `/pv-finalize <task-directory>` — after approved work and final checks succeed.
+1. `/validation-contract <task-directory>`.
+2. `/validation-review <task-directory>`.
+3. `/validation-issues <task-directory>` — record approval/deferral before applying findings.
+4. `/validation-create-fixes <task-directory>` — full tier only; it calls `/validation-classify-fixes`.
+5. `/validation-execute-fixes <task-directory>` — full tier only, skipped when `fixes-count: 0`.
+6. `/validation-finalize <task-directory>` — after approved work and final checks succeed.
 
 For `flow: quick`, steps 1–3 remain mandatory against `## Contract (quick)`.
 Skip separate fix-task steps 4–5. Apply only approved findings inline, run the TDD gate
-before changed behaviour, keep frozen tests, and rerun both `/pv-contract` and `/pv-review`.
+before changed behaviour, keep frozen tests, and rerun both `/validation-contract` and `/validation-review`.
 Preserve the original issue decisions and record which approved items are resolved.
 New findings return to the decision step. If a quick gate fails, promote per `contract-quick-flow`;
 do not silently expand inline scope. The ADR trigger remains unchanged.

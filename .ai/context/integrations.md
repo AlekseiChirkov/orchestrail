@@ -43,7 +43,7 @@ searches the web.
   (all aggregation).
 
 ### Web search — model catalog
-- Used by: `/pd-select-model` Step 0, every run, by explicit rule (no cached catalog).
+- Used by: `/discovery-select-model` Step 0, every run, by explicit rule (no cached catalog).
 - Cost observed: up to 3 h in run b905a8a5. See `specs/completed/04-model-catalog-cache.md`.
 
 ### Web fetch — spec and defect sources

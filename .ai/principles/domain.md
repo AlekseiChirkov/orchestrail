@@ -16,11 +16,11 @@ appears in a rule.
 | **Task directory** | `.ai/tasks/todo/task-<NN>-<slug>/` holding `state.md`, `plan.md`, `state-archive.md`, and `T-XX-<slug>/description.md` per subtask. |
 | **Phase** | Discovery, Execution, Validation, or separately invoked post-merge Finalization. Existing autonomous parents advance only through Validation; transitions into Finalization remain owner-initiated. |
 | **Finalization** | Evidence-backed closure of one validated development task after integration, with mandatory safe cleanup, current knowledge reconciliation and lossless archival; it does not close the whole product or imply deployment. |
-| **Atomic cycle** | The per-subtask sequence: atomic execution (`pae-tests` → `pae-implement` → `pae-finalize`) then atomic validation (`pav-check` → `pav-propose` → `pav-close`). |
+| **Atomic cycle** | The per-subtask sequence: atomic execution (`atomic-execution-tests` → `atomic-execution-implement` → `atomic-execution-finalize`) then atomic validation (`atomic-validation-check` → `atomic-validation-propose` → `atomic-validation-close`). |
 | **Leaf** | A subtask with no children; the unit that runs an atomic cycle. |
-| **Composite (Type 2)** | A subtask owning leaf children `T-XXa…`; has integration-level Acceptance Criteria checked by `/phase-composite-validation`; never nested (depth-2 cap). |
+| **Composite (Type 2)** | A subtask owning leaf children `T-XXa…`; has integration-level Acceptance Criteria checked by `/composite-validation`; never nested (depth-2 cap). |
 | **Type 3 re-slice** | A cross-repo producer/consumer pair split by capability into slices; all leaves, grouped by the `Slice` column. |
-| **Tripwire** | Runtime detection in `/pae-implement` that a leaf is actually a composite; triggers the Composite Promotion Protocol. |
+| **Tripwire** | Runtime detection in `/atomic-execution-implement` that a leaf is actually a composite; triggers the Composite Promotion Protocol. |
 | **Flow tier** | `full` (default, complete pipeline) or `quick` (four-condition gate, inline contract, inline TDD, no decomposition). |
 | **Quick gate** | ≤3 files incl. tests; no new invariant; no behaviour change to a shipped pipeline; no schema change/migration. All four must hold. |
 | **RED** | A test that exists, was run, and failed for the expected reason. |
@@ -43,7 +43,7 @@ appears in a rule.
 | **Repository set** | The repositories a multi-repository run declares with `--repo <directory>=<base-branch>`, recorded in task `state.md → ## Repositories`. |
 | **Cross-repository dependency** | A `Depends On` edge between leaves of different repositories: an ordering, merge and deployment fact, never a git base. |
 | **`base_commit`** | The sha at branch creation, written once, never recomputed; the only input that makes `/restack` merge-strategy-agnostic. |
-| **Fix-task** | A `T-XX-fix-<slug>` subtask created by `/pv-create-fixes` from an approved review issue. |
+| **Fix-task** | A `T-XX-fix-<slug>` subtask created by `/validation-create-fixes` from an approved review issue. |
 | **Run log** | The central JSONL store written by `scripts/log-step.sh`; read only by `/retro`. |
 | **Retro** | `/retro` — aggregates the run log and recommends edits to this repository; never applies them. |
 | **Context Bootstrap** | The ordered `.ai/` load list a phase performs before touching any file; defined per phase in `rules/bootstrap-*.md`. |
@@ -55,12 +55,12 @@ appears in a rule.
 
 1. Implementation is never the first step of an atomic cycle (test-first, all modes).
 2. A RED set is frozen during GREEN; any amendment carries a `tdd: test amended` note.
-3. A phase never auto-advances into the next phase, except inside `/phase-pipeline` and
+3. A phase never auto-advances into the next phase, except inside `/pipeline` and
    `/spec-run`, which declare it.
 4. Every workflow reads `state.md` before writing anything, and resumes rather than restarts.
 5. Exactly one writer per shared file at any moment; sub-agents return deltas.
 6. Proposal `--batch` means record, prompt for nothing, apply nothing. The separate
-   `/pae-tests --batch` flag suppresses duplicate digest display only; all evidence gates hold.
+   `/atomic-execution-tests --batch` flag suppresses duplicate digest display only; all evidence gates hold.
 7. `notes:` and `target_files:` are always written, even when empty; `atomic-tests:` is
    never removed or downgraded; git fields are touched only by `/spec-run` and `/restack`.
 8. No pipeline identifier and no tool attribution ever enters a consumer repository.

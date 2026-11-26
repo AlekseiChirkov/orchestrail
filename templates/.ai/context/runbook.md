@@ -22,7 +22,7 @@ verification.
 
 ### Post-merge task finalization
 
-Use `/phase-finalize <task-directory|spec-path> [--dry-run]` after owner integration.
+Use `/finalization <task-directory|spec-path> [--dry-run]` after owner integration.
 Record required checks and any permitted prior-evidence reuse with source revisions and
 coverage/runtime limits. Retain failed checks and recovered teardown attempts. State any
 required deployment explicitly in the spec Delivery Contract; proof needs a dated source

@@ -62,11 +62,11 @@ condition 3 does not apply — it is about *already-shipped* pipelines.
 ## The quick path — what changes
 
 **SKIPPED on the quick path:**
-- `pd-decompose` — no T-XX split.
-- `pd-design` — no 2–3 variant exploration.
-- `pd-archive` — nothing verbose to archive.
+- `discovery-decompose` — no T-XX split.
+- `discovery-design` — no 2–3 variant exploration.
+- `discovery-archive` — nothing verbose to archive.
 - Subtask directories and `T-XX/description.md` — there are no subtasks.
-- `pv-create-fixes` / `pv-execute-fixes` as separate atomic cycles — review findings are
+- `validation-create-fixes` / `validation-execute-fixes` as separate atomic cycles — review findings are
   fixed inline (see Validation below).
 
 **MANDATORY on the quick path (non-negotiable):**
@@ -75,13 +75,13 @@ condition 3 does not apply — it is about *already-shipped* pipelines.
   terminology: `### Off-limits`, `### Invariants`, `### Acceptance Criteria`. "No new
   invariant" (gate condition 2) means `### Invariants` lists only the *existing* invariants
   the change must not break — it never adds one.
-- **`pv-contract` and `pv-review` still run** — against the inline contract. The verdict is
+- **`validation-contract` and `validation-review` still run** — against the inline contract. The verdict is
   recorded in `state.md` exactly as on the full path (`## Contract Check`, `## Code Review`).
 - **An ADR is still required whenever a decision is made that a future reader would need to
   understand** — same trigger as the full path, not weakened. A quick task that reaches an
   ADR-worthy decision writes the ADR and links it from `adr/index.md`.
 - **The TDD step, run inline.** The quick tier has no T-XX subtasks, so there is no
-  `/pae-tests` invocation — but the RED-before-GREEN sequence is identical and mandatory.
+  `/atomic-execution-tests` invocation — but the RED-before-GREEN sequence is identical and mandatory.
   Against `## Contract (quick) → ### Acceptance Criteria`, before touching implementation
   code:
   1. Classify the test level with the gate from the `contract-tdd` rule
@@ -118,15 +118,15 @@ tier is a *lighter contract, not the absence of one*.
 
 ## Setting the flow (Discovery)
 
-`flow:` is set during Discovery, by `/pd-analyze`, after Task Analysis has established the
-file surface and codebase impact — the facts the gate needs. `/pd-analyze`:
+`flow:` is set during Discovery, by `/discovery-analyze`, after Task Analysis has established the
+file surface and codebase impact — the facts the gate needs. `/discovery-analyze`:
 
 1. Evaluates the four gate conditions against the analysis and records the result in
    `### Assumptions` as one line: `flow: quick|full — gate: 1<pass/fail> 2<..> 3<..> 4<..>`.
 2. Writes the top-of-file `flow:` field (see the canonical format in `contract-phases → ## Canonical Status Formats`).
 3. If `flow: quick` — writes the `## Contract (quick)` section instead of proceeding to
-   decomposition/design; `/phase-discovery` then skips `/pd-decompose` and `/pd-design`
-   and runs `/pd-finalize` directly.
+   decomposition/design; `/discovery` then skips `/discovery-decompose` and `/discovery-design`
+   and runs `/discovery-finalize` directly.
 4. If `flow: full` — unchanged behaviour.
 
 Default is `full`. `quick` must be justified by the recorded gate line; an unjustified
@@ -145,7 +145,7 @@ a breach. Mechanical steps:
 2. In `state.md`, change `flow: quick` → `flow: full` and add a
    `## Flow Escalation` line: `quick → full | reason: <which condition broke and how> | at: <what was in progress>`.
 3. Ensure a full task directory exists (create it if the quick task did not have one) and
-   run `/pd-decompose` on the **remaining** work (the inline `## Contract (quick)` becomes
+   run `/discovery-decompose` on the **remaining** work (the inline `## Contract (quick)` becomes
    the seed for the Solution Design / contract; already-done work is recorded as complete).
 4. Continue on the full path from Execution.
 
@@ -170,7 +170,7 @@ Gate evaluation:
 
 Any one failure sends it to `full`; three fail. **Verdict: `flow: full`.** The full path
 requires a task directory, a contract naming those invariants under `### Invariants`,
-decomposition, tests observed failing before implementation, `/pv-contract` + `/pv-review`,
+decomposition, tests observed failing before implementation, `/validation-contract` + `/validation-review`,
 an **ADR** for the material design decisions, and a `progress.md` entry.
 
 ## Worked example B — legitimately quick (log-level fix)
@@ -191,7 +191,7 @@ Gate evaluation:
 sampling or retry control flow"; Invariants (existing, not new): "failed samples preserve
 the previous snapshot"; Acceptance Criteria: "diagnostic snapshot no longer logged at
 INFO; DEBUG line present; existing queue-monitor tests still green" — then the inline TDD
-step, then implement, run `/pv-contract` + `/pv-review`, and add the `progress.md` entry.
+step, then implement, run `/validation-contract` + `/validation-review`, and add the `progress.md` entry.
 No ADR is needed because the adjustment makes no reader-relevant design decision.
 
 TDD step for this example: the gate returns `none` — a log-level change alters no input,

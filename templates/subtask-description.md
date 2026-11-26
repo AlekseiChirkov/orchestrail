@@ -37,7 +37,7 @@ Each criterion must be:
 Format: "Given <condition>, <subject> <does/returns/produces> <exact result>."
 
 ## Test Plan
-Consumed by `/pae-tests` to write the failing tests before implementation begins.
+Consumed by `/atomic-execution-tests` to write the failing tests before implementation begins.
 Contract: the `contract-tdd` rule. Style: `testing-standards`.
 
 - **Level:** unit | integration | contract | smoke | none

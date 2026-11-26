@@ -4,8 +4,8 @@ phase: atomic-execution
 step: "-"
 ---
 
-Invocation: `/phase-atomic-execution <path-to-atomic-description>`
-Example: `/phase-atomic-execution .ai/tasks/todo/task_foo/T-01-slug/description.md`
+Invocation: `/atomic-execution <path-to-atomic-description>`
+Example: `/atomic-execution .ai/tasks/todo/task_foo/T-01-slug/description.md`
 
 Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
 
@@ -14,9 +14,9 @@ Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
 
 To run a single step directly, call the child workflow:
-`/pae-tests`, `/pae-implement`, `/pae-finalize`.
+`/atomic-execution-tests`, `/atomic-execution-implement`, `/atomic-execution-finalize`.
 
-This cycle is test-first: `/pae-tests` establishes RED before any implementation code is
+This cycle is test-first: `/atomic-execution-tests` establishes RED before any implementation code is
 written. The governing contract is the `contract-tdd` rule.
 
 ---
@@ -45,13 +45,13 @@ Step 0 — State Check
 
 Read parent `state.md` (one level above the atomic task directory) and `T-XX/description.md`.
 
-- If `T-XX/description.md` does not exist → **stop**: "description.md not found. Run `/pd-decompose` + `/pd-finalize` in the parent task."
-- Verify `T-XX/description.md` contains both `## Steps` and `## Acceptance Criteria`. If either is missing → **stop**: "description.md is incomplete (missing ## Steps or ## Acceptance Criteria). Run `/pd-decompose` + `/pd-finalize` to regenerate."
+- If `T-XX/description.md` does not exist → **stop**: "description.md not found. Run `/discovery-decompose` + `/discovery-finalize` in the parent task."
+- Verify `T-XX/description.md` contains both `## Steps` and `## Acceptance Criteria`. If either is missing → **stop**: "description.md is incomplete (missing ## Steps or ## Acceptance Criteria). Run `/discovery-decompose` + `/discovery-finalize` to regenerate."
 - Look up this T-XX block in parent `state.md → ## Subtask Progress`:
   - If block is missing → treat as `atomic-execution: not-started` (will be created).
   - If `atomic-execution: complete` and finalization is recorded (`pae-finalize done` or
     legacy plan `done`/`reviewed`) → report completion and return to the caller.
-  - If execution complete but finalization is not recorded → resume `/pae-finalize`;
+  - If execution complete but finalization is not recorded → resume `/atomic-execution-finalize`;
     do not rerun tests or implementation.
   - If `atomic-execution: blocked` → apply `procedure-blocker-reconciliation → ## Blocker Reconciliation` before continuing.
   - If `atomic-execution: in-progress` → continue from `last_action` (may require re-running last step for idempotency).
@@ -59,11 +59,11 @@ Read parent `state.md` (one level above the atomic task directory) and `T-XX/des
 
 **TDD entry point.** Read `atomic-tests:` from the same block (see the `contract-tdd` rule for the
 value set). Unless the Guard already selected finalization, it selects the resume step:
-  - `not-started`, or the field is absent **and** `atomic-execution: not-started` → start at `/pae-tests`.
-  - Field absent **and** `atomic-execution: in-progress` → pre-TDD task already underway. Do not retroactively demand RED. Append to `notes:` — `pre-TDD task, TDD step skipped` — and resume at `/pae-implement`.
-  - `red` or `pinned` → frozen tests already established; resume at `/pae-implement`.
-  - `n-a` → gate returned `none` with a recorded justification; resume at `/pae-implement`.
-  - `green` → implementation already passed its tests; resume at `/pae-finalize`.
+  - `not-started`, or the field is absent **and** `atomic-execution: not-started` → start at `/atomic-execution-tests`.
+  - Field absent **and** `atomic-execution: in-progress` → pre-TDD task already underway. Do not retroactively demand RED. Append to `notes:` — `pre-TDD task, TDD step skipped` — and resume at `/atomic-execution-implement`.
+  - `red` or `pinned` → frozen tests already established; resume at `/atomic-execution-implement`.
+  - `n-a` → gate returned `none` with a recorded justification; resume at `/atomic-execution-implement`.
+  - `green` → implementation already passed its tests; resume at `/atomic-execution-finalize`.
   - `failed` → RED could not be established. Report the recorded reason and **wait** — do not implement against a test set that never went red.
 
 T-XX directories no longer contain their own `state.md` or `plan.md`. All progress lives in the parent's `## Subtask Progress`.
@@ -102,9 +102,9 @@ provenance is available; a successful spawn alone is insufficient. Reuse a calle
 resolution only for the same invocation and unchanged support/restrictions.
 
 Run child workflows in order, skipping steps already satisfied per the TDD entry point above:
-1. Call `/pae-tests <path-to-atomic-description>` — RED: classify test level, write failing tests from `## Acceptance Criteria`, observe them fail
-2. Call `/pae-implement <path-to-atomic-description>` — GREEN: execute steps from `## Steps` until the RED tests pass, then refactor + verify
-3. Call `/pae-finalize <path-to-atomic-description>` — Update parent state/plan
+1. Call `/atomic-execution-tests <path-to-atomic-description>` — RED: classify test level, write failing tests from `## Acceptance Criteria`, observe them fail
+2. Call `/atomic-execution-implement <path-to-atomic-description>` — GREEN: execute steps from `## Steps` until the RED tests pass, then refactor + verify
+3. Call `/atomic-execution-finalize <path-to-atomic-description>` — Update parent state/plan
 
 Step 1 is skipped only when `atomic-tests:` is already `red`, `pinned`, `n-a`, or `green`, or when this
 is a pre-TDD task resumed mid-execution. It is never skipped to save time.
@@ -115,6 +115,6 @@ After completion, report:
 - TDD level and RED→GREEN result (tests written, tests passing).
 - Steps completed.
 - Verification result.
-- Next: `/phase-atomic-validation <path>`.
+- Next: `/atomic-validation <path>`.
 
 This is a progress marker for an active caller, not a phase handoff.

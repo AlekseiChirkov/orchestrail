@@ -4,8 +4,8 @@ phase: execution
 step: 2
 ---
 
-Invocation: `/pe-finalize <task-directory>`
-Called by: `/phase-execution` as Step 2.
+Invocation: `/execution-finalize <task-directory>`
+Called by: `/execution` as Step 2.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -37,7 +37,7 @@ For justified `none`, `green-observed: yes` records completed applicable/manual 
 not a claim that nonexistent tests passed; retain the exemption and evidence.
 
 1. Read `## Execution Report`; if absent on `full` → **stop**:
-   "Execution report not found. Complete `/pe-execute` first."
+   "Execution report not found. Complete `/execution-execute` first."
    Summarize completed, blocked, deferred, and not-reached rows. Compare every plan row
    with its progress block; report unexplained missing work instead of assuming completion.
 
@@ -48,7 +48,7 @@ not a claim that nonexistent tests passed; retain the exemption and evidence.
 2b. **Final composite status reconciliation.** For each composite, read its block and children:
    - All children `reviewed` and integration complete → plan `reviewed`, rollup `done`.
    - All children `reviewed` and integration not started/in progress → record
-     `composite-stalled`; **stop**: "Run `/phase-composite-validation` for <composite> before finalizing."
+     `composite-stalled`; **stop**: "Run `/composite-validation` for <composite> before finalizing."
    - `integration-validation: failed` → keep the composite unreviewed; **stop**:
      "Complete the integration fix cycle before finalizing Execution."
    - Blocked or not-reached children → record the reason and reconcile `rollup: blocked`.
@@ -74,19 +74,19 @@ not a claim that nonexistent tests passed; retain the exemption and evidence.
    Select the caller mode before prompting. Under `/spec-run`, keep every proposal pending,
    record `spec-run: proposals retained for post-delivery review; no application`, surface
    their counts/items in the final report, and continue without prompting or applying.
-   Under `/phase-pipeline`, use its option-2 override below. Otherwise present one
+   Under `/pipeline`, use its option-2 override below. Otherwise present one
    consolidated choice and wait for user choice:
    1. Create pending subtasks, one per improvement group, with complete descriptions,
       Test Plans, plan rows, and progress blocks. Keep Execution `in-progress`; return to
-      `/pe-execute` to execute them before finalization.
+      `/execution-execute` to execute them before finalization.
    2. Apply approved items now within the existing scope. Follow the `contract-tdd` gate before any
       changed behaviour, preserve frozen tests, update cumulative `target_files:`, rerun
       verification, then invalidate and repeat atomic validation for affected leaves.
    3. Discard only Do Now proposals; preserve Do Later / Optional items.
 
-   Under `/phase-pipeline`, choose **option 2** without prompting and record
-   `pipeline: Do Now applied automatically (phase-pipeline override)` in each affected
-   proposal section. This override applies here; `/pav-propose --batch` still applies nothing.
+   Under `/pipeline`, choose **option 2** without prompting and record
+   `pipeline: Do Now applied automatically (pipeline override)` in each affected
+   proposal section. This override applies here; `/atomic-validation-propose --batch` still applies nothing.
    Mark each handled proposal applied/declined so resuming never applies it twice.
    No proposals → continue. Approved work that stops leaves Execution `in-progress`.
 
@@ -106,7 +106,7 @@ not a claim that nonexistent tests passed; retain the exemption and evidence.
    optional helper fails, report warning delivery as unavailable and continue finalization.
 
 8. Report outcomes, verification, and updated paths. On quick tasks report the inline TDD
-   record and changed files. Display: "Execution complete. Run `/phase-validation <task-directory>` to start validation."
+   record and changed files. Display: "Execution complete. Run `/validation <task-directory>` to start validation."
 
-**STOP. Do not run `/phase-validation` automatically.** This completion is a progress
+**STOP. Do not run `/validation` automatically.** This completion is a progress
 marker for an active caller; only a caller with an explicit cross-phase override advances.

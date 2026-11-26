@@ -321,7 +321,7 @@ Report output path, mode, REQ/AC/assumption/decision/question counts, readiness 
 blocker questions, and the
 review rounds, the score of each round, critic mode and unresolved findings
 with their severity and the author's rejection citation where one exists.
-Print manual follow-up: `/phase-discovery <spec>` or `/spec-run <spec>`.
+Print manual follow-up: `/discovery <spec>` or `/spec-run <spec>`.
 For refinement, print `/spec-draft <spec> --brain-storm`. Then **stop** without invoking
 another workflow. State: "Automated readiness is not sign-off; review before implementation."
 

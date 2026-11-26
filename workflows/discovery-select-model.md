@@ -4,8 +4,8 @@ phase: discovery
 step: 2.5
 ---
 
-Invocation: `/pd-select-model <path-to-atomic-description | task-directory> [--refresh]`
-Called by: `/phase-discovery` after `/pd-decompose`, or manually. `/spec-run` verifies the result. Never edit caller wiring during selection.
+Invocation: `/discovery-select-model <path-to-atomic-description | task-directory> [--refresh]`
+Called by: `/discovery` after `/discovery-decompose`, or manually. `/spec-run` verifies the result. Never edit caller wiring during selection.
 
 | Mode | Input | Output |
 |---|---|---|
@@ -19,8 +19,8 @@ authorizes research and catalog replacement; routine selection is offline.
 ## Guard
 
 1. Read task `state.md`: require Task Analysis, complete Decomposition and a nonempty
-   `plan.md → ## Subtasks` table. Otherwise **stop**: run `/pd-analyze` and
-   `/pd-decompose`. Quick flow has no leaves and does not use this command.
+   `plan.md → ## Subtasks` table. Otherwise **stop**: run `/discovery-analyze` and
+   `/discovery-decompose`. Quick flow has no leaves and does not use this command.
 2. Single: require the leaf ID in the plan; reject composite containers and select
    their children instead. Bulk: require every non-composite description.
 3. Before bulk replacement, inspect legacy and both optional model columns. Existing
@@ -264,6 +264,6 @@ migration decisions are unavailable, report them and preserve the plan.
 
 Changed scope invalidates populated recommendations. Rerun bulk selection to persist
 replacement; a single recommendation cannot refresh a stale plan cell. Return visible
-results to the caller; `/spec-run`, `/pe-execute` and `/phase-atomic-execution` perform
+results to the caller; `/spec-run`, `/execution-execute` and `/atomic-execution` perform
 capability-aware resolution before requesting execution. Missing optional columns retain
 visible session-default behavior.

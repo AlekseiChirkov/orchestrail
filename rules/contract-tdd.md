@@ -8,7 +8,7 @@ load: always
 Test-Driven Development is a **mandatory, additive step** in the atomic execution cycle.
 It does not replace any existing step — it precedes implementation and constrains it.
 
-The canonical cycle is defined here; the executable step lives in `/pae-tests`.
+The canonical cycle is defined here; the executable step lives in `/atomic-execution-tests`.
 Test *style* (AAA, InMemory repositories, naming, coverage targets, forbidden practices)
 lives in `testing-standards` — this rule governs *process and enforcement*, not style.
 
@@ -17,16 +17,16 @@ lives in `testing-standards` — this rule governs *process and enforcement*, no
 ## Where the step sits
 
 ```
-/phase-atomic-execution
-  1. /pae-tests      ← RED   — write failing tests from ## Acceptance Criteria
-  2. /pae-implement  ← GREEN — write code until those tests pass, then REFACTOR
-  3. /pae-finalize   ← record statuses
-/phase-atomic-validation
-  1. /pav-check      ← verifies the tests are still green and were not weakened
+/atomic-execution
+  1. /atomic-execution-tests      ← RED   — write failing tests from ## Acceptance Criteria
+  2. /atomic-execution-implement  ← GREEN — write code until those tests pass, then REFACTOR
+  3. /atomic-execution-finalize   ← record statuses
+/atomic-validation
+  1. /atomic-validation-check      ← verifies the tests are still green and were not weakened
 ```
 
 The step is per-leaf. Composites (Type 2) own integration-level Acceptance Criteria and
-are covered by `/phase-composite-validation`, not by `/pae-tests`.
+are covered by `/composite-validation`, not by `/atomic-execution-tests`.
 
 ---
 
@@ -37,12 +37,12 @@ are covered by `/phase-composite-validation`, not by `/pae-tests`.
 
 | Value | Meaning | Set by |
 |---|---|---|
-| `not-started` | `/pae-tests` has not run for this subtask | default; absent field is read as this |
-| `red` | Tests written, executed, and **observed failing for the expected reason** | `/pae-tests` |
-| `green` | Implementation complete; every test from the RED set passes | `/pae-implement` |
-| `n-a` | Test-level gate returned `none` — justification recorded | `/pae-tests` |
-| `pinned` | Characterization tests written and observed **passing against the unchanged code** — behaviour-preserving work only | `/pae-tests --characterize` |
-| `failed` | RED could not be reached (tests passed before implementation, or the suite errored) | `/pae-tests` |
+| `not-started` | `/atomic-execution-tests` has not run for this subtask | default; absent field is read as this |
+| `red` | Tests written, executed, and **observed failing for the expected reason** | `/atomic-execution-tests` |
+| `green` | Implementation complete; every test from the RED set passes | `/atomic-execution-implement` |
+| `n-a` | Test-level gate returned `none` — justification recorded | `/atomic-execution-tests` |
+| `pinned` | Characterization tests written and observed **passing against the unchanged code** — behaviour-preserving work only | `/atomic-execution-tests --characterize` |
+| `failed` | RED could not be reached (tests passed before implementation, or the suite errored) | `/atomic-execution-tests` |
 
 **Backward compatibility:** a leaf block with no `atomic-tests:` field is a pre-TDD task.
 Readers treat the missing field as `not-started` and must not fail on it. Workflows that
@@ -54,7 +54,7 @@ proceed.
 
 ## Test-level gate
 
-Not all work is unit-testable. `/pae-tests` classifies every leaf before writing anything.
+Not all work is unit-testable. `/atomic-execution-tests` classifies every leaf before writing anything.
 This is a checklist evaluated in order — the **first** level that applies wins.
 
 | Level | Applies when | Executable form |
@@ -72,15 +72,15 @@ pin bumps with no code change, pure file moves with no behaviour change, and for
 later", "the change is small", or "existing tests cover it". The first two are findings to
 report, not exemptions; the last three are test-after in disguise.
 
-**Justification record (mandatory when `none`).** `/pae-tests` writes one line to the leaf's
+**Justification record (mandatory when `none`).** `/atomic-execution-tests` writes one line to the leaf's
 `notes:` field:
 
 ```
 tdd: none — <which of unit/integration/contract/smoke was considered and why each is inapplicable>
 ```
 
-An unjustified `n-a` is a validation finding in `/pav-check` and a code-review finding in
-`/pv-review`.
+An unjustified `n-a` is a validation finding in `/atomic-validation-check` and a code-review finding in
+`/validation-review`.
 
 ---
 
@@ -119,7 +119,7 @@ written before the code is touched, and the code may not edit the test to succee
 
 ### When it applies
 
-Run `/pae-tests --characterize` when **all three** hold:
+Run `/atomic-execution-tests --characterize` when **all three** hold:
 
 1. The subtask's Acceptance Criteria assert preserved behaviour, not new behaviour.
 2. The behaviour being preserved is observable today — it can be executed and asserted now.
@@ -162,14 +162,14 @@ recorded justification as amending a RED test *and* an explicit statement of the
 change being accepted — at which point the work is no longer behaviour-preserving and needs a
 requirement, an Acceptance Criterion, and very likely an ADR.
 
-`/pae-implement` sets `atomic-tests: green` when the change is complete and the whole pinned
+`/atomic-execution-implement` sets `atomic-tests: green` when the change is complete and the whole pinned
 set still passes. `pinned` → `green` is the mode's only legal transition.
 
 ---
 
 ## GREEN — what implementation may and may not do
 
-During `/pae-implement`, the RED test set is a **frozen contract**.
+During `/atomic-execution-implement`, the RED test set is a **frozen contract**.
 
 **Forbidden without an explicit, recorded amendment:**
 - Deleting, renaming, commenting out, or `skip`/`xfail`-marking any test from the RED set.
@@ -197,20 +197,20 @@ refactoring. Refactoring is not an excuse to widen scope.
 
 ## Interaction with existing mechanisms
 
-**Flow tiers.** `flow: full` runs `/pae-tests` per leaf. `flow: quick` has no T-XX subtasks,
+**Flow tiers.** `flow: full` runs `/atomic-execution-tests` per leaf. `flow: quick` has no T-XX subtasks,
 so it runs the TDD step inline against `## Contract (quick) → ### Acceptance Criteria` —
 see `contract-quick-flow → ## The quick path — what changes`. The gate and the RED definition are identical in both
 tiers; only the location of the Acceptance Criteria differs.
 
-**Tripwire.** If the composite-promotion tripwire fires in `/pae-implement`, the RED tests
+**Tripwire.** If the composite-promotion tripwire fires in `/atomic-execution-implement`, the RED tests
 already written are redistributed to the children whose Acceptance Criteria they cover, and
-each child re-enters the cycle at `/pae-tests`. Tests are never discarded on promotion.
+each child re-enters the cycle at `/atomic-execution-tests`. Tests are never discarded on promotion.
 
 **Blockers.** A test that cannot reach RED because of a missing external dependency is a
 blocker like any other: set `blocker:`, stop, report. Do not downgrade the gate to `none`
 to get unblocked — that converts an external problem into a permanent hole in coverage.
 
-**Autonomous modes.** `/phase-pipeline` and autonomous Discovery do not suspend this rule.
+**Autonomous modes.** `/pipeline` and autonomous Discovery do not suspend this rule.
 The test-level gate is decided by the classifier above, not by the Autonomous Decision
 Protocol, and `none` still requires its justification line. An autonomous run may not
 choose `none` to save time.

@@ -55,13 +55,13 @@ This sequence is not advisory — it is enforced by the pipeline:
 
 | Step above | Executed by |
 |---|---|
-| 1. SPEC | `/phase-discovery` → `.ai/specs/` + `T-XX/description.md → ## Acceptance Criteria` |
-| — plan | `/pd-decompose` → `T-XX/description.md → ## Test Plan` (level + scenario per criterion) |
-| 2. TESTS | **`/pae-tests`** — writes the tests and observes them fail (RED) |
-| 3. REVIEW | `/pae-tests` review gate — AC→test mapping presented before implementation |
-| 4. IMPLEMENT | `/pae-implement` — implements until the RED set passes (GREEN), set frozen |
-| 5. VERIFY | `/pae-implement → ## Final Verification` — GREEN check + regression run + lint |
-| 6. REVIEW | `/pav-check` (test-set audit) → `/pv-review` (architecture) |
+| 1. SPEC | `/discovery` → `.ai/specs/` + `T-XX/description.md → ## Acceptance Criteria` |
+| — plan | `/discovery-decompose` → `T-XX/description.md → ## Test Plan` (level + scenario per criterion) |
+| 2. TESTS | **`/atomic-execution-tests`** — writes the tests and observes them fail (RED) |
+| 3. REVIEW | `/atomic-execution-tests` review gate — AC→test mapping presented before implementation |
+| 4. IMPLEMENT | `/atomic-execution-implement` — implements until the RED set passes (GREEN), set frozen |
+| 5. VERIFY | `/atomic-execution-implement → ## Final Verification` — GREEN check + regression run + lint |
+| 6. REVIEW | `/atomic-validation-check` (test-set audit) → `/validation-review` (architecture) |
 
 The process contract — the test-level gate, what counts as RED, and what implementation may
 not do to a test — lives in the **`contract-tdd`** rule. This file governs test *style*; that rule

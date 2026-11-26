@@ -200,9 +200,11 @@ The deployment entry point changes were independently reviewed on 2026-11-25 at 
 | `scripts/check-inventory-amendment.py` | `                 "after": before.replace("rules/tdd.md", "rules/contract-tdd.md")} ` | The isolated amendment fixture tests historical source keys and obsolete map spellings. |
 | `scripts/check-inventory-amendment.py` | `         name = "TDD: rules/tdd.md is always_on" ` | The isolated amendment fixture tests historical source keys and obsolete map spellings. |
 | `scripts/check-phase-finalize.py` | `HELPER = Path(__file__).with_name('phase-finalize.py')` | The source path identifies the finalization coordinator, whose filename stays stable. |
+| `scripts/check-phase-finalize.py` | `         original_authority = {'invocation': 'phase-finalize', 'task_path': str(self.task), 'cleanup': True} ` | Preserve the original authorized tuple in the resume regression fixture. |
 | `scripts/check-phase-finalize.py` | `             'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True}, ` | Keep the historical invocation value accepted by the journal and its fixture. |
 | `scripts/check-phase-finalize.py` | `                      'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True}} ` | Keep the historical invocation value accepted by the journal and its fixture. |
 | `scripts/check-phase-finalize.py` | `             'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True}, ` | Keep the historical invocation value accepted by the journal and its fixture. |
+| `scripts/finalization_archive.py` | `     expected = {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True} ` | Validate the original invocation value and task binding before resuming a journal. |
 | `scripts/finalization_attempts.py` | `     require(journal.get('authorization') == {'invocation': 'phase-finalize', ` | Keep the historical invocation value accepted by the journal and its fixture. |
 | `scripts/phase-finalize.py` | `   phase-finalize.py inspect TARGET --root ROOT [--evidence JSON] [--relocation-evidence FILE] [--dry-run] ` | The source path identifies the finalization coordinator, whose filename stays stable. |
 | `scripts/phase-finalize.py` | `   phase-finalize.py prepare\|attempt\|record\|knowledge\|archive\|finish TARGET --root ROOT ` | The source path identifies the finalization coordinator, whose filename stays stable. |
@@ -239,14 +241,34 @@ The deployment entry point changes were independently reviewed on 2026-11-25 at 
 | `tests/hook-install.sh` | `         self.assertEqual((consumer / '.windsurf/rules/tdd.md').read_text(), 'legacy rule') ` | The fixture proves an existing retired-harness path is preserved without changes. |
 | `tests/hook-install.sh` | `         self.assertEqual((consumer / '.devin/workflows/phase-discovery.md').read_text(), 'stale') ` | The fixture proves an existing retired-harness path is preserved without changes. |
 | `tests/hook-timing.sh` | `                     seq=0, pipeline='phase-execution', project=str(self.project), flow='full') ` | The fixture verifies the legacy telemetry pipeline vocabulary or its preserved serialization. |
-| `tests/hook-timing.sh` | `         runs = [self.public('scripts/log-step.sh', ['run-start', '--pipeline', 'phase-execution']) for _ in range(2)] ` | The fixture verifies the legacy telemetry pipeline vocabulary or its preserved serialization. |
-| `tests/log-step-hook.sh` | `         run = self.producer('run-start', '--pipeline', 'phase-execution') ` | The fixture verifies the legacy telemetry pipeline vocabulary or its preserved serialization. |
 | `tests/state-tool.py` | `DEFINITION_CHECK = ("RECEIPTS: workflow-globals defines state_receipts: on one anchored line and "` | Preserve the exact frozen validator check description in the oracle and consumer fixture. |
 | `tests/validator-runtime-oracle.py` | `         "RECEIPTS: workflow-globals defines state_receipts: on one anchored line and keeps blocks without it valid", ` | Preserve the exact frozen validator check description in the oracle and consumer fixture. |
 | `tests/validator-runtime-oracle.py` | `     "RECEIPTS: workflow-globals defines state_receipts: on one anchored line and keeps blocks without it valid", ` | Preserve the exact frozen validator check description in the oracle and consumer fixture. |
-| `workflows/phase-finalize.md` | `` never from the consumer working directory. Read `$SOURCE_ROOT/scripts/phase-finalize.py` `` | The source path identifies the finalization coordinator, whose filename stays stable. |
+| `workflows/finalization.md` | `` never from the consumer working directory. Read `$SOURCE_ROOT/scripts/phase-finalize.py` `` | The source path identifies the finalization coordinator, whose filename stays stable. |
 | `scripts/validate-contracts.sh` | `   "$(tr '\n' ' ' < rules/contract-phases.md 2>/dev/null \| tr -s ' ' \| grep -q 'A skill is model-invoked, not always-on' && echo pass \|\| echo 'contract-phases does not record that deploying an always_on rule as a skill changes its trigger semantics — the reason the always-on essentials stay in global-claude/AGENTS.md')" ` | Preserves the frozen failure text on always-on essentials while reading the phase contract. |
 | `harness/claude/capabilities.md` | `` worktree checks remain mandatory. Canonical policy: `rules/git-flow.md → Finalization Git `` | Preserves the original adapter capability evidence line. The opening frame identifies its historic citation and gives the current authority. |
+| `scripts/check-inventory-amendment.py` | `     {"kind": "workflow", "old": "pae-tests", "new": ["atomic-execution-tests"]}, ` | The fixture verifies the former command as an input token in an inventory name-map row. |
+| `scripts/validate-contracts.sh` | `   "$(grep -q 'last_action: pav-propose done' workflows/atomic-validation-propose.md 2>/dev/null && echo pass \|\| echo 'atomic-validation-propose.md writes no last_action: marker, so a run interrupted after step 2 is indistinguishable from one interrupted before it')" ` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `scripts/validate-contracts.sh` | `   "$(grep -q 'pav-propose done' workflows/atomic-validation.md 2>/dev/null && echo pass \|\| echo 'atomic-validation.md Step 0 does not name the atomic-validation-propose marker, so its in-progress resume point is still underivable')" ` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `scripts/validate-contracts.sh` | `   "$(grep -q 'pav-check DONE' workflows/atomic-validation.md 2>/dev/null && echo pass \|\| echo 'atomic-validation.md Step 0 does not name the pav-check DONE marker that resumes at step 2')" ` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `scripts/validate-contracts.sh` | ` for marker_writer in "pav-check DONE:workflows/atomic-validation-check.md" "pav-propose done:workflows/atomic-validation-propose.md"; do ` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `scripts/validate-contracts.sh` | `   "$(grep -q 'pav-propose done' workflows/atomic-validation-close.md 2>/dev/null && echo pass \|\| echo 'atomic-validation-close.md Pre-check does not verify the atomic-validation-propose marker, so it cannot tell that step 2 ran')" ` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `tests/hook-timing.sh` | `         row.update(step='pae-tests', outcome='ok', duration_s=(end - start) // 1000, ` | This constructed historical timing record or its assertion preserves the original telemetry vocabulary. |
+| `tests/hook-timing.sh` | `         row.update(step='pae-tests', outcome='ok', duration_s=10) ` | This constructed historical timing record or its assertion preserves the original telemetry vocabulary. |
+| `tests/hook-timing.sh` | `                         dict(span_kind='waiting'), dict(step='pae-implement')]: ` | This constructed historical timing record or its assertion preserves the original telemetry vocabulary. |
+| `tests/hook-timing.sh` | `         self.assertEqual(named['step'], 'pae-tests') ` | This constructed historical timing record or its assertion preserves the original telemetry vocabulary. |
+| `tests/hook-timing.sh` | `         legacy.update(step='pae-tests', outcome='invalid', duration_s=2) ` | This constructed historical timing record or its assertion preserves the original telemetry vocabulary. |
+| `tests/validator-runtime-oracle.py` | `     expected_names = ["pd-analyze references architecture.md", ` | Preserves the exact removed result name from the frozen validator inventory. |
+| `workflows/atomic-execution-finalize.md` | ``    `last_action: pae-finalize done — <implementation summary>` in this leaf's block. `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-execution.md` | ``   - If `atomic-execution: complete` and finalization is recorded (`pae-finalize done` or `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation-check.md` | `` - On **DONE**: do NOT mark `atomic-validation: complete` yet (that happens in `/atomic-validation-close`). Update `last_action: pav-check DONE` and preserve `notes`. `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation-close.md` | `` If `last_action` is not `pav-propose done` → **stop**: "Complete `/atomic-validation-propose` before closure." `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation-propose.md` | `` If `last_action` is not `pav-check DONE` → **stop**: "Run `/atomic-validation-check` successfully before proposing improvements." `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation-propose.md` | ``    `last_action: pav-propose done`, mirroring the `pav-check DONE` marker `/atomic-validation-check` writes. `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation.md` | ``   \| `pav-check DONE` (written by `/atomic-validation-check`) \| step 2 — `/atomic-validation-propose` \| `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `workflows/atomic-validation.md` | ``   \| `pav-propose done` (written by `/atomic-validation-propose` step 6, in every mode) \| step 3 — `/atomic-validation-close` \| `` | Preserves the recorded last_action marker used to resume interrupted tasks. The executable workflow references are canonical. |
+| `scripts/check-lint-instructions.py` | `         old = "phase-finalize" ` | Preserves the exact prior journal authorization and telemetry fixture input. |
+
 
 ## Bootstrap size exceptions
 
@@ -286,39 +308,36 @@ The deployment entry point changes were independently reviewed on 2026-11-25 at 
 | `.ai/principles/architecture.md:41` | `workflow-globals → Workflow-declared mode overrides` | `contract-phases → ## Context Pack` |
 | `.ai/context/runbook.md:145` | `workflow-globals → Canonical Status Formats` | `contract-phases → ## Canonical Status Formats` |
 | `docs/MODEL-CATALOG.md:10` | `workflow-reference → Model columns and resolution` | `contract-state-files → ### Model columns and resolution` |
-| `principles/testing-standards.md:63` | `/pae-implement → Final Verification` | `/pae-implement → ## Final Verification` |
-| `workflows/phase-pipeline.md:113` | `pd-analyze.md` | `/pd-analyze` names the existing child command. |
-| `workflows/phase-pipeline.md:114` | `pd-decompose.md` | `/pd-decompose` names the existing child command. |
-| `workflows/phase-pipeline.md:115` | `pd-design.md` | `/pd-design` names the existing child command. |
-| `workflows/phase-pipeline.md:116` | `pd-finalize.md` | `/pd-finalize` names the existing child command. |
-| `workflows/phase-pipeline.md:125` | `pe-execute.md` | `/pe-execute` names the existing child command. |
-| `workflows/phase-pipeline.md:126` | `pe-finalize.md` | `/pe-finalize` names the existing child command. |
-| `workflows/phase-pipeline.md:127` | `phase-atomic-execution.md` | `/phase-atomic-execution` names the existing child command. |
-| `workflows/phase-pipeline.md:128` | `pae-tests.md` | `/pae-tests` names the existing child command. |
-| `workflows/phase-pipeline.md:129` | `pae-implement.md` | `/pae-implement` names the existing child command. |
-| `workflows/phase-pipeline.md:130` | `pae-finalize.md` | `/pae-finalize` names the existing child command. |
-| `workflows/phase-pipeline.md:131` | `phase-atomic-validation.md` | `/phase-atomic-validation` names the existing child command. |
-| `workflows/phase-pipeline.md:132` | `pav-check.md` | `/pav-check` names the existing child command. |
-| `workflows/phase-pipeline.md:133` | `pav-propose.md` | `/pav-propose` names the existing child command. |
-| `workflows/phase-pipeline.md:134` | `pav-close.md` | `/pav-close` names the existing child command. |
-| `workflows/phase-pipeline.md:135` | `phase-composite-validation.md` | `/phase-composite-validation` names the existing child command. |
-| `workflows/phase-pipeline.md:143` | `pv-contract.md` | `/pv-contract` names the existing child command. |
-| `workflows/phase-pipeline.md:144` | `pv-review.md` | `/pv-review` names the existing child command. |
-| `workflows/phase-pipeline.md:145` | `pv-issues.md` | `/pv-issues` names the existing child command. |
-| `workflows/phase-pipeline.md:146` | `pv-create-fixes.md` | `/pv-create-fixes` names the existing child command. |
-| `workflows/phase-pipeline.md:147` | `pv-execute-fixes.md` | `/pv-execute-fixes` names the existing child command. |
-| `workflows/phase-pipeline.md:148` | `pv-finalize.md` | `/pv-finalize` names the existing child command. |
+| `principles/testing-standards.md:63` | `/pae-implement → Final Verification` | `/atomic-execution-implement → ## Final Verification` |
+| `workflows/phase-pipeline.md:113` | `pd-analyze.md` | `/discovery-analyze` names the existing child command. |
+| `workflows/phase-pipeline.md:114` | `pd-decompose.md` | `/discovery-decompose` names the existing child command. |
+| `workflows/phase-pipeline.md:115` | `pd-design.md` | `/discovery-design` names the existing child command. |
+| `workflows/phase-pipeline.md:116` | `pd-finalize.md` | `/discovery-finalize` names the existing child command. |
+| `workflows/phase-pipeline.md:125` | `pe-execute.md` | `/execution-execute` names the existing child command. |
+| `workflows/phase-pipeline.md:126` | `pe-finalize.md` | `/execution-finalize` names the existing child command. |
+| `workflows/phase-pipeline.md:127` | `phase-atomic-execution.md` | `/atomic-execution` names the existing child command. |
+| `workflows/phase-pipeline.md:128` | `pae-tests.md` | `/atomic-execution-tests` names the existing child command. |
+| `workflows/phase-pipeline.md:129` | `pae-implement.md` | `/atomic-execution-implement` names the existing child command. |
+| `workflows/phase-pipeline.md:130` | `pae-finalize.md` | `/atomic-execution-finalize` names the existing child command. |
+| `workflows/phase-pipeline.md:131` | `phase-atomic-validation.md` | `/atomic-validation` names the existing child command. |
+| `workflows/phase-pipeline.md:132` | `pav-check.md` | `/atomic-validation-check` names the existing child command. |
+| `workflows/phase-pipeline.md:133` | `pav-propose.md` | `/atomic-validation-propose` names the existing child command. |
+| `workflows/phase-pipeline.md:134` | `pav-close.md` | `/atomic-validation-close` names the existing child command. |
+| `workflows/phase-pipeline.md:135` | `phase-composite-validation.md` | `/composite-validation` names the existing child command. |
+| `workflows/phase-pipeline.md:143` | `pv-contract.md` | `/validation-contract` names the existing child command. |
+| `workflows/phase-pipeline.md:144` | `pv-review.md` | `/validation-review` names the existing child command. |
+| `workflows/phase-pipeline.md:145` | `pv-issues.md` | `/validation-issues` names the existing child command. |
+| `workflows/phase-pipeline.md:146` | `pv-create-fixes.md` | `/validation-create-fixes` names the existing child command. |
+| `workflows/phase-pipeline.md:147` | `pv-execute-fixes.md` | `/validation-execute-fixes` names the existing child command. |
+| `workflows/phase-pipeline.md:148` | `pv-finalize.md` | `/validation-finalize` names the existing child command. |
 | `workflows/phase-pipeline.md:149` | `compress-state.md` | `/compress-state` names the existing child command. |
 
-## Pending command checks
+## Workflow migration checks
 
-The bootstrap sources have moved. The existing phase commands remain installable and their live command references still match the checker's bare-name rule. The standalone rule migration suite checks every diagnostic against its source line and active workflow. The command migration must clear this trace.
-
-Findings: 231
-SHA-256: eeedebfb2c5e5289cd624d98fec846d071f838c7890565f11f69703914c51fff
-
-Review the complete per-section consumer inventory and sign the integrated record after
-the command names have moved.
+The standalone suite checks the exact command map, invocation paths, capability preflight,
+preserved journal authorization and telemetry names. It also compares the isolated
+installation against the resolved skill sources and always-on assembly byte for byte.
+The strict checker requires zero findings after the command wave.
 
 ## Phase 1 checker evidence
 

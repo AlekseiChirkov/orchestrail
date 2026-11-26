@@ -20,7 +20,7 @@ Task specification lives in `.ai/specs/<NN>-<slug>.md` — immutable after creat
 The task directory contains no top-level `description.md`. To read the original task
 statement, follow `spec_path:` in `state.md`.
 
-**Controlled exceptions:** `/pv-finalize` prepares `status: done`, `completed_task:`
+**Controlled exceptions:** `/validation-finalize` prepares `status: done`, `completed_task:`
 and `completed_at:` in step 2.5 and merges them into existing frontmatter only after
 successful final checks and reconciliation. This is a completion marker, not a change to the task statement. Preserve unrelated frontmatter fields;
 existing frontmatter alone does not mean completion. `/spec-sync` may reconcile content
@@ -48,7 +48,7 @@ Why this subtask exists, dependencies on other T-XX, constraints.
 
 ## Scope
 In scope, out of scope, and the target files this subtask creates or modifies.
-Read by `/pae-implement` before any code is written — a missing `## Scope` stops it.
+Read by `/atomic-execution-implement` before any code is written — a missing `## Scope` stops it.
 
 ## Steps
 Numbered implementation steps (3–15 items).
@@ -61,7 +61,7 @@ These are used verbatim during atomic-validation.
 ## Test Plan
 Test level (unit | integration | contract | smoke | none), one scenario per Acceptance
 Criterion, applicable edge-case categories, and — when the level is `none` — the
-justification. Consumed by `/pae-tests` to write the failing tests before implementation.
+justification. Consumed by `/atomic-execution-tests` to write the failing tests before implementation.
 ```
 
 `plan.md` and `state.md` are NOT created at the T-XX level.
@@ -77,7 +77,7 @@ The spec file (`.ai/specs/<NN>-<slug>.md`) may be amended after creation only wh
 
 **Amendment procedure:**
 
-Do NOT edit the spec file directly. (The completion frontmatter written by `/pv-finalize`
+Do NOT edit the spec file directly. (The completion frontmatter written by `/validation-finalize`
 step 2.5 is not an amendment and is not covered by this prohibition.) Post-validation
 `/spec-sync` and explicit owner-authorized reconciliation are controlled content-edit
 exceptions under File Responsibility; neither may weaken a failed criterion.
@@ -91,7 +91,7 @@ Add a `### Description Amendments` section to the task-level `state.md`:
 ```
 
 Treat the amended version as authoritative for all subsequent workflow steps.
-If decomposition (T-XX subtasks) is affected — re-run `/pd-decompose` after recording the amendment.
+If decomposition (T-XX subtasks) is affected — re-run `/discovery-decompose` after recording the amendment.
 
 Amendments are a permanent record — never delete them from `state.md`.
 
@@ -233,31 +233,31 @@ Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `
 
 ## Status Lifecycle Notes
 
-- `not-started` → `red` when `/pae-tests` writes failing tests and observes them fail
+- `not-started` → `red` when `/atomic-execution-tests` writes failing tests and observes them fail
   (`n-a` when the test-level gate returns `none` with a recorded justification).
-- `red` → `green` when `/pae-implement` reaches Final Verification with the whole RED set
+- `red` → `green` when `/atomic-execution-implement` reaches Final Verification with the whole RED set
   passing and intact.
 - `not-started` → `in-progress` when atomic-execution begins.
 - `in-progress` → `done` when atomic-execution completes.
 - `done` → `reviewed` when atomic-validation passes.
 - `blocked` vs `deferred`: `blocked` is an external dependency issue (data, infra, upstream team); `deferred` is an explicit user decision to postpone.
-- `not-reached` is set by `/pe-finalize` for subtasks present in `plan.md` but absent from `## Execution Report` (usually due to session interruption or earlier blocker).
+- `not-reached` is set by `/execution-finalize` for subtasks present in `plan.md` but absent from `## Execution Report` (usually due to session interruption or earlier blocker).
 
 ## Key State-File Markers
 
 Markers are read by orchestrators to determine continuation points:
 
-- `## Task Analysis` — written by `/pd-analyze`.
-- `## Subtask Progress` — written and updated by `/pae-tests`, `/pae-implement`, `/pae-finalize`, `/pav-check`, `/pav-propose` (`notes:` only), `/pav-close`; git fields by `/spec-run` and `/restack`.
-- `## Improvement Proposals (T-XX)` — written by `/pav-propose`, read by `/pe-finalize` step 5.
-- `## Open Questions (batch)` — class-B ambiguities collected by `/pd-analyze` in orchestrated mode, cleared by `/spec-run` after the human answers.
-- `## Decomposition` with `decomposition: complete` — written by `/pd-decompose`.
-- `## Solution Design` with `### Decision` — written by `/pd-design`.
-- `## Execution Report` — written by `/pe-execute`, finalized by `/pe-finalize`.
-- `## Contract Check` with optional `### Critical Failures Decision` — written by `/pv-contract`.
-- `## Code Review`, `## Issue List` — written by `/pv-review`, `/pv-issues`.
-- `## Fix-Tasks` with `fixes-created: complete` + `fixes-count: <N>` — written by `/pv-create-fixes`.
-- `## Deferred` — written by `/pv-finalize`.
+- `## Task Analysis` — written by `/discovery-analyze`.
+- `## Subtask Progress` — written and updated by `/atomic-execution-tests`, `/atomic-execution-implement`, `/atomic-execution-finalize`, `/atomic-validation-check`, `/atomic-validation-propose` (`notes:` only), `/atomic-validation-close`; git fields by `/spec-run` and `/restack`.
+- `## Improvement Proposals (T-XX)` — written by `/atomic-validation-propose`, read by `/execution-finalize` step 5.
+- `## Open Questions (batch)` — class-B ambiguities collected by `/discovery-analyze` in orchestrated mode, cleared by `/spec-run` after the human answers.
+- `## Decomposition` with `decomposition: complete` — written by `/discovery-decompose`.
+- `## Solution Design` with `### Decision` — written by `/discovery-design`.
+- `## Execution Report` — written by `/execution-execute`, finalized by `/execution-finalize`.
+- `## Contract Check` with optional `### Critical Failures Decision` — written by `/validation-contract`.
+- `## Code Review`, `## Issue List` — written by `/validation-review`, `/validation-issues`.
+- `## Fix-Tasks` with `fixes-created: complete` + `fixes-count: <N>` — written by `/validation-create-fixes`.
+- `## Deferred` — written by `/validation-finalize`.
 
 ---
 
@@ -270,9 +270,9 @@ use this table to translate atomic status → plan.md Status column:
 
 | Atomic status (## Subtask Progress) | plan.md Status column | When |
 |--------------------------------------|-----------------------|------|
-| `red` / `pinned` / `n-a` (atomic-tests) | `in-progress`      | After pae-tests — the subtask is underway, not done |
-| `complete` (atomic-execution)        | `done`                | After pae-finalize |
-| `complete` (atomic-validation)       | `reviewed`            | After pav-close |
+| `red` / `pinned` / `n-a` (atomic-tests) | `in-progress`      | After atomic-execution-tests — the subtask is underway, not done |
+| `complete` (atomic-execution)        | `done`                | After atomic-execution-finalize |
+| `complete` (atomic-validation)       | `reviewed`            | After atomic-validation-close |
 | `blocked`                            | `blocked`             | Direct match |
 | `skipped`                            | `not-reached`         | No atomic run occurred |
 | `failed`                             | `blocked`             | Validation failed, needs fix-task |
@@ -289,7 +289,7 @@ The following sections are contracts read by orchestrators and must never be rem
 **Task-level `state.md`:**
 - `## Phases` (top-level and atomic)
 - `## Task Analysis`
-- `## Task Analysis → ### Assumptions` (decisions taken autonomously — never removed, never archived by `/pd-archive`)
+- `## Task Analysis → ### Assumptions` (decisions taken autonomously — never removed, never archived by `/discovery-archive`)
 - `## Decomposition` (including `decomposition: complete` marker)
 - `## Solution Design` (Invariants, Off-limits, Acceptance Criteria, Decision, Scope)
 - `## Model Selection` — preserve the complete checkpoint, evidence and digests until explicitly invalidated or replaced by bulk selection.
@@ -310,12 +310,12 @@ The following sections are contracts read by orchestrators and must never be rem
 - `### Description Amendments` (if present — permanent record, never remove)
 - `## Contract (quick)` (quick tier only — the whole contract for the task lives here;
   including `### Off-limits` / `### Invariants` / `### Acceptance Criteria`. Read by
-  `/pv-contract` and `/pv-review`)
-- `## TDD (quick)` (quick tier only — the RED/GREEN record `/pv-review` audits)
+  `/validation-contract` and `/validation-review`)
+- `## TDD (quick)` (quick tier only — the RED/GREEN record `/validation-review` audits)
 - `## Flow Escalation` (if present — the recorded `quick → full` promotion; never remove)
-- `## Improvement Proposals (T-XX)` (written by `/pav-propose`, read by `/pe-finalize` after
+- `## Improvement Proposals (T-XX)` (written by `/atomic-validation-propose`, read by `/execution-finalize` after
   the execution phase — removing it loses the batched `Do Now` items before they are surfaced)
-- `## Integration Issues (T-XX)` (written by `/phase-composite-validation` step 2d — the
+- `## Integration Issues (T-XX)` (written by `/composite-validation` step 2d — the
   recorded approve/defer decision for integration failures; read by its own step 3 when creating
   D8 fix siblings and on every re-run, so it must survive compression)
 - `## Open Questions (batch)` (orchestrated mode only — class-B ambiguities awaiting a human
@@ -338,7 +338,7 @@ collision overwrite; whole-spec archival requires every phase and required scope
 ## Multi-Phase Spec Rules
 
 When a spec defines ≥2 phase markers (`## Phase N` or `### Phase N` headings),
-`/phase-discovery` enters multi-phase mode:
+`/discovery` enters multi-phase mode:
 
 **Invocation argument `--phase N`**
 Pass `--phase N` to target a specific phase. If omitted, the lowest phase number
@@ -351,7 +351,7 @@ with no existing task directory is selected automatically.
 
 Each phase gets its own task directory and runs through a full Discovery →
 Execution → Validation cycle independently. Subsequent phases are started with
-`/phase-discovery <spec_path> --phase <N+1>` after the previous phase completes
+`/discovery <spec_path> --phase <N+1>` after the previous phase completes
 validation.
 
 ---
@@ -372,7 +372,7 @@ validation.
 - `notes:` — required field in `## Subtask Progress` (both leaf and composite blocks)
 - `target_files:` — required field in leaf `## Subtask Progress` blocks
 - `blocker:` — required field in composite `## Subtask Progress` blocks
-- `atomic-tests:` — required field in leaf `## Subtask Progress` blocks once `/pae-tests` has
+- `atomic-tests:` — required field in leaf `## Subtask Progress` blocks once `/atomic-execution-tests` has
   run; never removed, never downgraded to an earlier state by a later workflow
 - `notes:` lines beginning with `tdd:` — the TDD audit trail (test level, `none`
   justification, test amendments). Never removed or summarized.
@@ -408,13 +408,13 @@ When a task reaches `validation: complete` with no deferred items:
 
 **Sections and where each status lives.** The file carries exactly three task sections, and each
 one has a writer: `## Active Tasks` (every task in flight, written by the phase finalize
-workflows), `## Done` (written by `/pv-finalize`), and `## Deferred` (written by `/pd-finalize`
-for later phases of a multi-phase spec, and by `/pv-finalize` for deferred items). There is no
+workflows), `## Done` (written by `/validation-finalize`), and `## Deferred` (written by `/discovery-finalize`
+for later phases of a multi-phase spec, and by `/validation-finalize` for deferred items). There is no
 `## Blocked` section: `blocked` is a `status:` value **inside** an `## Active Tasks` entry, which
 keeps a blocked task in the list a reader actually scans. Do not add a section no workflow
 writes — `/compress-state` cannot distinguish an empty section from a stale one.
 
-`/phase-finalize` reconciles the existing entry and current links surgically after integration;
+`/finalization` reconciles the existing entry and current links surgically after integration;
 retain the Validation result and unfinished scope. Its independent closure outcomes live in the
 stable finalization journal (canonical definition: `contract-phases → ## Finalization`).
 
@@ -450,7 +450,7 @@ All projects using these workflows MUST define the following in `.ai/`:
 ### .ai/specs/ — spec files (required for new workflow)
 - `<NN>-<kebab-name>.md` — one file per task. H1 required. Numeric prefix must be unique.
 - Immutable during implementation except for explicit owner-authorized edits. Post-validation reconciliation and completion metadata follow `## File Responsibility`.
-- Consumed by `phase-discovery` to create the task directory.
+- Consumed by `discovery` to create the task directory.
 - Naming standard: `<NN>-<kebab-name>.md` where NN is zero-padded two digits (01, 02...).
 
 ### .ai/context/runbook.md — ## Commands (required for test/lint automation)
@@ -459,7 +459,7 @@ All projects using these workflows MUST define the following in `.ai/`:
 - `typecheck:` — command for type checking (optional)
 - `build:` — command to build (optional)
 
-`test:` is **required** for testable work: `/pae-tests` stops when it is missing or still a
+`test:` is **required** for testable work: `/atomic-execution-tests` stops when it is missing or still a
 placeholder, because RED cannot be observed without a runner. Classify the level first;
 independently justified `none` retains its manual evidence and needs no runner. Never
 select `none` because a command is missing.

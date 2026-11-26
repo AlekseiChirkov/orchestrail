@@ -4,8 +4,8 @@ phase: validation
 step: 1
 ---
 
-Invocation: `/pv-contract <task-directory>`
-Called by: `/phase-validation` as Step 1.
+Invocation: `/validation-contract <task-directory>`
+Called by: `/validation` as Step 1.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -13,7 +13,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Guard
 
-1. Read `state.md` in the task directory; missing state or execution not `complete` → **stop**: "Complete `/phase-execution` first."
+1. Read `state.md` in the task directory; missing state or execution not `complete` → **stop**: "Complete `/execution` first."
 2. Check `## Phases → validation`. If `complete` → **stop**: "Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
 3. Otherwise → continue.
 
@@ -63,13 +63,13 @@ the load order, umbrella precedence, conditional sources, and reporting.
 | <name> | PASS / FAIL: <reason> |
 ```
 
-7. **Critical-failure stop gate.** If at least one Invariant or Off-limits entry has status `FAIL` — **stop immediately** before yielding back to the orchestrator or `/pv-review`:
+7. **Critical-failure stop gate.** If at least one Invariant or Off-limits entry has status `FAIL` — **stop immediately** before yielding back to the orchestrator or `/validation-review`:
    - List all critical failures (Invariant / Off-limits) with reasons.
    - Ask the user: "Critical contract failures detected. Choose: (1) pause validation and fix now, (2) continue review with these failures marked `critical` in the issue list."
-   - Wait for explicit user decision. Do not proceed to `/pv-review` or any subsequent step until an answer is received.
+   - Wait for explicit user decision. Do not proceed to `/validation-review` or any subsequent step until an answer is received.
    - Record the chosen decision in `state.md` as `### Critical Failures Decision: <pause | continue-marked>`.
 
-   Acceptance Criteria failures do not trigger the gate — they are batched for `/pv-issues` as usual.
+   Acceptance Criteria failures do not trigger the gate — they are batched for `/validation-issues` as usual.
 
 8. Report: "Step 1 (Contract Verification) complete. N passes, M failures (K critical)."
 This is a progress marker; return to the caller only after the critical gate is resolved.

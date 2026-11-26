@@ -1,5 +1,5 @@
 ---
-description: Context loading rules for atomic-execution — load when running /phase-atomic-execution, /pae-tests, or /pae-implement standalone (without parent /phase-execution)
+description: Context loading rules for atomic-execution — load when running /atomic-execution, /atomic-execution-tests, or /atomic-execution-implement standalone (without parent /execution)
 load: on-demand
 ---
 

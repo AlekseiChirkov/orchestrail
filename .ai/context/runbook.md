@@ -2,7 +2,7 @@
 
 ## Purpose
 How to validate, deploy, audit, and recover the workflow system. The `## Commands` keys
-are read by `/pae-implement` and `/bugfix` for the automated verification step.
+are read by `/atomic-execution-implement` and `/bugfix` for the automated verification step.
 
 ## Commands
 test:      bash scripts/validate-contracts.sh
@@ -93,7 +93,7 @@ requires a configured file and fails closed.
 2. `bash scripts/sync.sh` (or `scripts/sync.sh --from <dir>`). Sync validates the source,
    deploys managed files to the declared Claude Code and Codex targets, and refreshes
    existing skill-link directories in registered projects.
-3. Check the target paths printed by sync and confirm `/phase-discovery` is available.
+3. Check the target paths printed by sync and confirm `/discovery` is available.
 4. Restart open sessions to load the refreshed global instructions.
 
 ### Add a workflow
@@ -142,7 +142,7 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
 
 ### Initialize a consumer project
 1. `cd <project>`; `bash <orchestrail>/scripts/setup-new-project.sh`.
-2. Fill `.ai/context/runbook.md → ## Commands` (`test:` is required — `/pae-tests` stops
+2. Fill `.ai/context/runbook.md → ## Commands` (`test:` is required — `/atomic-execution-tests` stops
    without it), `CLAUDE.md → ## Standards`, `AGENTS.md → ## Project Context` and `## Commands`.
 3. For an existing codebase run `/onboard-legacy-project` once.
 4. Multi-repo: `scripts/setup-umbrella.sh` at the root first, then `scripts/setup-all-repos.sh` or
@@ -188,7 +188,7 @@ Follow `.ai/principles/coding.md → Changing a contract`. Additionally:
    actual results and optional-tool limitations in task evidence.
 
 ### Close a merged consumer task
-Use `/phase-finalize <task-directory|spec-path> --dry-run` for a read-only plan,
+Use `/finalization <task-directory|spec-path> --dry-run` for a read-only plan,
 then the same invocation without `--dry-run` for the entire finalization.
 Cleanup is mandatory and the ordinary invocation authorizes only the resolved
 task's proven resources. Rerun the same command after resolving a blocker; the

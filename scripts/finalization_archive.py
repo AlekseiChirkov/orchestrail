@@ -38,6 +38,10 @@ def validate_journal_document(root: Path, path: Path, document: dict) -> None:
         safe_path(Path(document[key]), root)
     require(Path(document['task_current']) in {original, root / '.ai/tasks/completed' / original.name}, 'journal-invalid', 'Invalid current task location')
     require(isinstance(document.get('repositories'), list) and isinstance(document.get('actions'), list), 'journal-invalid', 'Journal plan is missing')
+    authorization = document.get('authorization')
+    expected = {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True}
+    require(authorization == expected and authorization['cleanup'] is True,
+            'authorization-required', 'Journal authorization differs from the original task binding')
 
 
 def journal_files(root: Path) -> Iterator[Path]:

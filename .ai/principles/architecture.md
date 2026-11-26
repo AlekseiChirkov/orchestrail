@@ -52,8 +52,8 @@ a defect (see the 2026-07 audit: ten dangling references).
 *Rationale:* the always-on context budget is finite; duplication drifts.
 
 ### P7 — Test-first is not suspended by any mode
-`/pae-tests` precedes `/pae-implement` on every leaf; the quick tier runs the same cycle
-inline; `/phase-pipeline` and `/spec-run` do not override it; `none` needs a written
+`/atomic-execution-tests` precedes `/atomic-execution-implement` on every leaf; the quick tier runs the same cycle
+inline; `/pipeline` and `/spec-run` do not override it; `none` needs a written
 justification. This repository applies it to itself at the `smoke` level via
 `scripts/validate-contracts.sh`.
 *Rationale:* tests written after the code describe the code, not the requirement.

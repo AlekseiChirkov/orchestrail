@@ -20,10 +20,26 @@ Use `contract-phases → ## Capabilities` for the declared mechanisms and their 
   multi-repository project. Without it the run is single-repository and every rule below
   applies as written. See `## Repository mode`.
 
+## Guard
+
+Read the capability records from the always-on instructions. Check `sub-agents`,
+`agent-messaging`, then `git`, in that order. For each, require `state: yes` and
+the matching session tool with permission to use it. Run this check before
+repository mode, Step 0, and any write, branch, commit, spawn or run-log record.
+For the first unavailable key, report its declaration, including `absent` if the
+record is missing, and the session tool's availability. **stop**: "spec-run requires capability <key> (declared: <yes|no|unknown|absent>; session tool: <available|unavailable>). <next-step>"
+Replace `<next-step>` with `Use /pipeline <task-directory> for the single-session path.`
+Unavailable `worktrees` or `concurrent-sub-agents` do not stop the sequential run.
+
+Require an existing spec, supported worker messaging, and passing git preflight. Read
+state before mutation. Resume completed checkpoints rather than recreating their branches
+or commits. Existing class-B questions must be answered before execution; an overwrite
+still needs explicit authorization. A completed run with no remaining PR promotion stops.
+
 ## Repository mode
 
-The **project root** `ROOT` is the directory holding `.ai/specs/<spec>`. Classify it before
-anything else. When no `--repo` flag was given and `git -C "$ROOT" rev-parse
+After the Guard succeeds, classify the **project root** `ROOT`, the directory holding
+`.ai/specs/<spec>`. When no `--repo` flag was given and `git -C "$ROOT" rev-parse
 --is-inside-work-tree` prints `true`, the run is **single-repository**: `WORK_DIR = ROOT`,
 everything below applies unchanged, and the helper is never used. Otherwise classify with
 `repo-set.py mode`, a read-only helper resolved from the configured or independently
@@ -52,13 +68,6 @@ python3 -I "$REPO_HELPER" mode --root "$ROOT" [--repo <directory>=<base-branch> 
 Every `preflight`, `route` and `reconcile` call below takes `--root "$ROOT"`, the same
 `--repo` flags when given, and `--state <task state.md>` once it exists. Exit 1 means stop
 before mutation; report each failure as repository, check and reason.
-
-## Guard
-
-Require an existing spec, supported worker messaging, and passing git preflight. Read
-state before mutation. Resume completed checkpoints rather than recreating their branches
-or commits. Existing class-B questions must be answered before execution; an overwrite
-still needs explicit authorization. A completed run with no remaining PR promotion stops.
 
 ---
 
@@ -104,7 +113,7 @@ In multi-repository mode pass `--project "$ROOT"`.
    In multi-repository mode run `repo-set.py preflight` after item 2 instead, with
    `--allow-pr` when given; it applies the same checks to every participating repository
    and lists undeclared nested repositories as ignored.
-2. Run `phase-discovery` Step 0 in full for resolution only, adopting its working directory, task path,
+2. Run `discovery` Step 0 in full for resolution only, adopting its working directory, task path,
    multi-phase selection and collision guards. Resolution itself writes nothing; let
    Discovery initialize a fresh task once.
 3. If resolution found a new task without state, start at Step 1. Otherwise read
@@ -124,7 +133,7 @@ In multi-repository mode pass `--project "$ROOT"`.
    - Unreviewed leaves: Step 4 at the first one, at its existing atomic/git checkpoint.
      In multi-repository mode that is `repo-set.py route`'s `next` leaf, the earliest
      unfinished leaf of the shared order, in whichever repository it belongs to.
-   - Leaves reviewed, execution finalization missing: `/pe-finalize` before Step 5.
+   - Leaves reviewed, execution finalization missing: `/execution-finalize` before Step 5.
    - Execution complete, Validation incomplete: Step 5, including its pending fixes.
    - Validation complete: Step 7 if authorized PR promotion is outstanding; otherwise report.
 6. Report the resume point and flags. Restore the Arbiter from current artifacts on a new
@@ -135,7 +144,7 @@ In multi-repository mode pass `--project "$ROOT"`.
 ## Step 1 — Discovery, with the batch gate
 
 Pass the resolved `--phase N` for multi-phase specs so the child keeps the selected
-phase. Run `/phase-discovery` in autonomous **orchestrated** mode, allowing normal initialization
+phase. Run `/discovery` in autonomous **orchestrated** mode, allowing normal initialization
 for a fresh task and resuming existing Discovery artifacts otherwise. It owns child sequencing and quick/full routing; never pass `--step-by-step`.
 In multi-repository mode supply the repository set; Discovery records it in
 `state.md → ## Repositories` and routes every leaf to one repository. Discovery writes
@@ -150,7 +159,7 @@ sources; collect class B in `## Open Questions (batch)`. No worker may infer mis
 
 ### The batch gate — the only planned human stop
 
-After `/pd-finalize`, read `## Open Questions (batch)`.
+After `/discovery-finalize`, read `## Open Questions (batch)`.
 
 - **Empty** → report "No open questions. Proceeding to execution." and continue.
 - **Non-empty** → present every question as one list. For each: the question, why it is not
@@ -163,14 +172,14 @@ Write the human's answers into `### Assumptions` (one line each, source: `user`)
 The batch gate runs before any branch is created. After answers, reconcile any affected
 unstarted plan, descriptions and design before continuing; skip no unresolved questions
 on resume. If `flow: quick`, this branch-per-leaf workflow has no leaf plan: **stop** and
-report `/phase-pipeline <task-directory>` as the supported inline route. Do not invent a
+report `/pipeline <task-directory>` as the supported inline route. Do not invent a
 leaf, silently promote the tier or implement code in the Orchestrator.
 
 ---
 
 ## Step 2 — Model selection
 
-Verify the discovery `## Model Selection` checkpoint and current leaf digests. For older completed discovery without a valid checkpoint, run `/pd-select-model <task-directory>` in bulk mode; unavailable or incomplete selection stops before execution. Selection writes the optional
+Verify the discovery `## Model Selection` checkpoint and current leaf digests. For older completed discovery without a valid checkpoint, run `/discovery-select-model <task-directory>` in bulk mode; unavailable or incomplete selection stops before execution. Selection writes the optional
 `Model (Claude)` / `Model (Codex)` columns in `plan.md → ## Subtasks`, preserving
 legacy `Model` values through explicit migration. Read the active provider column,
 legacy fallback and session default under
@@ -212,7 +221,7 @@ receipt with caller provenance; successful spawning alone is insufficient.
 
 ## Step 3 — Resolve the stack
 
-Read `plan.md → ## Subtasks`. Build the execution order exactly as `/pe-execute` does:
+Read `plan.md → ## Subtasks`. Build the execution order exactly as `/execution-execute` does:
 topological order over `Depends On`, honouring any ordering policy in `## Execution Strategy`.
 Composite rows are containers — they get no branch and no agent; their children appear in the
 order as ordinary leaves.
@@ -291,7 +300,7 @@ Leaves of other repositories never move this repository's stack.
 capability, current installation and native session identity as required by
 `contract-run-log → ## Workflow coverage and routing`. Only when the profile/payload is supported,
 installation is available, `RUN_ID` is usable and `CLAUDE_CODE_SESSION_ID` is present,
-provisionally dispatch the expected `pae-tests` boundary. Assign one stable logical
+provisionally dispatch the expected `atomic-execution-tests` boundary. Assign one stable logical
 `actor_id` to this worker, retain it for the checkpoint, and invoke the readable adapter
 through Bash:
 
@@ -300,7 +309,7 @@ HOOK_ADAPTER="${ORCHESTRAIL_HOME:+$ORCHESTRAIL_HOME/hooks/log-step-hook.sh}"
 DISPATCH_LINE=""
 if [ -r "$HOOK_ADAPTER" ]; then
   DISPATCH_LINE=$(bash "$HOOK_ADAPTER" dispatch --run "$RUN_ID" \
-    --agent-id "$actor_id" --boundary subagent --expected-skill pae-tests) || DISPATCH_LINE=""
+    --agent-id "$actor_id" --boundary subagent --expected-skill atomic-execution-tests) || DISPATCH_LINE=""
 fi
 ```
 
@@ -319,36 +328,36 @@ claiming selection, even when default model identity/support is unknown.
 Unavailable worker spawning stops execution; never replace the worker with inline implementation.
 Give the fresh sub-agent: the path to
 `T-XX/description.md`, the resolved `WORK_DIR`, the branch name,
-and the instruction to run `/pae-tests` → **report RED and wait** → `/pae-implement` →
-`/pae-finalize`. It loads `.ai/` context itself. Do **not** pass it the transcript of any
+and the instruction to run `/atomic-execution-tests` → **report RED and wait** → `/atomic-execution-implement` →
+`/atomic-execution-finalize`. It loads `.ai/` context itself. Do **not** pass it the transcript of any
 previous subtask.
 
 The Implementer reports before implementation so the Orchestrator can create the
 required test-only commit. Workers never run git:
 
-a. The agent runs `/pae-tests`, then **stops and reports**: the RED digest and the test files
+a. The agent runs `/atomic-execution-tests`, then **stops and reports**: the RED digest and the test files
    it wrote. At this point `target_files:` holds test files only.
    When a provisional envelope was supplied and RED was actually established, append
    one unindented canonical `ORCHESTRAIL_REPORT_V1` line outside code fences to this
    final response. Use the exact retained tuple with `"outcome":"ok","tests":"red"`,
    compact key-sorted JSON and no step or timestamp fields. Marker construction and
    native evidence follow `contract-run-log → ## Native hook adapter → ### Dispatch and native evidence`. A genuine unique
-   native `Skill` invocation of `pae-tests` remains required; the expected-skill flag
+   native `Skill` invocation of `atomic-execution-tests` remains required; the expected-skill flag
    alone, a wrapper invocation, or reading the workflow file cannot establish coverage.
    The orchestrator resolves status or serialized fallback before the git checkpoint,
    using `contract-run-log → ## Workflow coverage and routing`. Match the retained tuple and
    acceptance receipt; suppress only this named RED row after acceptance. If no envelope
-   was ever issued, log `--step pae-tests --outcome ok --tests red --note approximate`.
+   was ever issued, log `--step atomic-execution-tests --outcome ok --tests red --note approximate`.
    Do not fabricate native events, poll, or delay the git handoff for telemetry.
 b. The orchestrator commits exactly those paths as `test: <what the tests assert>`. Stage
    explicit paths — never `git add -A`. Verify staged paths follow the repository-owned
    tracking policy in `contract-git-flow → ## Commits`. Append the sha to `commits:`.
 c. The orchestrator sends the **same** agent one message to continue. It runs
-   `/pae-implement` → `/pae-finalize` in the context it already holds, so the GREEN step still
+   `/atomic-execution-implement` → `/atomic-execution-finalize` in the context it already holds, so the GREEN step still
    reads the RED set it is satisfying — the reason tests and implementation share one agent
    (`contract-orchestration → ### Implementer`).
    The GREEN batch must never reuse the RED marker or envelope for its return; retain
-   approximate logging for `pae-implement`, `pae-finalize` and the existing aggregate.
+   approximate logging for `atomic-execution-implement`, `atomic-execution-finalize` and the existing aggregate.
 d. On the GREEN report, the orchestrator commits the implementation paths added to
    `target_files:` as `feat: <what was implemented>`, under the same staging rules, and appends
    that sha to `commits:`.
@@ -374,8 +383,8 @@ Keep unknown default identity unknown; successful spawning does not identify exe
 Unavailable worker spawning stops the run. Give it: the path to the same
 `T-XX/description.md`, the test files, and the subtask diff (`git diff <base_commit>..HEAD`,
 run inside the leaf's repository in multi-repository mode).
-Do **not** give it the Implementer's reasoning or report. Instruct it to run `/pav-check` →
-`/pav-propose --batch` → `/pav-close`.
+Do **not** give it the Implementer's reasoning or report. Instruct it to run `/atomic-validation-check` →
+`/atomic-validation-propose --batch` → `/atomic-validation-close`.
 
 Keep the three-skill validation batch and its internal prompt steps approximate under
 `contract-run-log → ## Workflow coverage and routing`.
@@ -385,7 +394,7 @@ branch and commits intact, and **stop the run**: the stack is sequential and not
 this subtask can be built on a failing base.
 
 **4.4 Composite rollup.** When the closed subtask is the last child of a composite,
-`/pav-close` triggers `/phase-composite-validation` automatically. It runs on the current
+`/atomic-validation-close` triggers `/composite-validation` automatically. It runs on the current
 branch — the tip already contains every child. Do not create a branch for the composite.
 In multi-repository mode that is the current branch of the composite's one repository.
 
@@ -405,7 +414,7 @@ A subtask that is `blocked` or whose validation `failed` gets no PR.
 **4.6 Shared state.** Apply returned plan, composite and knowledge deltas per
 `contract-orchestration → ## Shared-file discipline`; verify each progress block is intact.
 Compress task state with `/compress-state --auto`. After all leaves are reviewed, run
-`/pe-finalize` once to record Execution completion and collect batched proposals before
+`/execution-finalize` once to record Execution completion and collect batched proposals before
 Task-level Validation. In this mode, retain batched proposals pending and report them
 at delivery; apply none and request no new proposal choice. This named override is
 registered in `contract-phases`. The Orchestrator delegates approved code work to an Implementer.
@@ -414,23 +423,23 @@ registered in `contract-phases`. The Orchestrator delegates approved code work t
 
 ## Step 5 — Task-level validation
 
-Run `/phase-validation <task-directory>` on the stack tip. In multi-repository mode first
+Run `/validation <task-directory>` on the stack tip. In multi-repository mode first
 check out each repository's stack tip; validation then reads every repository through each
 subtask's `working_dir:`, and the whole run passes or fails as one. Its children own issue
 collection, fix creation/classification, fix execution and finalization; do not rerun those
 steps separately afterward. Inside this invocation:
 
-- `/pv-issues`: approve `critical`/`important`, defer `optional`, and record the split.
-- `/pav-propose`: pass `--batch`; record proposals and apply nothing.
-- `/pv-contract`: preserve the critical-failure gate; failed Invariant/Off-limits stops.
+- `/validation-issues`: approve `critical`/`important`, defer `optional`, and record the split.
+- `/atomic-validation-propose`: pass `--batch`; record proposals and apply nothing.
+- `/validation-contract`: preserve the critical-failure gate; failed Invariant/Off-limits stops.
 - `/spec-sync`: pass `--auto-mode` after validation checks; failed criteria remain defects.
 
 ## Step 6 — Fix-tasks
 
-This is a callback **during Step 5**, not a second fix pass. `/pv-create-fixes` calls
-`/pv-classify-fixes`: gate-qualified fixes share a branch/PR; others get dedicated branches.
+This is a callback **during Step 5**, not a second fix pass. `/validation-create-fixes` calls
+`/validation-classify-fixes`: gate-qualified fixes share a branch/PR; others get dedicated branches.
 The Orchestrator applies shared deltas and runs Step 4's Implementer/Validator/commit
-handoffs for each group before `/pv-finalize`. Shared groups execute leaves sequentially
+handoffs for each group before `/validation-finalize`. Shared groups execute leaves sequentially
 on their recorded branch; only dedicated groups create another branch. Use domain-named
 `fix:` branches/messages and test-first commits under `contract-git-flow`. In multi-repository
 mode each fix group belongs to one repository and its branch extends that repository's
@@ -441,7 +450,7 @@ leaf carries `Repo` and `working_dir:` like any other leaf.
 
 ## Step 7 — Promote pull requests
 
-Only with `--allow-pr`, only after `/phase-validation` completes with no unresolved critical
+Only with `--allow-pr`, only after `/validation` completes with no unresolved critical
 findings. Convert every draft PR in the stack to **ready for review**, in stack order.
 In multi-repository mode promote only after validation of the whole run, repository by
 repository, each in its own stack order.
@@ -498,5 +507,5 @@ is reconciled against its own repository, and the run resumes at the earliest un
 leaf of the shared order with both stacks and their dependencies intact.
 
 After the owner merges the delivered branches into their intended integration branches,
-suggest `/phase-finalize <task-directory>` for separately invoked evidence-backed closure.
+suggest `/finalization <task-directory>` for separately invoked evidence-backed closure.
 Do not invoke it, perform its cleanup or change this workflow's Validation/delivery endpoint.

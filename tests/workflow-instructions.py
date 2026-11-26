@@ -37,7 +37,7 @@ def reference_errors() -> list[str]:
 def bootstrap_errors() -> list[str]:
     errors = []
     phase_contract = (ROOT / "rules/contract-phases.md").read_text()
-    if "except `/phase-pipeline` and `/spec-run`" not in phase_contract:
+    if "except `/pipeline` and `/spec-run`" not in phase_contract:
         errors.append("contract-phases: phase-transition exceptions are not explicit")
     for path in (ROOT / "rules").glob("bootstrap-*.md"):
         if "Always load full context regardless" in path.read_text():
@@ -48,7 +48,7 @@ def bootstrap_errors() -> list[str]:
     if re.search(r"S2\s*=\s*1\.5", classifier):
         errors.append("protocol-subtask-classifier: component count is fractional")
     orchestrator = (ROOT / "workflows/spec-run.md").read_text()
-    if not re.search(r"(?is)Step 0.*?phase-discovery.*?Step 0 in full", orchestrator):
+    if not re.search(r"(?is)Step 0.*?discovery.*?Step 0 in full", orchestrator):
         errors.append("spec-run: discovery bootstrap is bypassed")
     return errors
 

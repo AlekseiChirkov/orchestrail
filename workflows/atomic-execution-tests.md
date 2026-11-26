@@ -4,8 +4,8 @@ phase: atomic-execution
 step: 1
 ---
 
-Invocation: `/pae-tests <path-to-atomic-description> [--batch] [--characterize]`
-Called by: `/phase-atomic-execution` as Step 1, before `/pae-implement`.
+Invocation: `/atomic-execution-tests <path-to-atomic-description> [--batch] [--characterize]`
+Called by: `/atomic-execution` as Step 1, before `/atomic-execution-implement`.
 
 `--batch` suppresses duplicate digest display, never test classification, observation,
 or persistence. It does not authorize applying improvement proposals. `--characterize`
@@ -28,28 +28,28 @@ The governing contract is the `contract-tdd` rule; test style comes from `testin
    green. Re-running will overwrite the RED test set. Confirm to proceed? (yes/no)" Wait for
    explicit confirmation.
 2b. `atomic-tests: pinned` → reuse the recorded characterization mode. If implementation
-    has begun, return to `/pae-implement` without rewriting or claiming a new baseline;
+    has begun, return to `/atomic-execution-implement` without rewriting or claiming a new baseline;
     otherwise re-verify existing pins against unchanged code.
 3. If the block has `atomic-tests: red` → report: "RED already reached for T-XX. Existing
    failing tests: [list]. Re-running will regenerate them. Confirm to proceed? (yes/no)"
-   Wait. On a resume this is normally NOT what you want — continue to `/pae-implement`
+   Wait. On a resume this is normally NOT what you want — continue to `/atomic-execution-implement`
    instead.
 4. If `atomic-execution: complete` → **stop**: "Atomic execution is already complete.
    Writing tests now would be test-after. Confirm to proceed? (yes/no)" Wait.
 5. Check `T-XX/description.md` exists and contains `## Acceptance Criteria`. If missing →
-   **stop**: "description.md is incomplete. Run `/pd-decompose` + `/pd-finalize` in the
+   **stop**: "description.md is incomplete. Run `/discovery-decompose` + `/discovery-finalize` in the
    parent task."
 6. **Composite guard.** If `T-XX/description.md → ## Context` contains `type: composite` →
    **stop**: "T-XX is a composite. Composites are not executed directly; their
-   integration-level criteria are verified by `/phase-composite-validation`. Run
-   `/pae-tests` on its children (T-XXa, T-XXb, …)."
+   integration-level criteria are verified by `/composite-validation`. Run
+   `/atomic-execution-tests` on its children (T-XXa, T-XXb, …)."
 7. Otherwise → continue.
 
 ---
 
 ## Pre-check
 
-0. **Working directory resolution** (identical to `/pae-implement`).
+0. **Working directory resolution** (identical to `/atomic-execution-implement`).
    Read `T-XX/description.md → ## Context`. Check for `working_dir:`.
    - If present: resolve relative to the atomic task directory; set absolute `WORK_DIR` and `AI_DIR = WORK_DIR/.ai`.
    - If absent: `WORK_DIR = <current directory>`, `AI_DIR = .ai`.
@@ -98,7 +98,7 @@ Conditions: AC preserve behaviour <yes|no> | observable today <yes|no> | no requ
 ```
 
 If any condition is `no` → **stop**: "This subtask is not behaviour-preserving: <which
-condition failed>. Run `/pae-tests <path>` without `--characterize`, or split the subtask so
+condition failed>. Run `/atomic-execution-tests <path>` without `--characterize`, or split the subtask so
 the new behaviour gets its own Acceptance Criterion." Characterization is not a lighter path
 for work that is merely hard to specify.
 
@@ -109,7 +109,7 @@ for work that is merely hard to specify.
 2. Write the justification line to the leaf's `notes:` field:
    `tdd: none — <which of unit/integration/contract/smoke was considered and why each is inapplicable>`
 3. Set `atomic-tests: n-a` in the leaf block.
-4. Report: "TDD level: none (justified). Next: `/pae-implement <path>`." **Skip Steps 2–4.**
+4. Report: "TDD level: none (justified). Next: `/atomic-execution-implement <path>`." **Skip Steps 2–4.**
 
 For every testable level, a missing/placeholder/unavailable `test:` command → **stop**:
 "Configure a runnable `test:` command before establishing test evidence." Record an
@@ -119,7 +119,7 @@ external tooling/dependency blocker; never downgrade the gate to `none` to bypas
 
 ## Step 2 — Derive the test plan
 
-**If `T-XX/description.md` contains `## Test Plan`** (written by `/pd-decompose`): use it as
+**If `T-XX/description.md` contains `## Test Plan`** (written by `/discovery-decompose`): use it as
 the authoritative list of scenarios. Verify it covers every Acceptance Criterion — if a
 criterion has no scenario, add one and note the gap in `notes:`.
 
@@ -185,7 +185,7 @@ failure is a genuine one. Do not proceed with a broken test in the set.
 **If any new test passes before implementation** → set `atomic-tests: failed`, record which
 test passed and the suspected cause (behaviour already exists → subtask scope is wrong; or
 the assertion is vacuous → violates `testing-standards → Forbidden in Tests`). **Stop** and
-report to the user. Do not continue to `/pae-implement`.
+report to the user. Do not continue to `/atomic-execution-implement`.
 
 ### Characterization mode — Step 4 is inverted
 
@@ -229,7 +229,7 @@ T-XX | <name> | atomic-tests: red | atomic-execution: <current> | atomic-validat
 ```
 
 The RED digest is written in every mode, including characterization; `none` records its
-justification instead. Preserve other notes/git fields. `/pae-implement` and `/pav-check`
+justification instead. Preserve other notes/git fields. `/atomic-execution-implement` and `/atomic-validation-check`
 read the digest to verify frozen test identities and AC coverage.
 
 ---
@@ -240,10 +240,10 @@ Report mode/level, test names, AC coverage, files, command, and observed result:
 ordinary mode: <N> expected failures; characterization: <N> pins passing before code changes;
 `none`: the recorded justification. Do not label passing pins as failing RED tests.
 
-Display the digest unless `--batch` or `/phase-pipeline` suppresses the duplicate output.
+Display the digest unless `--batch` or `/pipeline` suppresses the duplicate output.
 A valid gate returns immediately to the caller; this is a progress marker, not a handoff.
 Incomplete mapping, an untestable criterion, or a required level downgrade → **stop**:
 "Test contract requires a decision: <gap>. Clarify the criterion or scope before implementation."
 Batch display suppression never bypasses these gates.
 
-Next: `/pae-implement <path>`. Keep the recorded test set frozen.
+Next: `/atomic-execution-implement <path>`. Keep the recorded test set frozen.

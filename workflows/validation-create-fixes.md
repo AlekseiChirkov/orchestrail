@@ -4,8 +4,8 @@ phase: validation
 step: 4
 ---
 
-Invocation: `/pv-create-fixes <task-directory>`
-Called by: `/phase-validation` as Step 4.
+Invocation: `/validation-create-fixes <task-directory>`
+Called by: `/validation` as Step 4.
 
 Task directory = provided argument (trailing slash optional).
 
@@ -15,7 +15,7 @@ Task directory = provided argument (trailing slash optional).
 
 1. Read `state.md` in the task directory.
 2. Check `## Phases → validation`. If `complete` → **stop**: "Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)" Wait for explicit confirmation.
-3. Check `## Issue List` with `### Approved` present in `state.md`. If missing → **stop**: "Step 3 (/pv-issues) must be completed first. Run /pv-issues <path>."
+3. Check `## Issue List` with `### Approved` present in `state.md`. If missing → **stop**: "Step 3 (/validation-issues) must be completed first. Run /validation-issues <path>."
 4. Check existing issue-to-fix assignments and `## Fix-Tasks`. Reuse them on resume.
    If `fixes-created: complete` exists and every approved issue is already assigned,
    report the existing fixes and return. An initial empty approval list must still write
@@ -29,7 +29,7 @@ Task directory = provided argument (trailing slash optional).
 ## Context Bootstrap
 
 Load the `bootstrap-validation` rule (`## Context Bootstrap`) before writes, including standalone calls.
-Quick tasks apply approved fixes inline in `/phase-validation`; do not create atomic fixes.
+Quick tasks apply approved fixes inline in `/validation`; do not create atomic fixes.
 
 ## Instructions
 
@@ -46,10 +46,10 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
      fixes-count: 0
      Created: none
      ```
-   - Report to user: "No approved issues. Skipping `/pv-execute-fixes`. Proceeding to `/pv-finalize`."
+   - Report to user: "No approved issues. Skipping `/validation-execute-fixes`. Proceeding to `/validation-finalize`."
    - Do not execute any of the steps below. The `fixes-count: 0` field in `## Fix-Tasks` in `state.md` is the contract the orchestrator uses to skip Step 5.
 
-1b. **Classify the approved issues.** Call `/pv-classify-fixes <task-directory>`. It writes
+1b. **Classify the approved issues.** Call `/validation-classify-fixes <task-directory>`. It writes
    `## Fix-Tasks → ### Fix Classification`, deciding for each issue whether it joins a shared
    fix branch (it clears the `contract-quick-flow` gate) or gets a dedicated one (it breaches the gate,
    or its severity is `critical`). Use that table when assigning fix-task IDs and, in
@@ -67,7 +67,7 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
      Acceptance Criterion per issue). The name is the one the classifier already wrote in the
      table's `Branch` column — reuse it verbatim, do not re-derive it.
 
-   Persist every allocated ID in `Created:`; `/pv-execute-fixes` consumes this list,
+   Persist every allocated ID in `Created:`; `/validation-execute-fixes` consumes this list,
    including the sibling form below. Do not discover fixes with a top-level-only glob.
 
    **Case B — Fix for a child of a composite (D8):**
@@ -85,9 +85,9 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
      - This ensures the composite never falsely reports as reviewed while a fix is open.
 
 3. For each fix-task ID determined in step 2 (one per dedicated issue, one per shared group), create a new subtask directory with that ID, containing exactly ONE file:
-   - `description.md` — following the same six-section template `/pd-decompose` uses for a leaf
+   - `description.md` — following the same six-section template `/discovery-decompose` uses for a leaf
      subtask (`## Goal`, `## Context`, `## Scope`, `## Steps`, `## Acceptance Criteria`,
-     `## Test Plan`); see `/pd-decompose` step 3. The source skeleton is
+     `## Test Plan`); see `/discovery-decompose` step 3. The source skeleton is
      `templates/subtask-description.md` in Orchestrail — it is not copied into projects,
      so do not look for it under the project root.
 
@@ -118,7 +118,7 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
    fixes-count: <N>
    Created: T-XX-fix-<slug>, T-04d-fix-<slug>, ...
    ```
-   Besides these three lines, the section carries only the `### Fix Classification` table written by `/pv-classify-fixes`. Do NOT add progress blocks here — fix-task progress lives in `## Subtask Progress` like any other leaf.
+   Besides these three lines, the section carries only the `### Fix Classification` table written by `/validation-classify-fixes`. Do NOT add progress blocks here — fix-task progress lives in `## Subtask Progress` like any other leaf.
    b. In `## Issue List → Deferred`, mark deferred issues with status `deferred`.
    c. For Case B fixes: note the composite reversion in the composite's `notes:` field: "fix T-04d created for T-04b; integration-validation reset."
 6. **Orchestrated mode only** (`/spec-run`): fix branches extend the stack from its tip.

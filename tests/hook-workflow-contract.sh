@@ -80,7 +80,7 @@ class WorkflowLogging(unittest.TestCase):
     def dispatch(self, run: str, boundary: str = 'subagent') -> tuple[Record, str]:
         actor = 'native-session' if boundary == 'session' else 'logical-worker'
         line = self.command(self.adapter, ['dispatch', '--run', run, '--agent-id', actor,
-                            '--boundary', boundary, '--expected-skill', 'pae-tests'])
+                            '--boundary', boundary, '--expected-skill', 'atomic-execution-tests'])
         self.assertTrue(line.startswith('ORCHESTRAIL_DISPATCH_V1 '))
         return record(line.split(' ', 1)[1]), line
 
@@ -117,7 +117,7 @@ class WorkflowLogging(unittest.TestCase):
 
     def fallback(self, identity: Record) -> None:
         self.command(self.adapter, ['fallback', '--checkpoint', str(identity['checkpoint_id']),
-                                   '--step', 'pae-tests', '--outcome', 'ok', '--tests', 'red'])
+                                   '--step', 'atomic-execution-tests', '--outcome', 'ok', '--tests', 'red'])
 
     def valid_receipt(self, receipt: object, retained: Record) -> bool:
         if not isinstance(receipt, dict) or receipt.get('kind') != 'accepted':
@@ -164,7 +164,7 @@ class WorkflowLogging(unittest.TestCase):
     def unavailable_fixtures(self) -> None:
         run = self.start()
         # No envelope ever issued permits ordinary prompt logging; unknown resume does not.
-        for step in ('pd-analyze', 'pae-tests', 'pae-implement', 'pav-check', 'subtask'):
+        for step in ('discovery-analyze', 'atomic-execution-tests', 'atomic-execution-implement', 'atomic-validation-check', 'subtask'):
             self.ordinary(run, step)
         self.assert_approximate(run)
         before = self.steps(run)
@@ -180,7 +180,7 @@ class WorkflowLogging(unittest.TestCase):
 
     def test_unavailable_hooks_keep_every_prompt_step_approximate(self) -> None:
         self.unavailable_fixtures()
-        for name in ('spec-run', 'phase-pipeline', 'phase-discovery', 'phase-execution', 'phase-validation'):
+        for name in ('spec-run', 'pipeline', 'discovery', 'execution', 'validation'):
             text = (SOURCE / 'workflows' / (name + '.md')).read_text()
             with self.subTest(workflow=name):
                 self.assertTrue(re.search(r'--note[ \t]+["\']?approximate', text), 'ordinary prompt paths lack approximate note')
@@ -192,8 +192,8 @@ class WorkflowLogging(unittest.TestCase):
                      r'(?i)run-start[^\n]*run-end[^\n]*prompt'))
 
     def ambiguous_fixtures(self) -> None:
-        for skills in (('pae-implement', 'pae-finalize'), ('pav-check', 'pav-propose', 'pav-close'),
-                       ('pae-tests', 'pae-tests'), ('phase-atomic-execution',)):
+        for skills in (('atomic-execution-implement', 'atomic-execution-finalize'), ('atomic-validation-check', 'atomic-validation-propose', 'atomic-validation-close'),
+                       ('atomic-execution-tests', 'atomic-execution-tests'), ('atomic-execution',)):
             run = self.start()
             envelope = self.dispatch(run)
             self.native(self.payload(envelope, skills))
@@ -228,7 +228,7 @@ class WorkflowLogging(unittest.TestCase):
     def accepted_and_pending(self) -> None:
         run = self.start()
         envelope = self.dispatch(run)
-        self.native(self.payload(envelope, ('pae-tests',)))
+        self.native(self.payload(envelope, ('atomic-execution-tests',)))
         self.assertEqual(self.resolve(envelope[0], self.status(envelope[0])), 'suppress')
         self.assertEqual((self.direct_calls, self.fallback_calls), (0, 0))
         self.assertEqual(len(self.steps(run)), 1)
@@ -268,7 +268,7 @@ class WorkflowLogging(unittest.TestCase):
     def lost_receipt(self) -> None:
         run = self.start()
         envelope = self.dispatch(run)
-        payload = self.payload(envelope, ('pae-tests',))
+        payload = self.payload(envelope, ('atomic-execution-tests',))
         real = self.helper.with_name('real-log-step.sh')
         self.helper.rename(real)
         self.helper.write_text('#!/bin/bash\nif [ "$1" = step ]; then\n'
@@ -319,7 +319,7 @@ class WorkflowLogging(unittest.TestCase):
         with self.subTest(malformed_receipt_sequence='accepted-private-zero'):
             run = self.start()
             envelope = self.dispatch(run)
-            self.native(self.payload(envelope, ('pae-tests',)))
+            self.native(self.payload(envelope, ('atomic-execution-tests',)))
             observed = cast(Record, self.status(envelope[0]))
             cast(Record, observed['receipt'])['seq'] = 0
             self.assertEqual(self.resolve(envelope[0], observed), 'uncertain')
@@ -333,7 +333,7 @@ class WorkflowLogging(unittest.TestCase):
         self.lost_receipt()
         self.failed_fallback()
         text = (SOURCE / 'workflows/spec-run.md').read_text()
-        for pattern in (r'dispatch[^\n]*--run', r'--expected-skill[ \t]+pae-tests',
+        for pattern in (r'dispatch[^\n]*--run', r'--expected-skill[ \t]+atomic-execution-tests',
                         r'ORCHESTRAIL_DISPATCH_V1', r'ORCHESTRAIL_REPORT_V1',
                         r'(?is)capability.{0,120}installation.{0,100}session',
                         r'"outcome":"ok"[^\n]*"tests":"red"',

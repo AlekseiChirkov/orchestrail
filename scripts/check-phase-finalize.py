@@ -302,6 +302,46 @@ T-01 | Deliver product | atomic-tests: green | atomic-execution: complete | atom
     def test_prepare_requires_explicit_invocation_authorization(self) -> None:
         self.blocked(self.call('prepare', args=('--expected-revision', 'absent')), 'authorization-required')
 
+    def test_resume_refuses_changed_journal_authorization_without_writes(self) -> None:
+        prepared = self.prepare()
+        journal = Path(prepared['journal_path'])
+        snapshot = Path(prepared['snapshot_path'])
+        commands = {'inspect': 'ready', 'prepare': 'prepared', 'record': 'recorded'}
+        original_authority = {'invocation': 'phase-finalize', 'task_path': str(self.task), 'cleanup': True}
+
+        def resume(command: str) -> dict:
+            if command == 'inspect':
+                return self.call(command)
+            revision = hashlib.sha256(journal.read_bytes()).hexdigest()
+            return self.checkpoint(command, {'revision': revision})
+
+        def snapshot_bytes() -> dict[Path, str]:
+            return {path.relative_to(snapshot): hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in snapshot.rglob('*') if path.is_file()}
+
+        for command, status in commands.items():
+            with self.subTest(command=command, authority='original'):
+                self.assertEqual(original_authority, json.loads(journal.read_bytes())['authorization'])
+                result = resume(command)
+                self.assertEqual(status, result['status'], result)
+                self.assertEqual(original_authority, json.loads(journal.read_bytes())['authorization'])
+
+        changed = json.loads(journal.read_bytes())
+        changed['authorization']['invocation'] = 'finalization'
+        changed_bytes = (json.dumps(changed, sort_keys=True, indent=2) + '\n').encode()
+        for command in commands:
+            with self.subTest(command=command, authority='changed'):
+                journal.write_bytes(changed_bytes)
+                original_snapshot = snapshot_bytes()
+                original_refs = self.git(self.repo, 'for-each-ref', '--format=%(refname) %(objectname)')
+
+                result = resume(command)
+
+                self.blocked(result, 'authorization-required')
+                self.assertEqual(changed_bytes, journal.read_bytes())
+                self.assertEqual(original_snapshot, snapshot_bytes())
+                self.assertEqual(original_refs, self.git(self.repo, 'for-each-ref', '--format=%(refname) %(objectname)'))
+
     def test_prepare_writes_recovery_and_bound_hook_receipt(self) -> None:
         result = self.prepare()
         journal = Path(result['journal_path'])

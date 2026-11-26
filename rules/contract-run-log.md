@@ -9,8 +9,8 @@ Every orchestrator pipeline writes a machine-readable record of what it did, ste
 so the pipelines themselves can be improved from evidence instead of recollection. The log
 is telemetry about **the process**, never a copy of the work product.
 
-Consumed by `/retro`. Produced by `/spec-run`, `/phase-pipeline`, `/phase-discovery`,
-`/phase-execution`, `/phase-validation`, `/phase-finalize`. Finalization dry-run emits no telemetry; its ordinary invocation retains inherited run ownership and nonblocking logging.
+Consumed by `/retro`. Produced by `/spec-run`, `/pipeline`, `/discovery`,
+`/execution`, `/validation`, `/finalization`. Finalization dry-run emits no telemetry; its ordinary invocation retains inherited run ownership and nonblocking logging.
 
 ---
 
@@ -74,7 +74,7 @@ LOG_HELPER="${ORCHESTRAIL_HOME:+$ORCHESTRAIL_HOME/scripts/log-step.sh}"
 RUN_ID=""
 if [ -x "$LOG_HELPER" ]; then
   RUN_ID=$("$LOG_HELPER" run-start \
-  --pipeline phase-discovery \
+  --pipeline discovery \
   --project "$(pwd)" \
   --task .ai/tasks/todo/task-01-add-oauth \
   --spec .ai/specs/01-add-oauth.md \
@@ -91,7 +91,7 @@ same task, which is itself a signal worth measuring.
 
 ```bash
 [ -n "$RUN_ID" ] && "$LOG_HELPER" step --run "$RUN_ID" \
-  --step pd-analyze --outcome ok \
+  --step discovery-analyze --outcome ok \
   --decisions 3 --questions 2 --stops 1 \
   --note "approximate; resolved 3 ambiguities from principles" || true
 ```
@@ -107,7 +107,7 @@ own `step` line before `run-end`.
   --outcome stopped --note "escalated: two ADRs conflict" || true
 ```
 
-This includes a planned stop. `/phase-discovery` completing normally is `--outcome
+This includes a planned stop. `/discovery` completing normally is `--outcome
 completed`; the batch gate in `/spec-run` handing control to the human is `--outcome
 stopped`. A run left without `run-end` shows up in `scripts/log-step.sh active` and is counted by
 `/retro` as an abandoned run — which is accurate, and deliberately visible.
@@ -164,7 +164,7 @@ guess based on missing status. Use its public command, with canonical result fie
 ```bash
 bash "$ORCHESTRAIL_HOME/hooks/log-step-hook.sh" status --checkpoint "$checkpoint_id"
 bash "$ORCHESTRAIL_HOME/hooks/log-step-hook.sh" fallback --checkpoint "$checkpoint_id" \
-  --step pae-tests --outcome ok --tests red
+  --step atomic-execution-tests --outcome ok --tests red
 ```
 
 These are alternative actions selected by the table, not two unconditional calls.
@@ -174,7 +174,7 @@ delivery starts, or wait/poll for telemetry before proceeding with the workflow.
 Report unavailable/uncertain coverage once without blocking work.
 
 The existing `/spec-run` RED return is the named-step candidate in this release.
-Its `pae-tests` row is distinct from the approximate synthetic subtask aggregate.
+Its `atomic-execution-tests` row is distinct from the approximate synthetic subtask aggregate.
 Provisional dispatch does not guarantee a RED return: test-level `none` leaves it
 uncovered. GREEN combines two skills and validation combines three; neither batch,
 nor its internal steps, acquires named precision from the RED marker. Preserve their
@@ -388,7 +388,7 @@ Before a checkpoint starts, call:
 ```bash
 bash "$ORCHESTRAIL_HOME/hooks/log-step-hook.sh" dispatch \
   --run "$RUN_ID" --agent-id "$actor_id" --boundary subagent \
-  --expected-skill pae-tests
+  --expected-skill atomic-execution-tests
 ```
 
 Dispatch requires an explicit run ID and `CLAUDE_CODE_SESSION_ID`, generates a

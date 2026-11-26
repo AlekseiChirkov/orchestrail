@@ -1,18 +1,18 @@
 ---
-description: Discovery Step 4b — Archive verbose Discovery content to state-archive.md to reduce Execution-phase context load. Called by /pd-finalize.
+description: Discovery Step 4b — Archive verbose Discovery content to state-archive.md to reduce Execution-phase context load. Called by /discovery-finalize.
 phase: discovery
 step: 4b
 ---
 
-Invocation: `/pd-archive <task-directory>`
-Called by: `/pd-finalize` after `/compress-state --auto`.
+Invocation: `/discovery-archive <task-directory>`
+Called by: `/discovery-finalize` after `/compress-state --auto`.
 
 Resolve `state.md` and `state-archive.md` inside the provided task directory.
 
 ## Guard
 
 1. Missing/unreadable `state.md` or `## Phases → discovery` other than `complete`
-   → **stop**: run `/pd-finalize` first.
+   → **stop**: run `/discovery-finalize` first.
 2. Existing `state-archive.md` → **stop** for explicit overwrite confirmation.
    Before replacement, verify the full source bodies still exist in `state.md`.
    Pointer-only source cannot recreate an archive; preserve the existing archive

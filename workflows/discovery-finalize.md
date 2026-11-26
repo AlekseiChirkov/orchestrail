@@ -4,8 +4,8 @@ phase: discovery
 step: 4
 ---
 
-Invocation: `/pd-finalize <task-directory> [--step-by-step]`
-Called by: `/phase-discovery` as Step 4.
+Invocation: `/discovery-finalize <task-directory> [--step-by-step]`
+Called by: `/discovery` as Step 4.
 
 Resolve artifacts inside the task directory. `--step-by-step` affects the closing
 digest only; consistency failures stop in every mode. Reuse parent context;
@@ -13,10 +13,10 @@ standalone use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
-1. Missing/unreadable `state.md` or `## Task Analysis` → **stop**: run `/pd-analyze`.
+1. Missing/unreadable `state.md` or `## Task Analysis` → **stop**: run `/discovery-analyze`.
 2. `discovery: complete` → **stop** for explicit overwrite confirmation unless
    the parent already obtained it for this exact rerun.
-3. For full flow require `## Model Selection` with `selection: complete`, a verified or explicitly preliminary model and reasoning recommendation (or evidenced `not configurable`) for every current leaf and matching recorded scope digests as defined by `/pd-select-model`. Missing recommendation, missing uncertainty disclosure or changed scope is stale: set `selection: incomplete`, keep discovery in progress, and stop for bulk reselection. Empty cells are not evidence.
+3. For full flow require `## Model Selection` with `selection: complete`, a verified or explicitly preliminary model and reasoning recommendation (or evidenced `not configurable`) for every current leaf and matching recorded scope digests as defined by `/discovery-select-model`. Missing recommendation, missing uncertainty disclosure or changed scope is stale: set `selection: incomplete`, keep discovery in progress, and stop for bulk reselection. Empty cells are not evidence.
 4. Require `## Solution Design` with `### Decision` for full flow.
    **Exception — `flow: quick`.** Verify `## Contract (quick)` instead, with
    `### Off-limits`, `### Invariants` and `### Acceptance Criteria`.
@@ -29,7 +29,7 @@ state update formats once. Preserve unrelated content and progress.
 
 **Quick branch:** skip steps 1, 2 and 4b; verify the inline quick contract's
 criteria are binary and observable, and the recorded four-condition gate still
-passes. Missing/untestable criteria → **stop** and return to `/pd-analyze`.
+passes. Missing/untestable criteria → **stop** and return to `/discovery-analyze`.
 A failed quick gate requires promotion under `contract-quick-flow`. Use the inline contract
 where later steps refer to Solution Design. Full flow runs all steps.
 
@@ -77,12 +77,12 @@ where later steps refer to Solution Design. Full flow runs all steps.
 4. Run `/compress-state --auto <task-directory>/state.md`, preserving canonical
    markers, decisions, assumptions, progress and all other protected content.
 
-4a. In `## Phases`, set `discovery: complete` before archiving; `/pd-archive` requires it.
+4a. In `## Phases`, set `discovery: complete` before archiving; `/discovery-archive` requires it.
 
 4b. **`flow: quick` — skip this step.** For full flow:
-    Run `/pd-archive <task-directory>`. If an archive already exists and all source
+    Run `/discovery-archive <task-directory>`. If an archive already exists and all source
     bodies are pointers to it, verify it is readable and retain it. If fresh inline
-    bodies coexist with an old archive, apply `/pd-archive`'s overwrite Guard;
+    bodies coexist with an old archive, apply `/discovery-archive`'s overwrite Guard;
     do not silently retain stale analysis. Failed archiving → restore
     `discovery: in-progress`, report the blocker and **stop**.
 5. Upsert persistent planning state using `contract-state-files` formats:
@@ -108,8 +108,8 @@ where later steps refer to Solution Design. Full flow runs all steps.
    - Chosen approach; in autonomous mode, winner/score when present and every
      `### Assumptions` entry. Read assumptions and Autonomous Decision from state. For quick flow, mark architecture scoring
      inapplicable. Mention unresolved batch questions so `/spec-run` can apply its gate.
-   - `Discovery complete. Run /phase-execution <task-directory> to start execution.`
+   - `Discovery complete. Run /execution <task-directory> to start execution.`
    - Multi-phase: after this phase validates, show the command for the next actual
      phase number, if any. Do not invent N+1 when phase numbering has gaps.
 
-**STOP. Do not run `/phase-execution` automatically.**
+**STOP. Do not run `/execution` automatically.**
