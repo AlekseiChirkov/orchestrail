@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "source_revision": "69fa22e16fbd9157116190286df3b30f96b691ed",
+  "rules": {
+    "rules/git-flow.md": {
+      "## Preflight (mandatory, before any branch is created)": {
+        "sha256": "904aaaa3cebd959f72d80f5885294edb3b8cb48d0553c89d2e0f36a41cb113db"
+      },
+      "## Branch model — the stack": {
+        "sha256": "61976328b63386d4ab00de11648b600ec50f2874858b328f316ed26f9ad479f0"
+      },
+      "## Commits": {
+        "sha256": "c76e2c2358e114101c8b0d014f8974526f5f72932e5ba46fadf7f2ff42afea70"
+      },
+      "## Pull requests": {
+        "sha256": "b19cdc9b65a81c074655b6d6455b038cecc723d84325a1b8d399003bd2c61d71"
+      },
+      "## Finalization Git ownership": {
+        "sha256": "8328ae0d24542630d533103a8c5a0fded90f6f6580f2e872a9d7fd30ba3ef0db"
+      },
+      "## Safety rails": {
+        "sha256": "b41c36e43af1229d54cbfcfaaf28f81c2f07a2cffcd062980f114cb295d8cd0a"
+      },
+      "## Recorded state — required for resume and for restack": {
+        "sha256": "fd4758af37938ad1ef60aafec04689871fdd13ee245104ddb5afcc5060c26bce"
+      },
+      "## Multi-repository runs": {
+        "sha256": "c4353059f15e63310e4a7bdec44d77a1ce27e7a7af58bc3577409a853e081ade"
+      }
+    },
+    "rules/language.md": {},
+    "rules/orchestration.md": {
+      "## Roles": {
+        "sha256": "1f488c9f79817d38498cde20262366e0449e6ac1b3550b550b9239532766a390"
+      },
+      "## Shared-file discipline": {
+        "sha256": "efc739b870c0fc9de1d5ebda206b38d817db9a3b5d187e0110edcd4f6dc66682"
+      },
+      "## Escalation protocol": {
+        "sha256": "71333db19d0c0294defdea437b28499407e4a52d6833fbd5a5064fe0e95c0f28"
+      },
+      "## Finalization ownership": {
+        "sha256": "f1e6c8083d93b9f126264eb8c8c67881abc897b63f1e50b58056bcb827a15778"
+      }
+    },
+    "rules/phase-atomic-execution.md": {
+      "## Context Bootstrap": {
+        "sha256": "bcdb37c28734d1ae660e984ed1bf272acac6e195ba09eb549ead36e0d8f06d91"
+      },
+      "## Phase Behaviors": {
+        "sha256": "e5a9e7ed8d9837b6513e2c77f2459cbe727520e7e408bb795c49f75167694778"
+      },
+      "## Blocker Reconciliation": {
+        "sha256": "c6625210b7317308c1a5562f178174ef4160c7e775b6f0a23fa22ace417ec6e5",
+        "text": "## Blocker Reconciliation\n\nApplies whenever a leaf's `atomic-execution: blocked` is encountered on entry (orchestrator Step 0, or a standalone `/pae-implement` that reads the block). Do **not** immediately ask the user \"Is it resolved?\". First classify the `blocker:` text:\n\n**1. Dependency/status blocker** — the blocker cites only prerequisite subtasks (their approval, preconditions, or completion) and no other condition. Reconcile automatically:\n\n- Determine the prerequisites: this T-XX's declared `Depends On` entries from parent `plan.md → ## Subtasks`, unioned with any `T-YY` explicitly named in the `blocker:` text.\n- A prerequisite is **satisfied** when its `plan.md` status is `done` or `reviewed` (the same readiness rule `/pe-execute` uses). A composite prerequisite is satisfied when its block shows `rollup: done` **and** `integration-validation: complete`.\n- If **every** prerequisite is satisfied → auto-reconcile without asking:\n  - Set `blocker: none`.\n  - Set `atomic-execution: in-progress` if `last_action` shows work already began, otherwise `not-started`.\n  - Append to `last_action:` — `auto-reconciled blocker: prerequisites <list> satisfied`.\n  - Add a `notes:` line recording the automatic reconciliation and the observed prerequisite statuses (e.g. `auto-reconciled 2026-07-17: T-01 reviewed, T-02 done — blocker cleared, no manual confirmation`).\n  - Report the reconciliation to the user and **continue** — no confirmation required.\n- If **any** prerequisite is NOT satisfied → keep `blocked`, report which prerequisite is outstanding and its current status, ask \"Is it resolved? (yes/no)\", and **wait**.\n\n**2. Non-status blocker** — anything else: `step N failed`, `test failures`, `lint failures`, a missing external decision, an invariant conflict, or an implementation error. Never auto-reconcile. Report the blocker and ask \"Is it resolved? (yes/no)\". **Wait.**\n\n**Ambiguity rule:** if the blocker cites a prerequisite **and** any non-status condition, treat it as non-status (manual confirmation). Any doubt → manual. An extra stop is always cheaper than resuming on an unmet blocker.\n"
+      }
+    },
+    "rules/phase-atomic-validation.md": {
+      "## Context Bootstrap": {
+        "sha256": "3aafc2ffd147ef3d7a000e55e49abb7cd06949f905f015b9711c8bca5733c09d"
+      },
+      "## Phase Behaviors": {
+        "sha256": "422c2014f5755fdaacb061c5cb6b3d010efacf0b1d09554668b0ab94a4b17088"
+      }
+    },
+    "rules/phase-discovery.md": {
+      "## Context Bootstrap": {
+        "sha256": "3c1d6f12e0f551a98f5b055db5b43d859fe3fa014c9024bae92eb52c4ed5a9fb"
+      },
+      "## Codebase Reading Rules": {
+        "sha256": "da5683d39c78fe06a5b9a6c0e95cd32e7ed19d5b6a267a4156594090550ea2ce",
+        "text": "## Codebase Reading Rules\n\n- Use `.ai/memory/architecture.md` to scope source reads. Read affected source when verifying behavior, freshness, or a concrete pattern; an inventory description alone is not implementation evidence.\n- Budget: max 12 files (8 entry-points + 4 one-level-deeper). Hard limit.\n- Document every file read with reason: \"read to verify <specific behavior or gap>.\"\n- Stop reading when affected parts are understood.\n\n"
+      },
+      "## Decision Protocol": {
+        "sha256": "a0668d744defd17e4440ba1b04e1b05e0f391b3d3e4b19879c1c47769167009b",
+        "text": "## Decision Protocol\n\nDiscovery runs **autonomously by default**; `--step-by-step` switches it to\nmanual review. See `/phase-discovery → ## Execution Modes` (the workflow, not this rules file).\n\n**Autonomous mode (default):**\n- Task requirements unclear → resolve by research in this order: `.ai/principles/*`\n  → `.ai/adr/` → `.ai/memory/*` → existing codebase patterns → general best\n  practice. Record the resolution in `## Task Analysis → ### Assumptions`.\n  Never infer intent silently — inferring is allowed, hiding it is not.\n- Decomposition boundary or architectural choice ambiguous → generate 2–3 options\n  and resolve them with `workflow-reference → ## Autonomous Decision Protocol`.\n  Record the scoring and rationale.\n- Steps 1→4 run back-to-back. A step's completion report is not a handoff.\n- Stop only on the Autonomous Decision Protocol's escalation conditions or a\n  Guard confirmation that would overwrite existing artifacts.\n\n**Step-by-step mode (`--step-by-step`):**\n- Task requirements unclear → ask before proceeding. Never infer intent silently.\n- Decomposition boundary ambiguous → present 2–3 options with trade-offs, wait for decision.\n- Architectural variants → present, wait for the user's choice.\n- After each of Steps 1–4 → stop and wait for review.\n"
+      }
+    },
+    "rules/phase-execution.md": {
+      "## Context Bootstrap": {
+        "sha256": "1276f1555c660d494374302b1c51e2b8a92dd035ff676e7b9531b2e22070289d"
+      },
+      "## Phase Behaviors": {
+        "sha256": "b90285d4a34963aec55bfd0e1aad6b5c1b1b0e3b31f959b13c16412a04e28d93"
+      }
+    },
+    "rules/phase-finalize.md": {
+      "## Context Bootstrap": {
+        "sha256": "4bdbfb615b55416a274c6137662f5de02f4ae81826d889a5e060e9218bd7aa46"
+      },
+      "## Phase Behaviors": {
+        "sha256": "c614a397e5c6d3143b0522e0f2858cf8e948f948b0bf80769118edf3d0e561a1"
+      }
+    },
+    "rules/phase-validation.md": {
+      "## Context Bootstrap": {
+        "sha256": "508f12e6746bfa635dec589abecd0fe991fbf824e15109588e305234e21b478c"
+      },
+      "## Phase Behaviors": {
+        "sha256": "a0e54937db8fdf0ecaccab18c310e7fee108d6d038e3d02bd2d3ec8c412ea0b4"
+      }
+    },
+    "rules/quick-flow.md": {
+      "## The escalation gate": {
+        "sha256": "71cf963ad63c83040fb67ff7de8793bcd530bcb4e3e3b7556859f825b245f6ce"
+      },
+      "## The quick path — what changes": {
+        "sha256": "696193f5a097b9475a550a802b2b071cfce26941784d579cb0f1e4aa5a2bfb0e"
+      },
+      "## Setting the flow (Discovery)": {
+        "sha256": "13df604b46a49eecb839ce40a95f38792d1de33576b65f6033651f256a7b5e94"
+      },
+      "## Mid-flight escalation (quick → full)": {
+        "sha256": "abec0e53008c313e4038177bd7d6e8dc82f43b43ddfc317fe0565b3d8fe642d6"
+      },
+      "## Worked example A — rejected by the gate (export pipeline changes)": {
+        "sha256": "0899fbe5527b41fddc5c641cc68b3775598ac6e417066206cf7aa1ec232041cf"
+      },
+      "## Worked example B — legitimately quick (log-level fix)": {
+        "sha256": "50854deec56a1bae0131e5e0eb875e81bc518b01d5e05571f77f9541036f02ec"
+      }
+    },
+    "rules/run-log.md": {
+      "## The one rule that outranks the rest": {
+        "sha256": "0090be8823da74f1623c882a916789b3c5576da6acb0c8fc0c9cd829c239d944"
+      },
+      "## Contract version": {
+        "sha256": "1650ddec1390c9067d1e4179b1b0cadd667129b8c2b3048238856a60a307461e"
+      },
+      "## Where the log lives": {
+        "sha256": "6b6db144dead464559017e2f2069165e9c543d9742cf4218ddb92f298465d87f"
+      },
+      "## How a pipeline logs": {
+        "sha256": "18bf79a6fe7f070b7701182adcd75d583b30cdbff85c77303fe53df7a8ac600f"
+      },
+      "## Workflow coverage and routing": {
+        "sha256": "5537dfe4c9d45d3f7a12d21a1156e6a98698a2b5efd7ef56462b7848d59f5db4"
+      },
+      "## Field vocabulary": {
+        "sha256": "af319c8ae82d46c4c38d96c30435e8b20fa09f763013276e82e45e3dfc2c80e7"
+      },
+      "## Validation and writes": {
+        "sha256": "ea6191063aeec865e584366b1dfd20ce291e7def1e2fbd2c505863d012bb6c74"
+      },
+      "## Correlated hook intervals": {
+        "sha256": "aabc04b343944c0d0055c4faee89041e39de806cb41a03722c878e1fcbe2fc3a"
+      },
+      "## Native hook adapter": {
+        "sha256": "c58252afb36e7ff63b93475e95280b2ca98c7e543262ca3520833cd0af8a04f8"
+      },
+      "## Read-only lint": {
+        "sha256": "f0cf83fb79b5192ea7cca1a90018dd72a6cc5f6625d0248be83786a641b36a79"
+      },
+      "## What must never enter the log": {
+        "sha256": "c1ec5336183c70975471b005c91382b75b3316a5f145a103a1b620ba4388c451"
+      },
+      "## Relationship to the existing state files": {
+        "sha256": "f6a392a6bb18acfb84f23932654f86b2fc5632abaa617a2da1f5ea6140bf19ec"
+      }
+    },
+    "rules/tdd.md": {
+      "## Where the step sits": {
+        "sha256": "372c2fcba7beec759294da8575ed74f23c9c814c141328daf065333d68632159"
+      },
+      "## The three states": {
+        "sha256": "ad4a2f23e2aa9c86c650cf17b3e57a13fdb5f8b18efa0a4cb4cabe3b19401196"
+      },
+      "## Test-level gate": {
+        "sha256": "494a3728fb12817a77b0293ff2504f54ffcce6dad6ec3217505f8061a9e88713"
+      },
+      "## RED — what counts": {
+        "sha256": "d07e02fdbff47acc2a14a9dfde826788ec67fd4a52de02538e9e7bca3e9479b3"
+      },
+      "## Characterization mode — behaviour-preserving work": {
+        "sha256": "341fe99fa2ab797f2860181cdefac018b3b3ec5fa48eaab04534505c31f870c1"
+      },
+      "## GREEN — what implementation may and may not do": {
+        "sha256": "c2abddf4e6dbaf5e5c648bb1baec1c7135ad7a5d3e0407fb527584611af54194"
+      },
+      "## Interaction with existing mechanisms": {
+        "sha256": "60d42e716a0b9ac0964d4506209cca0610c2426499860c52fd8280ea035fc999"
+      },
+      "## Why the order matters": {
+        "sha256": "e4cd61b1dd3cc5e11a2da77d81e1436f5915021559ddd04b879188ffe47e4b31"
+      }
+    },
+    "rules/workflow-globals.md": {
+      "## Context Pack": {
+        "sha256": "716b827d3bf0b0fa79cc5c70597f1481341dc5069d0934a2a1ff178e06d28bc3"
+      },
+      "## Flow tiers (quick | full)": {
+        "sha256": "8cb2ca6e14acb5a1dfde9a9d232d67b510bc3d79fe9ffce042203ed0288e050c"
+      },
+      "## Canonical Status Formats": {
+        "sha256": "26bf8ac4477ec9df4057322eab05037fa4883bdab34ff9fc04e032fc1be1cdf2"
+      },
+      "## Phases": {
+        "sha256": "c10c6ae53e97c454de1e71c39d40ce266a59c11eb70cfeda2e02fde9d895cc42"
+      },
+      "## Repositories": {
+        "sha256": "43be166030639016e7e0021bb62139e1f9e432bcd28a42429a19da6fe5f3eef6"
+      },
+      "## Fix-Tasks": {
+        "sha256": "8726ef50d6fa286eee5b674d24add77b6c5527a8f7c9c10f50fa54807b33d810"
+      },
+      "## Finalization": {
+        "sha256": "38ab11c5068bb94318f7a0d1aa831ef90badce59db2ffe046dc11bd0b4dc645f"
+      }
+    },
+    "rules/workflow-reference.md": {
+      "## File Responsibility": {
+        "sha256": "4f821e7b6dbf5af36ee7a2af6d381b004bb2c24c391af40862040025d6f2533f"
+      },
+      "## Goal": {
+        "sha256": "d381cc581be718be7bdfe1cc545dd19d4dbac93f1af6bf991d4cbaba14ee6d02"
+      },
+      "## Context": {
+        "sha256": "8dd408ab91f27c18b27ec1cccd883fd4e43d81721408e058bc1e036a207ea424"
+      },
+      "## Scope": {
+        "sha256": "fda56430b31b55597f60e5887d9d0749e821246d36494c9dd6a05e245f6a7967"
+      },
+      "## Steps": {
+        "sha256": "20694296f1ca4f4bd74b5680489f3d6d2a16da5455cba1af72ec079324fa0331"
+      },
+      "## Acceptance Criteria": {
+        "sha256": "198c0f24a13c865798c48e225da7df943975ad03c23095a37dfb0d345d0663c6"
+      },
+      "## Test Plan": {
+        "sha256": "692ce69e467443fb81fd172c5d9c0d8a4ec730aa91aa347e35ac6624c9d88367"
+      },
+      "## Description Amendment": {
+        "sha256": "b4839df8335f63b470bb007e1298d83ccfdbd57a21d1270cdbecd0185d00b326"
+      },
+      "## Parent `plan.md` Table Format": {
+        "sha256": "dc7a9b99e93f415c79ea6c329e81d49eea3fae227bb2b198af0e2108beeb907a"
+      },
+      "## Subtasks": {
+        "sha256": "2a0e3cfa8ebcbac44f15f89cfc21ea4c7a3a2f58a26bd1911bef289a49aacdbf"
+      },
+      "## Parent `state.md` — `## Subtask Progress` Format": {
+        "sha256": "f7fb7c60e0312f959f955c3db5139df1e231577fa5ad0cf2280ef19e5b2e114e"
+      },
+      "## Status Lifecycle Notes": {
+        "sha256": "ccf5321161906aca5f24740a6e67e6b0a2430f828849e1b16b95092da1d5f6d8"
+      },
+      "## Key State-File Markers": {
+        "sha256": "6820cab085d24345b001572d1baeb65f66cca35c8a510a1bae5b15c20d249392"
+      },
+      "## Reference Tables (moved from workflow-globals)": {
+        "sha256": "31426f94af1ec13e7ea1a406a7bc015d07d8ea3fd5cc85118acf1b054862998c"
+      },
+      "## Status Translation Table": {
+        "sha256": "6f813145f73e4e9bef8f9f81fd927141a2a0e129711732ec8c3bfa721149ae3b"
+      },
+      "## Protected Sections Contract": {
+        "sha256": "d2f555f15001f5560c8acd1a55b6c768ea72be8122d7e828a84edb2ae3304fbb",
+        "text": "## Protected Sections Contract\n\nThe following sections are contracts read by orchestrators and must never be removed, renamed, or summarized by `/compress-state` or any other workflow.\n\n**Task-level `state.md`:**\n- `## Phases` (top-level and atomic)\n- `## Task Analysis`\n- `## Task Analysis → ### Assumptions` (decisions taken autonomously — never removed, never archived by `/pd-archive`)\n- `## Decomposition` (including `decomposition: complete` marker)\n- `## Solution Design` (Invariants, Off-limits, Acceptance Criteria, Decision, Scope)\n- `## Model Selection` — preserve the complete checkpoint, evidence and digests until explicitly invalidated or replaced by bulk selection.\n- `## Repositories` (multi-repository `/spec-run` only — the declared repository set and\n  `cross_repo_dependencies:`; canonical definition: `workflow-globals → ## Canonical Status Formats`)\n- `## Subtask Progress`, including the `repo:` field and the git fields `branch:` … `pr:` of\n  orchestrated leaf blocks\n- `state_receipts:` lines in `## Subtask Progress` blocks — tool-managed operation receipts written\n  only by `scripts/state-tool.py`; never removed, edited, merged or summarized (canonical\n  definition: `workflow-globals → ## Canonical Status Formats`)\n- `## Execution Report`\n- `## Contract Check` (including `### Critical Failures Decision`)\n- `## Code Review`\n- `## Issue List`\n- `## Fix-Tasks` (including `fixes-created` marker and `fixes-count` field)\n- `## Deferred`\n- `## Spec Phases` (multi-phase specs only — phase roadmap; never remove)\n- `### Description Amendments` (if present — permanent record, never remove)\n- `## Contract (quick)` (quick tier only — the whole contract for the task lives here;\n  including `### Off-limits` / `### Invariants` / `### Acceptance Criteria`. Read by\n  `/pv-contract` and `/pv-review`)\n- `## TDD (quick)` (quick tier only — the RED/GREEN record `/pv-review` audits)\n- `## Flow Escalation` (if present — the recorded `quick → full` promotion; never remove)\n- `## Improvement Proposals (T-XX)` (written by `/pav-propose`, read by `/pe-finalize` after\n  the execution phase — removing it loses the batched `Do Now` items before they are surfaced)\n- `## Integration Issues (T-XX)` (written by `/phase-composite-validation` step 2d — the\n  recorded approve/defer decision for integration failures; read by its own step 3 when creating\n  D8 fix siblings and on every re-run, so it must survive compression)\n- `## Open Questions (batch)` (orchestrated mode only — class-B ambiguities awaiting a human\n  decision. The header and its entries may be cleared only by `/spec-run`, after the human has\n  answered; no other workflow may remove or summarize them)\n- Top-of-file lines that must never be removed or modified:\n  - `spec_path:` — current-location pointer to the original spec; only verified Finalization relocation may change its path\n  - `flow:` — the tier selector (`quick` | `full`) set during Discovery\n  - `active_phase:` — active spec phase number (multi-phase only)\n  - `spec_phase_count:` — total number of spec phases (multi-phase only)\n\n**Finalization relocation exception:** the required helper may add/update only the active\n`finalization:` phase marker and current-location `spec_path:` pointer, and journal exact\nmechanical relative-link/index edits for moving current task/spec artifacts. Retain byte-exact\noriginal snapshots, manifests and stable old-path resolution. Never rewrite original Git fields,\nrequirements, historical decisions/progress, state archives or TDD records. Protected state links\nthat cannot move under this exception block archival. Resume from journaled intent without\ncollision overwrite; whole-spec archival requires every phase and required scope eligible.\n\n"
+      },
+      "## Multi-Phase Spec Rules": {
+        "sha256": "da13a2435735ce18d28b0dbd944ab3e590cbef921a2fa65d48554f0f407a894d"
+      },
+      "## .ai/memory/state.md Entry Format": {
+        "sha256": "ba00cdce00adc300a92b9b4bc133d78bdf0245b03f87ca92c4f55e9e3645aadf"
+      },
+      "## .ai/project_state.md Update Rules": {
+        "sha256": "97dc72dc573599a2398c65460821bbfdc91a5693ef684345a3756198b2a18f6b"
+      },
+      "## Autonomous Decision Protocol": {
+        "sha256": "9d553b2f0426ddcf16a47cab42e8103f8f65c2060abc522f92bce69e918a9a45"
+      },
+      "## Autonomous Subtask Classifier": {
+        "sha256": "3399c6464c31d92cb93eda66c3c546e43d251a587c104c21f30a5a7f2730dfb5"
+      },
+      "## Decomposition Decisions": {
+        "sha256": "950cd7fbe0b7b0341e1ce4c889816d4c0bb144ecfc5886c2f96d676e217a4590"
+      },
+      "## Decomposition Rules": {
+        "sha256": "24213b20ad34aa634bfbc712fd9f610c73a1a4f74d936b33739c4fcb505c7c21"
+      },
+      "## Legacy tasks": {
+        "sha256": "de9dad9358e1b7ce94eaa1a921b51134d5dcab3345a97ab53d5df22c05f957b5"
+      },
+      "## Project .ai/ Contract": {
+        "sha256": "c57fbf2554d3efc651d3ff822e5b7b79a86f658166ea8c1e51b77a8de183afb3"
+      },
+      "## File Location Reference": {
+        "sha256": "ac6374ec9759128e18f708a20864fc1b108cc8a9a74732d6c173cac37542fbb8"
+      }
+    }
+  },
+  "protected_lines": {
+    "rules/git-flow.md": [
+      "When the test-level gate returned `none` (`atomic-tests: n-a`) there is no RED commit — the"
+    ],
+    "rules/orchestration.md": [
+      "- `atomic-tests: failed` — RED was never established (see `tdd`)."
+    ],
+    "rules/tdd.md": [
+      "`atomic-tests:` is a field in the leaf `## Subtask Progress` block (see",
+      "**Backward compatibility:** a leaf block with no `atomic-tests:` field is a pre-TDD task.",
+      "without retroactively demanding RED — record `notes: pre-TDD task, TDD step skipped` and",
+      "Tests`). Set `atomic-tests: failed`, record which test passed prematurely, and stop.",
+      "4. **Set `atomic-tests: pinned`** and write one note:",
+      "`/pae-implement` sets `atomic-tests: green` when the change is complete and the whole pinned"
+    ],
+    "rules/workflow-globals.md": [
+      "T-XX | <name> | atomic-tests: <status> | atomic-execution: <status> | atomic-validation: <status>",
+      "Status values for atomic-execution / atomic-validation: `not-started` | `in-progress` | `complete` | `blocked` | `skipped` | `failed`.",
+      "Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `n-a` | `failed`.",
+      "`atomic-tests:` field is a pre-TDD task. Treat the missing field as `not-started`, do not",
+      "in-progress` — record `pre-TDD task, TDD step skipped` in `notes:` and continue. The field's",
+      "Status values for `rollup`: `not-started` | `in-progress` | `done` | `blocked`.",
+      "Status values for `integration-validation`: `not-started` | `in-progress` | `complete` | `failed`.",
+      "- `atomic-tests:` is ALWAYS written in leaf blocks once `/pae-tests` has run, and is never",
+      "Status values for finalization: `not-started` | `in-progress` | `complete`."
+    ],
+    "rules/workflow-reference.md": [
+      "T-XX | <name> | atomic-tests: <status> | atomic-execution: <status> | atomic-validation: <status>",
+      "Status values for atomic-execution / atomic-validation: `not-started` | `in-progress` | `complete` | `blocked` | `skipped` | `failed`.",
+      "Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `n-a` | `failed` — semantics in the `tdd` rule. `pinned` is characterization mode: tests that pin existing behaviour and pass before a behaviour-preserving change; it transitions only to `green`. A block without the field is a pre-TDD task; read it as `not-started` and never error on its absence.",
+      "| `red` / `pinned` / `n-a` (atomic-tests) | `in-progress`      | After pae-tests — the subtask is underway, not done |",
+      "- `atomic-tests:` — required field in leaf `## Subtask Progress` blocks once `/pae-tests` has"
+    ],
+    "workflows/PIPELINE.md": [
+      "| `atomic-tests: red / pinned / green / n-a / failed` | Observed test evidence, characterization baseline, success, justified absence, or failure to establish valid evidence. Missing field reads `not-started`. |"
+    ],
+    "workflows/adr-new.md": [
+      "   if present. If state is missing → **stop**: \"No task state at `<path>`.\"",
+      "   `## Contract (quick)`, or decision-bearing `notes:`. If none → **stop**:",
+      "   - Matching accepted record with no change → report it and **stop**.",
+      "apply, report why no ADR is needed and **stop**.",
+      "- Conflicts with a principle → **stop**: identify the conflict and request an explicit",
+      "name `/pv-finalize` as its promotion step. Then **stop**."
+    ],
+    "workflows/bugfix.md": [
+      "   specification authoring. If input is unavailable → **stop**: request the missing report.",
+      "   duplicate. If several match → **stop**: request the task to resume. A completed matching",
+      "If it does not reproduce → **stop**: report attempts and request the missing environment,",
+      "   requested behavior never existed, **stop**: report the missing feature and print",
+      "`none` only with its required written justification. Keep `atomic-tests: red` or `n-a`",
+      "If `atomic-tests:` exists, change `red` to `green`; preserve `n-a` for justified `none` work.",
+      "and unresolved follow-up. Then **stop**. This workflow"
+    ],
+    "workflows/compress-state.md": [
+      "1. Read the target fully. If missing → **stop**: \"No state file at `<path>`.\"",
+      "If nothing can be improved → report \"File is current; no compression needed.\" and **stop**.",
+      "(`→ archived to state-archive.md`), `atomic-tests:`, `tdd:` evidence, composite blocks,",
+      "content.\" Then **stop**."
+    ],
+    "workflows/context-pack.md": [
+      "4. With `--check`, report and **stop** without writes. Otherwise reuse a fresh pack",
+      "Call these size diagnostics, not measured token or cost savings. Then **stop**; do not"
+    ],
+    "workflows/onboard-legacy-project.md": [
+      "   If any is absent → **stop**: \"Run `bash <workflow-source>/scripts/setup-new-project.sh`",
+      "   report completion and **stop**, unless a refresh was explicitly requested.",
+      "Then **stop**; invoke no next phase."
+    ],
+    "workflows/pae-finalize.md": [
+      "Missing state, execution not complete, or `blocker:` other than `none` → **stop**:",
+      "`atomic-tests:` must be `green` or justified `n-a`; absent is allowed only with the recorded",
+      "pre-TDD exemption. Any other value → **stop**: \"Implementation has not reached GREEN.\"",
+      "   Preserve `atomic-tests:` as set by `/pae-tests` / `/pae-implement` (`green` or `n-a`)."
+    ],
+    "workflows/pae-implement.md": [
+      "2. If the block has `atomic-execution: complete` → **stop**: \"Atomic execution phase is already complete. Re-running will overwrite the parent `## Subtask Progress` block for this T-XX. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "3. Check `T-XX/description.md` exists and contains `## Steps` and `## Acceptance Criteria`. If missing → **stop**: \"description.md is incomplete. Run `/pd-decompose` + `/pd-finalize` in the parent task.\"",
+      "4. **TDD gate.** Read `atomic-tests:` from the same block:",
+      "   - `n-a` → test-level gate returned `none` with a justification in `notes:`. Continue; the Final Verification test step degrades to running the existing suite for regressions. If no justification line is present in `notes:` → **stop**: \"`atomic-tests: n-a` without a recorded justification. Run `/pae-tests` to classify this subtask.\"",
+      "   - `failed` → **stop**: \"RED was never reached for T-XX: <reason from notes>. Resolve before implementing — implementing against a test set that never failed proves nothing.\"",
+      "   - `not-started` → **stop**: \"No tests written for T-XX. Run `/pae-tests <path>` first — implementation precedes tests only on pre-TDD tasks.\"",
+      "     `pre-TDD task, TDD step skipped` once to `notes:` and continue.",
+      "   - Field absent on an unstarted task → **stop**: \"Run `/pae-tests <path>` first.\"",
+      "   If `## Scope` section is absent in description.md → **stop**:",
+      "   If `atomic-tests: n-a` or a recorded legacy exemption applies → skip this sub-step.",
+      "1. Check Scope Out and parent Off-limits before edits. A conflict → **stop**:",
+      "   failure in `blocker:`, and **stop**: \"Resolve <failure> before continuing.\"",
+      "`blocker: <command/criterion and observed failure>`, then **stop**: \"Resolve verification",
+      "T-XX | <name> | atomic-tests: green | atomic-execution: complete | atomic-validation: <current>",
+      "When the gate returned `none`, preserve `atomic-tests: n-a` and its justification."
+    ],
+    "workflows/pae-tests.md": [
+      "2. If the block has `atomic-tests: green` → **stop**: \"Tests for this subtask are already",
+      "2b. `atomic-tests: pinned` → reuse the recorded characterization mode. If implementation",
+      "3. If the block has `atomic-tests: red` → report: \"RED already reached for T-XX. Existing",
+      "4. If `atomic-execution: complete` → **stop**: \"Atomic execution is already complete.",
+      "   **stop**: \"description.md is incomplete. Run `/pd-decompose` + `/pd-finalize` in the",
+      "   **stop**: \"T-XX is a composite. Composites are not executed directly; their",
+      "If any condition is `no` → **stop**: \"This subtask is not behaviour-preserving: <which",
+      "3. Set `atomic-tests: n-a` in the leaf block.",
+      "For every testable level, a missing/placeholder/unavailable `test:` command → **stop**:",
+      "**If any new test passes before implementation** → set `atomic-tests: failed`, record which",
+      "5. On success, write the leaf block with `atomic-tests: pinned`:",
+      "T-XX | <name> | atomic-tests: pinned | atomic-execution: <current> | atomic-validation: <current>",
+      "T-XX | <name> | atomic-tests: red | atomic-execution: <current> | atomic-validation: <current>",
+      "Incomplete mapping, an untestable criterion, or a required level downgrade → **stop**:"
+    ],
+    "workflows/pav-check.md": [
+      "2. If block has `atomic-validation: complete` → **stop**: \"Atomic validation already complete. Re-running will overwrite the parent block. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "3. If `atomic-execution` is not `complete` in the block → **stop**: \"Atomic execution must be completed first. Run /phase-atomic-execution <path>.\"",
+      "   Without reliable ownership evidence → **stop**: \"Identify this subtask's changed files before validation.\"",
+      "Read `atomic-tests:` from the leaf block."
+    ],
+    "workflows/pav-close.md": [
+      "2. If block has `atomic-validation: complete` → **stop**: \"Atomic validation already complete. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "If `atomic-validation: failed` → **stop**: \"Cannot close: verdict is NEEDS WORK.\"",
+      "If `last_action` is not `pav-propose done` → **stop**: \"Complete `/pav-propose` before closure.\"",
+      "   - Preserve `atomic-tests:` (`green` or `n-a`). Never remove or downgrade it.",
+      "      - If no → **stop**: \"Composite T-04 has no description.md or missing ## Acceptance Criteria. Re-run `/pd-decompose` to regenerate.\""
+    ],
+    "workflows/pav-propose.md": [
+      "2. If block has `atomic-validation: complete` → **stop**: \"Atomic validation already complete. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "If `atomic-validation: failed` → **stop**: \"Verdict is NEEDS WORK. Fix issues first.\"",
+      "If `last_action` is not `pav-check DONE` → **stop**: \"Run `/pav-check` successfully before proposing improvements.\"",
+      "   Preserve the cumulative `target_files:`, `atomic-tests:`, and all existing/TDD notes."
+    ],
+    "workflows/pd-analyze.md": [
+      "1. Read task `state.md`. Missing/unreadable state → **stop** and request the task",
+      "2. `discovery: complete` → **stop** for explicit overwrite confirmation unless",
+      "   legacy task-level `description.md`. Missing/unreadable selected input → **stop**"
+    ],
+    "workflows/pd-archive.md": [
+      "   → **stop**: run `/pd-finalize` first.",
+      "2. Existing `state-archive.md` → **stop** for explicit overwrite confirmation.",
+      "   sections or a failed write/verification → **stop**, leaving `state.md` intact."
+    ],
+    "workflows/pd-decompose.md": [
+      "1. Missing `state.md` or `## Task Analysis` → **stop**: run `/pd-analyze` first.",
+      "   → list affected artifacts and **stop** for explicit overwrite confirmation",
+      "   `atomic-tests`, `atomic-execution`, `atomic-validation` as `not-started`, plus"
+    ],
+    "workflows/pd-design.md": [
+      "1. Missing task `state.md` / `## Task Analysis` → **stop**: run `/pd-analyze`.",
+      "   listed subtask description. Missing input → **stop**: complete `/pd-decompose`.",
+      "   **stop** for explicit overwrite confirmation unless already confirmed by the"
+    ],
+    "workflows/pd-finalize.md": [
+      "1. Missing/unreadable `state.md` or `## Task Analysis` → **stop**: run `/pd-analyze`.",
+      "2. `discovery: complete` → **stop** for explicit overwrite confirmation unless",
+      "   Missing required contract/design → **stop**: rerun the applicable analysis/design step.",
+      "passes. Missing/untestable criteria → **stop** and return to `/pd-analyze`.",
+      "   Any inconsistency → **stop**, identify the file/check and return to design or",
+      "   Unresolvable failures **stop** finalization. Missing configuration/helper →",
+      "    `discovery: in-progress`, report the blocker and **stop**."
+    ],
+    "workflows/pd-select-model.md": [
+      "   `plan.md → ## Subtasks` table. Otherwise **stop**: run `/pd-analyze` and",
+      "   values with any affected Status beyond `not-started` → **stop**: obtain confirmation"
+    ],
+    "workflows/pe-execute.md": [
+      "1. Read `state.md` in the task directory. If `state.md` is not found → **stop**: \"state.md not found. Run `/phase-discovery` first.\"",
+      "2. Check `## Phases → discovery`. If not `complete` → **stop**: \"Discovery not complete. Run `/phase-discovery` first.\"",
+      "3. Check `## Phases → execution`. If `complete` → **stop**: \"Execution phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "`flow: quick` → **stop**: \"Quick tasks execute inline in `/phase-execution`; there are no atomic subtasks.\"",
+      "   A dependency cycle or unknown dependency → **stop**: \"Invalid dependency graph: <rows>. Repair the plan before executing.\"",
+      "     **stop**: \"Incomplete subtask description. Run `/pd-decompose` + `/pd-finalize`.\"",
+      "     requests need an authorized eligible fallback or **stop**. Missing Python 3.11,",
+      "   row and leaf block; a mismatch → **stop**: \"Composite children mismatch. Re-run `/pd-decompose`.\""
+    ],
+    "workflows/pe-finalize.md": [
+      "2. Check `## Phases → execution`. If `complete` → **stop**: \"Execution phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "changed-file list from `## TDD (quick)`. Missing `green-observed: yes` → **stop**:",
+      "1. Read `## Execution Report`; if absent on `full` → **stop**:",
+      "     `composite-stalled`; **stop**: \"Run `/phase-composite-validation` for <composite> before finalizing.\"",
+      "   - `integration-validation: failed` → keep the composite unreviewed; **stop**:"
+    ],
+    "workflows/phase-atomic-execution.md": [
+      "- If `T-XX/description.md` does not exist → **stop**: \"description.md not found. Run `/pd-decompose` + `/pd-finalize` in the parent task.\"",
+      "- Verify `T-XX/description.md` contains both `## Steps` and `## Acceptance Criteria`. If either is missing → **stop**: \"description.md is incomplete (missing ## Steps or ## Acceptance Criteria). Run `/pd-decompose` + `/pd-finalize` to regenerate.\"",
+      "**TDD entry point.** Read `atomic-tests:` from the same block (see the `tdd` rule for the",
+      "  - Field absent **and** `atomic-execution: in-progress` → pre-TDD task already underway. Do not retroactively demand RED. Append to `notes:` — `pre-TDD task, TDD step skipped` — and resume at `/pae-implement`.",
+      "For a new leaf, create its canonical progress block with `atomic-tests: not-started` before",
+      "An unsupported explicit request requires an authorized eligible fallback or **stop**.",
+      "Step 1 is skipped only when `atomic-tests:` is already `red`, `pinned`, `n-a`, or `green`, or when this"
+    ],
+    "workflows/phase-atomic-validation.md": [
+      "- The subtask's tests (from `target_files:`) plus `atomic-tests:` — the executable form of",
+      "- If `T-XX/description.md` is missing or has no `## Acceptance Criteria` → **stop**: \"description.md is incomplete. Run `/pd-decompose` + `/pd-finalize`.\"",
+      "- If the `## Subtask Progress` block for this T-XX is missing → **stop**: \"No execution record for T-XX. Run `/phase-atomic-execution` first.\"",
+      "- If `atomic-execution` is not `complete` → **stop**: \"Atomic execution not complete. Run `/phase-atomic-execution` first.\"",
+      "- If `atomic-validation: complete` → **stop**: \"Atomic validation already complete.\""
+    ],
+    "workflows/phase-composite-validation.md": [
+      "   If not → **stop**: \"This is not a composite description.md. Use `/phase-atomic-validation` for leaf subtasks.\"",
+      "   If block is missing → **stop**: \"No composite block found for T-XX in state.md. Run `/pd-decompose` first.\"",
+      "   - If `integration-validation: complete` → **stop**: \"Integration validation already complete. Re-running will overwrite. Confirm? (yes/no)\" Wait for explicit confirmation.",
+      "   - If any child is NOT `complete` → **stop**: \"Integration validation cannot run: child T-XXb is not yet reviewed (atomic-validation: <current status>). Complete all children first.\"",
+      "   - Add a canonical leaf block with `atomic-tests: not-started`, empty `target_files:` / `notes:`, and `blocker: none` in `state.md → ## Subtask Progress`."
+    ],
+    "workflows/phase-discovery.md": [
+      "| Step-by-step | Resolve questions interactively; after each child, report artifacts, key decisions and the next step, then **stop** and wait for review. No extra review pause after the final report. |",
+      "an overwrite requiring confirmation all **stop** the workflow. A confirmation",
+      "1. Parse arguments; if the spec path is missing, **stop** and request it. Verify",
+      "   **stop** with the invalid path or missing-title reason.",
+      "   - Ambiguous, duplicate or unmapped boundaries → **stop** and report them.",
+      "     → **stop** and request an explicit phase. Otherwise use the default below.",
+      "   that exact prefix (digits before the first `-`). A collision → **stop**: `Spec prefix collision: <paths>`;",
+      "   Multiple locations → **stop** and report them. A completed location may be",
+      "   adopted only for resolution-only parent inspection; otherwise **stop** and report",
+      "   **stop** and report what must be repaired. For `discovery: complete`, require",
+      "   discovered phase is incomplete, **stop** and report it before claiming completion",
+      "A marker whose required artifact is missing or contradictory → **stop** and"
+    ],
+    "workflows/phase-execution.md": [
+      "with `--tests` mirroring the leaf's `atomic-tests:` value, `--files` from its",
+      "- Missing state → **stop**: \"state.md not found. Run `/phase-discovery` first.\"",
+      "- `discovery` is not `complete` → **stop**: \"Discovery not complete. Run `/phase-discovery` first.\""
+    ],
+    "workflows/phase-finalize.md": [
+      "Missing mechanics or required evidence → **stop**: report the missing prerequisite.",
+      "ambiguity → **stop**: display the candidate task paths and require an exact task target.",
+      "Git changes. Unavailable evidence is a blocker, never a successful measurement. Then **stop**.",
+      "   or unavailable reads → **stop**: report the exact missing evidence; any fetch is a",
+      "   and publish fresh receipts before another Git action. A failed recorder → **stop**:",
+      "   accept them. Unresolved semantic/spec changes → **stop**: use `/spec-sync` under its own",
+      "   **stop**: retain all evidence and rerun the same public command to reconcile the intent.",
+      "   delivery criterion. Unresolved applicability → **stop**: report the contract ambiguity.",
+      "resources, exact recovery commands and `/phase-finalize <same-target>` rerun. Then **stop**."
+    ],
+    "workflows/phase-pipeline.md": [
+      "mandatory in every mode. If all three phases are complete, report and **stop**.",
+      "| `pae-tests`: `atomic-tests: failed` | Establish valid test evidence before continuing. |",
+      "   A later completed phase with an incomplete predecessor is inconsistent: **stop** and"
+    ],
+    "workflows/phase-validation.md": [
+      "Missing state or execution not `complete` → **stop**: \"Complete `/phase-execution` first.\""
+    ],
+    "workflows/pv-classify-fixes.md": [
+      "1. Read `state.md`. If `## Issue List → ### Approved` is missing → **stop**: \"Run `/pv-issues`"
+    ],
+    "workflows/pv-contract.md": [
+      "1. Read `state.md` in the task directory; missing state or execution not `complete` → **stop**: \"Complete `/phase-execution` first.\"",
+      "2. Check `## Phases → validation`. If `complete` → **stop**: \"Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "   If ownership cannot be established → **stop**: \"Identify the task's changed files first.\""
+    ],
+    "workflows/pv-create-fixes.md": [
+      "2. Check `## Phases → validation`. If `complete` → **stop**: \"Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "3. Check `## Issue List` with `### Approved` present in `state.md`. If missing → **stop**: \"Step 3 (/pv-issues) must be completed first. Run /pv-issues <path>.\"",
+      "   Fix-task progress tracking (atomic-tests, atomic-execution, atomic-validation status) follows the same format as regular T-XX leaf blocks and is written under `## Subtask Progress` in the parent `state.md`. Do NOT create a separate `## Fix-Task Progress` section.",
+      "   `atomic-tests: not-started`, both atomic phases `not-started`, `blocker: none`,"
+    ],
+    "workflows/pv-execute-fixes.md": [
+      "2. Check `## Phases → validation`. If `complete` → **stop**: \"Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "   - If the section is missing or the marker is absent → **stop**: \"`/pv-create-fixes` has not been completed. Run it first.\"",
+      "   - If the marker is `complete` and `fixes-count: 0` is present → **stop**: \"No fix-tasks were created (all issues deferred). `/pv-execute-fixes` has nothing to do. Proceed to `/pv-finalize`.\"",
+      "   do not use a top-level-only glob. A missing artifact → **stop**: \"Repair incomplete fix-task creation before executing.\""
+    ],
+    "workflows/pv-finalize.md": [
+      "   verification → **stop**: \"Finish validation and approved repairs before finalization.\"",
+      "   Legacy task without `spec_path:` → skip. Failed criterion → **stop** and repair it in a"
+    ],
+    "workflows/pv-issues.md": [
+      "2. Check `## Phases → validation`. If `complete` → **stop**: \"Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "3. Check `## Code Review` present in `state.md`. If missing → **stop**: \"Step 2 (/pv-review) must be completed first. Run /pv-review <path>.\""
+    ],
+    "workflows/pv-review.md": [
+      "2. Check `## Phases → validation`. If `complete` → **stop**: \"Validation phase is already complete. Re-running will overwrite existing artifacts. Confirm to proceed? (yes/no)\" Wait for explicit confirmation.",
+      "3. Check `## Contract Check` must be present. If missing → **stop**: \"Step 1 (`/pv-contract`) must be completed first.\"",
+      "   - If critical Invariant/Off-limits failures exist and the decision field is absent → **stop**: \"`/pv-contract` stopped at the critical-failure gate. Resolve it before running `/pv-review`.\"",
+      "   - If decision is `pause` → **stop**: \"Validation is paused pending critical-failure fix. Do not run `/pv-review`.\"",
+      "     - A subtask with `atomic-tests: n-a` whose `notes:` justification is missing or"
+    ],
+    "workflows/restack.md": [
+      "untouched. Without `--repo` on such a task → **stop** and list the recorded repositories.",
+      "1. Read task `state.md` and `plan.md`. If either is missing → **stop**: name it.",
+      "   and **stop**.",
+      "5. If a block is missing `base_commit:` → **stop**: \"No recorded branch point for `<branch>`.",
+      "   match its original or confirmed replayed tips. Mismatch → **stop**: report the changed",
+      "  is true, or the hook asks about a replay → **stop**: \"The replay of `<branch>` cannot be",
+      "- **Uncertain/missing:** unavailable tip or ambiguous merger evidence → **stop**: report",
+      "If a lease fails → **stop**: report remote movement; never replace the expected tip and",
+      "Then **stop**."
+    ],
+    "workflows/retro.md": [
+      "   **stop**: \"No run log at `<path>`. Pipelines write it via `scripts/log-step.sh`; nothing has been",
+      "Then **stop** without applying recommendations."
+    ],
+    "workflows/spec-draft.md": [
+      "Both mode flags together → **stop**: \"Choose `--auto-mode` or `--brain-storm`.\"",
+      "   If inaccessible → **stop**: request the missing description; never guess link contents.",
+      "2. Existing file → read it. A missing path-like input → **stop**: name the missing file.",
+      "4. Empty input or no discernible request → **stop**: \"Provide a task description, file or link.\"",
+      "In either mode, **stop** and request the missing decision when proceeding cannot produce",
+      "For refinement, print `/spec-draft <spec> --brain-storm`. Then **stop** without invoking"
+    ],
+    "workflows/spec-run.md": [
+      "  git work tree → **stop**: rerun without `--repo`.",
+      "  whose root is not a git repository → **stop**: report the result and its `candidates`, and",
+      "(`--step subtask --subtask T-XX --tests <atomic-tests> --gate <verdict> --note approximate`).",
+      "   and **stop**. Dry-run performs read-only checks and reads an existing plan if available;",
+      "on resume. If `flow: quick`, this branch-per-leaf workflow has no leaf plan: **stop** and",
+      "If worker spawning is unavailable, **stop**; never implement inline in the Orchestrator.",
+      "description) → **stop** before the first branch: Discovery must repair the routing. Derive",
+      "When the test-level gate returned `none` (`atomic-tests: n-a`), emit no RED report and"
+    ],
+    "workflows/spec-sync.md": [
+      "1. Read task `state.md`. If absent → **stop**: \"No task state at `<path>`.\"",
+      "2. Read `spec_path:` and the referenced spec. If absent → **stop**: \"Legacy task has no",
+      "   spec to reconcile.\" If the path is missing → **stop**: name it.",
+      "   or metadata change exists, report \"Already reconciled; no new changes.\" and **stop**.",
+      "Criterion → **stop**: report it for repair; neither mode may weaken it in the spec.",
+      "questions, then **stop** without any file write.",
+      "Then **stop**; advance no phase."
+    ],
+    "workflows/suggest-commit-message.md": [
+      "If a requested revision or merge base is unavailable → **stop**: name the missing input.",
+      "If the selected change set is empty → **stop**: \"No changes found in the selected context.\"",
+      "Use one line per concern, without reproducing secret values. Then **stop**."
+    ],
+    "workflows/suggest-commit-pr.md": [
+      "   section if needed. Then **stop**; do not commit or create a pull request."
+    ],
+    "workflows/suggest-pr-description.md": [
+      "Then **stop**."
+    ]
+  }
+}

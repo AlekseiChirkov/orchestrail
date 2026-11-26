@@ -2,6 +2,12 @@
 
 The section digests use the UTF-8 bytes at the parent rule revision, from the heading through the last byte before the next H2 line. Indented declarations and heading lines inside examples retain their source text.
 
+The [bundled baseline](rule-migration-baseline.json) records 85 original heading digests,
+four section bodies that are compared directly, and all 228 protected marker lines. The
+59 original source files were byte-identical at the integrated revision recorded in the
+fixture and at the rule wave parent. The standalone instruction suite pins the fixture's
+SHA-256 so the same preservation checks run in a source archive without Git.
+
 | Source | Section | SHA-256 | Target | Target section | Consumers | Evidence | Reviewed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `rules/tdd.md` | `(preamble)` | 4eb9127571f2661f4aab46d27c66c482bfed90af0a17a4b29b9b473f138ed39b | `rules/contract-tdd.md` | `(preamble)` | Canonical section readers | Isolated section ownership and preservation suite | Implementer 2026-11-26 pass |
@@ -240,7 +246,7 @@ The deployment entry point changes were independently reviewed on 2026-11-25 at 
 | `tests/validator-runtime-oracle.py` | `     "RECEIPTS: workflow-globals defines state_receipts: on one anchored line and keeps blocks without it valid", ` | Preserve the exact frozen validator check description in the oracle and consumer fixture. |
 | `workflows/phase-finalize.md` | `` never from the consumer working directory. Read `$SOURCE_ROOT/scripts/phase-finalize.py` `` | The source path identifies the finalization coordinator, whose filename stays stable. |
 | `scripts/validate-contracts.sh` | `   "$(tr '\n' ' ' < rules/contract-phases.md 2>/dev/null \| tr -s ' ' \| grep -q 'A skill is model-invoked, not always-on' && echo pass \|\| echo 'contract-phases does not record that deploying an always_on rule as a skill changes its trigger semantics — the reason the always-on essentials stay in global-claude/AGENTS.md')" ` | Preserves the frozen failure text on always-on essentials while reading the phase contract. |
-| `harness/claude/capabilities.md` | `` worktree checks remain mandatory. Canonical policy: `rules/git-flow.md → Finalization Git `` | Preserves the original adapter capability evidence line. The current finalization policy section gives the canonical citation. |
+| `harness/claude/capabilities.md` | `` worktree checks remain mandatory. Canonical policy: `rules/git-flow.md → Finalization Git `` | Preserves the original adapter capability evidence line. The opening frame identifies its historic citation and gives the current authority. |
 
 ## Bootstrap size exceptions
 

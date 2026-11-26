@@ -2,6 +2,7 @@
 """Check the instruction lint command with isolated source trees."""
 
 from collections import Counter
+from functools import cache
 import hashlib
 import json
 import os
@@ -25,6 +26,10 @@ CAPABILITY_KEYS = (
     "hooks",
     "worktrees",
     "git",
+)
+RECEIPT_HISTORY_FRAME = (
+    "The following historical verification record preserves its original citation.\n"
+    "The current policy is `contract-git-flow → ## Finalization Git ownership`.\n\n"
 )
 ALWAYS_ON_RELOCATIONS = (
     ("rules/global-claude.md", "harness/claude/always-on.md"),
@@ -801,8 +806,14 @@ class InstructionMetadataTests(unittest.TestCase):
             with self.subTest(adapter=name):
                 relative = f"harness/{name}/capabilities.md"
                 declaration = (SOURCE / relative).read_bytes()
-                self.assertEqual(hashlib.sha256(declaration[:length]).hexdigest(), digest)
-                lines = declaration[length:].decode("utf-8").lstrip("\n").splitlines()
+                original_declaration = declaration
+                if name == "claude":
+                    heading = b"## Finalization receipt support\n\n"
+                    framed = heading + RECEIPT_HISTORY_FRAME.encode("utf-8")
+                    self.assertEqual(declaration.count(framed), 1, relative)
+                    original_declaration = declaration.replace(framed, heading, 1)
+                self.assertEqual(hashlib.sha256(original_declaration[:length]).hexdigest(), digest)
+                lines = original_declaration[length:].decode("utf-8").lstrip("\n").splitlines()
                 self.assertTrue(lines and lines[0] == "## Capability records", f"Missing records in {relative}")
                 record_names = [line.removeprefix("name: ") for line in lines if line.startswith("name: ")]
                 canonical = [key for key in record_names if key in CAPABILITY_KEYS]
@@ -1278,7 +1289,7 @@ class InstructionSourceIsolationTests(unittest.TestCase):
                 self.assertEqual(offline_source_findings(path.read_text(encoding="utf-8")), [])
 
 
-PARENT = "eece6f526912139650466f4c9f6a6bc9c8a18ba9"
+BASELINE_SHA256 = "9a11abfcfda9db1ff7411fc6f9b879f98e3c20ac967dc61c282df4dbc79ce7bc"
 STATE_RULE = "workflow" + "-reference"
 PHASE_RULE = "workflow" + "-globals"
 BOOTSTRAPS = {
@@ -1322,17 +1333,16 @@ def current(path: Path | str) -> str:
     return (SOURCE / path).read_bytes().decode("utf-8")
 
 
-def history(*args: str) -> str:
-    with tempfile.TemporaryDirectory(prefix="rule-source-history-") as directory:
-        return subprocess.check_output(
-            ["git", "-C", str(SOURCE), *args],
-            cwd=directory, env={**os.environ, "HOME": directory, "XDG_CONFIG_HOME": directory,
-                                "XDG_STATE_HOME": directory}, timeout=15,
-        ).decode("utf-8")
+@cache
+def migration_baseline() -> dict:
+    data = (SOURCE / "docs/audits/rule-migration-baseline.json").read_bytes()
+    if hashlib.sha256(data).hexdigest() != BASELINE_SHA256:
+        raise ValueError("Rule migration baseline differs from the audited fixture")
+    return json.loads(data)
 
 
-def parent(path: Path) -> str:
-    return history("show", f"{PARENT}:{path.as_posix()}")
+def original_section(path: Path, heading: str) -> str:
+    return migration_baseline()["rules"][path.as_posix()][heading]["text"]
 
 
 def headings(document: str) -> list[tuple[str, str]]:
@@ -1475,13 +1485,14 @@ class RuleSourceMigration(unittest.TestCase):
                           for row in rows if len(row) == 8 and re.fullmatch(r"[a-f0-9]{64}", row[2].strip("`")))
         missing = []
         installed = {path.stem: current(path).splitlines() for path in (SOURCE / "rules").glob("*.md")}
+        baseline = migration_baseline()["rules"]
         for old, paths in RULE_TARGETS.items():
             old_path = source(old)
-            for title, text in headings(parent(old_path)):
+            for title, evidence in baseline[old_path.as_posix()].items():
                 target = source(self.migrated_sections(paths[0], title))
                 owners = [str(source(name)) for name in (*paths, old)
                           for line in installed.get(name, ()) if line == title]
-                record_key = (str(old_path), title, hashlib.sha256(text.encode()).hexdigest(), str(target))
+                record_key = (str(old_path), title, evidence["sha256"], str(target))
                 if owners != [str(target)] or indexed[record_key] != 1:
                     missing.append((str(old_path), title, str(target), owners, indexed[record_key]))
         self.assertFalse(bool(missing), f"{len(missing)} invalid section owners or digests. First: {missing[:3]}")
@@ -1491,7 +1502,7 @@ class RuleSourceMigration(unittest.TestCase):
         self.assertTrue((SOURCE / owner).is_file(), "Blocker reconciliation is still embedded in the bootstrap")
         rows = name_map()["rows"]
         self.assertEqual(section(current(owner), BLOCKER).rstrip("\n"),
-                         normalized(section(parent(source(ATOMIC_EXECUTION)), BLOCKER), rows).rstrip("\n"))
+                         normalized(original_section(source(ATOMIC_EXECUTION), BLOCKER), rows).rstrip("\n"))
         owners = [path.stem for path in (SOURCE / "rules").glob("*.md") if BLOCKER in current(path).splitlines()]
         self.assertEqual(owners, [owner.stem])
         workflows = {row["old"]: row["new"][0] for row in rows if row["kind"] == "workflow"}
@@ -1505,13 +1516,13 @@ class RuleSourceMigration(unittest.TestCase):
             with self.subTest(section=title):
                 self.assertEqual([name for name, body in rules.items() if title in body.splitlines()], [conduct.stem])
                 self.assertEqual(section(rules[conduct.stem], title).rstrip("\n"),
-                                 normalized(section(parent(source(DISCOVERY)), title), rows).rstrip("\n"))
+                                 normalized(original_section(source(DISCOVERY), title), rows).rstrip("\n"))
 
     def test_protected_body_and_status_stop_lines_survive_rule_migration(self) -> None:
         path = source("contract-state-files")
         self.assertTrue((SOURCE / path).is_file(), "The protected sections contract has not moved")
         rows = name_map()["rows"]
-        self.assertEqual(normalized(section(parent(source(STATE_RULE)), PROTECTED), rows),
+        self.assertEqual(normalized(original_section(source(STATE_RULE), PROTECTED), rows),
                          section(current(path), PROTECTED))
 
         def protected_lines(texts: list[str]) -> Counter[str]:
@@ -1520,11 +1531,9 @@ class RuleSourceMigration(unittest.TestCase):
                                "**stop**", "atomic-tests", "pre-TDD task, TDD step skipped",
                            )))
 
-        previous = [Path(path) for path in history("ls-tree", "-r", "--name-only", PARENT, "rules", "workflows", "harness").splitlines()
-                    if re.fullmatch(r"(?:rules|workflows)/[^/]+\.md|harness/[^/]+/always-on\.md", path)]
         delivered = list(SOURCE.glob("rules/*.md")) + list(SOURCE.glob("workflows/*.md"))
         delivered += list(SOURCE.glob("harness/*/always-on.md")) + [SOURCE / PUBLIC_PIPELINE]
-        expected_lines = protected_lines([parent(path) for path in previous])
+        expected_lines = protected_lines(["\n".join(lines) for lines in migration_baseline()["protected_lines"].values()])
         actual_lines = protected_lines([current(path) for path in delivered])
         self.assertFalse(expected_lines - actual_lines, f"Changed protected lines: {expected_lines - actual_lines}")
 

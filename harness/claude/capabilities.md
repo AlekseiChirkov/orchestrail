@@ -91,6 +91,9 @@ limitations:
 
 ## Finalization receipt support
 
+The following historical verification record preserves its original citation.
+The current policy is `contract-git-flow → ## Finalization Git ownership`.
+
 The source git-rails core additionally recognizes the narrow canonical finalization
 journal-bound receipt for exact task-scoped normal local deletion and expected-SHA remote
 deletion. Independent scope, recovery digest, current ref/integration, protection and

@@ -16,7 +16,10 @@ import sys
 from pathlib import Path
 
 FOCUSED_FLAGS = frozenset(["--usage-warning-only","--usage-report-only","--usage-resolution-only","--usage-publication-only","--usage-source-normalization-only","--usage-bounded-source-reads-only","--usage-contract-export-only","--usage-current-snapshot-only","--usage-projection-only","--usage-receipt-only","--usage-analysis-corpus-only","--usage-warning-policy-only","--usage-pricing-scenario-only","--usage-price-snapshot-only","--usage-diagnostic-registry-only","--usage-diagnostic-only","--usage-segment-only","--usage-attribution-only","--usage-inventory-only","--usage-selection-only","--usage-source-profiles-only","--usage-entity-only","--usage-envelope-only","--usage-schema-only","--usage-canonical-only","--model-workflow-only","--model-plan-only","--model-selection-only","--model-catalog-only","--hook-shell-quality-only","--hook-timing-only","--hook-workflow-only","--hook-install-only","--hook-adapter-only","--git-rails-only","--state-tool-only","--hygiene-only","--run-log-contract-only"])
-WARNING_SHA256 = "abcbf85660647f62a046024fffa6e1198af88fd00d8f97c5bea06cd15b3ccaa5"
+WARNING_SHA256S = frozenset({
+    "abcbf85660647f62a046024fffa6e1198af88fd00d8f97c5bea06cd15b3ccaa5",
+    "2faed19d8612766766b718c864e420c4e0e06665cbdd249f08e6f539a8942e20",
+})
 WARNING_NAME = "test_contract_version_rule_history_warns_until_version_changes"
 VALIDATOR = "validate-contracts.sh"
 
@@ -782,7 +785,7 @@ def inspect_sources(sources, exceptions=()):
         if not isinstance(path, str) or not isinstance(source, str):
             issues.append("invalid source input")
             continue
-        # Only the exact audited warning function can authorize these full calls.
+        # Only the exact current or historical audited warning body can authorize these full calls.
         marker = WARNING_NAME + "() ("
         if marker in source:
             start = source.index(marker)
@@ -792,7 +795,7 @@ def inspect_sources(sources, exceptions=()):
                 block = source[start:end]
                 count = block.count('output="$(bash scripts/validate-contracts.sh 2>&1)"')
                 if (path == "scripts/validate-contracts.sh" and source.count(marker) == 1
-                        and _digest(block) == WARNING_SHA256 and count == 3):
+                        and _digest(block) in WARNING_SHA256S and count == 3):
                     source = source[:start] + "\n" * block.count("\n") + source[end:]
                 elif count:
                     issues.extend(f"{path}: warning invocation {index + 1} is unapproved"
@@ -960,7 +963,7 @@ def main(argv=None):
     manifest = Path(__file__).with_name("source_guard_exceptions.json")
     try:
         data = manifest.read_bytes()
-        if hashlib.sha256(data).hexdigest() != "34c5f7268f89d668f70887538fa2be8c4a869baf53226d3b3bae59d59815ffe8":
+        if hashlib.sha256(data).hexdigest() != "80cdda70ac2b6164ed32716b5adda5918967f640c4222f3c292ec5c9e261e30f":
             raise ValueError("classified reference manifest digest differs")
         exceptions = json.loads(data)
         if not isinstance(exceptions, list):
