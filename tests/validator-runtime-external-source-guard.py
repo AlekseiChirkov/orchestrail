@@ -30,7 +30,7 @@ class ExternalSourceGuardTests(unittest.TestCase):
             (root / 'scripts').mkdir()
             (root / 'rules').mkdir()
             shutil.copyfile(ROOT / 'scripts/log-step.sh', root / 'scripts/log-step.sh')
-            shutil.copyfile(ROOT / 'rules/run-log.md', root / 'rules/run-log.md')
+            shutil.copyfile(ROOT / 'rules/contract-run-log.md', root / 'rules/contract-run-log.md')
             env = dict(os.environ, VERSION_FIXTURE_ROOT=str(root),
                        VERSION_FIXTURE_SOURCE=str(ROOT / 'scripts/validate-contracts.sh'))
             result = subprocess.run([sys.executable, str(ROOT / 'tests/validator-runtime-version-isolation.py')],

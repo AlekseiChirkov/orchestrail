@@ -70,7 +70,7 @@ test", "no framework", "small change", "will add tests later", and "existing tes
 are not exemptions.
 
 In projects using the `/phase-*` pipeline, this is enforced by `/pae-tests` before
-`/pae-implement`; the full contract is the `tdd` rule and test style is `testing-standards`.
+`/pae-implement`; the full contract is the `contract-tdd` rule and test style is `testing-standards`.
 
 ## Context Loading Protocol
 
@@ -127,7 +127,7 @@ replace unless explicitly stated. Local principles must note what they override 
 
 Use `/phase-finalize <task-directory|spec-path> [--dry-run]` only by separate invocation
 after owner integration. Ordinary invocation authorizes mandatory proven task cleanup;
-load `rule-phase-finalize`, `rule-workflow-globals` and `rule-git-flow` before operations.
+load `rule-bootstrap-finalization`, `rule-contract-phases` and `rule-contract-git-flow` before operations.
 Required finalization helpers fail closed on missing evidence; dry-run writes nothing.
 Preserve original Git/TDD/history and repository tracking policy. Current integration,
 cleanup, archival and deployment remain independent outcomes; deployment needs dated

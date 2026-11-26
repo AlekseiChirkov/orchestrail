@@ -21,7 +21,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -32,7 +32,7 @@ the load order, umbrella precedence, conditional sources, and reporting.
 1. Read `state.md` — extract `## Solution Design`: `### Invariants`, `### Acceptance Criteria`, `### Off-limits`.
    **`flow: quick`:** there is no `## Solution Design`. Read the same three sub-sections from
    `## Contract (quick)` instead — the quick tier's contract is inline and mandatory
-   (`quick-flow → The quick path`). Everything below is unchanged.
+   (`contract-quick-flow → ## The quick path — what changes`). Everything below is unchanged.
 2. Read all implementation files referenced in parent `state.md → ## Subtask Progress → T-XX → target_files:` for each T-XX subtask.
    Resolve each file relative to its subtask's `working_dir:`. `flow: quick` has no leaf
    blocks: use the cumulative file list recorded alongside `## TDD (quick)`. If absent,

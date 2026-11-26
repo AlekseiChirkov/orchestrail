@@ -7,8 +7,8 @@ step: "-"
 Invocation: `/suggest-commit-message [--staged | --branch <base>]`
 Called by: `/suggest-commit-pr`; `/suggest-pr-description` reuses Step 0 only.
 
-This workflow suggests text; it performs no git writes. Follow `git-flow → ## Commits`
-and `git-flow → ## Commits → ### Pipeline identifiers stay out of the repository` for output hygiene.
+This workflow suggests text; it performs no git writes. Follow `contract-git-flow → ## Commits`
+and `contract-git-flow → ## Commits → ### Pipeline identifiers stay out of the repository` for output hygiene.
 
 ## Guard
 
@@ -46,7 +46,7 @@ type, and any breaking API, schema, or configuration change. Do not invent motiv
 
 ## Step 3 — Draft Commit Message
 
-Output one copy-ready fenced block using the format in `git-flow → ## Commits`:
+Output one copy-ready fenced block using the format in `contract-git-flow → ## Commits`:
 
 ```text
 <type>[(<feature or module>)]: <imperative summary>

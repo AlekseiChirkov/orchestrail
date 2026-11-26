@@ -19,8 +19,8 @@ A multi-file change to a shipped pipeline needs the full path, including its con
 tests, review, and any architectural decision. The worked examples below use fictional
 systems to show the difference.
 
-This rule does not weaken `workflow-globals → Never auto-advance between phases`, it does not
-weaken the ADR trigger, and it does not weaken `workflow-globals → Test-first execution`. It
+This rule does not weaken `contract-phases → ## Context Pack`, it does not
+weaken the ADR trigger, and it does not weaken `contract-phases → ## Context Pack`. It
 only removes decomposition and the separate fix-cycle.
 
 ---
@@ -84,7 +84,7 @@ condition 3 does not apply — it is about *already-shipped* pipelines.
   `/pae-tests` invocation — but the RED-before-GREEN sequence is identical and mandatory.
   Against `## Contract (quick) → ### Acceptance Criteria`, before touching implementation
   code:
-  1. Classify the test level with the gate from the `tdd` rule
+  1. Classify the test level with the gate from the `contract-tdd` rule
      (`unit` → `integration` → `contract` → `smoke` → `none`, first match wins).
   2. Write the failing tests, run the `test:` command, and **observe them fail for the
      expected reason**. A test assumed to fail is not RED.
@@ -123,8 +123,7 @@ file surface and codebase impact — the facts the gate needs. `/pd-analyze`:
 
 1. Evaluates the four gate conditions against the analysis and records the result in
    `### Assumptions` as one line: `flow: quick|full — gate: 1<pass/fail> 2<..> 3<..> 4<..>`.
-2. Writes the top-of-file `flow:` field (see the canonical format in `workflow-globals →
-   Canonical Status Formats`).
+2. Writes the top-of-file `flow:` field (see the canonical format in `contract-phases → ## Canonical Status Formats`).
 3. If `flow: quick` — writes the `## Contract (quick)` section instead of proceeding to
    decomposition/design; `/phase-discovery` then skips `/pd-decompose` and `/pd-design`
    and runs `/pd-finalize` directly.

@@ -22,7 +22,7 @@ def invoke(source: str, root: Path, trust_candidate: bool = True) -> subprocess.
     scripts.mkdir(exist_ok=True)
     (scripts / 'validate-contracts.sh').write_text(source)
     (root / 'rules').mkdir(exist_ok=True)
-    (root / 'rules/run-log.md').write_text('Fixture rule.\n')
+    (root / 'rules/contract-run-log.md').write_text('Fixture rule.\n')
     (root / 'VERSION').write_text('0.9.0\n')
     body = source[source.index(START):source.index(END) + 2]
     anchors = list(re.finditer(r'^warn_stale_contract_version$', source, re.M))

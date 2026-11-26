@@ -18,7 +18,7 @@ Read `T-XX/description.md → ## Context → working_dir:` before loading any co
 - If `working_dir:` present: `WORK_DIR = <resolved absolute path>`, `AI_DIR = WORK_DIR/.ai`
 - If absent: `WORK_DIR = <absolute invocation directory>`, `AI_DIR = WORK_DIR/.ai`
 - Umbrella: if `<WORK_DIR>/../.ai/` exists → load umbrella FIRST, then `AI_DIR` (local overrides)
-- Runbook: resolved as in `phase-atomic-execution → ## Context Bootstrap` (umbrella fallback included)
+- Runbook: resolved as in `bootstrap-atomic-execution → ## Context Bootstrap` (umbrella fallback included)
 
 Report before continuing: "WORK_DIR=<path>, AI_DIR=<path>"
 
@@ -40,9 +40,4 @@ After loading: state the validation criteria derived from principles and ADRs be
 
 ## Phase Behaviors
 
-- Read `target_files` from parent `state.md → ## Subtask Progress → T-XX → target_files:` AFTER context is loaded.
-- ADR violations → always `critical` severity.
-- Architectural principle violations → `critical` severity.
-- Coding principle violations → `important` severity.
-- Domain rule violations → `critical` severity.
-- Run `runbook.md → test:` and `lint:` if available before issuing verdict.
+Load the `protocol-atomic-validation-conduct` rule before acting.

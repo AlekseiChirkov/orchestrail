@@ -5,7 +5,7 @@ load: on-demand
 
 # Workflow Process Reference
 
-Canonical status formats (`## Phases`, subtask statuses) live in `workflow-globals` (always-on). This file owns file responsibilities, protection, amendments and decision protocols; it also provides extended examples.
+Canonical status formats (`## Phases`, subtask statuses) live in `contract-phases` (always-on). This file owns file responsibilities, protection, amendments and decision protocols; it also provides extended examples.
 
 ## File Responsibility
 
@@ -220,16 +220,16 @@ T-XX | <name> | atomic-tests: <status> | atomic-execution: <status> | atomic-val
   branch: <branch name — orchestrated mode only>
   base_branch: <branch this one was cut from — orchestrated mode only>
   base_commit: <sha of the branch point — orchestrated mode only>
-  commits: <sha <type>: <summary>, ... — orchestrated mode only; the commit scope is a feature or module name, never a subtask identifier (see `git-flow`)>
+  commits: <sha <type>: <summary>, ... — orchestrated mode only; the commit scope is a feature or module name, never a subtask identifier (see `contract-git-flow`)>
   pr: <#N draft | #N ready | none — orchestrated mode only>
 ```
 
 The five git fields appear only under `/spec-run`; ordinary manual runs omit them and no
-reader may require them. See `git-flow` for how they are produced and `orchestration` for the
+reader may require them. See `contract-git-flow` for how they are produced and `contract-orchestration` for the
 role that writes them.
 
 Status values for atomic-execution / atomic-validation: `not-started` | `in-progress` | `complete` | `blocked` | `skipped` | `failed`.
-Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `n-a` | `failed` — semantics in the `tdd` rule. `pinned` is characterization mode: tests that pin existing behaviour and pass before a behaviour-preserving change; it transitions only to `green`. A block without the field is a pre-TDD task; read it as `not-started` and never error on its absence.
+Status values for `atomic-tests`: `not-started` | `red` | `pinned` | `green` | `n-a` | `failed` — semantics in the `contract-tdd` rule. `pinned` is characterization mode: tests that pin existing behaviour and pass before a behaviour-preserving change; it transitions only to `green`. A block without the field is a pre-TDD task; read it as `not-started` and never error on its absence.
 
 ## Status Lifecycle Notes
 
@@ -294,12 +294,12 @@ The following sections are contracts read by orchestrators and must never be rem
 - `## Solution Design` (Invariants, Off-limits, Acceptance Criteria, Decision, Scope)
 - `## Model Selection` — preserve the complete checkpoint, evidence and digests until explicitly invalidated or replaced by bulk selection.
 - `## Repositories` (multi-repository `/spec-run` only — the declared repository set and
-  `cross_repo_dependencies:`; canonical definition: `workflow-globals → ## Canonical Status Formats`)
+  `cross_repo_dependencies:`; canonical definition: `contract-phases → ## Canonical Status Formats`)
 - `## Subtask Progress`, including the `repo:` field and the git fields `branch:` … `pr:` of
   orchestrated leaf blocks
 - `state_receipts:` lines in `## Subtask Progress` blocks — tool-managed operation receipts written
   only by `scripts/state-tool.py`; never removed, edited, merged or summarized (canonical
-  definition: `workflow-globals → ## Canonical Status Formats`)
+  definition: `contract-phases → ## Canonical Status Formats`)
 - `## Execution Report`
 - `## Contract Check` (including `### Critical Failures Decision`)
 - `## Code Review`
@@ -381,7 +381,7 @@ validation.
   remove them. `base_commit` cannot be recovered once the parent branch is squash-merged and
   deleted, so losing it makes the branch stack unrepairable.
 - `notes:` lines beginning with `arbiter:` — recorded class-A resolutions with their source
-  citation (`orchestration`). Never removed or summarized.
+  citation (`contract-orchestration`). Never removed or summarized.
 
 Inside a protected section, stale bullet points may be shortened, but headers and marker lines must remain verbatim.
 
@@ -416,7 +416,7 @@ writes — `/compress-state` cannot distinguish an empty section from a stale on
 
 `/phase-finalize` reconciles the existing entry and current links surgically after integration;
 retain the Validation result and unfinished scope. Its independent closure outcomes live in the
-stable finalization journal (canonical definition: `workflow-globals → ## Finalization`).
+stable finalization journal (canonical definition: `contract-phases → ## Finalization`).
 
 **Upsert rule:** if the task entry already exists — update it in place. If it does not exist — append to the relevant section. Never create duplicate entries for the same task.
 
@@ -434,167 +434,6 @@ Update it surgically at each phase boundary. If the file does not exist — skip
 | validation | `## Module inventory`, `## What doesn't exist` | If deferred items affect the system boundary — add them to `## What doesn't exist` with `planned but deferred` note. If no deferred items — no update required. |
 
 **Update principle:** surgical edits only — never rewrite unrelated sections. Describe system state factually: what exists, what it exports, what it exposes. Do not write task IDs, phase statuses, or progress information in `project_state.md` — that belongs in `.ai/memory/state.md`.
-
----
-
-## Autonomous Decision Protocol
-
-Canonical definition. Used by any workflow running in autonomous mode
-(`/phase-pipeline` at all times; `/phase-discovery` unless `--step-by-step`
-is passed) whenever an architectural or design choice is required. It replaces
-"present options, wait for user" at that decision point.
-
-### Step 1 — Generate variants (2–3)
-Describe each variant with approach summary, advantages, disadvantages, risks.
-
-### Step 2 — Score on 5 lenses (1–5, higher = better)
-
-| Lens | Question to answer |
-|---|---|
-| **Simplicity** | How much new code, concepts, or abstractions does this add? Fewer = better. |
-| **Reversibility** | How hard is it to change this decision later without breaking things? Easier = better. |
-| **Codebase fit** | How well does it align with patterns, standards, and abstractions already present in the repo? |
-| **Testability** | How easy is it to write fast, deterministic, isolated tests for this? |
-| **Blast radius** | How many existing files / modules need to change? Fewer = better. |
-
-Scoring inputs, in priority order: `.ai/principles/*`, `.ai/adr/` (past decisions
-on the same subject are binding unless the task explicitly supersedes them),
-`.ai/memory/architecture.md`, patterns already present in the codebase, and
-only then general best practice.
-
-### Step 3 — Apply anti-overengineering filter
-If the highest-scoring variant introduces an abstraction or pattern NOT already
-present in the codebase, verify it solves a *current, concrete* problem stated in
-the task description — not a hypothetical future one. If it only addresses a
-hypothetical, reduce its Simplicity score by 2 before totalling.
-
-### Step 4 — Select winner
-Highest total score wins. On a tie → the simpler variant wins (lowest
-Simplicity-score variant is eliminated). If still tied → the variant with best
-Codebase fit wins.
-
-### Step 5 — Check escalation threshold
-Escalate to the user (pause and wait) ONLY when:
-- A hard blocker appears that cannot be resolved without external information
-  (missing secret, unavailable external service, requirement with no reasonable default).
-- The decision would break an external API contract already consumed by clients.
-- Two or more variants score identically on all 5 lenses AND have fundamentally
-  different user-visible trade-offs that the simplicity tie-breaker cannot resolve.
-
-Anything else → decide and continue. Do not escalate merely because a choice
-feels significant.
-
-### Step 6 — Document decision
-Write the standard `## Solution Design` sections, and add inside it:
-
-```
-### Autonomous Decision
-| Variant | Simplicity | Reversibility | Codebase fit | Testability | Blast radius | Total |
-|---|---|---|---|---|---|---|
-| Variant 1 | N | N | N | N | N | N |
-| Variant 2 | N | N | N | N | N | N |
-
-**Winner:** Variant X — <one-sentence rationale>
-**Anti-overengineering check:** passed / adjusted (reason)
-**Evidence:** <principles / ADRs / codebase patterns that drove the scores>
-```
-
----
-
-## Autonomous Subtask Classifier
-
-Called by `pd-decompose` after producing the initial candidate list. The AI decides whether each candidate becomes a leaf, a composite (Type 2), or part of a vertical re-slice (Type 3). **No user prompt is issued for this decision.** The rationale is recorded in `plan.md → ## Decomposition Decisions`.
-
-### Signals (compute per candidate subtask)
-
-| Signal | Definition |
-|--------|-----------|
-| S1 | Number of implementation steps in `## Steps` |
-| S2 | Count of independently-testable components — groups of work that each have their own verifiable done-state and could be validated in isolation |
-| S3 | Count of distinct capabilities or domain areas covered (each with its own meaning to the system) |
-| S4 | Boolean — does the subtask span cross-repo work or reference a shared frozen external contract? |
-| S5 | Count of separable Acceptance Criteria clusters — groups of AC items that test distinct components, where each cluster can pass/fail independently |
-
-### Classification rules (evaluated in order)
-
-S1, S2, S3 and S5 are nonnegative integer counts; S4 is boolean. Resolve uncertain
-component/criteria groupings before classification. Apply these steps in order:
-
-1. **Type 3 — vertical re-slice pairs first.** Consider pairs whose S4 is true and
-   that reference the same shared frozen contract. Re-slice only when each track has
-   S1 > 8 or S2 ≥ 2, the contract defines their interface, and S3 ≥ 2 shared capabilities
-   provide a split. This takes priority over Type 2 nesting.
-   - Extract work shared across ALL capabilities into one prerequisite leaf; never
-     duplicate contract/schema/common infrastructure work into each capability.
-   - When Type 3 applies, emit a producer leaf and consumer leaf per capability; derive those roles
-     from the contract, not client/server labels. Consumer Depends On producer.
-   - Let `base = min(AA, BB)`. Capability i gets `T-(base+i-1)a` (producer) and
-     `T-(base+i-1)b` (consumer). Shift `base` upward by 1 until the full range is free
-     of colliding IDs belonging to non-dissolved subtasks. Record capability names in plan Slice.
-2. **Leaf-health invariant.** Classify remaining candidates, including generated slices:
-   a leaf requires S2 = 1 AND S5 = 1. Size uncertainty alone does not force nesting.
-3. **Type 2 — nest into composite** when S2 ≥ 2 AND S5 ≥ 2. Create sibling child
-   directories T-XXa, T-XXb, …, each with one component and one coherent AC cluster;
-   the parent owns integration-level criteria.
-4. **Mismatched clusters.** If only S2 or S5 exceeds 1, align criteria with testable
-   components and recount. Merge genuinely inseparable work; otherwise split criteria
-   and steps into coherent siblings. Never retain an unhealthy leaf.
-5. **Depth-2 cap.** A composite's children are leaves. Redistribute an unhealthy child
-   across more sibling children rather than nesting a third tier. Merge undersized work
-   only when it remains one testable component; preserve acceptance coverage and the
-   Decomposition Rules below.
-
-### Runtime self-correction (tripwire)
-
-During atomic execution of a leaf (`pae-implement`), if any of these conditions arise:
-- Steps balloon: more implementation steps are discovered than originally listed, crossing the leaf-health boundary.
-- A second independently-testable component appears that was not anticipated during decomposition.
-- Acceptance Criteria actually split into two or more independent verifiable clusters.
-
-Then invoke the **Composite Promotion Protocol**:
-1. Stop current atomic execution immediately.
-2. Re-classify the current leaf as a composite. Update its `description.md → ## Context` to add `type: composite`.
-3. Redistribute the leaf's steps into sibling children: create T-XXa, T-XXb, … directories with `description.md` files containing the redistributed steps and scoped AC.
-4. Update `plan.md`: change the T-XX row `Type` to `composite`; add child rows (T-XXa, T-XXb, …) with `Type: leaf`.
-5. Update `state.md → ## Subtask Progress`: replace the leaf block with a composite block; add leaf blocks for each child.
-6. Depth-2 cap holds — do not promote a child of a composite.
-7. Stop after recording the promotion and preserve existing test evidence. In orchestrated mode, return shared-artifact deltas instead of writing them. Report the proposed first child (T-XXa) and wait for the required promotion decision; do not start it automatically.
-
-### Decision record format (written to `plan.md → ## Decomposition Decisions`)
-
-```
-## Decomposition Decisions
-
-| Subtask | Decision | Signals | Rationale |
-|---------|----------|---------|-----------|
-| T-XX | leaf | S1=N, S2=1, S5=1 | Single coherent component; fits one atomic cycle |
-| T-YY | composite (Type 2) | S1=N, S2=3, S5=3 | Three independently-testable components, three AC clusters |
-| T-YY + T-ZZ | Type 3 re-slice | S4=true, S3=3 | Cross-repo pair sharing frozen contract with 3 capabilities; D6 conditions met |
-```
-
----
-
-## Decomposition Rules
-
-A subtask (T-XX) must represent a logical unit of work, not an individual operation.
-
-Criteria for a valid subtask:
-- Groups related operations around a single domain or module
-  (e.g., "Terraform staging module" — NOT "create variables.tf" + "create outputs.tf" as separate tasks)
-- Contains between 3 and 15 implementation steps internally
-- Is independently verifiable (has a clear done-state)
-- Is NOT split by operation type (create / configure / validate must live together inside one subtask)
-
-Decomposition limits:
-- Target 8 subtasks per task (soft guidance, not a hard limit)
-- If natural decomposition produces more than 8, compare coherent merges with splitting the task. In `--step-by-step` mode, present both options and wait for explicit user decision. In autonomous Discovery, use the Autonomous Decision Protocol and record the choice; do not merge unrelated components merely to reach 8.
-- If a candidate has fewer than 3 steps, merge it only with a coherent neighbor that
-  preserves one testable component and one AC cluster. If no such merge exists, re-slice
-  the boundaries through the Autonomous Decision Protocol. If the minimum and leaf-health
-  constraints cannot both hold, stop and report that conflict for an explicit decision.
-  Never pad steps or merge independent components solely to reach the minimum.
-
-These rules apply strictly during `/pd-decompose` and must be enforced before `/pd-finalize` runs.
 
 ---
 

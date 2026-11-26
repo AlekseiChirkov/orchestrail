@@ -28,7 +28,7 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before writes, including standalone calls.
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before writes, including standalone calls.
 Quick tasks apply approved fixes inline in `/phase-validation`; do not create atomic fixes.
 
 ## Instructions
@@ -51,7 +51,7 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
 
 1b. **Classify the approved issues.** Call `/pv-classify-fixes <task-directory>`. It writes
    `## Fix-Tasks → ### Fix Classification`, deciding for each issue whether it joins a shared
-   fix branch (it clears the `quick-flow` gate) or gets a dedicated one (it breaches the gate,
+   fix branch (it clears the `contract-quick-flow` gate) or gets a dedicated one (it breaches the gate,
    or its severity is `critical`). Use that table when assigning fix-task IDs and, in
    orchestrated mode, when creating branches.
 
@@ -97,7 +97,7 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
 
    For issues where a reproducing test is genuinely impossible (a documentation correction, a
    naming change with no behaviour), set `Level: none` with the justification required by the
-   `tdd` rule.
+   `contract-tdd` rule.
 
    Do NOT create `state.md` or `plan.md` inside fix-task directories. All progress is tracked in the parent task's `## Subtask Progress`.
 
@@ -123,7 +123,7 @@ Quick tasks apply approved fixes inline in `/phase-validation`; do not create at
    c. For Case B fixes: note the composite reversion in the composite's `notes:` field: "fix T-04d created for T-04b; integration-validation reset."
 6. **Orchestrated mode only** (`/spec-run`): fix branches extend the stack from its tip.
    Each shared-group fix has one branch and pull request; each dedicated fix has its own.
-   Branch naming (feature-based, no identifiers) and commit type (`fix:`) follow `git-flow`. Record `branch:`,
+   Branch naming (feature-based, no identifiers) and commit type (`fix:`) follow `contract-git-flow`. Record `branch:`,
    `base_branch:`, `base_commit:`, `commits:`, and `pr:` in each fix-task's progress block
    exactly as for a regular subtask. In a multi-repository task fix branches extend the
    stack of their own repository from that repository's tip, and the block also records

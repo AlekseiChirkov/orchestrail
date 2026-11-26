@@ -26,7 +26,7 @@ resolved project. See each command for supported flags.
 
 ## Task Structure Types
 
-Canonical classifier: `workflow-reference → ## Autonomous Subtask Classifier`.
+Canonical classifier: `protocol-subtask-classifier → ## Autonomous Subtask Classifier`.
 
 | Type | Shape and execution |
 |---|---|
@@ -101,7 +101,7 @@ proven integrated. Ordinary invocation authorizes mandatory task-scoped safe cle
 there are no children or other public flags. Required deterministic helpers preserve
 original snapshots, command failures/retries, recovery packs and locked revision-checked
 journals outside moving artifacts. Git mutations stay explicit under
-`git-flow → ## Finalization Git ownership`.
+`contract-git-flow → ## Finalization Git ownership`.
 
 Report Validation, integration, checkout, cleanup, knowledge, archival, audit and deployment
 separately. Archive the task losslessly and only an eligible whole spec; unfinished phases
@@ -121,14 +121,14 @@ no output files, state, Git data or telemetry. Existing parents only suggest thi
 
 Test-first execution: establish RED before GREEN, or admitted characterization (`pinned`)
 before preservation work. `none` needs the recorded gate justification. The frozen test
-set cannot be deleted, skipped or weakened to pass. Canonical process: `tdd`.
+set cannot be deleted, skipped or weakened to pass. Canonical process: `contract-tdd`.
 The last reviewed composite child triggers integration validation exactly once; approved
 integration fixes are new sibling leaves and keep the composite open until rechecked.
 
 ## Status Glossary
 
-Canonical fields and vocabulary: `workflow-globals`; translations and protection:
-`workflow-reference`. Distinguish plan status from atomic fields:
+Canonical fields and vocabulary: `contract-phases`; translations and protection:
+`contract-state-files`. Distinguish plan status from atomic fields:
 
 | Record | Meaning |
 |---|---|
@@ -176,11 +176,11 @@ offline examples are in [MODEL-CATALOG.md](../docs/MODEL-CATALOG.md).
 
 `/spec-run <spec-path> [--repo <directory>=<base-branch> ...] [--allow-pr] [--dry-run]`
 
-`orchestration` defines Orchestrator, Arbiter, Implementer and independent Validator.
+`contract-orchestration` defines Orchestrator, Arbiter, Implementer and independent Validator.
 Workers run sequentially and return shared-file deltas; the Orchestrator owns shared
 state and git. Class-B questions are answered before the first branch, and leaks stop.
 
-`git-flow` defines the stack: each leaf branches from its reviewed predecessor. RED
+`contract-git-flow` defines the stack: each leaf branches from its reviewed predecessor. RED
 gets a test-only commit before the same Implementer continues to GREEN; justified
 `n-a` gets one implementation commit. Composites are containers without branches in the
 current model. Later PRs contain their predecessors and depend on them. PRs require
@@ -189,7 +189,7 @@ The workflow never merges; the human chooses integration timing and strategy.
 With `--repo` flags a shared spec in a project root that is not a git repository runs
 across the declared repositories: per-repository preflight, one stack per repository,
 one shared sequential order and explicit cross-repository dependencies
-(`git-flow → ## Multi-repository runs`).
+(`contract-git-flow → ## Multi-repository runs`).
 
 `/restack <task-directory> [--repo <directory>] [--allow-pr]` repairs the remaining stack using recorded
 branch points after integration. Missing branches alone do not prove a merge.
@@ -214,7 +214,7 @@ Create a spec with H1 and acceptance criteria. Configure real verification comma
 the runbook before testable execution. Run the manual cycle above or authorize the
 three delivery phases with `/phase-pipeline <spec-path>`. Finalization remains separately
 invoked after owner integration. Quick eligibility and promotion are
-owned by `quick-flow`; a small diff alone does not qualify.
+owned by `contract-quick-flow`; a small diff alone does not qualify.
 
 ## Known Limitations
 

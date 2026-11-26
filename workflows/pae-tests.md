@@ -9,14 +9,14 @@ Called by: `/phase-atomic-execution` as Step 1, before `/pae-implement`.
 
 `--batch` suppresses duplicate digest display, never test classification, observation,
 or persistence. It does not authorize applying improvement proposals. `--characterize`
-selects `tdd → ## Characterization mode — behaviour-preserving work` when all admission
+selects `contract-tdd → ## Characterization mode — behaviour-preserving work` when all admission
 conditions hold; the tests must pass against unchanged code instead of failing.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
 
 This step produces the RED state. It writes **tests only** — never implementation code.
-The governing contract is the `tdd` rule; test style comes from `testing-standards`.
+The governing contract is the `contract-tdd` rule; test style comes from `testing-standards`.
 
 ---
 
@@ -55,14 +55,14 @@ The governing contract is the `tdd` rule; test style comes from `testing-standar
    - If absent: `WORK_DIR = <current directory>`, `AI_DIR = .ai`.
    Report the resolved `WORK_DIR` before continuing.
 
-1. Load the `phase-atomic-execution` rule (`## Context Bootstrap`) from `AI_DIR` before
+1. Load the `bootstrap-atomic-execution` rule (`## Context Bootstrap`) from `AI_DIR` before
    reading code or writing tests/implementation. Run the full bootstrap even when
    standalone; the rule owns load order and reporting. Load `WORK_DIR/../.ai` as the
    umbrella when present, then `AI_DIR`.
    Preserve absolute task-artifact paths when running commands in `WORK_DIR`.
 
 2. Read the resolved runbook's `## Commands` (`AI_DIR/context/runbook.md`, or the umbrella
-   fallback of `phase-atomic-execution → ## Context Bootstrap`) and capture `test:` if available.
+   fallback of `bootstrap-atomic-execution → ## Context Bootstrap`) and capture `test:` if available.
    Classify the test level before requiring a command. Missing tooling is never evidence
    for `none`; only the independent gate in Step 1 can justify that exemption.
 
@@ -75,7 +75,7 @@ The governing contract is the `tdd` rule; test style comes from `testing-standar
 
 ## Step 1 — Test-level gate
 
-Load `tdd → ## Test-level gate`. Evaluate `unit` → `integration` → `contract` → `smoke` →
+Load `contract-tdd → ## Test-level gate`. Evaluate `unit` → `integration` → `contract` → `smoke` →
 `none` in order; the first applicable level is primary. Add other levels only when needed
 for criteria the primary level cannot cover, and record their rationale.
 
@@ -88,7 +88,7 @@ Test command: <test: from runbook>
 ```
 
 **Characterization mode admission check** (when `--characterize` was passed or pins are recorded). Verify all
-three conditions from `tdd → ## Characterization mode — behaviour-preserving work → ### When it applies`: the Acceptance
+three conditions from `contract-tdd → ## Characterization mode — behaviour-preserving work → ### When it applies`: the Acceptance
 Criteria assert preserved behaviour; that behaviour is observable today; no requirement
 changes. Report the verdict:
 
@@ -103,7 +103,7 @@ the new behaviour gets its own Acceptance Criterion." Characterization is not a 
 for work that is merely hard to specify.
 
 **If the gate returns `none`:**
-1. Verify against the `tdd` rule's list of legitimate and illegitimate reasons. "Hard to
+1. Verify against the `contract-tdd` rule's list of legitimate and illegitimate reasons. "Hard to
    test", "no framework", "small change", "will add later", and "existing tests cover it"
    are **not** valid.
 2. Write the justification line to the leaf's `notes:` field:
@@ -173,7 +173,7 @@ Update the leaf block's `target_files:` as test files are created — not only a
 1. Run the `test:` command from the runbook, scoped to the tests just written, from within
    `WORK_DIR` (from the umbrella root for an umbrella runbook).
 2. Record the actual output — which tests failed and with what error.
-3. Verify RED per the `tdd` rule — `## RED — what counts`:
+3. Verify RED per the `contract-tdd` rule — `## RED — what counts`:
    - **Every** new test fails.
    - Each fails for the **expected reason**: missing function, unimplemented branch, wrong
      return value. Not an import error in the test file itself, not a syntax error, not a

@@ -815,9 +815,6 @@ def check_installed_names(lint: InstructionLint) -> None:
 def check_source_metadata(lint: InstructionLint, exceptions: dict[str, int | None]) -> None:
     for directory, fields in (("rules", RULE_FIELDS), ("workflows", WORKFLOW_FIELDS)):
         for path in sorted((lint.root / directory).glob("*.md")):
-            # This navigation reference remains under workflows until it moves to docs.
-            if path == lint.root / "workflows" / "PIPELINE.md":
-                continue
             if path.is_dir() and not path.is_symlink():
                 continue
             kind, _, subject = path.stem.partition("-")

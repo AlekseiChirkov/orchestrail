@@ -9,7 +9,7 @@ Called by: `/phase-discovery` as Step 2.
 
 Resolve artifacts inside the task directory. Default is autonomous;
 `--step-by-step` waits for boundary decisions. Reuse parent context; standalone
-use applies the `phase-discovery` bootstrap.
+use applies the `bootstrap-discovery` bootstrap.
 
 ## Guard
 
@@ -23,8 +23,8 @@ use applies the `phase-discovery` bootstrap.
 ## Instructions
 
 1. Read `## Task Analysis`; for phased tasks this already defines the active scope.
-   Load `workflow-reference → ## Decomposition Rules` and
-   `workflow-reference → ## Autonomous Subtask Classifier` once. Do not reread
+   Load `protocol-subtask-classifier → ## Decomposition Rules` and
+   `protocol-subtask-classifier → ## Autonomous Subtask Classifier` once. Do not reread
    the full spec or decompose deferred phases.
 2. Draft logical domain/module subtasks T-01, T-02, …, each independently verifiable
    with 3–15 implementation steps. Absorb smaller candidates into related work.
@@ -91,7 +91,7 @@ use applies the `phase-discovery` bootstrap.
    `## Solution Design → ### Scope` on rerun. On first run, `/pd-design` reconciles
    descriptions after choosing the architecture.
 
-   Apply the `tdd` test-level gate. Cover every criterion with an observable
+   Apply the `contract-tdd` test-level gate. Cover every criterion with an observable
    scenario; rewrite untestable criteria. `none` needs reasons for rejecting each
    other level; difficulty, missing framework, size, deferral and existing coverage
    are not reasons. `/pae-tests` may later record Test Plan amendments in state.
@@ -154,7 +154,7 @@ use applies the `phase-discovery` bootstrap.
 
    Preserve optional model columns and their values, including `Model (Claude)`,
    `Model (Codex)` and legacy `Model`, under
-   `workflow-reference → ### Model columns and resolution`; do not assign models
+   `contract-state-files → ### Model columns and resolution`; do not assign models
    here or migrate populated legacy cells implicitly. Preserve composite model
    cells as blank. Preserve row Status on a confirmed rerun. Do not remove,
    rename or change the type of a subtask with recorded progress; report a
@@ -171,7 +171,7 @@ use applies the `phase-discovery` bootstrap.
    ```
 
 7. **Initialise `## Subtask Progress`** in task `state.md` using
-   `workflow-globals → ## Canonical Status Formats`. For each leaf, write
+   `contract-phases → ## Canonical Status Formats`. For each leaf, write
    `atomic-tests`, `atomic-execution`, `atomic-validation` as `not-started`, plus
    `last_action:`, `target_files:` from Scope, `blocker: none`, and `notes:` even
    when empty. `/spec-run` adds git fields at branch creation; omit them here.

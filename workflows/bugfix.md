@@ -9,7 +9,7 @@ Resolve paths from the current project root. This standalone workflow completes 
 quick-eligible defect lifecycle; a full-tier verdict hands over before implementation.
 
 `--auto-mode` resolves unblocked choices through
-`workflow-reference → ## Autonomous Decision Protocol` and records the rationale in state.
+`protocol-autonomous-decision → ## Autonomous Decision Protocol` and records the rationale in state.
 Without it, ask about unresolved intent. Neither mode overrides the quick gate, test-first
 contract, validation stops, or confirmations for overwriting completed work.
 
@@ -29,7 +29,7 @@ contract, validation stops, or confirmations for overwriting completed work.
 
 ## Run logging
 
-Follow `run-log`: open at Step 0 with `--pipeline bugfix`, record completed step boundaries,
+Follow `contract-run-log`: open at Step 0 with `--pipeline bugfix`, record completed step boundaries,
 then close on completion or a declared stop. Logging failure never blocks work.
 
 ## Step 0 — Resolve the defect
@@ -74,7 +74,7 @@ licenses skipping because reproduction is difficult or only possible in producti
 1. Identify the cause as `path:line`, affected callers and persisted/cached data. If the
    requested behavior never existed, **stop**: report the missing feature and print
    `/spec-draft "<request>"` for the user.
-2. Evaluate `quick-flow → ## The escalation gate` against the complete affected surface,
+2. Evaluate `contract-quick-flow → ## The escalation gate` against the complete affected surface,
    including tests and any data correction. Record every result:
 
 ```text
@@ -103,11 +103,11 @@ reproduction and diagnosis, and print `/spec-draft "<defect>" --auto-mode` follo
 
 Only with all four passes, set `flow: quick` and `discovery: complete`, then
 `execution: in-progress`. Recheck the gate when scope grows; on breach follow
-`quick-flow → ## Mid-flight escalation (quick → full)` and stop this quick lifecycle.
+`contract-quick-flow → ## Mid-flight escalation (quick → full)` and stop this quick lifecycle.
 
 ## Step 3 — RED: freeze the reproduction as a test
 
-Follow `tdd` and `quick-flow → ## The quick path — what changes`: the reproduction *is*
+Follow `contract-tdd` and `contract-quick-flow → ## The quick path — what changes`: the reproduction *is*
 the RED test. Classify the test level, assert expected behavior, run it and observe failure
 for the defect's reason. Record the canonical `## TDD (quick)` fields, test paths and
 command/output summary in state. Preserve the frozen test set through implementation.
@@ -140,7 +140,7 @@ Set `execution: complete` only after verification passes, then `validation: in-p
 4. Apply the ADR trigger in `pv-finalize → ## Instructions`, step 3. If triggered, record
    the explicit decision in state and run `/adr-new <task-directory>`.
 5. Set `validation: complete`. Update the project-memory entry using
-   `workflow-reference → ## .ai/memory/state.md Entry Format` and append one progress entry
+   `contract-state-files → ## .ai/memory/state.md Entry Format` and append one progress entry
    with the defect, cause, fix and verification evidence. Move the task directory to
    `.ai/tasks/completed/` only after all required checks pass.
 

@@ -28,7 +28,7 @@ from typing import BinaryIO, Callable, Iterable, Mapping, Sequence
 import urllib.parse
 from datetime import datetime
 
-RULE_PATH = 'rules/git-flow.md → ## Safety rails'
+RULE_PATH = 'rules/contract-git-flow.md → ## Safety rails'
 
 GOVERNED_GIT_SUBCOMMANDS = frozenset({
     'add', 'stage', 'commit', 'push', 'reset', 'clean', 'branch', 'update-ref',

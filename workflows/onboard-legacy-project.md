@@ -153,7 +153,7 @@ For a new state file retain the canonical sections:
 <Known deferred items, or None.>
 ```
 
-Use `workflow-reference → ## .ai/memory/state.md Entry Format` for task entries; blocked
+Use `contract-state-files → ## .ai/memory/state.md Entry Format` for task entries; blocked
 work remains in Active Tasks with `status: blocked`. Mark Phase 2 complete only after every
 target has a recorded written/skipped outcome.
 

@@ -109,7 +109,7 @@ passes. Preserve existing corrupt/incomplete packs and block; never regenerate o
 After recording attempts, fresh `record` rechecks facts and refreshes hook receipts before
 another mutation. All integration checkout/refresh operations precede cleanup; delete proven
 remote refs before local branches, retaining normal local deletion refusal as incomplete.
-Follow `rules/git-flow.md → Finalization Git ownership` for the narrowly authorized forms.
+Follow `rules/contract-git-flow.md → Finalization Git ownership` for the narrowly authorized forms.
 
 ### Attempt input and recovery
 

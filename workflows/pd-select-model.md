@@ -40,8 +40,7 @@ readable helper files. Missing Python, source root or helper/siblings → report
 bytes, and return to the caller. The rubric, policy and schemas below are self-contained;
 `$SOURCE_ROOT/docs/MODEL-CATALOG.md` is an optional companion with executable examples,
 not a prerequisite for selection. Do not infer missing scores or refresh candidates.
-Never bypass explicit-request eligibility; follow `workflow-reference → ### Model columns
-and resolution` before any requested model execution. No historical log/store reads are
+Never bypass explicit-request eligibility; follow `contract-state-files → ### Model columns and resolution` before any requested model execution. No historical log/store reads are
 permitted.
 
 ```bash
@@ -259,7 +258,7 @@ Single mode stays chat-only for recommendations. Bulk mode writes only explicit
 `Model (Claude)`/`Model (Codex)` decisions through `--update-plan PLAN --updates UPDATES.json`.
 Use provider keys `anthropic`/`openai`; leave composite cells blank. Follow the canonical
 legacy/empty-column precedence and explicit populated-legacy migration decisions in
-`workflow-reference → ### Model columns and resolution`. Never copy one provider's ID
+`contract-state-files → ### Model columns and resolution`. Never copy one provider's ID
 into the other column or erase an unavailable row's prior recommendation. If required
 migration decisions are unavailable, report them and preserve the plan.
 

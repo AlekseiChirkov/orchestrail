@@ -137,3 +137,8 @@ name: git
 state: unknown
 
 Limitations: Session Git tool access lacks versioned verification.
+
+## Current finalization policy
+
+The receipt verification record preserves its original citation. The current policy is
+`contract-git-flow → ## Finalization Git ownership`.

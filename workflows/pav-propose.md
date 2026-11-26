@@ -11,13 +11,13 @@ Called by: `/phase-atomic-validation` as Step 2. Only runs if verdict is DONE.
 - **Interactive** (default, no flag): prompt user for "Do Now" items before applying.
 - **Batch** (`--batch`): record all proposals to `state.md` without prompting or applying. "Do Now" items are tagged for post-execution review by `/pe-finalize`.
 
-Canonical proposal semantics: `workflow-globals → Workflow-declared mode overrides`.
+Canonical proposal semantics: `contract-phases → ## Context Pack`.
 `--batch` means record every proposal, prompt for nothing, apply nothing. `/pe-finalize`
 step 5 owns later application when selected; no caller may reinterpret the flag.
 
 Atomic task directory = parent directory of the provided `description.md`.
 Parent task directory = one level above.
-Load the `phase-atomic-validation` rule (`## Context Bootstrap`) before code reads or writes, including standalone invocation.
+Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before code reads or writes, including standalone invocation.
 
 ---
 

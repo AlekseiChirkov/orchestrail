@@ -20,34 +20,36 @@ invoked Finalization closes the selected task with safe cleanup and archival. Pr
 is persisted in the target project's `.ai/tasks/…/state.md`; ordinary runs attempt
 best-effort telemetry to the central store that `/retro` reads, while dry-run emits none.
 
-Current inventory: 43 workflows, 14 rules, 4 principles, 13 shell and 52 Python files
+Current inventory: 42 workflows, 21 rules, 4 principles, 13 shell and 53 Python files
 under `scripts/`, with automated consistency and smoke checks.
 
 ## Components
 
-### Layer 1 — `rules/` (rule skills, 14 files)
+### Layer 1 — `rules/` (rule skills)
 The deployment engine installs these policies as skills under the mandatory `rule-`
 prefix. The `load` field declares `always` or `on-demand`. Each harness always-on file
-summarizes essential policies. Several basenames also occur in workflows. Key files:
+summarizes essential policies. Rule and workflow stems are disjoint. Key files:
 
 | File | Owns |
 |---|---|
-| `workflow-globals.md` | phase contract, never-auto-advance, mode overrides registry, `--batch` semantics, flow tiers summary, **Canonical Status Formats** (`state.md`, `## Subtask Progress` leaf/composite blocks, `## Fix-Tasks`, `plan.md` statuses) |
-| `workflow-reference.md` | file responsibilities, Description Amendment, Protected Sections Contract, multi-phase rules, `.ai/memory/state.md` entry format, **Autonomous Decision Protocol**, **Autonomous Subtask Classifier** (S1–S5, Type 2/3, tripwire), Decomposition Rules |
-| `tdd.md` | RED/GREEN/pinned/n-a/failed states, test-level gate, frozen RED set, characterization mode |
-| `git-flow.md` | preflight, stacked branch model, two-commit rule, no-attribution rule, pipeline identifiers out of the repo, safety rails with an Enforcement column (`hook: deny` / `hook: ask` / `hook: allow with restack journal` / `text only`), owner-approval protocol and never-evade rule, recorded git fields |
-| `orchestration.md` | four roles (Orchestrator, Arbiter, Implementer, Validator), shared-file discipline (one writer per shared file), class A/B escalation, Discovery batch gate |
-| `quick-flow.md` | four-condition gate, what quick skips and still mandates, mid-flight promotion |
-| `run-log.md` | log store, three `scripts/log-step.sh` calls, field vocabulary, never-block rule, canonical per-boundary capability/evidence routing and receipt-confirmed suppression; unobserved prompt boundaries remain approximate |
-| `language.md` | English in every project file |
-| `phase-*.md` (6) | per-phase Context Bootstrap (which `.ai/` files to load and in what order), Blocker Reconciliation |
+| `contract-phases.md` | phase contract, never-auto-advance, mode overrides registry, `--batch` semantics, flow tiers summary, **Canonical Status Formats** (`state.md`, `## Subtask Progress` leaf/composite blocks, `## Fix-Tasks`, `plan.md` statuses) |
+| `contract-state-files.md` | file responsibilities, Description Amendment, Protected Sections Contract, multi-phase rules and project memory entry format |
+| `protocol-autonomous-decision.md` and `protocol-subtask-classifier.md` | decision scoring, subtask classification, tripwire and decomposition rules |
+| `contract-tdd.md` | RED/GREEN/pinned/n-a/failed states, test-level gate, frozen RED set, characterization mode |
+| `contract-git-flow.md` | preflight, stacked branch model, two-commit rule, no-attribution rule, pipeline identifiers out of the repo, safety rails with an Enforcement column (`hook: deny` / `hook: ask` / `hook: allow with restack journal` / `text only`), owner-approval protocol and never-evade rule, recorded git fields |
+| `contract-orchestration.md` | four roles (Orchestrator, Arbiter, Implementer, Validator), shared-file discipline (one writer per shared file), class A/B escalation, Discovery batch gate |
+| `contract-quick-flow.md` | four-condition gate, what quick skips and still mandates, mid-flight promotion |
+| `contract-run-log.md` | log store, three `scripts/log-step.sh` calls, field vocabulary, never-block rule, canonical per-boundary capability/evidence routing and receipt-confirmed suppression; unobserved prompt boundaries remain approximate |
+| `contract-language.md` | English in every project file |
+| `bootstrap-*.md` | per-phase context and behavior load order |
+| `protocol-*-conduct.md` and `procedure-blocker-reconciliation.md` | relocated phase behavior and atomic blocker reconciliation |
 
 ### Layer 2 — `principles/` (engineering standards, 4 files)
 `code-quality.md`, `python-standards.md`, `testing-standards.md`, `infra-standards.md`.
 Domain-quality rules for Python, FastAPI and GCP, deployed as `principle-*` skills.
-`testing-standards` defines test style. `rules/tdd.md` defines the test process.
+`testing-standards` defines test style. `rules/contract-tdd.md` defines the test process.
 
-### Layer 3 — `workflows/` (slash commands, 43 files)
+### Layer 3 — `workflows/` (slash commands, 42 files)
 
 ```
 Orchestrators        phase-discovery  phase-execution  phase-validation  phase-pipeline
@@ -60,7 +62,7 @@ Validation children  pv-contract → pv-review → pv-issues → pv-create-fixes
 Orchestrated mode    spec-run, restack
 Entry points         spec-draft, bugfix, onboard-legacy-project, adr-new, spec-sync
 Utilities            context-pack, compress-state, retro, suggest-commit-message, suggest-pr-description, suggest-commit-pr
-Reference            PIPELINE.md (not executable)
+Reference            docs/PIPELINE.md (documentation)
 ```
 
 Every executable workflow declares a front-matter `description:`, `phase:` and `step:`
@@ -169,22 +171,22 @@ scripts/log-step.sh ──▶ logs/runs/*.jsonl ──▶ read-only lint ──�
 
 ## Contract surface (what must stay consistent across files)
 
-- **Canonical Status Formats** (`workflow-globals`) — every reader/writer of `state.md`
+- **Canonical Status Formats** (`contract-phases`) — every reader/writer of `state.md`
   and `plan.md`; readers key on field names, never on position; missing `atomic-tests:`
   is read as `not-started`.
-- **Protected Sections Contract** (`workflow-reference`) — what `/compress-state` may never
+- **Protected Sections Contract** (`contract-state-files`) — what `/compress-state` may never
   remove (`notes:`, `target_files:`, git fields, `tdd:` lines, composite blocks,
   `## Improvement Proposals`, `### Fix Classification`).
 - **Cross-reference syntax** — `<file> → ## <Section>`; offline instruction checks
   validate canonical workflow/rule section targets, alongside the existing contract checks.
-- **Mode overrides registry** (`workflow-globals → Workflow-declared mode overrides`) —
+- **Mode overrides registry** (`contract-phases → ## Context Pack`) —
   the only place a workflow may declare autonomy; `phase-pipeline → ## Pipeline
   Overrides` is the detail.
 - **`--batch`** — proposal callers record, prompt for nothing, apply nothing.
   `/pae-tests --batch` only suppresses duplicate digest display; it grants no authority.
 - **Rule-name resolution** — Claude Code and Codex install rules as `rule-<name>` skills.
 - **Active-run metadata** — a fixed format header and escaped values preserve multiline caller text without interpreting it as records; ordinary legacy metadata remains readable. JSONL events retain their existing schema.
-- **Repository set** (`workflow-globals`, `git-flow → ## Multi-repository runs`) — task
+- **Repository set** (`contract-phases`, `contract-git-flow → ## Multi-repository runs`) — task
   `## Repositories` lines and the leaf `repo:` field; read by `/spec-run`, `/restack`,
   `/pd-decompose`, `/pv-classify-fixes` and `scripts/repo-set.py`; absent means single-repository.
 - **Run-log vocabulary** — the helper enforces event-specific enums, bounded counts, exact legacy aliases, and safe run identifiers through one runtime contract exposed by `contract`; rejected arguments leave accepted event state unchanged.
@@ -262,7 +264,7 @@ without separate current-day matching execution evidence.
 Focused offline gates are --model-catalog-only, --model-selection-only and --model-plan-only;
 the same suites are included in default validation. All three helpers have passed focused
 acceptance and independent review. Workflow integration has passed fresh independent revalidation.
-The canonical model-column and resolution contract is owned by workflow-reference. The selector
+The canonical model-column and resolution contract is owned by contract-state-files. The selector
 uses cached lookup, explicit research/atomic refresh and session-preserving unavailable behavior;
 all execution and discovery readers reference the same additive contract. Installed skills resolve
 the guide from the same configured or already-verified source root as the helper, never CWD.
@@ -353,8 +355,8 @@ kills or pauses the tool; any other value is ignored. A state file changed at th
 is exit 4 `state-file-changed` with the tool's temporary file removed. The suite `tests/state-tool.py` is registered
 through the focused `--state-tool-only` validator mode and the default-run check
 `test_state_tool_acceptance`, via one exact, named extension of the frozen validator
-inventory. `state_receipts:` is defined on one anchored line in `rules/workflow-globals.md`
-(blocks without it stay valid) and protected in `rules/workflow-reference.md`;
+inventory. `state_receipts:` is defined on one anchored line in `rules/contract-phases.md`
+(blocks without it stay valid) and protected in `rules/contract-state-files.md`;
 `scripts/validate-task.sh` checks every receipts line, and the contract validator checks the
 definition, the protected entry, and that the tool's vocabulary constants equal the
 anchored lines.
@@ -381,8 +383,7 @@ without `repo:`). Discovery records the set in task `## Repositories`; leaf bloc
 `repo:`. No branch or pull request is based on another repository's branch; cross-repository
 dependencies are recorded in the plan, the state and pull request bodies. `/restack` takes
 `--repo`. Atomic workers whose repository has no local `.ai/` fall back to the umbrella
-runbook and run its commands from the umbrella root (`phase-atomic-execution → ## Context
-Bootstrap`). Acceptance: `python3 scripts/check-repo-set.py` (38 tests).
+runbook and run its commands from the umbrella root (`bootstrap-atomic-execution → ## Context Bootstrap`). Acceptance: `python3 scripts/check-repo-set.py` (38 tests).
 
 ## Post-merge task closure mechanics
 

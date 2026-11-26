@@ -31,7 +31,7 @@ class VersionFixtureIsolation(unittest.TestCase):
             (checkout / 'scripts').mkdir(parents=True)
             (checkout / 'rules').mkdir()
             (checkout / 'scripts/log-step.sh').write_bytes(helper)
-            (checkout / 'rules/run-log.md').write_bytes((ROOT / 'rules/run-log.md').read_bytes())
+            (checkout / 'rules/contract-run-log.md').write_bytes((ROOT / 'rules/contract-run-log.md').read_bytes())
             foreign = root / 'foreign'
             foreign.mkdir()
             sentinel = foreign / 'sentinel'

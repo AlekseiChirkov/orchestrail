@@ -10,6 +10,8 @@ Examples:
 - `/retro --since 2026-08-01 --pipeline spec-run` — one pipeline, one month
 - `/retro --project ~/projects/acme-platform` — one repository
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 ---
 
 Analyze workflow behavior across projects using the run log; do not infer product quality.
@@ -407,7 +409,7 @@ Check these questions; report findings or a brief limitation, not a repeated que
 6. Which evidenced blockers recur and suggest a missing preflight prerequisite?
 7. Are repeated task runs explained by observed interruption/resume behavior? Repetition
    alone does not prove a resume defect.
-8. Which unmeasurable question needs an additional `run-log → ## Field vocabulary` field?
+8. Which unmeasurable question needs an additional `contract-run-log → ## Field vocabulary` field?
 
 Separate observations from hypotheses. A gate always passing/failing is a review signal,
 not proof of miscalibration. Describe blocker causes only where usable evidence supports

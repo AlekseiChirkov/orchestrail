@@ -7,6 +7,8 @@ step: "-"
 Invocation: `/phase-execution <task-directory>`
 Example: `/phase-execution .ai/tasks/todo/task-01-add-oauth/`
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 If path is not provided — ask the user and do not continue.
 Task directory = provided argument (trailing slash optional).
 
@@ -17,10 +19,10 @@ To run a single step directly, call the child workflow:
 
 ## Run Logging
 
-This pipeline writes a run log. Follow the **`run-log`** rule in full — it defines the
+This pipeline writes a run log. Follow the **`contract-run-log`** rule in full — it defines the
 store, the field vocabulary, and the rule that logging never blocks a run.
 
-Apply `run-log → ## Workflow coverage and routing` at each boundary. Keep internal
+Apply `contract-run-log → ## Workflow coverage and routing` at each boundary. Keep internal
 step logging instructions and add `--note approximate` to every ordinary prompt step.
 
 At Step 0, preserve an inherited `RUN_ID`; otherwise open an owned run with `scripts/log-step.sh run-start` through the configured helper:
@@ -52,7 +54,7 @@ user because of a log write.
 
 ## Context Bootstrap
 
-Load the `phase-execution` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-execution` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -87,7 +89,7 @@ Open the run only after resolving the flow and prerequisites. Set `execution: in
 1. Call `/pe-execute <task-directory>`.
 2. Call `/pe-finalize <task-directory>` only after the execution loop returns successfully.
 
-**Quick tier:** Run the inline TDD step first; follow `quick-flow → ## The quick path — what changes` and the `tdd` rule.
+**Quick tier:** Run the inline TDD step first; follow `contract-quick-flow → ## The quick path — what changes` and the `contract-tdd` rule.
 Against the inline Acceptance Criteria, classify the test level, observe RED before
 implementation (or record the justified `none` gate), and persist `## TDD (quick)`.
 Implement within the inline contract, keep the test set frozen, run affected regression
@@ -96,7 +98,7 @@ For justified `none` without a suite, record actual manual/AC verification as co
 never infer the exemption from missing tooling.
 Resume existing evidence rather than rewriting tests after code exists. Then call `/pe-finalize`.
 If any quick gate fails, stop implementation and promote per
-`quick-flow → ## Mid-flight escalation (quick → full)` before continuing.
+`contract-quick-flow → ## Mid-flight escalation (quick → full)` before continuing.
 
 Close the owned run on completion or a stop, with the actual outcome. An inherited run
 remains owned by its caller. Report completed/skipped work, verification, and artifact paths.

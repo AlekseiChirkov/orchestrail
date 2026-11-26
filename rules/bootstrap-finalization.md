@@ -25,19 +25,11 @@ sources as unavailable; missing required delivery/recovery evidence blocks mutat
 
 Read original delivery records and each recorded repository's relevant local sources after the umbrella sources.
 Do not inspect unrelated repositories or use historical progress as current proof.
-Load `workflow-globals`, `workflow-reference`, `git-flow`, `orchestration` and `run-log`;
+Load `contract-phases`, `contract-state-files`, `contract-git-flow`, `contract-orchestration` and `contract-run-log`;
 on Claude Code/Codex resolve these to the `rule-` skill names. Read required helper
 schemas from the configured or independently verified source checkout before writes.
 Report: "Finalization context loaded: [sources read; required missing evidence]."
 
 ## Phase Behaviors
 
-Canonical state, checkpoints and authorization: `workflow-globals → ## Finalization`.
-Git authority: `git-flow → ## Finalization Git ownership`. Preservation and relocation:
-`workflow-reference → ## Protected Sections Contract`. Logging remains best effort;
-its failure cannot become a successful test or deployment measurement.
-
-Run the single `phase-finalize` workflow through its own Guard; no automatic entry from
-Validation or its parents. Ordinary invocation already authorizes mandatory proven cleanup.
-Retain independent review and shared-file ownership. Reconcile every rerun against current
-facts; report prior validation, integration, cleanup, archival and deployment separately.
+Load the `protocol-finalization-conduct` rule before acting.

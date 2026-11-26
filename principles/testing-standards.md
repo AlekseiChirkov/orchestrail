@@ -60,13 +60,13 @@ This sequence is not advisory — it is enforced by the pipeline:
 | 2. TESTS | **`/pae-tests`** — writes the tests and observes them fail (RED) |
 | 3. REVIEW | `/pae-tests` review gate — AC→test mapping presented before implementation |
 | 4. IMPLEMENT | `/pae-implement` — implements until the RED set passes (GREEN), set frozen |
-| 5. VERIFY | `/pae-implement → Final Verification` — GREEN check + regression run + lint |
+| 5. VERIFY | `/pae-implement → ## Final Verification` — GREEN check + regression run + lint |
 | 6. REVIEW | `/pav-check` (test-set audit) → `/pv-review` (architecture) |
 
 The process contract — the test-level gate, what counts as RED, and what implementation may
-not do to a test — lives in the **`tdd`** rule. This file governs test *style*; that rule
+not do to a test — lives in the **`contract-tdd`** rule. This file governs test *style*; that rule
 governs test *process*. Where a project's `flow: quick` tier applies, the same sequence runs
-inline against `## Contract (quick)` — see `quick-flow`.
+inline against `## Contract (quick)` — see `contract-quick-flow`.
 
 ---
 

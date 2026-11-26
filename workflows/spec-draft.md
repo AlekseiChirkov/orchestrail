@@ -10,6 +10,8 @@ specification, creates no task/state/plan, invokes no pipeline, and prints follo
 commands only. Preserve the minimal `templates/spec.md` contract: H1, Goal, Acceptance Criteria, Out of
 Scope and Notes.
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 ## Flags
 
 | Flag | Meaning |
@@ -47,7 +49,7 @@ Guard confirmations and `## Blocker escalation`.
 3. If the output exists, show the proposed edit scope and obtain confirmation before
    replacement unless that exact edit was already authorized. This applies in auto mode.
 4. If Discovery already started for an existing spec, preserve task-statement immutability
-   under `workflow-reference → ## File Responsibility`. Report proposed changes for
+   under `contract-state-files → ## File Responsibility`. Report proposed changes for
    `/spec-sync` unless the user explicitly authorized reconciliation. Do not create a
    second task statement to evade the rule.
 

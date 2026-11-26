@@ -21,12 +21,12 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-execution` rule (`## Context Bootstrap`) before project writes, including standalone
+Load the `bootstrap-execution` rule (`## Context Bootstrap`) before project writes, including standalone
 runs. Resolve task paths absolutely; use each description's `working_dir:` for service files.
 
 ## Instructions
 
-Load `workflow-reference` for the status translations, memory entry format, and project-state
+Load `contract-state-files` for the status translations, memory entry format, and project-state
 update rules. Keep `execution: in-progress` until the work and checks below finish.
 
 **Quick branch.** If `flow: quick`, there are no T-XX subtasks or required `plan.md` /
@@ -42,7 +42,7 @@ not a claim that nonexistent tests passed; retain the exemption and evidence.
    with its progress block; report unexplained missing work instead of assuming completion.
 
 2. Reconcile plan statuses with atomic progress and the report using
-   `workflow-reference → ## Status Translation Table`. Never write report-only labels such
+   `contract-state-files → ## Status Translation Table`. Never write report-only labels such
    as `composite-reviewed` into the plan's `Status` column.
 
 2b. **Final composite status reconciliation.** For each composite, read its block and children:
@@ -79,7 +79,7 @@ not a claim that nonexistent tests passed; retain the exemption and evidence.
    1. Create pending subtasks, one per improvement group, with complete descriptions,
       Test Plans, plan rows, and progress blocks. Keep Execution `in-progress`; return to
       `/pe-execute` to execute them before finalization.
-   2. Apply approved items now within the existing scope. Follow the `tdd` gate before any
+   2. Apply approved items now within the existing scope. Follow the `contract-tdd` gate before any
       changed behaviour, preserve frozen tests, update cumulative `target_files:`, rerun
       verification, then invalidate and repeat atomic validation for affected leaves.
    3. Discard only Do Now proposals; preserve Do Later / Optional items.

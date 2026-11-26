@@ -63,18 +63,18 @@ pay the `.ai/` context bootstrap twice for no isolation gain.
 
 It **pauses once, at RED**: after `/pae-tests` it reports the RED digest and the test files it
 wrote, and waits. That pause exists so the orchestrator can create the test-only commit
-`git-flow → ## Commits` requires — the Implementer never runs `git` itself. One message resumes
+`contract-git-flow → ## Commits` requires — the Implementer never runs `git` itself. One message resumes
 it, in the same context, for `/pae-implement` → `/pae-finalize`. Sequence:
 `/spec-run → ## Step 4 — Subtask loop`, step 4.2.
 
 Receives: the path to one `T-XX/description.md`, the resolved `WORK_DIR` (in a
-multi-repository run, the leaf's repository — `git-flow → ## Multi-repository runs`), and the
+multi-repository run, the leaf's repository — `contract-git-flow → ## Multi-repository runs`), and the
 branch it is on. Loads `.ai/` context itself per the standalone-invocation rule. Receives **no**
 transcript from previous subtasks — the parent `state.md` is the handoff.
 
 The existing RED return may carry the provisional dispatch envelope supplied by
 `/spec-run → ## Step 4 — Subtask loop`, step 4.2. Return the canonical final marker only for an actual
-RED return, following `run-log → ## Workflow coverage and routing` and its native
+RED return, following `contract-run-log → ## Workflow coverage and routing` and its native
 evidence contract. The Orchestrator resolves that checkpoint before its git handoff;
 the worker still owns no producer call. This adds no worker, pause or skill batch.
 Apply the same canonical rule to GREEN and validation returns and to Arbiter work.
@@ -112,7 +112,7 @@ shared file, always. Every such case in the pipeline today:
 | Shared file | Instructed by | What the sub-agent returns instead |
 |---|---|---|
 | `.ai/memory/architecture.md` | `/pae-finalize` step 1b (Implementer) | the module entries to add or update |
-| `.ai/memory/state.md`, `.ai/project_state.md` | the finalize workflows | the entry line, in the format `workflow-reference` defines |
+| `.ai/memory/state.md`, `.ai/project_state.md` | the finalize workflows | the entry line, in the format `contract-state-files` defines |
 | `plan.md` | `/pae-finalize` step 2 (Implementer: `Status` → `done`) and `/pav-close` step 2 (Validator: `Status` → `reviewed`) | the T-XX row and its new `Status` value |
 | `plan.md`, the `[composite]` block, `## Integration Issues (T-XX)`, and any D8 fix-sibling directory + row | `/phase-composite-validation` steps 2 and 3, reached from `/pav-close` step 5 inside the **Validator** | the composite row's new `Status`, the composite block's new field values, the approve/defer list, and — for a D8 sibling — the directory to create with its `description.md`, its `plan.md` row, and its leaf block |
 
@@ -182,10 +182,10 @@ top of it, and in a stack it invalidates every branch above it too.
 ### Conditions that always stop the run, regardless of class
 
 - A violated invariant or Off-limits breach (`/pv-contract` critical-failure gate).
-- `atomic-tests: failed` — RED was never established (see `tdd`).
+- `atomic-tests: failed` — RED was never established (see `contract-tdd`).
 - A composite-promotion tripwire firing in `/pae-implement`.
 - Any `## Guard` that would overwrite existing artifacts.
-- A preflight or git-rail violation (see `git-flow`).
+- A preflight or git-rail violation (see `contract-git-flow`).
 - A sub-agent reporting a blocker it could not resolve.
 
 Autonomy in this mode licenses *unblocked* decisions, never *unrecorded* ones, and never
@@ -196,7 +196,7 @@ decisions the pipeline has deliberately reserved for a human.
 `/phase-finalize` is invoked separately after owner integration and requires independent
 review of delivery evidence, recovery, knowledge and archival. It retains original Git/TDD
 field ownership; its helper owns only the additive finalization marker, current spec location
-and journaled mechanical relocation. Canonical contract: `workflow-globals → ## Finalization`.
+and journaled mechanical relocation. Canonical contract: `contract-phases → ## Finalization`.
 When an active parent owns shared files, workers return exact deltas for architecture, memory,
 domain, runbook/environment and current indexes; the parent applies them once. Standalone
 finalization owns those surgical updates, preserving unrelated work and tracking policy.

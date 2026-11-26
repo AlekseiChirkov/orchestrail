@@ -5,7 +5,7 @@
 # on its own. This helper stamps the time itself and derives every duration from
 # its own previous write. Agents call it; they never hand-write a log line.
 #
-# Contract: rules/run-log.md
+# Contract: rules/contract-run-log.md
 #
 # Usage:
 #   scripts/log-step.sh run-start --pipeline <name> [--project <path>] [--task <path>]

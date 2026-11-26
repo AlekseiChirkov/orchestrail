@@ -28,8 +28,8 @@ Task directory = provided argument (trailing slash optional).
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before writes, including standalone runs.
-Load `workflow-reference` for the memory entry format and project-state update rules.
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before writes, including standalone runs.
+Load `contract-state-files` for the memory entry format and project-state update rules.
 Keep `validation: in-progress` until finalization succeeds; do not announce completion early.
 
 ## Instructions

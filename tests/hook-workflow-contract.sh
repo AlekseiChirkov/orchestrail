@@ -150,7 +150,7 @@ class WorkflowLogging(unittest.TestCase):
                                   '--outcome', 'ok', '--note', 'approximate'])
 
     def policy(self, patterns: tuple[str, ...]) -> None:
-        text = (SOURCE / 'rules/run-log.md').read_text()
+        text = (SOURCE / 'rules/contract-run-log.md').read_text()
         for pattern in patterns:
             with self.subTest(contract=pattern):
                 self.assertTrue(re.search(pattern, text), 'missing canonical workflow routing integration: ' + pattern)

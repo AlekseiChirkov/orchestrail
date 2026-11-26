@@ -50,7 +50,7 @@ class HookContract(unittest.TestCase):
         self.project.mkdir()
         for folder in ('scripts', 'rules', 'workflows', 'hooks'):
             (self.checkout / folder).mkdir(parents=True)
-        for folder, names in [('scripts', ['log-step.sh']), ('rules', ['run-log.md'])]:
+        for folder, names in [('scripts', ['log-step.sh']), ('rules', ['contract-run-log.md'])]:
             for name in names:
                 shutil.copy2(SOURCE / folder / name, self.checkout / folder / name)
         for path in (SOURCE / 'workflows').glob('*.md'):
@@ -767,7 +767,7 @@ printf 'called\\n' >> "$HOOK_TEST_CAPTURE"
                 self.assertEqual(before, self.snapshot())
 
     def test_hook_documented_dispatch_marker_and_ownership_contract(self) -> None:
-        rule = (SOURCE / 'rules' / 'run-log.md').read_text()
+        rule = (SOURCE / 'rules' / 'contract-run-log.md').read_text()
         for token in ('ORCHESTRAIL_DISPATCH_V1', 'ORCHESTRAIL_REPORT_V1', 'last_assistant_message',
                       'agent_transcript_path', 'fallback-attempted', 'delivering', 'status --checkpoint',
                       '1048576', '16777216', 'claude-stop-v1'):

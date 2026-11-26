@@ -10,7 +10,7 @@ Owners: `/spec-run` (builds the stack) and `/restack` (repairs it). No other wor
 git write operations.
 
 This rule is about *mechanics and safety rails*. Orchestration roles and the escalation
-protocol live in `orchestration`; the test-first cycle lives in `tdd`.
+protocol live in `contract-orchestration`; the test-first cycle lives in `contract-tdd`.
 
 ---
 
@@ -304,8 +304,8 @@ table reads the Policy cell as before.
 ## Recorded state — required for resume and for restack
 
 Each leaf `## Subtask Progress` block carries these fields (canonical definition in
-`workflow-globals → Canonical Status Formats`; protected per
-`workflow-reference → Protected Sections Contract`):
+`contract-phases → ## Canonical Status Formats`; protected per
+`contract-state-files → ## Protected Sections Contract`):
 
 ```
 branch:       feat/oauth-token-service
@@ -335,7 +335,7 @@ that root. The root is never turned into a repository, and no file is moved.
 
 **Repository set.** The participating repositories and their base branches are declared
 explicitly — `/spec-run <spec> --repo <directory>=<base-branch> …` — and recorded once in
-task `state.md → ## Repositories` (format: `workflow-globals → ## Canonical Status Formats`).
+task `state.md → ## Repositories` (format: `contract-phases → ## Canonical Status Formats`).
 A nested repository that is not declared takes no part in the run. A resumed run reuses the
 recorded set; a different set stops the run until it is reconciled explicitly. The facts below
 come from the read-only helper `scripts/repo-set.py` (`mode`, `preflight`, `route`,

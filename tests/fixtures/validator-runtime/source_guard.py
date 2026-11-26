@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 FOCUSED_FLAGS = frozenset(["--usage-warning-only","--usage-report-only","--usage-resolution-only","--usage-publication-only","--usage-source-normalization-only","--usage-bounded-source-reads-only","--usage-contract-export-only","--usage-current-snapshot-only","--usage-projection-only","--usage-receipt-only","--usage-analysis-corpus-only","--usage-warning-policy-only","--usage-pricing-scenario-only","--usage-price-snapshot-only","--usage-diagnostic-registry-only","--usage-diagnostic-only","--usage-segment-only","--usage-attribution-only","--usage-inventory-only","--usage-selection-only","--usage-source-profiles-only","--usage-entity-only","--usage-envelope-only","--usage-schema-only","--usage-canonical-only","--model-workflow-only","--model-plan-only","--model-selection-only","--model-catalog-only","--hook-shell-quality-only","--hook-timing-only","--hook-workflow-only","--hook-install-only","--hook-adapter-only","--git-rails-only","--state-tool-only","--hygiene-only","--run-log-contract-only"])
-WARNING_SHA256 = "2faed19d8612766766b718c864e420c4e0e06665cbdd249f08e6f539a8942e20"
+WARNING_SHA256 = "abcbf85660647f62a046024fffa6e1198af88fd00d8f97c5bea06cd15b3ccaa5"
 WARNING_NAME = "test_contract_version_rule_history_warns_until_version_changes"
 VALIDATOR = "validate-contracts.sh"
 
@@ -960,7 +960,7 @@ def main(argv=None):
     manifest = Path(__file__).with_name("source_guard_exceptions.json")
     try:
         data = manifest.read_bytes()
-        if hashlib.sha256(data).hexdigest() != "5702837621e542e9d51eef749627083d739b5000835cff1cf7c192eccf59fb70":
+        if hashlib.sha256(data).hexdigest() != "34c5f7268f89d668f70887538fa2be8c4a869baf53226d3b3bae59d59815ffe8":
             raise ValueError("classified reference manifest digest differs")
         exceptions = json.loads(data)
         if not isinstance(exceptions, list):

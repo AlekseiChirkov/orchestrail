@@ -318,7 +318,7 @@ class SafetyChecks(FIXTURE.FinalizationChecks):
         self.assertEqual(original, self.journal_path.read_bytes())
 
     def test_canonical_policy_gives_only_the_scoped_exception_precedence(self) -> None:
-        policy = (SOURCE / 'rules/git-flow.md').read_text()
+        policy = (SOURCE / 'rules/contract-git-flow.md').read_text()
         section = policy.split('## Finalization Git ownership\n', 1)[1].split('\n## ', 1)[0]
         for term in ('takes precedence', 'journal-bound', 'recovery pack', 'SHA-256',
                      'git branch -d', '--force-with-lease=', 'Restack verifier defaults'):
@@ -411,7 +411,7 @@ class StagingChecks(unittest.TestCase):
         (self.source / 'scripts/install-hooks.sh').unlink()
         skills = (
             ('phase-finalize', self.source / 'workflows/phase-finalize.md'),
-            ('rule-phase-finalize', self.source / 'rules/phase-finalize.md'),
+            ('rule-bootstrap-finalization', self.source / 'rules/bootstrap-finalization.md'),
         )
         for command in (sync, setup, sync):
             result = subprocess.run(command, cwd=project, env=self.environment, input='2\n',

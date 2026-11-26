@@ -17,7 +17,7 @@ missing authorization or turns a failed criterion into success.
 1. Read task `state.md`. If absent → **stop**: "No task state at `<path>`."
 2. Read `spec_path:` and the referenced spec. If absent → **stop**: "Legacy task has no
    spec to reconcile." If the path is missing → **stop**: name it.
-3. Respect `workflow-reference → ## File Responsibility`: task requirements remain
+3. Respect `contract-state-files → ## File Responsibility`: task requirements remain
    immutable during implementation. If validation is incomplete, perform a report-only
    pass unless the user explicitly authorized reconciliation at this point, or a calling
    `/pv-finalize` has verified all contract/review/fix prerequisites and is completing its

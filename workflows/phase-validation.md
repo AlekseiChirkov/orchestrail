@@ -7,6 +7,8 @@ step: "-"
 Invocation: `/phase-validation <task-directory>`
 Example: `/phase-validation .ai/tasks/todo/task-01-add-oauth/`
 
+Use `contract-phases → ## Capabilities` for the declared mechanisms and their fallback paths.
+
 If path is not provided — ask the user and do not continue.
 Task directory = provided argument (trailing slash optional).
 
@@ -18,10 +20,10 @@ as step 4a), `/pv-execute-fixes`, `/pv-finalize`.
 
 ## Run Logging
 
-This pipeline writes a run log. Follow the **`run-log`** rule in full — it defines the
+This pipeline writes a run log. Follow the **`contract-run-log`** rule in full — it defines the
 store, the field vocabulary, and the rule that logging never blocks a run.
 
-Apply `run-log → ## Workflow coverage and routing` at each boundary. Keep internal
+Apply `contract-run-log → ## Workflow coverage and routing` at each boundary. Keep internal
 step logging instructions and add `--note approximate` to every ordinary prompt step.
 
 At Step 0, preserve an inherited `RUN_ID`; otherwise open an owned run with `scripts/log-step.sh run-start` through the configured helper:
@@ -53,7 +55,7 @@ user because of a log write.
 
 ## Context Bootstrap
 
-Load the `phase-validation` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-validation` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -97,7 +99,7 @@ For `flow: quick`, steps 1–3 remain mandatory against `## Contract (quick)`.
 Skip separate fix-task steps 4–5. Apply only approved findings inline, run the TDD gate
 before changed behaviour, keep frozen tests, and rerun both `/pv-contract` and `/pv-review`.
 Preserve the original issue decisions and record which approved items are resolved.
-New findings return to the decision step. If a quick gate fails, promote per `quick-flow`;
+New findings return to the decision step. If a quick gate fails, promote per `contract-quick-flow`;
 do not silently expand inline scope. The ADR trigger remains unchanged.
 
 Any child stop/failure propagates; do not advance using an incomplete result. On a full

@@ -20,7 +20,7 @@ To run a single step directly, call the child workflow:
 
 ## Context Bootstrap
 
-Load the `phase-atomic-validation` rule (`## Context Bootstrap`) before reading implementation files or
+Load the `bootstrap-atomic-validation` rule (`## Context Bootstrap`) before reading implementation files or
 writing project files; run the full bootstrap when invoked standalone. The rule owns
 the load order, umbrella precedence, conditional sources, and reporting.
 
@@ -34,7 +34,7 @@ Keep task-artifact paths absolute; run code reads, writes, and commands in `WORK
 
 Under `/spec-run`, write only this leaf's progress block and permitted code/tests.
 Return proposals sections, composite state, plan changes, new sibling descriptions, and
-compression as deltas under `orchestration → ## Shared-file discipline`.
+compression as deltas under `contract-orchestration → ## Shared-file discipline`.
 
 ## Guard
 

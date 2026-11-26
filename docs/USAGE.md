@@ -15,7 +15,7 @@ with explicit state on disk. The AI assistant is constrained by:
 
 - **Workflows** — slash-command definitions (`/phase-discovery`, `/pae-implement`, …)
   that describe step-by-step what the AI must do.
-- **Rules** — shared policies (`workflow-globals.md`, `language.md`) installed as skills.
+- **Rules** — shared policies (`contract-phases`, `contract-language`) installed as skills.
   The harness instructions summarize essential policies for every conversation.
 - **Principles** — domain-quality standards (`code-quality.md`, `python-standards.md`,
   `testing-standards.md`, `infra-standards.md`) loaded into every conversation.
@@ -98,13 +98,13 @@ with explicit state on disk. The AI assistant is constrained by:
 │   └── validate-task.sh             check one task directory
 │
 ├── rules/                           policies installed as rule-prefixed skills
-│   ├── workflow-globals.md          phase contract, canonical status formats, flow tiers
-│   ├── workflow-reference.md        process reference and examples (load: on-demand)
-│   ├── tdd.md                       TDD contract: RED→GREEN, test-level gate, frozen test set
-│   ├── git-flow.md                  branch stack, commits, PR policy, git safety rails
-│   ├── orchestration.md             agent roles, context boundaries, class A/B escalation
-│   ├── quick-flow.md                quick vs full tier, escalation gate
-│   └── language.md                English in every project file (chat language is user-specific)
+│   ├── contract-phases.md          phase contract, canonical status formats, flow tiers
+│   ├── contract-state-files.md        process reference and examples (load: on-demand)
+│   ├── contract-tdd.md                       TDD contract: RED→GREEN, test-level gate, frozen test set
+│   ├── contract-git-flow.md                  branch stack, commits, PR policy, git safety rails
+│   ├── contract-orchestration.md             agent roles, context boundaries, class A/B escalation
+│   ├── contract-quick-flow.md                quick vs full tier, escalation gate
+│   └── contract-language.md                English in every project file (chat language is user-specific)
 ├── harness/                        Claude Code and Codex adapters, each with an always-on source
 │
 ├── principles/                      engineering standards installed as principle-prefixed skills
@@ -113,9 +113,9 @@ with explicit state on disk. The AI assistant is constrained by:
 │   ├── testing-standards.md         test style: AAA, InMemory repos, coverage targets
 │   └── infra-standards.md           IaC, Terraform layout, IAM, Docker, observability
 │
+├── docs/PIPELINE.md                 phase order, command map and status glossary
 ├── workflows/                       slash-command definitions
 │   │                                  (installed as skills in Claude Code and Codex)
-│   ├── PIPELINE.md                  reference doc (not executable)
 │   ├── phase-pipeline.md            autonomous Discovery→Execution→Validation
 │   ├── phase-discovery.md           Phase 1 orchestrator
 │   ├── phase-execution.md           Phase 2 orchestrator
@@ -429,7 +429,7 @@ For each T-XX in `plan.md` (in dependency order):
    - `/pae-implement` — **TDD GREEN.** Runs the `## Steps` from `T-XX/description.md` until
      every RED test passes, then refactors while green. The RED set is frozen: no deleting,
      skipping, or weakening tests to reach green. Updates `## Subtask Progress` in parent
-     `state.md`. Stops on ambiguity per the trust mechanism in `workflow-globals.md`.
+     `state.md`. Stops on ambiguity per the trust mechanism in `contract-phases`.
    - `/pae-finalize` — sets atomic-execution status to `complete`, updates `plan.md` to
      `done`, rolls up a composite parent if this subtask is one of its children, and
      compresses state. The lint/test run happens earlier, in `/pae-implement → Final
@@ -605,18 +605,18 @@ migration and complete offline helper examples are in [MODEL-CATALOG.md](MODEL-C
 
 ### Rules every workflow obeys
 
-(Defined in `rules/workflow-globals.md` — loaded into every conversation.)
+(Defined in `rules/contract-phases.md` — loaded into every conversation.)
 
 - **Never auto-advance between phases** — `/phase-pipeline` and `/spec-run` advance only through their authorized delivery phases; finalization remains separately invoked.
 - **Test-first execution** — every leaf subtask goes through `/pae-tests` (RED) before
   `/pae-implement` (GREEN). The failing tests are a frozen contract, not a draft. Non-testable
-  work passes an explicit, recorded gate. Contract: `rules/tdd.md`. Not suspended by
+  work passes an explicit, recorded gate. Contract: `rules/contract-tdd.md`. Not suspended by
   `/phase-pipeline`.
 - **Orchestrated mode** — `/spec-run` runs a whole spec with context-bounded sub-agents, one
-  stacked branch per subtask, strictly sequential. Contracts: `rules/orchestration.md`,
-  `rules/git-flow.md`. With `--repo <directory>=<base-branch>` flags one shared spec runs
+  stacked branch per subtask, strictly sequential. Contracts: `rules/contract-orchestration.md`,
+  `rules/contract-git-flow.md`. With `--repo <directory>=<base-branch>` flags one shared spec runs
   across several git repositories under a project root that is not itself a repository,
-  one stack per repository (`rules/git-flow.md → ## Multi-repository runs`). It never
+  one stack per repository (`rules/contract-git-flow.md → ## Multi-repository runs`). It never
   merges a PR or pushes to the base branch. Tracked `.ai/`
   knowledge and state follow repository policy; untracked consumer state stays local unless
   the user explicitly authorizes tracking it.
@@ -638,7 +638,7 @@ registered projects and do not discover runs from historical events. Configurati
 locations honor `HOME`, `XDG_CONFIG_HOME` and `XDG_STATE_HOME`.
 
 The same installer registers the git-rails `PreToolUse` handler, which checks Bash git
-and gh commands in registered projects against `rules/git-flow.md → ## Safety rails`. It runs
+and gh commands in registered projects against `rules/contract-git-flow.md → ## Safety rails`. It runs
 `hooks/git-rails.sh` from the source checkout and blocks the call when it cannot run, so
 uninstall with the current installer before checking out a revision that lacks that file;
 otherwise every Bash call in every project is blocked until you uninstall.
@@ -776,15 +776,18 @@ files are clean. Logs and local machine settings stay ignored in this repository
 
 | File                       | Role                                                                              |
 |----------------------------|-----------------------------------------------------------------------------------|
-| `workflow-globals.md`      | `load: always`. Phase contract, never-auto-advance, canonical status formats, flow tiers, fix-task format. Decomposition limits and the reference tables live in `workflow-reference.md`. |
-| `workflow-reference.md`    | `load: on-demand`. Extended file-role reference, state-file marker list, status lifecycle. |
-| `language.md`              | `load: always`. Every project file in English. Set chat language preferences in the project-local `CLAUDE.md` or `AGENTS.md`. |
-| `git-flow.md`              | `load: always`. Branch stack, commit granularity, the no-attribution commit rule, PR policy (draft → ready), preflight, and every git safety rail with its Enforcement (what the Claude Code git-rails hook denies, asks the owner about, or allows only with the restack journal), the owner-approval protocol, and the rule never to rephrase a denied command. |
-| `orchestration.md`         | `load: always`. Roles (Orchestrator / Arbiter / Implementer / Validator), context boundaries, shared-file discipline, class A/B escalation, the Discovery batch gate. |
-| `tdd.md`                   | `load: always`. TDD contract: RED→GREEN cycle, test-level gate (unit/integration/contract/smoke/none), what counts as RED, frozen-test-set rule during GREEN, characterization mode (`pinned`) for behaviour-preserving work, `atomic-tests:` status vocabulary. |
-| `run-log.md`               | `load: always`. Run log contract: the central store, the three `scripts/log-step.sh` calls, the field vocabulary, what must never be logged, and the rule that logging never blocks a run. |
-| `quick-flow.md`            | `load: always`. Quick vs full tier: four-condition escalation gate, what the quick path skips and still mandates (inline contract + inline TDD step), mid-flight promotion to full. |
-| `phase-discovery.md`, `phase-execution.md`, `phase-validation.md`, `phase-finalize.md`, `phase-atomic-execution.md`, `phase-atomic-validation.md` | `load: on-demand`. Per-phase Context Bootstrap (which `.ai/` files to load, in what order), phase behaviours, and — for atomic execution — the Blocker Reconciliation procedure. Every phase workflow cites these by name. |
+| `contract-phases`      | `load: always`. Phase contract, never-auto-advance, canonical status formats, flow tiers, fix-task format. Decomposition limits and the reference tables live in `contract-state-files`. |
+| `contract-state-files`    | `load: on-demand`. Extended file-role reference, state-file marker list, status lifecycle. |
+| `contract-language`              | `load: always`. Every project file in English. Set chat language preferences in the project-local `CLAUDE.md` or `AGENTS.md`. |
+| `contract-git-flow`              | `load: always`. Branch stack, commit granularity, the no-attribution commit rule, PR policy (draft → ready), preflight, and every git safety rail with its Enforcement (what the Claude Code git-rails hook denies, asks the owner about, or allows only with the restack journal), the owner-approval protocol, and the rule never to rephrase a denied command. |
+| `contract-orchestration`         | `load: always`. Roles (Orchestrator / Arbiter / Implementer / Validator), context boundaries, shared-file discipline, class A/B escalation, the Discovery batch gate. |
+| `contract-tdd`                   | `load: always`. TDD contract: RED→GREEN cycle, test-level gate (unit/integration/contract/smoke/none), what counts as RED, frozen-test-set rule during GREEN, characterization mode (`pinned`) for behaviour-preserving work, `atomic-tests:` status vocabulary. |
+| `contract-run-log`               | `load: always`. Run log contract: the central store, the three `scripts/log-step.sh` calls, the field vocabulary, what must never be logged, and the rule that logging never blocks a run. |
+| `contract-quick-flow`            | `load: always`. Quick vs full tier: four-condition escalation gate, what the quick path skips and still mandates (inline contract + inline TDD step), mid-flight promotion to full. |
+| `bootstrap-*.md` | `load: on-demand`. Phase context, load order and behaviour. |
+| `protocol-autonomous-decision`, `protocol-subtask-classifier` | `load: on-demand`. Decision criteria and escalation, subtask classification and decomposition. |
+| `protocol-*-conduct` | `load: on-demand`. Phase conduct cited by the corresponding bootstrap. |
+| `procedure-blocker-reconciliation` | `load: on-demand`. Atomic execution blocker classification and resumption. |
 | `harness/<name>/always-on.md` | Source of the global instruction file for each harness. |
 
 ### `principles/`
@@ -793,14 +796,15 @@ files are clean. Logs and local machine settings stay ignored in this repository
 |----------------------------|-----------------------------------------------------------------------------------|
 | `code-quality.md`          | Always-on. Clean layered architecture, SOLID, naming, functions/classes, error handling, Repository pattern, DI, forbidden list. |
 | `python-standards.md`      | Always-on. Type hints, Pydantic v2, async rules, FastAPI patterns, SQLAlchemy 2.0 async, structlog, project structure, Python forbidden list. |
-| `testing-standards.md`     | Always-on. Test *style*: behavior-not-implementation, AAA, InMemory repos, layer coverage targets, naming, edge cases. Maps the TDD sequence onto the workflows that execute it (`rules/tdd.md` owns the *process*). |
+| `testing-standards.md`     | Always-on. Test *style*: behavior-not-implementation, AAA, InMemory repos, layer coverage targets, naming, edge cases. Maps the TDD sequence onto the workflows that execute it (`rules/contract-tdd.md` owns the *process*). |
 | `infra-standards.md`       | Always-on. IaC general rules, Terraform layout, IAM least privilege, Docker, observability, config.|
+
+See the [pipeline reference](PIPELINE.md) for phase order, status definitions and the child-command table.
 
 ### `workflows/`
 
 | File                            | Role                                                                              |
 |---------------------------------|-----------------------------------------------------------------------------------|
-| `PIPELINE.md`                   | Reference doc (not executable). Full pipeline overview, status glossary, child-workflow table. |
 | `phase-pipeline.md`             | Autonomous Discovery → Execution → Validation. Includes Deep Architectural Analysis Protocol. |
 | `phase-discovery.md`            | Discovery orchestrator. Sequentially calls `pd-analyze`, `pd-decompose`, `pd-design`, `pd-finalize`. |
 | `phase-execution.md`            | Execution orchestrator. Loops atomic-execution + atomic-validation per T-XX, then `pe-finalize`. |
@@ -876,7 +880,7 @@ Finalization adds `- finalization: not-started | in-progress | complete`; a miss
 means `not-started` and never invalidates prior Validation. Its stable journal keeps independent
 outcomes and operation checkpoints (`pending`, `prepared`, `applied`, `verified`, `blocked`,
 `preserved`) plus immutable failed/recovered execution observations. Canonical definition:
-`workflow-globals → ## Finalization`; schema authority: `scripts/phase-finalize.py` header.
+`contract-phases → ## Finalization`; schema authority: `scripts/phase-finalize.py` header.
 
 ### `## Subtask Progress` block (one per T-XX)
 
@@ -915,8 +919,8 @@ Created: T-XX-fix-<slug>, ...
 
 When none: `fixes-count: 0` and `Created: none`.
 
-Full canonical formats: `rules/workflow-globals.md`.
-Extended rationale + examples: `rules/workflow-reference.md`.
+Full canonical formats: `rules/contract-phases.md`.
+Extended rationale + examples: `rules/contract-state-files.md`.
 
 ---
 
@@ -924,7 +928,7 @@ Extended rationale + examples: `rules/workflow-reference.md`.
 
 `scripts/state-tool.py` reads and edits the `## Subtask Progress` section of one task
 `state.md` through a structural parser instead of free-text edits. It is optional:
-no workflow calls it yet, and the canonical formats in `rules/workflow-globals.md` remain
+no workflow calls it yet, and the canonical formats in `rules/contract-phases.md` remain
 the contract, so the manual procedure below stays valid. It needs Python 3.11 or newer and only
 the standard library. `--root` is the project root; `--task` is the task directory
 (`.ai/tasks/todo/task-<NN>-<slug>/`), resolved from the current directory, and must lie
@@ -1047,7 +1051,7 @@ When the tool is absent or cannot run, edit the block by hand in this order:
 1. Stop all concurrent writers of this task's `state.md` (other agents, sessions and tool
    runs) before editing.
 2. Read the whole block, including its continuation lines and any `state_receipts:` line.
-3. Change only the needed fields, in the canonical format of `rules/workflow-globals.md`;
+3. Change only the needed fields, in the canonical format of `rules/contract-phases.md`;
    never remove `notes:`, `target_files:`, `tdd:` or git field lines, and never edit or
    remove a `state_receipts:` line.
 4. Review the diff of `state.md` and confirm that nothing outside those fields changed.
@@ -1119,3 +1123,25 @@ From the Orchestrail source directory, run `bash scripts/report-legacy-artifacts
 or `bash scripts/report-legacy-artifacts.sh project <dir>` to list these objects without
 changing them. Review each reported path. For an unused object, run the removal command
 printed in its report line.
+
+## Renamed commands and rules
+
+| Kind | Old | New |
+| --- | --- | --- |
+| file | `rules/global-claude.md` | `harness/claude/always-on.md` |
+| file | `templates/codex-global-AGENTS.md` | `harness/codex/always-on.md` |
+| file | `workflows/PIPELINE.md` | `docs/PIPELINE.md` |
+| rule | `git-flow` | `contract-git-flow` |
+| rule | `language` | `contract-language` |
+| rule | `orchestration` | `contract-orchestration` |
+| rule | `phase-atomic-execution` | `bootstrap-atomic-execution`, `procedure-blocker-reconciliation`, `protocol-atomic-execution-conduct` |
+| rule | `phase-atomic-validation` | `bootstrap-atomic-validation`, `protocol-atomic-validation-conduct` |
+| rule | `phase-discovery` | `bootstrap-discovery`, `protocol-discovery-conduct` |
+| rule | `phase-execution` | `bootstrap-execution` |
+| rule | `phase-finalize` | `bootstrap-finalization`, `protocol-finalization-conduct` |
+| rule | `phase-validation` | `bootstrap-validation` |
+| rule | `quick-flow` | `contract-quick-flow` |
+| rule | `run-log` | `contract-run-log` |
+| rule | `tdd` | `contract-tdd` |
+| rule | `workflow-globals` | `contract-phases` |
+| rule | `workflow-reference` | `contract-state-files`, `protocol-autonomous-decision`, `protocol-subtask-classifier` |

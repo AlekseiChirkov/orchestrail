@@ -785,6 +785,9 @@ class InstructionMetadataTests(unittest.TestCase):
         legacy_rules = ("git-flow", "phase-finalize", "tdd", "workflow-globals")
         for name in legacy_rules:
             self.write(f"rules/{name}.md", RULE)
+        for name in ("contract-git-flow", "contract-tdd", "contract-phases"):
+            self.write(f"rules/{name}.md", RULE)
+        self.write("rules/bootstrap-finalization.md", sized_bootstrap(100))
         for name in ("pae-tests", "pae-implement", "phase-finalize"):
             self.write(f"workflows/{name}.md", workflow('"-"', name=name))
 
@@ -989,11 +992,14 @@ class InstructionMetadataTests(unittest.TestCase):
     def test_delivered_rule_metadata_preserves_rule_names_and_load_policy(self) -> None:
         rules = {
             "always": (
-                "git-flow", "language", "orchestration", "quick-flow", "run-log", "tdd", "workflow-globals",
+                "contract-git-flow", "contract-language", "contract-orchestration",
+                "contract-quick-flow", "contract-run-log", "contract-tdd", "contract-phases",
             ),
             "on-demand": (
-                "phase-atomic-execution", "phase-atomic-validation", "phase-discovery", "phase-execution",
-                "phase-finalize", "phase-validation", "workflow-reference",
+                *BOOTSTRAPS.values(), "contract-state-files",
+                "protocol-autonomous-decision", "protocol-subtask-classifier", "protocol-discovery-conduct",
+                "protocol-atomic-execution-conduct", "protocol-atomic-validation-conduct",
+                "protocol-finalization-conduct", "procedure-blocker-reconciliation",
             ),
         }
         self.assertCountEqual(
@@ -1034,7 +1040,7 @@ class InstructionMetadataTests(unittest.TestCase):
         }
         self.assertCountEqual(
             [path.stem for path in (SOURCE / "workflows").glob("*.md")],
-            ["PIPELINE", *(name for workflows in phases.values() for name in workflows)],
+            [name for workflows in phases.values() for name in workflows],
         )
         for phase, workflows in phases.items():
             for name, step in workflows.items():
@@ -1051,12 +1057,14 @@ class InstructionMetadataTests(unittest.TestCase):
         return metadata
 
     def test_delivered_active_documents_record_legacy_integrations_as_removed(self) -> None:
-        active_paths = {"rules/workflow-globals.md", "CLAUDE.md", "docs/USAGE.md"}
+        active_paths = {"rules/contract-phases.md", "CLAUDE.md", "docs/USAGE.md"}
         usage = (SOURCE / "docs/USAGE.md").read_bytes().splitlines(keepends=True)
         self.assertIn(b"## Removed integrations\n", usage)
+        setup = section(current("docs/USAGE.md"), "## 4. Initial Setup (new machine / standalone project)")
         self.assertEqual(
-            hashlib.sha256(usage[255]).hexdigest(),
-            "76ca60298a3212a6b48f4f8de8668ab06e4d2d246278bc9ff37889af11210809",
+            [hashlib.sha256(line.encode()).hexdigest() for line in setup.splitlines(keepends=True)
+             if line.startswith("git clone ")],
+            ["76ca60298a3212a6b48f4f8de8668ab06e4d2d246278bc9ff37889af11210809"],
         )
 
         result = self.run_checker(SOURCE)
@@ -1068,7 +1076,7 @@ class InstructionMetadataTests(unittest.TestCase):
         self.assertEqual(findings, [], "\n".join(findings))
 
     def test_orchestration_implementer_references_keep_the_step_locator(self) -> None:
-        orchestration = (SOURCE / "rules/orchestration.md").read_text(encoding="utf-8")
+        orchestration = (SOURCE / "rules/contract-orchestration.md").read_text(encoding="utf-8")
         implementer = orchestration.split("\n### Implementer\n", 1)[1].split("\n### ", 1)[0]
         loop = "`/spec-run → ## Step 4 — Subtask loop`"
         references = [paragraph for paragraph in implementer.split("\n\n") if loop in paragraph]
@@ -1079,37 +1087,19 @@ class InstructionMetadataTests(unittest.TestCase):
             self.assertIn("4.2", prose)
 
     def test_delivered_source_tree_has_only_recorded_migration_findings(self) -> None:
-        rules = (
-            "git-flow", "language", "orchestration", "phase-atomic-execution", "phase-atomic-validation",
-            "phase-discovery", "phase-execution", "phase-finalize", "phase-validation", "quick-flow",
-            "run-log", "tdd", "workflow-globals", "workflow-reference",
-        )
-        collisions = (
-            "phase-atomic-execution", "phase-atomic-validation", "phase-discovery", "phase-execution",
-            "phase-finalize", "phase-validation",
-        )
-        usage = ("usage-map-mismatch docs/USAGE.md:0 The renamed names table must match the name map in order.")
-
         result = self.run_checker(SOURCE)
 
         self.assertEqual(result.stderr, "")
         findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
-        self.assertIn(
-            (result.returncode, findings),
-            (
-                (0, []),
-                (1, [usage]),
-                (1, [
-                    *(f"kind-prefix-invalid rules/{name}.md:0 Expected a rule kind and a hyphenated subject."
-                      for name in rules),
-                    *(f"name-collision workflows/{name}.md:0 Stem {name} is also used by rules/{name}.md."
-                      for name in collisions),
-                    usage,
-                    *MISSING_PHASE_CONTRACT_FINDINGS,
-                ]),
-            ),
-            result.stdout,
-        )
+        if any(row["kind"] == "workflow" for row in name_map()["rows"]):
+            self.assertEqual((result.returncode, findings), (0, []), result.stdout)
+        else:
+            record, = SOURCE.glob("docs/audits/*-rule-migration-map.md")
+            evidence = section(current(record), "## Pending command checks")
+            trace = "\n".join(findings) + "\n"
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn(f"Findings: {len(findings)}", evidence)
+            self.assertIn(f"SHA-256: {hashlib.sha256(trace.encode()).hexdigest()}", evidence)
 
     def test_rejects_invalid_deploy_env_as_data(self) -> None:
         env_path = "harness/demo/deploy.env"
@@ -1192,9 +1182,9 @@ class InstructionMetadataTests(unittest.TestCase):
             definition = helper + body + closing
 
         checks = {
-            "TDD: rules/tdd.md is always_on": ("rules/tdd.md",),
-            "ORCH: $f is always_on": ("rules/git-flow.md", "rules/orchestration.md"),
-            "LOG: rules/run-log.md is always_on": ("rules/run-log.md",),
+            "TDD: rules/tdd.md is always_on": ("rules/contract-tdd.md",),
+            "ORCH: $f is always_on": ("rules/contract-git-flow.md", "rules/contract-orchestration.md"),
+            "LOG: rules/run-log.md is always_on": ("rules/contract-run-log.md",),
         }
         plain = RULE.replace("Check the contract", "Fixture — UTF-8").replace("on-demand", "always")
         fixtures = (
@@ -1229,7 +1219,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
 
 class GlobalInstructionGuidanceTests(unittest.TestCase):
-    guidance_paths = ("rules/language.md", "docs/USAGE.md")
+    guidance_paths = ("rules/contract-language.md", "docs/USAGE.md")
     global_paths = ("~/.claude/CLAUDE.md", "~/.codex/AGENTS.md")
 
     def test_chat_language_guidance_points_to_project_local_instructions(self) -> None:
@@ -1351,7 +1341,8 @@ def headings(document: str) -> list[tuple[str, str]]:
 
 
 def cells(line: str) -> tuple[str, ...]:
-    return tuple(cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip().strip("|")))
+    values = (cell.strip().replace(r"\|", "|") for cell in re.split(r"(?<!\\)\|", line.strip().strip("|")))
+    return tuple(re.sub(r"^(`{2,}) (.+) \1$", r"`\2`", cell) for cell in values)
 
 
 def section(document: str, heading: str) -> str:
@@ -1563,7 +1554,27 @@ class RuleSourceMigration(unittest.TestCase):
 
     def test_current_rule_readers_and_frozen_inventory_are_coherent(self) -> None:
         lint = self.isolated_command("-I", str(SOURCE / "scripts/lint-instructions.py"), "--root", str(SOURCE))
-        self.assertEqual(lint.returncode, 0, lint.stdout + lint.stderr)
+        findings = [line for line in lint.stdout.splitlines() if not line.startswith("info ")]
+        workflow_rows = [row for row in name_map()["rows"] if row["kind"] == "workflow"]
+        self.assertEqual(lint.stderr, "")
+        if workflow_rows:
+            self.assertEqual((lint.returncode, findings), (0, []), lint.stdout)
+        else:
+            self.assertEqual(lint.returncode, 1, lint.stdout)
+            for finding in findings:
+                match = re.fullmatch(r"stale-name (.+):(\d+) Stale names: (.+)\.", finding)
+                self.assertIsNotNone(match, finding)
+                path, line_number, names = match.groups()
+                line = current(path).splitlines()[int(line_number) - 1]
+                for name in names.split(", "):
+                    self.assertIn(name, BOOTSTRAPS, finding)
+                    self.assertTrue((SOURCE / source(name, "workflows")).is_file(), finding)
+                    self.assertRegex(line, rf"(?<![\w-]){name}(?![\w-])", finding)
+                    self.assertNotRegex(line, rf"rule-{name}\b|rules/{name}\.md|`{name}` rules?\b", finding)
+            trace = "\n".join(findings) + "\n"
+            evidence = section(self.record(), "## Pending command checks")
+            self.assertIn(f"Findings: {len(findings)}", evidence)
+            self.assertIn(f"SHA-256: {hashlib.sha256(trace.encode()).hexdigest()}", evidence)
         oracle = self.isolated_command(
             "-B", str(SOURCE / "tests/validator-runtime-oracle.py"),
             "OracleContract.test_frozen_source_detects_actual_name_expression_and_order_changes",

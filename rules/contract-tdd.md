@@ -33,7 +33,7 @@ are covered by `/phase-composite-validation`, not by `/pae-tests`.
 ## The three states
 
 `atomic-tests:` is a field in the leaf `## Subtask Progress` block (see
-`workflow-globals → Canonical Status Formats`). Values:
+`contract-phases → ## Canonical Status Formats`). Values:
 
 | Value | Meaning | Set by |
 |---|---|---|
@@ -199,7 +199,7 @@ refactoring. Refactoring is not an excuse to widen scope.
 
 **Flow tiers.** `flow: full` runs `/pae-tests` per leaf. `flow: quick` has no T-XX subtasks,
 so it runs the TDD step inline against `## Contract (quick) → ### Acceptance Criteria` —
-see `quick-flow → The quick path`. The gate and the RED definition are identical in both
+see `contract-quick-flow → ## The quick path — what changes`. The gate and the RED definition are identical in both
 tiers; only the location of the Acceptance Criteria differs.
 
 **Tripwire.** If the composite-promotion tripwire fires in `/pae-implement`, the RED tests

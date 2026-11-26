@@ -24,7 +24,7 @@ import sys
 source, checkout = map(Path, sys.argv[1:])
 for directory in ('scripts', 'rules', 'workflows'):
     (checkout / directory).mkdir()
-for name in ('scripts/log-step.sh', 'scripts/validate-contracts.sh', 'rules/run-log.md'):
+for name in ('scripts/log-step.sh', 'scripts/validate-contracts.sh', 'rules/contract-run-log.md'):
     shutil.copy2(source / name, checkout / name)
 for workflow in (source / 'workflows').glob('*.md'):
     shutil.copy2(workflow, checkout / 'workflows' / workflow.name)
