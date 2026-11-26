@@ -6,8 +6,10 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date
 import json
+import os
 from pathlib import Path
 import re
+import stat
 
 
 RULE_FIELDS = ("description", "load")
@@ -93,24 +95,30 @@ class InstructionLint:
         self.resolved_root = root.resolve()
         self.findings: list[str] = []
         self.information: list[str] = []
-        self.inputs: dict[Path, str | None] = {}
+        self.inputs: dict[tuple[Path, bool], str | None] = {}
 
     def report(self, code: str, path: Path, line: int, message: str) -> None:
         relative = path.relative_to(self.root).as_posix()
         self.findings.append(f"{code} {relative}:{line} {message}")
 
-    def read_text(self, path: Path, error_code: str = "input-encoding") -> str | None:
-        if path not in self.inputs:
-            self.inputs[path] = self.read_input(path, error_code)
-        return self.inputs[path]
+    def read_text(self, path: Path, error_code: str = "input-encoding", *, regular: bool = False) -> str | None:
+        if not regular and (path, True) in self.inputs:
+            return self.inputs[path, True]
+        key = (path, regular)
+        if key not in self.inputs:
+            self.inputs[key] = self.read_input(path, error_code, regular=regular)
+        return self.inputs[key]
 
-    def read_input(self, path: Path, error_code: str) -> str | None:
+    def read_input(self, path: Path, error_code: str, *, regular: bool) -> str | None:
         try:
             resolved = path.resolve()
             if not resolved.is_relative_to(self.resolved_root):
                 self.report(error_code, path, 0, "Input points outside the source tree.")
                 return None
-            data = resolved.read_bytes()
+            data = read_regular_bytes(path) if regular else resolved.read_bytes()
+            if data is None:
+                self.report(error_code, path, 0, "Expected a regular file.")
+                return None
             text = data.decode("utf-8")
         except UnicodeDecodeError as error:
             line = data.count(b"\n", 0, error.start) + 1 if error_code == "deploy-env-invalid" else 0
@@ -128,6 +136,19 @@ class InstructionLint:
             self.report(error_code, path, line, "Forbidden text separator U+001C–U+001F.")
             return None
         return text
+
+
+def read_regular_bytes(path: Path) -> bytes | None:
+    if not stat.S_ISREG(path.lstat().st_mode):
+        return None
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            return None
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            return stream.read()
+    finally:
+        os.close(descriptor)
 
 
 def outside_fences(lines: Iterable[str]) -> Iterator[tuple[int, str]]:
@@ -170,6 +191,12 @@ def source_paths(root: Path, patterns: Iterable[str]) -> Iterator[Path]:
     for path in sorted({path for pattern in patterns for path in root.glob(pattern)}):
         if ("__pycache__" not in path.relative_to(root).parts and path.is_file()
                 and path.resolve().is_relative_to(root_path)):
+            yield path
+
+
+def installed_source_paths(root: Path, directories: Iterable[str]) -> Iterator[Path]:
+    for path in source_paths(root, (f"{directory}/*.md" for directory in directories)):
+        if not path.is_symlink():
             yield path
 
 
@@ -357,9 +384,16 @@ def reference_findings(
 
 
 def check_executable_references(lint: InstructionLint) -> None:
-    sources = {path: text for path in source_paths(lint.root, (
-        "rules/*.md", "workflows/*.md", "harness/*/always-on.md",
-    )) if (text := lint.read_text(path)) is not None}
+    sources = {
+        path: text
+        for path in source_paths(lint.root, ("harness/*/always-on.md",))
+        if (text := lint.read_text(path)) is not None
+    }
+    sources.update({
+        path: text
+        for path in installed_source_paths(lint.root, ("rules", "workflows"))
+        if (text := lint.read_text(path, regular=True)) is not None
+    })
     visible = {path: list(outside_fences(input_lines(text))) for path, text in sources.items()}
 
     def by_stem(directory: str) -> dict[str, list[str]]:
@@ -577,13 +611,13 @@ def check_bootstrap(
 
 
 def check_installed_names(lint: InstructionLint) -> None:
-    rules = {path.stem: path for path in source_paths(lint.root, ("rules/*.md",))}
-    for path in source_paths(lint.root, ("workflows/*.md",)):
+    rules = {path.stem: path for path in installed_source_paths(lint.root, ("rules",))}
+    for path in installed_source_paths(lint.root, ("workflows",)):
         if rule := rules.get(path.stem):
             lint.report("name-collision", path, 0, f"Stem {path.stem} is also used by {rule.relative_to(lint.root)}.")
 
     installed: dict[str, Path] = {}
-    for path in source_paths(lint.root, (f"{directory}/*.md" for directory in SKILL_PREFIXES)):
+    for path in installed_source_paths(lint.root, SKILL_PREFIXES):
         name = SKILL_PREFIXES[path.parent.name] + path.stem
         identity = name.casefold()
         previous = installed.setdefault(identity, path)
@@ -600,11 +634,13 @@ def check_source_metadata(lint: InstructionLint, exceptions: dict[str, int | Non
             # This navigation reference remains under workflows until it moves to docs.
             if path == lint.root / "workflows" / "PIPELINE.md":
                 continue
+            if path.is_dir() and not path.is_symlink():
+                continue
             kind, _, subject = path.stem.partition("-")
             valid_kind = kind in RULE_KINDS and bool(subject) and NAME_STEM.fullmatch(path.stem) is not None
             if directory == "rules" and not valid_kind:
                 lint.report("kind-prefix-invalid", path, 0, "Expected a rule kind and a hyphenated subject.")
-            text = lint.read_text(path)
+            text = lint.read_text(path, regular=True)
             if text is None:
                 continue
             lines = input_lines(text)
@@ -768,7 +804,7 @@ def check_reserved_names(lint: InstructionLint, directory: Path, commands: set[s
     if not path.exists() and not path.is_symlink():
         lint.information.append(f"info reserved-names-absent {directory.name}")
         return
-    text = lint.read_text(path)
+    text = lint.read_text(path, regular=True)
     if text is None:
         return
     text = text.replace("\r\n", "\n")
