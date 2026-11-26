@@ -342,6 +342,43 @@ class InstructionMetadataTests(unittest.TestCase):
             result = self.run_checker()
             self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
 
+    def test_workflow_symlink_does_not_resolve_as_an_installed_command(self) -> None:
+        self.write_pipeline_command("orchestrail-pipeline")
+        (self.root / "workflows/pipeline.md").symlink_to("orchestrail-pipeline.md")
+        caller = "workflows/caller.md"
+        self.write(
+            caller,
+            workflow("1", name="caller") + "\nCall `/orchestrail-pipeline`.\nCall `/pipeline`.\n",
+        )
+
+        result = self.run_checker()
+
+        self.assert_finding(result, "reference-missing", caller)
+        missing = [line for line in result.stdout.splitlines() if line.startswith("reference-missing ")]
+        self.assertEqual(len(missing), 1, result.stdout)
+        self.assertTrue(missing[0].startswith(f"reference-missing {caller}:10 "), result.stdout)
+
+    def test_rejects_a_reserved_names_fifo_without_blocking(self) -> None:
+        self.write_pipeline_command("pipeline")
+        self.write_adapter("demo", "Fixture instructions", capability_declaration("demo", "no"))
+        relative = "harness/demo/reserved-names.txt"
+        os.mkfifo(self.root / relative)
+
+        try:
+            result = subprocess.run(
+                [sys.executable, "-I", str(CHECKER), "--root", str(self.root)],
+                cwd=self.workspace,
+                env=self.environment,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=2,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail("The checker blocked while opening the reserved-names FIFO.")
+
+        self.assert_finding(result, "input-encoding", relative)
+
     def test_checks_capability_records_for_each_adapter(self) -> None:
         first = capability_declaration("fixture-first", "yes").replace(
             "evidence: docs/example.md", "evidence: docs/example.md\nevidence: docs/another.md", 1,
