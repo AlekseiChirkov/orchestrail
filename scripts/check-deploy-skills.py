@@ -171,6 +171,9 @@ class LegacyArtifactReporterTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertEqual(result.stdout.splitlines(), [
             "legacy-mention rules/contract-demo.md:7 Legacy integration mention: Windsurf.",
+            "resolution-rule-missing rules/contract-phases.md:0 Expected one canonical rule-reference line.",
+            "bootstrap-table-invalid rules/contract-phases.md:0 Expected one row for each phase and its bootstrap skill.",
+            "capability-behaviour-table-invalid rules/contract-phases.md:0 Expected the capability behaviour table.",
         ])
 
 

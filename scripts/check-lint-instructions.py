@@ -27,6 +27,36 @@ ALWAYS_ON_RELOCATIONS = (
     ("rules/global-claude.md", "harness/claude/always-on.md"),
     ("templates/codex-global-AGENTS.md", "harness/codex/always-on.md"),
 )
+PHASE_CONTRACT = "rules/contract-phases.md"
+RESOLUTION_LINE = "A reference to rule `<name>` resolves to skill `rule-<name>` on every supported harness."
+BOOTSTRAP_HEADER = "| Phase | Skill | Loaded by |"
+BOOTSTRAP_ROWS = (
+    "| Discovery | `rule-bootstrap-discovery` | `/discovery`, `/discovery-analyze` |",
+    "| Execution | `rule-bootstrap-execution` | `/execution`, `/execution-execute` |",
+    "| Validation | `rule-bootstrap-validation` | `/validation`, `/validation-contract`, `/validation-review` |",
+    "| Finalization | `rule-bootstrap-finalization` | `/finalization` |",
+    "| Atomic Execution | `rule-bootstrap-atomic-execution` | `/atomic-execution`, "
+    "`/atomic-execution-tests`, `/atomic-execution-implement` |",
+    "| Atomic Validation | `rule-bootstrap-atomic-validation` | `/atomic-validation`, `/atomic-validation-check` |",
+)
+BEHAVIOUR_HEADER = "| Behaviour | Workflow | Requires | Without it |"
+BEHAVIOUR_ROWS = (
+    "| Orchestrated run with Implementer, Validator and Arbiter workers | `spec-run` | "
+    "`sub-agents`, `agent-messaging`, `git` | Stop before Step 0; use `/pipeline <task-directory>` |",
+    "| Parallel children | `spec-run` | `worktrees`, `concurrent-sub-agents` | "
+    "Sequential path with a reason until parallel support is established |",
+    "| Devil's Advocate critic | `spec-draft` | `sub-agents`, `agent-messaging` | Inline review, `critic: inline` |",
+    "| Model-specific worker for a leaf | `atomic-execution`, `execution-execute` | `sub-agents` | "
+    "Run inline when no explicit switch is required, otherwise stop |",
+    "| Hook-covered step logging | `discovery`, `execution`, `validation`, `finalization`, `pipeline`, "
+    "`spec-run`, `retro` | `hooks` | Prompt logging with `note: approximate` |",
+)
+MISSING_PHASE_CONTRACT_FINDINGS = (
+    f"resolution-rule-missing {PHASE_CONTRACT}:0 Expected one canonical rule-reference line.",
+    f"bootstrap-table-invalid {PHASE_CONTRACT}:0 Expected one row for each phase and its bootstrap skill.",
+    f"capability-behaviour-table-invalid {PHASE_CONTRACT}:0 Expected the capability behaviour table.",
+)
+MISSING_PHASE_CONTRACT_OUTPUT = "\n".join(MISSING_PHASE_CONTRACT_FINDINGS) + "\n"
 
 
 def workflow(step: str, phase: str = "discovery", name: str = "demo") -> str:
@@ -100,6 +130,13 @@ class InstructionMetadataTests(unittest.TestCase):
             f"Expected {code} for {relative}. Output:\n{result.stdout}{result.stderr}",
         )
 
+    def findings_for_minimal_fixture(self, result: subprocess.CompletedProcess[str]) -> list[str]:
+        findings = result.stdout.splitlines()
+        for expected in MISSING_PHASE_CONTRACT_FINDINGS:
+            self.assertEqual(findings.count(expected), 1, result.stdout)
+            findings.remove(expected)
+        return findings
+
     def test_accepts_valid_rule_and_workflow_metadata(self) -> None:
         self.write("rules/contract-demo.md", RULE)
         for name, step in (("demo-decimal", "2.5"), ("demo-letter", "4b"), ("demo-entry", '"-"')):
@@ -163,6 +200,294 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write(f"{directory}/capabilities.md", capabilities + "\n")
         self.write(f"{directory}/always-on.md", body)
 
+    def write_phase_contract_fixture(self) -> str:
+        bootstrap_phases = ("discovery", "execution", "validation", "finalization", "atomic-execution", "atomic-validation")
+        for phase in bootstrap_phases:
+            self.write(f"rules/bootstrap-{phase}.md", sized_bootstrap(30))
+            self.write(f"workflows/{phase}.md", workflow('"-"', phase, phase))
+        for name, phase in (
+            ("discovery-analyze", "discovery"), ("execution-execute", "execution"),
+            ("validation-contract", "validation"), ("validation-review", "validation"),
+            ("atomic-execution-tests", "atomic-execution"), ("atomic-execution-implement", "atomic-execution"),
+            ("atomic-validation-check", "atomic-validation"), ("pipeline", "orchestrated"),
+            ("spec-run", "orchestrated"), ("spec-draft", "entry"), ("retro", "utility"),
+        ):
+            self.write(f"workflows/{name}.md", workflow('"-"', phase, name))
+        for name, hooks in (("fixture-first", "yes"), ("fixture-second", "no")):
+            self.write_adapter(name, "Fixture instructions", capability_declaration(name, hooks))
+
+        contract = "\n".join((
+            RULE, "# Phase contracts", "", "## Rule references", "", RESOLUTION_LINE, "",
+            "## Context Bootstrap", "", BOOTSTRAP_HEADER, "| --- | --- | --- |", *BOOTSTRAP_ROWS, "",
+            "## Capabilities", "",
+            "Read the always-on records. No, unknown and absent capabilities are unavailable.",
+            "A yes still requires tool access and permission. Supply new evidence when a record changes.", "",
+            BEHAVIOUR_HEADER, "| --- | --- | --- | --- |", *BEHAVIOUR_ROWS, "",
+        ))
+        self.write(PHASE_CONTRACT, contract)
+        return contract
+
+    def test_rule_resolution_requires_one_canonical_anchor_in_the_scan_set(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        self.write("docs/audits/historical-example.md", RESOLUTION_LINE + "\n")
+        self.write("README.md", "# Guide\n")
+
+        with self.subTest(anchor="canonical, with a historical copy"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "missing": contract.replace(RESOLUTION_LINE, ""),
+            "embedded in prose": contract.replace(RESOLUTION_LINE, f"As a reminder, {RESOLUTION_LINE}"),
+            "outside the section": contract.replace(RESOLUTION_LINE, "") + f"\n## History\n\n{RESOLUTION_LINE}\n",
+            "fenced": contract.replace(RESOLUTION_LINE, f"```text\n{RESOLUTION_LINE}\n```"),
+            "repeated in the section": contract.replace(RESOLUTION_LINE, f"{RESOLUTION_LINE}\n\n{RESOLUTION_LINE}"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(anchor=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        for label, extra in {
+            "second active copy": RESOLUTION_LINE,
+            "obsolete wording": "The rule uses a bare basename.",
+            "obsolete column": "| Phase | Rules file (on disk) |\n| --- | --- |\n| Discovery | Bootstrap |",
+        }.items():
+            with self.subTest(anchor=label):
+                self.write("README.md", f"# Guide\n\n{extra}\n")
+                result = self.run_checker()
+                self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+                self.assertTrue(
+                    any(line.startswith("resolution-rule-missing ") for line in result.stdout.splitlines()),
+                    result.stdout,
+                )
+
+    def test_phase_contract_requires_the_canonical_source(self) -> None:
+        self.write_phase_contract_fixture()
+        (self.root / PHASE_CONTRACT).rename(self.root / "rules/workflow-globals.md")
+
+        result = self.run_checker()
+
+        for code in ("resolution-rule-missing", "bootstrap-table-invalid", "capability-behaviour-table-invalid"):
+            with self.subTest(diagnostic=code):
+                self.assert_finding(result, code, PHASE_CONTRACT)
+
+    def test_bootstrap_table_requires_exact_phases_and_existing_skills(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        first_bootstrap = BOOTSTRAP_ROWS[0]
+        with self.subTest(table="six canonical rows"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "wrong header": contract.replace(BOOTSTRAP_HEADER, "| Phase | Skill name | Loaded by |"),
+            "missing row": contract.replace(first_bootstrap + "\n", ""),
+            "seventh row": contract.replace(BOOTSTRAP_ROWS[-1], f"{BOOTSTRAP_ROWS[-1]}\n{first_bootstrap}"),
+            "duplicate phase": contract.replace("| Execution |", "| Discovery |"),
+            "skill for another phase": contract.replace("`rule-bootstrap-discovery`", "`rule-bootstrap-execution`"),
+            "legacy skill": contract.replace("`rule-bootstrap-discovery`", "`rule-phase-discovery`"),
+            "extra cell": contract.replace(first_bootstrap, first_bootstrap + " Additional |"),
+            "wrong section": contract.replace("## Context Bootstrap", "## Example Bootstrap"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        (self.root / "rules/bootstrap-discovery.md").unlink()
+        with self.subTest(table="referenced rule is missing"):
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_behaviour_table_requires_behaviours_workflows_and_fallbacks(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        with self.subTest(table="five canonical behaviours"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        mutations = {
+            "wrong header": contract.replace(BEHAVIOUR_HEADER, "| Behavior | Workflow | Requires | Without it |"),
+            "missing behaviour": contract.replace(BEHAVIOUR_ROWS[1] + "\n", ""),
+            "changed behaviour label": contract.replace("| Parallel children |", "| Parallel work |"),
+            "duplicate behaviour": contract.replace(BEHAVIOUR_ROWS[1], f"{BEHAVIOUR_ROWS[1]}\n{BEHAVIOUR_ROWS[1]}"),
+            "wrong capability key": contract.replace("`sub-agents`", "`subagents`", 1),
+            "wrong canonical capability": contract.replace("| `hooks` |", "| `git` |"),
+            "unknown workflow": contract.replace("`retro`", "`missing-command`"),
+            "path instead of workflow name": contract.replace("`retro`", "`workflows/retro.md`"),
+            "missing fallback": contract.replace("Inline review, `critic: inline`", ""),
+            "wrong section": contract.replace("## Capabilities", "## Capability Examples"),
+        }
+        for label, mutation in mutations.items():
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, mutation)
+                self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract)
+        (self.root / "workflows/retro.md").unlink()
+        self.write("workflows/archive.md", workflow('"-"', "utility", "archive"))
+        (self.root / "workflows/retro.md").symlink_to("archive.md")
+        with self.subTest(table="named workflow is a symlink"):
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_behaviour_extension_requires_a_record_in_every_harness(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        extension = "| Set worker effort | `spec-run` | `sub-agent-effort` | Use the default effort |\n"
+        self.write(PHASE_CONTRACT, contract + extension)
+        declarations = {
+            "fixture-first": capability_declaration("fixture-first", "yes"),
+            "fixture-second": capability_declaration("fixture-second", "no"),
+        }
+        for name, declaration in declarations.items():
+            record = capability_record("sub-agent-effort", "unknown" if name == "fixture-first" else "yes")
+            self.write(f"harness/{name}/capabilities.md", f"{declaration}\n\n{record}\n")
+
+        with self.subTest(extension="declared by both adapters, including an unknown state"):
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(extension="misspelled"):
+            self.write(PHASE_CONTRACT, contract + extension.replace("sub-agent-effort", "subagent-effort"))
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        self.write(PHASE_CONTRACT, contract + extension)
+        second = declarations["fixture-second"]
+        with self.subTest(extension="absent from the second adapter"):
+            self.write("harness/fixture-second/capabilities.md", second + "\n")
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+        with self.subTest(extension="named outside the record section"):
+            record = capability_record("sub-agent-effort", "yes")
+            self.write("harness/fixture-second/capabilities.md", f"{second}\n\n## Example\n\n{record}\n")
+            self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+    def test_bootstrap_table_counts_rows_without_outer_pipes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BOOTSTRAP_ROWS[-1]
+
+        with self.subTest(table="six rows with mixed pipe styles"):
+            self.write(PHASE_CONTRACT, contract.replace(last, last.strip("| ")))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(table="seventh row without outer pipes"):
+            extra = BOOTSTRAP_ROWS[0].strip("| ")
+            self.write(PHASE_CONTRACT, contract.replace(last, f"{last}\n{extra}"))
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+    def test_capability_table_validates_rows_without_outer_pipes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BEHAVIOUR_ROWS[-1]
+
+        with self.subTest(table="five rows with mixed pipe styles"):
+            self.write(PHASE_CONTRACT, contract.replace(last, last.strip("| ")))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        for label, row in (
+            ("undeclared extension", "Set worker effort | `spec-run` | `sub-agent-effort` | Use default effort"),
+            ("uninstalled workflow", "Send a message | `missing-command` | `agent-messaging` | Run inline"),
+        ):
+            with self.subTest(table=label):
+                self.write(PHASE_CONTRACT, contract + row + "\n")
+                self.assert_finding(self.run_checker(), "capability-behaviour-table-invalid", PHASE_CONTRACT)
+
+    def test_rule_reference_rejects_obsolete_markdown_column_variants(self) -> None:
+        self.write_phase_contract_fixture()
+
+        for label, table in (
+            ("no outer pipes", "Phase | Rules file\n--- | ---\nDiscovery | Bootstrap"),
+            ("code span", "| Phase | `Rules file` |\n| --- | --- |\n| Discovery | Bootstrap |"),
+        ):
+            with self.subTest(header=label):
+                self.write("README.md", f"# Guide\n\n{table}\n")
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+    def test_phase_contract_uses_visible_markdown_content(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        with self.subTest(markdown="comment-only anchor"):
+            self.write(PHASE_CONTRACT, contract.replace(RESOLUTION_LINE, f"<!--\n{RESOLUTION_LINE}\n-->"))
+            self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
+        with self.subTest(markdown="comment-only phase sections"):
+            self.write(PHASE_CONTRACT, RULE + f"\n<!--\n{contract.removeprefix(RULE)}-->\n")
+            result = self.run_checker()
+            for code in ("resolution-rule-missing", "bootstrap-table-invalid", "capability-behaviour-table-invalid"):
+                with self.subTest(diagnostic=code):
+                    self.assert_finding(result, code, PHASE_CONTRACT)
+
+        with self.subTest(markdown="commented heading beside the live table"):
+            self.write(PHASE_CONTRACT, contract.replace("## Capabilities", "<!--\n## Capabilities\n-->\n\n## Capabilities"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(markdown="comment opener inside a fenced example"):
+            self.write(PHASE_CONTRACT, contract.replace("## Capabilities", "```text\n<!--\n```\n\n## Capabilities"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+    def test_phase_tables_continue_after_a_pipe_less_body_row(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        last = BOOTSTRAP_ROWS[-1]
+        trailing_bootstrap = BOOTSTRAP_ROWS[0]
+
+        with self.subTest(table="bootstrap"):
+            self.write(PHASE_CONTRACT, contract.replace(last, f"{last}\nSingle cell\n{trailing_bootstrap}"))
+            self.assert_finding(self.run_checker(), "bootstrap-table-invalid", PHASE_CONTRACT)
+
+        invalid_behaviour = "Send a message | `missing-command` | `agent-messaging` | Run inline"
+        with self.subTest(table="capabilities"):
+            self.write(PHASE_CONTRACT, contract + f"Single cell\n{invalid_behaviour}\n")
+            result = self.run_checker()
+            self.assert_finding(result, "capability-behaviour-table-invalid", PHASE_CONTRACT)
+            self.assertIn("Invalid capability behaviour row: Send a message.", result.stdout)
+
+        for label, boundary in (
+            ("heading", "### Appendix"), ("blank line", ""), ("blockquote", "> Appendix | Project notes"),
+        ):
+            with self.subTest(boundary=label):
+                self.write(PHASE_CONTRACT, contract + f"{boundary}\n{invalid_behaviour}\n")
+                result = self.run_checker()
+                self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+    def test_phase_table_delimiter_accepts_single_dashes(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        with self.subTest(delimiter="canonical tables with single dashes and alignment"):
+            compact = contract.replace("| --- | --- | --- |", "| - | :-: | -: |")
+            self.write(PHASE_CONTRACT, compact.replace("| - | :-: | -: | --- |", "| - | :-: | -: | :- |"))
+            result = self.run_checker()
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+
+        with self.subTest(delimiter="obsolete header with single dashes"):
+            self.write(PHASE_CONTRACT, contract)
+            self.write("README.md", "# Guide\n\nPhase | Rules file\n- | :-:\nDiscovery | Bootstrap\n")
+            self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+        for label, obsolete in (("bold", "**Rules file** (old)"), ("italic", "_Rules file_")):
+            with self.subTest(delimiter="ordinary", header=label):
+                self.write("README.md", f"# Guide\n\n| Phase | {obsolete} |\n| --- | --- |\n| Discovery | Bootstrap |\n")
+                self.assert_finding(self.run_checker(), "resolution-rule-missing", "README.md")
+
+    def test_phase_table_headers_remain_exact_after_filtering_comments(self) -> None:
+        contract = self.write_phase_contract_fixture()
+
+        for header, code in (
+            (BOOTSTRAP_HEADER, "bootstrap-table-invalid"),
+            (BEHAVIOUR_HEADER, "capability-behaviour-table-invalid"),
+        ):
+            with self.subTest(header=header):
+                self.write(PHASE_CONTRACT, contract.replace(header, header + "<!-- header note -->"))
+                self.assert_finding(self.run_checker(), code, PHASE_CONTRACT)
+
+    def test_visible_rule_reference_anchor_requires_exact_source_text(self) -> None:
+        contract = self.write_phase_contract_fixture()
+        synthetic_anchor = RESOLUTION_LINE.replace("resolves", "re<!-- hidden -->solves")
+        self.write(PHASE_CONTRACT, contract.replace(RESOLUTION_LINE, synthetic_anchor))
+
+        self.assert_finding(self.run_checker(), "resolution-rule-missing", PHASE_CONTRACT)
+
     def test_counts_only_the_always_on_body_at_the_size_limit(self) -> None:
         capabilities = words(1607)
         self.write_adapter("at-limit", words(1200), capabilities)
@@ -194,7 +519,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("kind-prefix-invalid", f"rules/{name}.md") for name in invalid],
         )
 
@@ -206,7 +532,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [line.split()[0] for line in result.stdout.splitlines()],
+            [line.split()[0] for line in self.findings_for_minimal_fixture(result)],
             ["kind-prefix-invalid", "name-collision"],
         )
 
@@ -220,7 +546,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [line.split()[0] for line in result.stdout.splitlines()],
+            [line.split()[0] for line in self.findings_for_minimal_fixture(result)],
             ["kind-prefix-invalid", "installed-name-collision", "installed-name-collision"],
         )
         for name in ("rule-tdd", "principle-quality"):
@@ -240,7 +566,8 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-        self.assertEqual([line.split()[0] for line in result.stdout.splitlines()], ["installed-name-collision"])
+        self.assertEqual([line.split()[0] for line in self.findings_for_minimal_fixture(result)],
+                         ["installed-name-collision"])
 
     def test_requires_exact_ordered_bootstrap_headings(self) -> None:
         context = "## Context Bootstrap\n"
@@ -260,7 +587,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("bootstrap-sections", f"rules/bootstrap-{name}.md") for name in fixtures],
         )
 
@@ -272,7 +600,7 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assert_finding(result, "bootstrap-size", "rules/bootstrap-over-limit.md")
-        self.assertEqual(len(result.stdout.splitlines()), 1, result.stdout)
+        self.assertEqual(len(self.findings_for_minimal_fixture(result)), 1, result.stdout)
 
     def test_bootstrap_size_exception_applies_to_the_named_rule_at_the_listed_count(self) -> None:
         for name in ("exact", "changed", "unlisted"):
@@ -288,7 +616,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
         self.assertCountEqual(
-            [(line.split()[0], line.split()[1].rsplit(":", 1)[0]) for line in result.stdout.splitlines()],
+            [(line.split()[0], line.split()[1].rsplit(":", 1)[0])
+             for line in self.findings_for_minimal_fixture(result)],
             [("bootstrap-size", f"rules/bootstrap-{name}.md") for name in ("changed", "unlisted")],
         )
 
@@ -310,7 +639,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         result = self.run_checker()
 
-        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "info reserved-names-absent demo\n", ""))
+        self.assertEqual((result.returncode, result.stdout, result.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT + "info reserved-names-absent demo\n", ""))
 
     def test_reserved_command_requires_the_prefixed_workflow_and_invocation(self) -> None:
         self.write_pipeline_command("pipeline")
@@ -325,7 +655,7 @@ class InstructionMetadataTests(unittest.TestCase):
         with self.subTest(command="reserved"):
             result = self.run_checker()
             self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-            findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
+            findings = [line for line in self.findings_for_minimal_fixture(result) if not line.startswith("info ")]
             self.assertEqual(len(findings), 1, result.stdout)
             self.assertTrue(findings[0].startswith("reserved-name-collision "), result.stdout)
             self.assertIn("orchestrail-pipeline", findings[0])
@@ -340,7 +670,9 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write(source, RULE + "\nInvoke `/orchestrail-pipeline`.\n")
         with self.subTest(command="prefixed"):
             result = self.run_checker()
-            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+            self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
+            self.assertTrue(all(line.startswith("info ") for line in self.findings_for_minimal_fixture(result)),
+                            result.stdout)
 
     def test_workflow_symlink_does_not_resolve_as_an_installed_command(self) -> None:
         self.write_pipeline_command("orchestrail-pipeline")
@@ -388,7 +720,10 @@ class InstructionMetadataTests(unittest.TestCase):
         self.write_adapter("fixture-second", "Fixture instructions", second)
 
         baseline = self.run_checker()
-        self.assertEqual(baseline.returncode, 0, baseline.stdout + baseline.stderr)
+        self.assertEqual((baseline.returncode, baseline.stderr), (1, ""), baseline.stdout)
+        self.assertEqual(self.findings_for_minimal_fixture(baseline),
+                         ["info reserved-names-absent fixture-first", "info reserved-names-absent fixture-second"],
+                         baseline.stdout)
 
         disabled_hooks = capability_record("hooks", "no")
         mutations = {
@@ -476,7 +811,8 @@ class InstructionMetadataTests(unittest.TestCase):
                 result = self.run_checker()
                 self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
                 self.assertCountEqual(
-                    [" ".join(line.split()[:2]) for line in result.stdout.splitlines() if not line.startswith("info ")],
+                    [" ".join(line.split()[:2]) for line in self.findings_for_minimal_fixture(result)
+                     if not line.startswith("info ")],
                     [
                         *(f"kind-prefix-invalid rules/{rule}.md:0" for rule in legacy_rules),
                         "name-collision workflows/phase-finalize.md:0",
@@ -577,7 +913,8 @@ class InstructionMetadataTests(unittest.TestCase):
 
         self.write("docs/USAGE.md", f"{heading}{row}, `contract-guide-extra` |\n")
         aligned = self.run_checker()
-        self.assertEqual(aligned.returncode, 0, aligned.stdout + aligned.stderr)
+        self.assertEqual((aligned.returncode, aligned.stdout, aligned.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT, ""))
 
     def test_resolves_executable_references_and_section_order(self) -> None:
         self.write("rules/contract-target.md", RULE + "\n## Guide — Notes\n### Run\n#### Finish\n## End\n")
@@ -608,7 +945,8 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-        self.assertEqual({" ".join(line.split()[:2]) for line in result.stdout.splitlines()}, expected, result.stdout)
+        self.assertEqual({" ".join(line.split()[:2]) for line in self.findings_for_minimal_fixture(result)},
+                         expected, result.stdout)
 
     def test_reports_stale_names_with_scan_and_retention_exceptions(self) -> None:
         self.write("docs/name-map.json", json.dumps({"schema_version": 1, "rows": [
@@ -765,6 +1103,7 @@ class InstructionMetadataTests(unittest.TestCase):
                     *(f"name-collision workflows/{name}.md:0 Stem {name} is also used by rules/{name}.md."
                       for name in collisions),
                     usage,
+                    *MISSING_PHASE_CONTRACT_FINDINGS,
                 ]),
             ),
             result.stdout,
@@ -776,7 +1115,8 @@ class InstructionMetadataTests(unittest.TestCase):
         original = (self.root / env_path).read_bytes()
         baseline = self.run_checker()
         info = "info reserved-names-absent demo"
-        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr), (0, info + "\n", ""))
+        self.assertEqual((baseline.returncode, baseline.stdout, baseline.stderr),
+                         (1, MISSING_PHASE_CONTRACT_OUTPUT + info + "\n", ""))
         skills_line = b"skills_dir=$HOME/demo/skills\n"
         marker = self.workspace / "command-executed"
         fixtures = {
@@ -798,7 +1138,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
                 self.assertFalse(marker.exists(), "The checker executed an adapter command.")
                 self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-                findings = result.stdout.splitlines()
+                findings = self.findings_for_minimal_fixture(result)
                 self.assertIn(info, findings)
                 findings.remove(info)
                 self.assertEqual(len(findings), 1, result.stdout)
@@ -819,7 +1159,7 @@ class InstructionMetadataTests(unittest.TestCase):
         result = self.run_checker()
 
         self.assertEqual((result.returncode, result.stderr), (1, ""), result.stdout)
-        findings = [line.split(maxsplit=2)[:2] for line in result.stdout.splitlines()]
+        findings = [line.split(maxsplit=2)[:2] for line in self.findings_for_minimal_fixture(result)]
         self.assertCountEqual(
             findings,
             [
@@ -836,7 +1176,7 @@ class InstructionMetadataTests(unittest.TestCase):
 
         result = self.run_checker()
 
-        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (1, MISSING_PHASE_CONTRACT_OUTPUT, ""))
 
 
     def test_frozen_rule_load_checks_follow_front_matter_scalar_grammar(self) -> None:
