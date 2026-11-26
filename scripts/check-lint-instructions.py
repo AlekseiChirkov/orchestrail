@@ -1636,5 +1636,263 @@ class RuleMigrationRepairTests(unittest.TestCase):
         self.assertIn("`contract-git-flow → ## Finalization Git ownership`", framing)
 
 
+# Public names, metadata and arguments are independent of the delivered name map.
+COMMAND_MOVES = """\
+phase-discovery discovery discovery "-" <path-to-spec> [--phase N] [--step-by-step]
+pd-analyze discovery-analyze discovery 1 <task-directory> [--step-by-step]
+pd-decompose discovery-decompose discovery 2 <task-directory> [--step-by-step]
+pd-select-model discovery-select-model discovery 2.5 <path-to-atomic-description | task-directory> [--refresh]
+pd-design discovery-design discovery 3 <task-directory> [--step-by-step]
+pd-finalize discovery-finalize discovery 4 <task-directory> [--step-by-step]
+pd-archive discovery-archive discovery 4b <task-directory>
+phase-execution execution execution "-" <task-directory>
+pe-execute execution-execute execution 1 <task-directory>
+pe-finalize execution-finalize execution 2 <task-directory>
+phase-validation validation validation "-" <task-directory>
+pv-contract validation-contract validation 1 <task-directory>
+pv-review validation-review validation 2 <task-directory>
+pv-issues validation-issues validation 3 <task-directory>
+pv-create-fixes validation-create-fixes validation 4 <task-directory>
+pv-classify-fixes validation-classify-fixes validation 4a <task-directory>
+pv-execute-fixes validation-execute-fixes validation 5 <task-directory>
+pv-finalize validation-finalize validation 6 <task-directory>
+phase-atomic-execution atomic-execution atomic-execution "-" <path-to-atomic-description>
+pae-tests atomic-execution-tests atomic-execution 1 <path-to-atomic-description> [--batch] [--characterize]
+pae-implement atomic-execution-implement atomic-execution 2 <path-to-atomic-description>
+pae-finalize atomic-execution-finalize atomic-execution 3 <path-to-atomic-description>
+phase-atomic-validation atomic-validation atomic-validation "-" <path-to-atomic-description> [--batch]
+pav-check atomic-validation-check atomic-validation 1 <path-to-atomic-description>
+pav-propose atomic-validation-propose atomic-validation 2 <path-to-atomic-description> [--batch]
+pav-close atomic-validation-close atomic-validation 3 <path-to-atomic-description>
+phase-composite-validation composite-validation atomic-validation "-" <path-to-composite-description>
+phase-finalize finalization finalization "-" <task-directory|spec-path> [--dry-run]
+phase-pipeline pipeline orchestrated "-" <spec-path|task-directory>
+"""
+COMMANDS = tuple(tuple(line.split(maxsplit=4)) for line in COMMAND_MOVES.splitlines())
+UNCHANGED_WORKFLOWS = {
+    "orchestrated": ("spec-run",),
+    "entry": ("spec-draft", "spec-sync", "bugfix", "onboard-legacy-project"),
+    "utility": ("adr-new", "context-pack", "retro", "restack", "compress-state",
+                "suggest-commit-message", "suggest-commit-pr", "suggest-pr-description"),
+}
+
+
+class CanonicalWorkflowMigration(unittest.TestCase):
+    def test_command_map_usage_and_invocations_agree(self) -> None:
+        rows = name_map()["rows"]
+        expected = [{"kind": "workflow", "old": old, "new": [new]} for old, new, *_ in sorted(COMMANDS)]
+        observed = [row for row in rows if row["kind"] == "workflow"]
+        self.assertEqual(observed, expected, "The map must publish all command renames in old-name order")
+        usage = section(current("docs/USAGE.md"), "## Renamed commands and rules")
+        table = [cells(line) for line in usage.splitlines() if line.startswith("|")]
+        self.assertEqual(table[2:], [
+            (row["kind"], f"`{row['old']}`", ", ".join(f"`{name}`" for name in row["new"]))
+            for row in rows
+        ])
+        for old, new, phase, step, arguments in COMMANDS:
+            with self.subTest(command=new):
+                self.assertFalse((SOURCE / source(old, "workflows")).exists(), old)
+                self.assertTrue((SOURCE / source(new, "workflows")).is_file(), new)
+                document = current(source(new, "workflows"))
+                metadata = document.split("---", 2)[1].splitlines()
+                self.assertIn(f"phase: {phase}", metadata)
+                self.assertIn(f"step: {step}", metadata)
+                self.assertEqual(re.findall(r"(?m)^Invocation: .+$", document),
+                                 [f"Invocation: `/{new} {arguments}`"])
+        for phase, names in UNCHANGED_WORKFLOWS.items():
+            for name in names:
+                with self.subTest(command=name):
+                    document = current(source(name, "workflows"))
+                    metadata = document.split("---", 2)[1].splitlines()
+                    self.assertIn(f"phase: {phase}", metadata)
+                    self.assertIn('step: "-"', metadata)
+                    self.assertRegex(document, rf"(?m)^Invocation: `/{name}(?:`| )")
+
+    def test_dispatches_and_capability_table_use_installed_commands(self) -> None:
+        dispatches = {
+            "pipeline": ("discovery", "execution", "validation", "finalization"),
+            "discovery": ("discovery-analyze", "discovery-decompose", "discovery-select-model",
+                          "discovery-design", "discovery-finalize"),
+            "discovery-finalize": ("discovery-archive",),
+            "execution": ("execution-execute", "execution-finalize"),
+            "execution-execute": ("atomic-execution", "atomic-validation"),
+            "atomic-execution": ("atomic-execution-tests", "atomic-execution-implement",
+                                 "atomic-execution-finalize"),
+            "atomic-validation": ("atomic-validation-check", "atomic-validation-propose",
+                                  "atomic-validation-close"),
+            "atomic-validation-close": ("composite-validation",),
+            "validation": ("validation-contract", "validation-review", "validation-issues",
+                           "validation-create-fixes", "validation-execute-fixes", "validation-finalize"),
+            "validation-create-fixes": ("validation-classify-fixes",),
+        }
+        for caller, children in dispatches.items():
+            with self.subTest(caller=caller):
+                path = SOURCE / source(caller, "workflows")
+                self.assertTrue(path.is_file(), f"Missing installed dispatch source {caller}")
+                references = set(re.findall(r"`/([a-z0-9-]+)(?=[ `])", path.read_text()))
+                self.assertFalse(set(children) - references, f"Missing child calls in {caller}")
+        capability = section(current(PHASE_CONTRACT), "## Capabilities")
+        delivered = {row[0]: row[1:] for row in map(cells, capability.splitlines()) if len(row) == 4}
+        for required in BEHAVIOUR_ROWS:
+            behaviour, workflows, requires, _ = cells(required)
+            with self.subTest(behaviour=behaviour):
+                self.assertIn(behaviour, delivered)
+                self.assertEqual(delivered[behaviour][:2], (workflows, requires))
+        self.assertIn("`/pipeline <task-directory>`", delivered[cells(BEHAVIOUR_ROWS[0])[0]][2])
+        self.assertIn("`note: approximate`", delivered[cells(BEHAVIOUR_ROWS[-1])[0]][2])
+
+    def test_spec_run_stops_at_first_unavailable_sequential_capability_before_side_effects(self) -> None:
+        document = current("workflows/spec-run.md")
+        guard = section(document, "## Guard")
+        self.assertTrue(guard)
+        order = ("sub-agents", "agent-messaging", "git")
+        mentions = re.findall(r"`(sub-agents|agent-messaging|git)`", guard)
+        self.assertEqual(tuple(dict.fromkeys(mentions)), order)
+        self.assertRegex(guard, r"(?i)first (?:required )?(?:unavailable|failing|failure|key)")
+        self.assertIn("always-on", guard)
+        stop = [line for line in guard.splitlines() if "**stop**" in line]
+        message = ("spec-run requires capability <key> (declared: <yes|no|unknown|absent>; "
+                   "session tool: <available|unavailable>). <next-step>")
+        self.assertEqual(len(stop), 1, guard)
+        self.assertIn(message, stop[0])
+        self.assertTrue(any(
+            "Use /pipeline <task-directory> for the single-session path." in line and "**stop**" not in line
+            for line in guard.splitlines()
+        ), guard)
+        self.assertRegex(guard, r"(?is)state: yes.{0,180}(?:session|tool)")
+        self.assertRegex(guard, r"(?is)before.{0,200}writ.{0,200}branch.{0,100}commit.{0,100}spawn.{0,100}(?:log|telemetry)")
+        for heading in ("## Run Logging", "## Step 0"):
+            self.assertLess(document.index("## Guard"), document.index(heading))
+        self.assertNotRegex(guard, r"(?m)\brequire\b[^\n]*(?:worktrees|concurrent-sub-agents)")
+
+    def test_isolated_export_installation_matches_all_resolved_sources(self) -> None:
+        commands = {new for _, new, *_ in COMMANDS} | {name for names in UNCHANGED_WORKFLOWS.values() for name in names}
+        paths = {name: source(name, "workflows") for name in commands}
+        for directory, prefix in (("rules", "rule-"), ("principles", "principle-")):
+            paths.update({prefix + path.stem: path.relative_to(SOURCE)
+                          for path in (SOURCE / directory).glob("*.md")})
+        with tempfile.TemporaryDirectory(prefix="command-installation-") as directory:
+            fixture = Path(directory)
+            package = fixture / "source export"
+            for relative in ("workflows", "rules", "principles", "harness"):
+                shutil.copytree(SOURCE / relative, package / relative)
+            (package / "docs").mkdir()
+            shutil.copyfile(SOURCE / "docs/name-map.json", package / "docs/name-map.json")
+            (package / "scripts").mkdir()
+            shutil.copyfile(SOURCE / "scripts/deploy-skills.py", package / "scripts/deploy-skills.py")
+            environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            environment.update(HOME=str(fixture / "home"), XDG_CONFIG_HOME=str(fixture / "config"),
+                               XDG_STATE_HOME=str(fixture / "state"), GIT_CEILING_DIRECTORIES=str(fixture))
+            hook = '{"reason":"fixture","status":"unavailable"}'
+            result = subprocess.run(
+                [sys.executable, "-I", str(package / "scripts/deploy-skills.py"), "deploy",
+                 "--from", str(package), "--hook-result", hook],
+                cwd=package, env=environment, capture_output=True, text=True, check=False, timeout=30,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for adapter in sorted((package / "harness").glob("*/deploy.env")):
+                with self.subTest(harness=adapter.parent.name):
+                    settings = dict(line.split("=", 1) for line in adapter.read_text().splitlines()
+                                    if line.startswith(("skills_dir=", "always_on_path=")))
+                    skills = fixture / "home" / settings["skills_dir"].removeprefix("$HOME/")
+                    self.assertEqual({entry.name for entry in skills.iterdir()}, set(paths))
+                    for name, relative in paths.items():
+                        self.assertEqual({p.name for p in (skills / name).iterdir()}, {"SKILL.md"}, name)
+                        self.assertEqual((skills / name / "SKILL.md").read_bytes(), (package / relative).read_bytes(), name)
+                    installed = fixture / "home" / settings["always_on_path"].removeprefix("$HOME/")
+                    hook_result = hook if (adapter.parent / "hooks.json").is_file() else (
+                        '{"reason":"no-native-adapter","status":"unavailable"}'
+                    )
+                    instructions = (adapter.parent / "always-on.md").read_bytes()
+                    declaration = (adapter.parent / "capabilities.md").read_bytes()
+                    self.assertEqual(installed.read_bytes(), instructions + b"\n<!-- Logging capabilities -->\n"
+                                     + declaration + b"\n## Current hook installation\n\ninstallation-result: "
+                                     + hook_result.encode() + b"\n")
+
+    def test_strict_checker_accepts_the_complete_migration(self) -> None:
+        result = subprocess.run([sys.executable, "-I", str(CHECKER)], cwd=SOURCE,
+                                capture_output=True, text=True, check=False, timeout=30)
+        findings = [line for line in result.stdout.splitlines() if not line.startswith("info ")]
+        self.assertEqual((result.returncode, result.stderr, findings), (0, "", []), result.stdout)
+
+    def test_audited_pipeline_reference_rows_name_the_applied_command_fixes(self) -> None:
+        record, = SOURCE.glob("docs/audits/*-rule-migration-map.md")
+        table = section(current(record), "## Pre-existing reference defects")
+        pipeline = SOURCE / "workflows/pipeline.md"
+        self.assertTrue(pipeline.is_file(), "Missing the pipeline that dispatches the canonical commands")
+        current_pipeline = pipeline.read_text()
+        mapped = {old: new for old, new, *_ in COMMANDS}
+        mapped["compress-state"] = "compress-state"
+        fixes = [
+            (old.strip("`").removesuffix(".md"), fix)
+            for location, old, fix in (row for row in map(cells, table.splitlines()) if len(row) == 3)
+            if location.startswith("`workflows/phase-pipeline.md:")
+        ]
+        self.assertEqual(len(fixes), 22, table)
+        for old, fix in fixes:
+            with self.subTest(audited_reference=old):
+                self.assertIn(old, mapped)
+                self.assertIn(f"`/{mapped[old]}`", fix)
+                self.assertRegex(current_pipeline, rf"`/{mapped[old]}(?=[ `])")
+
+    def test_finalization_retains_journal_authority_and_uses_the_new_log_name(self) -> None:
+        old = "phase-finalize"
+        canonical = "finalization"
+        fixtures = runpy.run_path(str(SOURCE / "scripts/check-phase-finalize.py"))
+        case = fixtures["FinalizationChecks"]()
+        self.addCleanup(case.doCleanups)
+        case.setUp()
+        prior = case.prepare()
+        journal = Path(prior["journal_path"])
+        prepared = json.loads(journal.read_bytes())
+        authority = {"invocation": old, "task_path": str(case.task), "cleanup": True}
+        self.assertEqual(prepared["authorization"], authority)
+        recorded = case.checkpoint("record", prior)
+        self.assertEqual(recorded["status"], "recorded", recorded)
+        valid = journal.read_bytes()
+        invalid = json.loads(valid)
+        self.assertEqual(invalid["authorization"], authority)
+        invalid["authorization"]["invocation"] = canonical
+        journal.write_text(json.dumps(invalid, sort_keys=True, indent=2) + "\n")
+        changed = journal.read_bytes()
+        revision = hashlib.sha256(changed).hexdigest()
+        case.blocked(case.checkpoint("attempt", {"revision": revision}), "authorization-required")
+        self.assertEqual(journal.read_bytes(), changed)
+
+        path = SOURCE / source(canonical, "workflows")
+        self.assertTrue(path.is_file(), "The compatible finalization command has not been installed under its new name")
+        logging = section(path.read_text(), "## Run Logging")
+        pipeline = re.search(r"\brun-start --pipeline ([a-z-]+)\b", logging)
+        step = re.search(r"\bstep --run [^\s]+ --step ([a-z-]+)\b", logging)
+        self.assertIsNotNone(pipeline, logging)
+        self.assertIsNotNone(step, logging)
+        self.assertEqual((pipeline[1], step[1]), (canonical, canonical), logging)
+
+        def log(*arguments: str) -> str:
+            result = subprocess.run(
+                ["bash", str(SOURCE / "scripts/log-step.sh"), *arguments], cwd=case.root,
+                env={**case.environment(), "ORCHESTRAIL_LOG_ROOT": str(case.root / "telemetry")},
+                capture_output=True, text=True, check=False, timeout=10,
+            )
+            self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+            return result.stdout.strip()
+
+        history = log("run-start", "--pipeline", old)
+        history_file = Path(log("path", "--run", history))
+        log("step", "--run", history, "--step", old, "--outcome", "ok")
+        log("run-end", "--run", history, "--outcome", "completed")
+        history_bytes = history_file.read_bytes()
+
+        current_run = log("run-start", "--pipeline", pipeline[1])
+        current_file = Path(log("path", "--run", current_run))
+        log("step", "--run", current_run, "--step", step[1], "--outcome", "ok")
+        log("run-end", "--run", current_run, "--outcome", "completed")
+        entries = [json.loads(line) for line in current_file.read_bytes().splitlines()]
+        self.assertEqual([entry["pipeline"] for entry in entries], [canonical] * 3)
+        self.assertEqual(entries[1]["step"], canonical)
+        self.assertEqual(history_file.read_bytes(), history_bytes)
+        self.assertEqual([json.loads(line)["pipeline"] for line in history_bytes.splitlines()], [old] * 3)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
