@@ -63,13 +63,15 @@ def read_evidence(path: Path) -> dict:
 
 
 def bound_journal(root: Path, evidence: dict) -> tuple[Path, dict, str]:
-    locations = {str(root / path) for path in ALIASES}
+    locations = {root / path for path in ALIASES}
     matches = []
     for path in journal_files(root):
         data = read_regular(path, JOURNAL_LIMIT, root)
         journal = json_object(data)
         validate_journal_document(root, path, journal)
-        if any(journal[key] in locations for key in ('task_original', 'task_current', 'spec_original', 'spec_current')):
+        claims = {Path(os.path.abspath(journal[key]))
+                  for key in ('task_original', 'task_current', 'spec_original', 'spec_current')}
+        if claims & locations:
             matches.append((path, journal, digest(data)))
     require(len(matches) == 1, INVALID, 'Relocation must identify exactly one journal')
     path, journal, revision = matches[0]
