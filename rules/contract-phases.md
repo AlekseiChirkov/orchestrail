@@ -361,10 +361,12 @@ exception exists. Schema authority remains the finalization helper header.
 
 ## Capabilities
 
-Read the declared capability records in the always-on instructions and verify that the
-session exposes the required tools and permissions. Use the listed fallback or stop
-before any side effect when a required mechanism is unavailable. Report only mechanisms
-the run actually uses.
+Read the declared capability records in the always-on instructions. Treat `no`, `unknown`
+or an absent record as unavailable. At dispatch, even a declared `yes` requires the
+session to expose the tool and permission to use it. Check without network probing.
+Require new evidence when a record changes. Use the listed fallback or stop before any
+side effect when a required mechanism is unavailable. Report only mechanisms the run
+actually uses.
 
 | Behaviour | Workflow | Requires | Without it |
 | --- | --- | --- | --- |

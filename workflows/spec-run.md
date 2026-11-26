@@ -38,8 +38,8 @@ still needs explicit authorization. A completed run with no remaining PR promoti
 
 ## Repository mode
 
-The **project root** `ROOT` is the directory holding `.ai/specs/<spec>`. Classify it before
-anything else. When no `--repo` flag was given and `git -C "$ROOT" rev-parse
+After the Guard succeeds, classify the **project root** `ROOT`, the directory holding
+`.ai/specs/<spec>`. When no `--repo` flag was given and `git -C "$ROOT" rev-parse
 --is-inside-work-tree` prints `true`, the run is **single-repository**: `WORK_DIR = ROOT`,
 everything below applies unchanged, and the helper is never used. Otherwise classify with
 `repo-set.py mode`, a read-only helper resolved from the configured or independently
