@@ -1169,5 +1169,284 @@ T-01 | Deliver product | atomic-tests: green | atomic-execution: complete | atom
         self.assertEqual({'service', 'client'}, {r['name'] for r in result['repositories']})
 
 
+class ArchivedRelocationChecks(unittest.TestCase):
+    TASK_OLD = '.ai/tasks/completed/task-25-spec-driven-pr-review-p1'
+    TASK_NEW = '.ai/tasks/completed/task-026-spec-driven-pr-review-p1'
+    SPEC_OLD = '.ai/specs/25-spec-driven-pr-review.md'
+    SPEC_NEW = '.ai/specs/completed/026-spec-driven-pr-review.md'
+    RELOCATION = '32a608fc1f0d40929eb04df93c166a8173607432'
+    ARCHIVAL = '42325d2dc40c0b20bb333e1b7c7fdf5e5ce14117'
+    SELECTORS = (TASK_OLD, TASK_NEW, SPEC_OLD, SPEC_NEW)
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory(prefix='archive-relocation-fixture-')
+        self.addCleanup(temporary.cleanup)
+        self.workspace = Path(temporary.name)
+        self.root = self.workspace / 'project'
+        self.environment = {'PATH': os.defpath, 'GIT_CONFIG_NOSYSTEM': '1',
+                            'GIT_CONFIG_GLOBAL': '/dev/null', 'PYTHONDONTWRITEBYTECODE': '1'}
+        for name in ('HOME', 'XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_DATA_HOME',
+                     'XDG_CACHE_HOME', 'XDG_RUNTIME_DIR', 'TMPDIR'):
+            directory = self.workspace / name.lower()
+            directory.mkdir(mode=0o700)
+            self.environment[name] = str(directory)
+
+        # Copy immutable objects into a non-sharing repository. Neither source refs
+        # nor the source checkout's finalization store are fixture inputs.
+        self.git('clone', '--quiet', '--local', '--no-hardlinks', '--no-checkout', '--',
+                 str(HELPER.resolve().parent.parent), str(self.root), cwd=self.workspace)
+        self.git('remote', 'remove', 'origin')
+        self.git('update-ref', '--no-deref', 'HEAD', self.RELOCATION)
+        self.git('read-tree', self.RELOCATION)
+        self.git('-c', 'user.name=Fixture Author', '-c', 'user.email=fixture@example.invalid',
+                 'commit', '--allow-empty', '-m', 'chore: advance fixture head')
+        self.head = self.git('rev-parse', 'HEAD').decode().strip()
+        tracked = self.git('ls-files', '-z', '--', self.TASK_NEW, self.SPEC_NEW)
+        self.tracked = [os.fsdecode(path) for path in tracked.split(b'\0') if path]
+        self.assertIn(self.SPEC_NEW, self.tracked)
+        self.git('checkout-index', '--', *self.tracked)
+
+        original = self.root / '.ai/tasks/todo' / Path(self.TASK_OLD).name
+        self.journal = self.journal_path(original)
+        self.snapshot = self.journal.parent / 'snapshot'
+        spec_bytes = self.git('show', f'{self.ARCHIVAL}^:{self.SPEC_OLD}')
+        task_files = {}
+        for tracked_path in self.tracked:
+            path = Path(tracked_path)
+            if not path.is_relative_to(self.TASK_NEW):
+                continue
+            relative = path.relative_to(self.TASK_NEW)
+            data = self.git('show', f'{self.ARCHIVAL}^:{self.TASK_OLD}/{relative}')
+            destination = self.snapshot / 'task' / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(data)
+            task_files[relative.as_posix()] = self.sha256(data)
+        (self.snapshot / 'spec.md').write_bytes(spec_bytes)
+        task_directories = [path.relative_to(self.snapshot / 'task').as_posix()
+                            for path in sorted((self.snapshot / 'task').rglob('*')) if path.is_dir()]
+        self.journal_document = {
+            'schema_version': 1, 'project_root': str(self.root), 'id': self.journal.parent.name,
+            'task_original': str(original), 'task_current': str(self.root / self.TASK_OLD),
+            'spec_original': str(self.root / self.SPEC_OLD), 'spec_current': str(self.root / self.SPEC_OLD),
+            'snapshot_path': str(self.snapshot), 'repositories': [], 'actions': [], 'complete': True,
+            'outcomes': {'cleanup': 'complete', 'deployment': 'unverified'},
+            'manifest': {'spec_sha256': self.sha256(spec_bytes), 'task_files': task_files,
+                         'task_directories': task_directories},
+            'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True},
+        }
+        self.journal.write_text(json.dumps(self.journal_document), encoding='utf-8')
+        self.journal.with_name('journal.lock').touch()
+        self.evidence = self.workspace / 'relocation.json'
+        self.evidence_document = {
+            'schema_version': '1', 'journal_id': self.journal.parent.name,
+            'journal_sha256': self.sha256(self.journal.read_bytes()), 'evidence_commit': self.RELOCATION,
+            'task_old': self.TASK_OLD, 'task_new': self.TASK_NEW,
+            'spec_old': self.SPEC_OLD, 'spec_new': self.SPEC_NEW,
+        }
+        self.write_evidence()
+
+    def git(self, *args: str, cwd: Path | None = None) -> bytes:
+        result = subprocess.run(['git', *args], cwd=cwd or self.root, env=self.environment,
+                                capture_output=True, timeout=20)
+        self.assertEqual(0, result.returncode, f'Fixture git {args}: {result.stderr.decode()}')
+        return result.stdout
+
+    def sha256(self, data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
+    def journal_path(self, original: Path) -> Path:
+        identity_bytes = (str(self.root) + '\0' + original.relative_to(self.root).as_posix()).encode()
+        return self.root / '.ai/context/finalization' / self.sha256(identity_bytes) / 'journal.json'
+
+    def write_evidence(self, **changes: object) -> None:
+        self.evidence.write_text(json.dumps(self.evidence_document | changes), encoding='utf-8')
+
+    def persisted_state(self) -> dict[str, tuple[int, bytes]]:
+        state = {}
+        for directory, directories, files in os.walk(self.workspace):
+            parent = Path(directory)
+            if parent == self.root / '.git':
+                directories.remove('objects')
+            for name in directories + files:
+                path = parent / name
+                data = b''
+                if path.is_symlink():
+                    data = os.fsencode(os.readlink(path))
+                elif path.is_file():
+                    data = path.read_bytes()
+                state[path.relative_to(self.workspace).as_posix()] = (path.lstat().st_mode, data)
+        return state
+
+    def call(self, selector: str, *options: str, command: str = 'inspect') -> tuple[int, dict]:
+        before = self.persisted_state()
+        result = subprocess.run([sys.executable, str(HELPER), command, selector,
+                                 '--root', str(self.root), *options], cwd=self.root,
+                                env=self.environment, capture_output=True, text=True, timeout=10)
+        self.assertEqual(before, self.persisted_state(), 'Inspect and refused operations must preserve fixture state')
+        try:
+            response = json.loads(result.stdout)
+        except ValueError:
+            self.fail(f'Expected finalization JSON, got exit {result.returncode}: {result.stderr}')
+        return result.returncode, response
+
+    def inspect(self, selector: str) -> tuple[int, dict]:
+        return self.call(selector, '--relocation-evidence', str(self.evidence))
+
+    def assert_refused(self, result: tuple[int, dict], check: str) -> None:
+        status, response = result
+        self.assertEqual((1, 'blocked', False), (status, response['status'], response['complete']), response)
+        self.assertEqual([check], [failure['check'] for failure in response['failures']], response)
+        self.assertNotIn('hook_receipts', response)
+
+    def test_all_archived_selectors_return_same_verified_inspection(self) -> None:
+        reference = None
+        for selector in self.SELECTORS:
+            with self.subTest(selector=selector):
+                status, response = self.inspect(selector)
+                self.assertEqual((0, 'ready', False, []),
+                                 (status, response['status'], response['complete'], response['failures']))
+                self.assertEqual('verified-read-only', response['relocation'])
+                self.assertEqual(self.journal.parent.name, response['id'])
+                self.assertEqual(str(self.journal), response['journal_path'])
+                self.assertEqual(self.evidence_document['journal_sha256'], response['revision'])
+                self.assertEqual({'task_path': str(self.root / self.TASK_NEW),
+                                  'spec_path': str(self.root / self.SPEC_NEW),
+                                  'original_task_path': self.journal_document['task_original']},
+                                 response['resolution'])
+                self.assertNotIn('authorization', response)
+                self.assertNotIn('hook_receipts', response)
+                if reference is None:
+                    reference = response
+                self.assertEqual(reference, response)
+
+    def test_missing_evidence_keeps_existing_refusals(self) -> None:
+        expected = ('archive-recovery-incomplete', 'adoption-evidence-missing',
+                    'archive-recovery-incomplete', 'adoption-evidence-missing')
+        for selector, check in zip(self.SELECTORS, expected, strict=True):
+            self.assert_refused(self.call(selector), check)
+        self.evidence.unlink()
+        self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+
+    def test_invalid_evidence_never_falls_back(self) -> None:
+        for field, value in {'journal_id': '0' * 64, 'journal_sha256': '0' * 64,
+                             'schema_version': 1, 'task_old': self.TASK_NEW, 'task_new': self.TASK_OLD,
+                             'spec_old': self.SPEC_NEW, 'spec_new': self.SPEC_OLD,
+                             'evidence_commit': self.ARCHIVAL, 'extra': 'field'}.items():
+            with self.subTest(field=field):
+                self.write_evidence(**{field: value})
+                self.assert_refused(self.inspect(self.TASK_OLD), 'relocation-evidence-invalid')
+        valid = json.dumps(self.evidence_document).encode()
+        for label, data in {'duplicate-key': b'{"schema_version":"1",' + valid[1:],
+                            'invalid-utf8': valid + b'\xff',
+                            'oversized': valid.ljust(1024 * 1024 + 1, b' ')}.items():
+            with self.subTest(evidence=label):
+                self.evidence.write_bytes(data)
+                self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        self.evidence.unlink()
+        same_bytes = self.workspace / 'known-evidence.json'
+        same_bytes.write_bytes(valid)
+        self.evidence.symlink_to(same_bytes)
+        with self.subTest(evidence='symlink'):
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        self.evidence.unlink()
+        self.evidence.mkdir()
+        with self.subTest(evidence='directory'):
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        self.evidence.rmdir()
+        os.mkfifo(self.evidence)
+        with self.subTest(evidence='named pipe'):
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+
+    def test_changed_untracked_or_unsafe_files_are_refused(self) -> None:
+        task_file = next(path for path in self.tracked if path != self.SPEC_NEW)
+        for name in (task_file, self.SPEC_NEW):
+            path = self.root / name
+            data = path.read_bytes()
+            with self.subTest(path=name, fault='changed bytes'):
+                path.write_bytes(data + b'\nChanged fixture bytes.\n')
+                self.assert_refused(self.inspect(self.TASK_OLD), 'relocation-evidence-invalid')
+            path.write_bytes(data)
+            with self.subTest(path=name, fault='present but untracked'):
+                self.git('update-index', '--force-remove', '--', name)
+                self.assert_refused(self.inspect(self.SPEC_OLD), 'relocation-evidence-invalid')
+            self.git('read-tree', self.RELOCATION)
+            with self.subTest(path=name, fault='symlink escape with matching bytes'):
+                external = self.workspace / 'outside-project'
+                external.write_bytes(data)
+                path.unlink()
+                path.symlink_to(external)
+                self.assert_refused(self.inspect(self.SPEC_NEW), 'relocation-evidence-invalid')
+            path.unlink()
+            path.write_bytes(data)
+        with self.subTest(fault='extra task file'):
+            extra = self.root / self.TASK_NEW / 'extra.md'
+            extra.write_text('Unexpected bytes.', encoding='utf-8')
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        extra.unlink()
+        with self.subTest(fault='symlink in task directory path'):
+            task = self.root / self.TASK_NEW
+            external_task = self.workspace / 'outside-task'
+            task.rename(external_task)
+            task.symlink_to(external_task, target_is_directory=True)
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+
+    def test_stale_history_or_competing_journal_is_refused(self) -> None:
+        with self.subTest(fault='evidence commit is not an ancestor'):
+            self.git('update-ref', '--no-deref', 'HEAD', self.RELOCATION + '^')
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        self.git('update-ref', '--no-deref', 'HEAD', self.head)
+        snapshot_spec = self.snapshot / 'spec.md'
+        original_bytes = snapshot_spec.read_bytes()
+        original_journal = self.journal.read_bytes()
+        with self.subTest(fault='stale journal digest'):
+            self.journal.write_bytes(original_journal + b'\n')
+            self.assert_refused(self.inspect(self.TASK_NEW), 'relocation-evidence-invalid')
+        self.journal.write_bytes(original_journal)
+        with self.subTest(fault='snapshot bytes and journal agree but disagree with Git provenance'):
+            forged = original_bytes + b'\nForged historical bytes.\n'
+            snapshot_spec.write_bytes(forged)
+            manifest = self.journal_document['manifest'] | {'spec_sha256': self.sha256(forged)}
+            self.journal.write_text(json.dumps(self.journal_document | {'manifest': manifest}), encoding='utf-8')
+            self.write_evidence(journal_sha256=self.sha256(self.journal.read_bytes()))
+            self.assert_refused(self.inspect(self.SPEC_OLD), 'relocation-evidence-invalid')
+        snapshot_spec.write_bytes(original_bytes)
+        self.journal.write_bytes(original_journal)
+        self.write_evidence()
+        with self.subTest(fault='competing journal for current paths'):
+            original = self.root / '.ai/tasks/todo' / Path(self.TASK_NEW).name
+            competing = self.journal_path(original)
+            competing.parent.mkdir()
+            other = self.journal_document | {'id': competing.parent.name, 'task_original': str(original),
+                     'task_current': str(self.root / self.TASK_NEW), 'spec_current': str(self.root / self.SPEC_NEW),
+                     'authorization': {'invocation': 'phase-finalize', 'task_path': str(original), 'cleanup': True}}
+            competing.write_text(json.dumps(other), encoding='utf-8')
+            for selector in (self.TASK_NEW, self.SPEC_NEW):
+                self.assert_refused(self.inspect(selector), 'relocation-evidence-invalid')
+
+    def test_every_mutating_command_refuses_archived_selectors(self) -> None:
+        for command in ('prepare', 'attempt', 'record', 'knowledge', 'archive', 'finish'):
+            for selector in self.SELECTORS:
+                with self.subTest(command=command, selector=selector):
+                    self.assert_refused(self.call(selector, '--authorize', '--expected-revision',
+                                                  self.evidence_document['journal_sha256'], command=command),
+                                        'relocation-inspect-only')
+            with self.subTest(command=command, selector='ordinary task with relocation evidence'):
+                status, response = self.call('.ai/tasks/todo/ordinary', '--relocation-evidence',
+                                             str(self.evidence), command=command)
+                self.assertEqual((1, 'blocked', False), (status, response['status'], response['complete']))
+                self.assertTrue(response['failures'][0]['check'].startswith('relocation-'), response)
+
+    def test_successful_inspection_never_authorizes_mutation(self) -> None:
+        status, response = self.inspect(self.SPEC_NEW)
+        self.assertEqual((0, 'verified-read-only'), (status, response['relocation']))
+        for selector in self.SELECTORS:
+            for options in ((), ('--relocation-evidence', str(self.evidence)),
+                            ('--dry-run', '--relocation-evidence', str(self.evidence))):
+                with self.subTest(selector=selector, options=options):
+                    self.assert_refused(self.call(selector, '--authorize', '--expected-revision',
+                                                  response['revision'], *options, command='finish'),
+                                        'relocation-inspect-only')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
